@@ -1,22 +1,30 @@
 # Template: module
 
-Generates Angular 17+ application config files: `app.config.ts` and `app.routes.ts`.
+Generates the full Angular 17+ application scaffold: config, routing, shell component, entry point, and project files.
+
+---
 
 ## app.config.ts
 
 ```typescript
-import { ApplicationConfig } from '@angular/core';
-import { provideRouter, withComponentInputBinding } from '@angular/router';
+import { ApplicationConfig, importProvidersFrom } from '@angular/core';
+import { provideRouter } from '@angular/router';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { provideAnimations } from '@angular/platform-browser/animations';
+import { ProtheusLibCoreModule } from '@totvs/protheus-lib-core';
 import { routes } from './app.routes';
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideRouter(routes, withComponentInputBinding()),
+    provideRouter(routes),
     provideHttpClient(withInterceptorsFromDi()),
+    provideAnimations(),
+    importProvidersFrom(ProtheusLibCoreModule),
   ],
 };
 ```
+
+---
 
 ## app.routes.ts
 
@@ -25,16 +33,30 @@ import { Routes } from '@angular/router';
 
 export const routes: Routes = [
   { path: '', redirectTo: '{{firstRoute}}', pathMatch: 'full' },
-  // TODO: add feature routes using loadComponent pattern:
+  // TODO: add feature routes using loadComponent:
   // {
   //   path: '{{firstRoute}}',
   //   loadComponent: () =>
-  //     import('./{{moduleName}}/{{kebab-name}}-list/{{kebab-name}}-list.component')
-  //       .then(m => m.{{ComponentClass}}ListComponent),
+  //     import('./{{moduleName}}/{{kebab-name}}/{{kebab-name}}.component')
+  //       .then(m => m.{{ComponentClass}}),
+  // },
+  // {
+  //   path: '{{firstRoute}}/novo',
+  //   loadComponent: () =>
+  //     import('./{{moduleName}}/{{kebab-name}}-edit/{{kebab-name}}-edit.component')
+  //       .then(m => m.{{ComponentClass}}EditComponent),
+  // },
+  // {
+  //   path: '{{firstRoute}}/:id',
+  //   loadComponent: () =>
+  //     import('./{{moduleName}}/{{kebab-name}}-edit/{{kebab-name}}-edit.component')
+  //       .then(m => m.{{ComponentClass}}EditComponent),
   // },
   { path: '**', redirectTo: '{{firstRoute}}' },
 ];
 ```
+
+---
 
 ## main.ts
 
@@ -47,27 +69,159 @@ bootstrapApplication(AppComponent, appConfig)
   .catch(err => console.error(err));
 ```
 
-## app.component.ts (shell with po-menu)
+---
+
+## app.component.ts
 
 ```typescript
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { PoMenuModule, PoToolbarModule, PoMenuItem } from '@po-ui/ng-components';
+import { ProAppConfigService } from '@totvs/protheus-lib-core';
 
 @Component({
   selector: 'app-root',
   standalone: true,
   imports: [RouterOutlet, PoMenuModule, PoToolbarModule],
-  template: `
-    <po-toolbar p-title="{{ModuleName}}"></po-toolbar>
-    <po-menu [p-menus]="menus" p-collapsed="false"></po-menu>
-    <router-outlet></router-outlet>
-  `,
+  templateUrl: './app.component.html',
+  styleUrl: './app.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppComponent {
+  constructor(private proAppConfigService: ProAppConfigService) {
+    if (!this.proAppConfigService.insideProtheus()) {
+      this.proAppConfigService.loadAppConfig();
+    }
+  }
+
   readonly menus: PoMenuItem[] = [
     // TODO: add menu items matching routes
+    // { label: 'Clientes', link: '/clientes', shortLabel: 'Clientes', icon: 'po-icon-user' },
+    { label: 'Sair', shortLabel: 'Sair', icon: 'po-icon-exit', action: this.closeApp.bind(this) },
   ];
+
+  private closeApp(): void {
+    if (this.proAppConfigService.insideProtheus()) {
+      this.proAppConfigService.callAppClose();
+    }
+  }
 }
 ```
+
+## app.component.html
+
+```html
+<div class="po-wrapper">
+  <po-toolbar p-title="{{ModuleName}}"></po-toolbar>
+  <po-menu [p-menus]="menus" [p-filter]="true"></po-menu>
+  <div class="container-fluid">
+    <router-outlet></router-outlet>
+  </div>
+</div>
+```
+
+## app.component.scss
+
+```scss
+// Global app shell styles
+```
+
+---
+
+## src/index.html
+
+```html
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>{{ModuleName}}</title>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+</head>
+<body>
+  <app-root></app-root>
+</body>
+</html>
+```
+
+---
+
+## package.json
+
+```json
+{
+  "name": "{{kebab-name}}",
+  "version": "0.0.0",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve --proxy-config proxy.conf.json",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test"
+  },
+  "private": true,
+  "dependencies": {
+    "@angular/animations": "^17.3.0",
+    "@angular/common": "^17.3.0",
+    "@angular/compiler": "^17.3.0",
+    "@angular/core": "^17.3.0",
+    "@angular/forms": "^17.3.0",
+    "@angular/platform-browser": "^17.3.0",
+    "@angular/platform-browser-dynamic": "^17.3.0",
+    "@angular/router": "^17.3.0",
+    "@po-ui/ng-components": "^17.0.0",
+    "@po-ui/ng-templates": "^17.0.0",
+    "@totvs/po-theme": "^17.0.0",
+    "@totvs/protheus-lib-core": "^17.0.0",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.6.0",
+    "zone.js": "~0.14.0"
+  },
+  "devDependencies": {
+    "@angular-devkit/build-angular": "^17.3.0",
+    "@angular/cli": "~17.3.0",
+    "@angular/compiler-cli": "^17.3.0",
+    "typescript": "~5.4.0"
+  }
+}
+```
+
+> **Note:** Verify the latest compatible versions of `@po-ui/ng-components`, `@totvs/po-theme`, and `@totvs/protheus-lib-core` that match your Angular version on npm before running `npm install`.
+
+---
+
+## angular.json (styles section — critical for PO-UI theme)
+
+The `architect.build.options.styles` array must include the PO-UI theme CSS files:
+
+```json
+"styles": [
+  "node_modules/@totvs/po-theme/css/po-theme-default-variables.min.css",
+  "node_modules/@totvs/po-theme/css/po-theme-default.min.css",
+  "node_modules/@po-ui/style/css/po-theme-core.min.css",
+  "src/styles.scss"
+]
+```
+
+Without these files the PO-UI components render without any styling.
+
+---
+
+## proxy.conf.json
+
+Used during local development to proxy `/rest` calls to the Protheus AppServer:
+
+```json
+{
+  "/rest": {
+    "target": "http://localhost:8084",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  }
+}
+```
+
+Run with: `ng serve --proxy-config proxy.conf.json`
