@@ -1,6 +1,6 @@
 ---
 name: poui-code-generation
-description: Use when generating PO-UI Angular code — complete ready-to-adapt templates for page-list, page-edit, service, and module artifacts for Protheus integration
+description: Use when generating PO-UI Angular code — complete ready-to-adapt templates for page-list, page-dynamic-search, page-edit, modal-crud, service, module, and dashboard artifacts for Protheus integration
 ---
 
 # PO-UI Code Generation Templates
@@ -22,12 +22,30 @@ All templates use these substitution placeholders:
 | `{{modelFile}}` | Model file kebab-case | `cliente` |
 | `{{ServiceClass}}` | Service class name | `ClientesService` |
 | `{{serviceFile}}` | Service file kebab-case | `clientes.service` |
-| `{{apiPath}}` | Protheus REST path | `/api/custom/v1/clientes` |
+| `{{apiPath}}` | Protheus REST path | `/rest/api/custom/v1/clientes` |
 | `{{moduleName}}` | Feature folder name | `financeiro` |
+| `{{ModuleName}}` | PascalCase module label | `Financeiro` |
 
 ## Templates
 
-- **page-list:** `templates-page-list.md`
-- **page-edit:** `templates-page-edit.md`
-- **service:** `templates-service.md`
-- **module:** `templates-module.md`
+### List pages
+
+| Template | File | When to use |
+|----------|------|-------------|
+| **page-list** | `templates-page-list.md` | Simple list with only quick search |
+| **page-dynamic-search** | `templates-page-dynamic-search.md` | List with quick search + advanced search + disclaimers (standard Protheus pattern) |
+
+### Edit pages
+
+| Template | File | When to use |
+|----------|------|-------------|
+| **page-edit** | `templates-page-edit.md` | Complex form with many fields, sections, navigates via route |
+| **modal-crud** | `templates-modal-crud.md` | All-in-one list + modal add/edit (simpler entities, up to ~10 fields) |
+
+### Other
+
+| Template | File | Description |
+|----------|------|-------------|
+| **service** | `templates-service.md` | Angular service consuming Protheus REST CRUD |
+| **module** | `templates-module.md` | App scaffold: config, routes, shell, package.json, proxy |
+| **dashboard** | `templates-dashboard.md` | Analytics page: po-widget KPIs + po-chart |

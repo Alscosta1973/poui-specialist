@@ -113,12 +113,16 @@ export class AppComponent {
 ```html
 <div class="po-wrapper">
   <po-toolbar p-title="{{ModuleName}}"></po-toolbar>
-  <po-menu [p-menus]="menus" [p-filter]="true"></po-menu>
+  <po-menu [p-menus]="menus" [p-filter]="true" [p-collapsed]="true"></po-menu>
   <div class="container-fluid">
     <router-outlet></router-outlet>
   </div>
 </div>
 ```
+
+> **`[p-collapsed]="true"`** — menu inicia recolhido, que é o padrão quando o app roda dentro do Protheus.
+
+> **Toolbar por componente (alternativa):** Remova `po-toolbar` do shell e adicione `<po-toolbar p-title="...">` dentro de cada componente individualmente. Isso permite que cada página tenha seu próprio título e ações na toolbar.
 
 ## app.component.scss
 

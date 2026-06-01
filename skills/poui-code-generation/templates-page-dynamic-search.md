@@ -1,11 +1,9 @@
-# Template: page-list
+# Template: page-dynamic-search
 
-Generates a standalone `po-page-list` component with `po-table`, server-side pagination, quick search, `PoDialogService` confirmation for delete, and `finalize()` for loading state.
+Generates a standalone list component using `po-page-dynamic-search` from `@po-ui/ng-templates` — the standard Protheus pattern for search pages with quick search, advanced search, and active-filter tags (disclaimers). Navigates to a separate edit page.
 
-> **Icon rule:** Always use `po-icon-*` names (e.g., `po-icon-edit`, `po-icon-delete`, `po-icon-plus`).
-> Never use `an an-*` — those are from a different icon library.
-
-> **Tip:** For advanced search with filters/disclaimers, use `page-dynamic-search` instead.
+> **When to use vs `page-list`:**
+> Use `page-dynamic-search` when the entity needs **advanced search with multiple fields**. Use `page-list` for simpler lists with only quick search.
 
 ## {{kebab-name}}.component.ts
 
@@ -24,20 +22,23 @@ import { finalize } from 'rxjs/operators';
 import {
   PoDialogService,
   PoNotificationService,
-  PoPageListModule,
-  PoTableModule,
-  PoTableColumn,
-  PoTableAction,
   PoPageAction,
-  PoPageFilter,
+  PoTableAction,
+  PoTableColumn,
+  PoTableModule,
+  PoToolbarModule,
 } from '@po-ui/ng-components';
+import {
+  PoPageDynamicSearchModule,
+  PoPageDynamicSearchFilters,
+} from '@po-ui/ng-templates';
 import { {{ServiceClass}} } from '../{{serviceFile}}';
 import { {{ModelInterface}} } from '../models/{{modelFile}}.model';
 
 @Component({
   selector: '{{selector}}',
   standalone: true,
-  imports: [PoPageListModule, PoTableModule],
+  imports: [PoPageDynamicSearchModule, PoTableModule, PoToolbarModule],
   templateUrl: './{{kebab-name}}.component.html',
   styleUrl: './{{kebab-name}}.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -57,21 +58,26 @@ export class {{ComponentClass}} implements OnInit {
 
   private currentPage = 1;
   private readonly pageSize = 10;
-  private lastSearch = '';
+  private activeFilters = '';
 
-  // TODO: define columns matching {{ModelInterface}} fields.
-  // Use type:'label' + labels:[{value,color,label}] for status fields.
-  readonly columns: PoTableColumn[] = [
-    // Example:
-    // { property: 'codigo',  label: 'Código',   width: '8%' },
-    // { property: 'nome',    label: 'Nome' },
-    // { property: 'situacao', label: 'Situação',
-    //   type: 'label',
-    //   labels: [
-    //     { value: '1', color: 'color-07', label: 'Inativo' },
-    //     { value: '2', color: 'color-11', label: 'Ativo'   },
-    //   ],
-    // },
+  // TODO: define columns matching {{ModelInterface}} fields
+  // Use type:'label' + labels:[{value,color,label}] for status fields
+  readonly columns: PoTableColumn[] = [];
+
+  // TODO: define advanced search filters — shown in the sidebar filter form
+  // gridColumns controls the width in the filter panel (12 = full width)
+  readonly advancedFilters: PoPageDynamicSearchFilters[] = [
+    // { property: 'codigo',    label: 'Código',     gridColumns: 6 },
+    // { property: 'descricao', label: 'Descrição',  gridColumns: 6 },
+    // { property: 'tipo', label: 'Tipo',
+    //   options: [{ value: 'PA', label: 'PA' }, { value: 'PI', label: 'PI' }] },
+  ];
+
+  readonly pageActions: PoPageAction[] = [
+    {
+      label: 'Incluir',
+      action: () => this.router.navigate(['novo'], { relativeTo: this.route }),
+    },
   ];
 
   readonly tableActions: PoTableAction[] = [
@@ -89,34 +95,36 @@ export class {{ComponentClass}} implements OnInit {
     },
   ];
 
-  readonly pageActions: PoPageAction[] = [
-    {
-      label: 'Incluir',
-      icon: 'po-icon-plus',
-      action: () => this.router.navigate(['novo'], { relativeTo: this.route }),
-    },
-  ];
-
-  readonly filterSettings: PoPageFilter = {
-    placeholder: 'Buscar...',
-    action: (q: string) => this.onQuickSearch(q),
-  };
-
   ngOnInit(): void {
     this.load();
   }
 
-  onQuickSearch(q: string): void {
+  onQuickSearch(term: string): void {
     this.currentPage = 1;
-    this.lastSearch = q;
-    this.load(q);
+    this.activeFilters = term ? `q=${term}` : '';
+    this.load();
+  }
+
+  onAdvancedSearch(filters: { [key: string]: string }): void {
+    this.currentPage = 1;
+    this.activeFilters = Object.entries(filters)
+      .filter(([, v]) => v !== null && v !== undefined && v !== '')
+      .map(([k, v]) => `${k}=${v}`)
+      .join('&');
+    this.load();
+  }
+
+  onChangeDisclaimers(disclaimers: { property: string; value: string }[]): void {
+    this.currentPage = 1;
+    this.activeFilters = disclaimers.map((d) => `${d.property}=${d.value}`).join('&');
+    this.load();
   }
 
   onShowMore(): void {
     this.currentPage++;
     this.loading.set(true);
     this.service
-      .getAll({ page: this.currentPage, pageSize: this.pageSize, q: this.lastSearch })
+      .getAll({ page: this.currentPage, pageSize: this.pageSize, q: this.activeFilters })
       .pipe(finalize(() => this.loading.set(false)), takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {
@@ -127,10 +135,11 @@ export class {{ComponentClass}} implements OnInit {
       });
   }
 
-  private load(q = ''): void {
+  private load(): void {
     this.loading.set(true);
+    if (this.currentPage === 1) this.items.set([]);
     this.service
-      .getAll({ page: this.currentPage, pageSize: this.pageSize, q })
+      .getAll({ page: this.currentPage, pageSize: this.pageSize, q: this.activeFilters })
       .pipe(finalize(() => this.loading.set(false)), takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {
@@ -180,10 +189,15 @@ export class {{ComponentClass}} implements OnInit {
 ## {{kebab-name}}.component.html
 
 ```html
-<po-page-list
-  [p-title]="title"
+<po-toolbar p-title="{{ComponentClass}}"></po-toolbar>
+
+<po-page-dynamic-search
+  p-title="{{ComponentClass}}"
   [p-actions]="pageActions"
-  [p-filter]="filterSettings">
+  [p-filters]="advancedFilters"
+  (p-quick-search)="onQuickSearch($event)"
+  (p-advanced-search)="onAdvancedSearch($event)"
+  (p-change-disclaimers)="onChangeDisclaimers($event)">
 
   <po-table
     [p-columns]="columns"
@@ -194,19 +208,11 @@ export class {{ComponentClass}} implements OnInit {
     (p-show-more)="onShowMore()">
   </po-table>
 
-</po-page-list>
+</po-page-dynamic-search>
 ```
 
 ## {{kebab-name}}.component.scss
 
 ```scss
 // Add component-specific styles here
-```
-
-## models/{{modelFile}}.model.ts
-
-```typescript
-export interface {{ModelInterface}} {
-  // TODO: add fields matching the Protheus REST response
-}
 ```

@@ -96,12 +96,34 @@ export class AppComponent {
 ```html
 <div class="po-wrapper">
   <po-toolbar p-title="Meu Sistema"></po-toolbar>
-  <po-menu [p-menus]="menus" [p-filter]="true"></po-menu>
+  <po-menu [p-menus]="menus" [p-filter]="true" [p-collapsed]="true"></po-menu>
   <div class="container-fluid">
     <router-outlet></router-outlet>
   </div>
 </div>
 ```
+
+> **`[p-collapsed]="true"`** — menu começa recolhido, padrão quando o app abre dentro do Protheus.
+
+---
+
+## Escolha do padrão de componente
+
+| Necessidade | Template recomendado |
+|---|---|
+| Lista simples sem filtros avançados | `page-list` |
+| Lista com busca avançada + filtros ativos | `page-dynamic-search` |
+| CRUD completo em componente único (modal) | `modal-crud` |
+| Formulário complexo com muitos campos | `page-edit` |
+| Painel de análise com gráficos | `dashboard` |
+
+---
+
+## Toolbar: shell vs por componente
+
+**Opção A — toolbar no shell** (padrão deste plugin): `<po-toolbar>` no `app.component.html`. Título fixo do app.
+
+**Opção B — toolbar por componente** (padrão CRUD_Produto): sem `<po-toolbar>` no shell; cada componente tem seu próprio `<po-toolbar p-title="...">`. Permite título dinâmico por página.
 
 ---
 

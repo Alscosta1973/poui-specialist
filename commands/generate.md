@@ -12,19 +12,25 @@ Generates standalone Angular 17+ artifacts using PO-UI components, integrated wi
 
 ## Valid Types
 
-| Type | Generated Files | `--module` required? |
-|------|----------------|----------------------|
-| `page-list` | `*.component.ts`, `*.component.html`, `*.component.scss` | Yes |
-| `page-edit` | `*.component.ts`, `*.component.html`, `*.component.scss` | Yes |
-| `service`   | `*.service.ts` | Yes |
-| `module`    | `app.routes.ts`, `app.config.ts` | No |
+| Type | Generated Files | `--module` required? | When to use |
+|------|----------------|----------------------|-------------|
+| `page-list` | `*.component.ts/html/scss` | Yes | Simple list with quick search only |
+| `page-dynamic-search` | `*.component.ts/html/scss` | Yes | List with quick search + advanced search + disclaimers — **padrão Protheus** |
+| `page-edit` | `*.component.ts/html/scss` | Yes | Form page with many fields, navigates via route |
+| `modal-crud` | `*.component.ts/html/scss` | Yes | All-in-one list + modal add/edit (up to ~10 fields) — **padrão CRUD_Produto** |
+| `service` | `*.service.ts` | Yes | Angular service consuming Protheus REST |
+| `module` | `app.routes.ts`, `app.config.ts`, `app.component.ts`, `package.json`, `proxy.conf.json`, `index.html` | No | Full application scaffold |
+| `dashboard` | `*.component.ts/html/scss` | Yes | Analytics page with po-widget + po-chart |
 
 ## Examples
 
 ```bash
-/poui-specialist:generate page-list Clientes --module financeiro
+/poui-specialist:generate page-dynamic-search Clientes --module financeiro
+/poui-specialist:generate modal-crud Produtos --module estoque
 /poui-specialist:generate page-edit Pedido --module faturamento
+/poui-specialist:generate page-list Fornecedores --module compras
 /poui-specialist:generate service PedidoService --module faturamento
+/poui-specialist:generate dashboard Estoque --module estoque
 /poui-specialist:generate module Faturamento
 ```
 

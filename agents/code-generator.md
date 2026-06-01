@@ -1,5 +1,5 @@
 ---
-description: Specialized PO-UI Angular 17+ code generator — creates page-list, page-edit, service, and module artifacts for Protheus REST integration using standalone components and OnPush change detection
+description: Specialized PO-UI Angular 17+ code generator — creates page-list, page-dynamic-search, page-edit, modal-crud, service, module, and dashboard artifacts for Protheus REST integration using standalone components and OnPush change detection
 ---
 
 # PO-UI Code Generator
@@ -39,7 +39,7 @@ Activate when the user:
 
 ### Phase 1: Planning
 
-1. Parse type: `page-list` | `page-edit` | `service` | `module`
+1. Parse type: `page-list` | `page-dynamic-search` | `page-edit` | `modal-crud` | `service` | `module` | `dashboard`
 2. Parse name and derive all naming conventions from the table above
 3. Parse `--module` if present
 4. Load skill `poui-code-generation` — read SKILL.md and the relevant template file
@@ -51,17 +51,24 @@ Activate when the user:
 Vou criar os seguintes arquivos:
 
   src/app/<module>/<kebab-name>/
-  ├── <kebab-name>.component.ts    — Standalone component com po-page-list + po-table
-  ├── <kebab-name>.component.html  — Template com filtro rápido e paginação server-side
+  ├── <kebab-name>.component.ts    — Standalone component (tipo: page-list | page-dynamic-search | modal-crud | page-edit | dashboard)
+  ├── <kebab-name>.component.html  — Template correspondente ao tipo
   ├── <kebab-name>.component.scss  — Estilos (vazio)
   └── <service-kebab>.service.ts   — Service com HttpClient consumindo Protheus REST
+
+Tipo escolhido:
+  • page-list           → po-page-list + quick search apenas
+  • page-dynamic-search → po-page-dynamic-search + busca avançada + disclaimers (padrão Protheus)
+  • modal-crud          → po-page-dynamic-search + po-modal + po-dynamic-form tudo em um componente
+  • page-edit           → po-page-edit + po-dynamic-form em página separada
+  • dashboard           → po-widget KPIs + po-chart
 
 Prosseguir? (s/n)
 ```
 
 ### Phase 2: Validation
 
-1. If `--module` is missing for `page-list`, `page-edit`, or `service` — ask the user before proceeding
+1. If `--module` is missing for `page-list`, `page-dynamic-search`, `page-edit`, `modal-crud`, or `service` — ask the user before proceeding
 2. If the target directory does not exist — inform the user and confirm creation
 3. If any target file already exists — list conflicting files, ask for confirmation before overwriting
 4. If the name contains invalid characters (spaces, special chars) — suggest a corrected kebab/PascalCase version
