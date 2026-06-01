@@ -1,28 +1,14 @@
 import { Routes } from '@angular/router';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'compras/fornecedores', pathMatch: 'full' },
+  { path: '', redirectTo: 'estoque/produtos', pathMatch: 'full' },
 
-  // Financeiro — Clientes
+  // Estoque — Produtos (modal-crud: sem rotas de edição, tudo em modal)
   {
-    path: 'financeiro/clientes',
+    path: 'estoque/produtos',
     loadComponent: () =>
-      import('./financeiro/clientes/clientes.component').then(
-        (m) => m.ClientesComponent
-      ),
-  },
-  {
-    path: 'financeiro/clientes/novo',
-    loadComponent: () =>
-      import('./financeiro/clientes/clientes-edit.component').then(
-        (m) => m.ClientesEditComponent
-      ),
-  },
-  {
-    path: 'financeiro/clientes/:codigo/:loja',
-    loadComponent: () =>
-      import('./financeiro/clientes/clientes-edit.component').then(
-        (m) => m.ClientesEditComponent
+      import('./estoque/produtos/produtos.component').then(
+        (m) => m.ProdutosComponent
       ),
   },
 
@@ -49,5 +35,28 @@ export const routes: Routes = [
       ),
   },
 
-  { path: '**', redirectTo: 'compras/fornecedores' },
+  // Financeiro — Clientes
+  {
+    path: 'financeiro/clientes',
+    loadComponent: () =>
+      import('./financeiro/clientes/clientes.component').then(
+        (m) => m.ClientesComponent
+      ),
+  },
+  {
+    path: 'financeiro/clientes/novo',
+    loadComponent: () =>
+      import('./financeiro/clientes/clientes-edit.component').then(
+        (m) => m.ClientesEditComponent
+      ),
+  },
+  {
+    path: 'financeiro/clientes/:codigo/:loja',
+    loadComponent: () =>
+      import('./financeiro/clientes/clientes-edit.component').then(
+        (m) => m.ClientesEditComponent
+      ),
+  },
+
+  { path: '**', redirectTo: 'estoque/produtos' },
 ];
