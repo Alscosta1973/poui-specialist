@@ -1,0 +1,53 @@
+import { Routes } from '@angular/router';
+
+export const routes: Routes = [
+  { path: '', redirectTo: 'compras/fornecedores', pathMatch: 'full' },
+
+  // Financeiro — Clientes
+  {
+    path: 'financeiro/clientes',
+    loadComponent: () =>
+      import('./financeiro/clientes/clientes.component').then(
+        (m) => m.ClientesComponent
+      ),
+  },
+  {
+    path: 'financeiro/clientes/novo',
+    loadComponent: () =>
+      import('./financeiro/clientes/clientes-edit.component').then(
+        (m) => m.ClientesEditComponent
+      ),
+  },
+  {
+    path: 'financeiro/clientes/:codigo/:loja',
+    loadComponent: () =>
+      import('./financeiro/clientes/clientes-edit.component').then(
+        (m) => m.ClientesEditComponent
+      ),
+  },
+
+  // Compras — Fornecedores
+  {
+    path: 'compras/fornecedores',
+    loadComponent: () =>
+      import('./compras/fornecedores/fornecedores-list/fornecedores-list.component').then(
+        (m) => m.FornecedoresListComponent
+      ),
+  },
+  {
+    path: 'compras/fornecedores/novo',
+    loadComponent: () =>
+      import('./compras/fornecedores/fornecedores-edit/fornecedores-edit.component').then(
+        (m) => m.FornecedoresEditComponent
+      ),
+  },
+  {
+    path: 'compras/fornecedores/:codigo/:loja',
+    loadComponent: () =>
+      import('./compras/fornecedores/fornecedores-edit/fornecedores-edit.component').then(
+        (m) => m.FornecedoresEditComponent
+      ),
+  },
+
+  { path: '**', redirectTo: 'compras/fornecedores' },
+];

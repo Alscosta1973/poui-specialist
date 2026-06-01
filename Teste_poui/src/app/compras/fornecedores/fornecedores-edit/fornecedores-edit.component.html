@@ -1,0 +1,11 @@
+<po-page-edit
+  [p-title]="pageTitle"
+  [p-actions]="editActions"
+  [p-loading]="loading()">
+
+  <po-dynamic-form
+    [p-fields]="fields"
+    [(p-value)]="values">
+  </po-dynamic-form>
+
+</po-page-edit>
