@@ -127,6 +127,35 @@ export class AppComponent {
 
 ---
 
+## NgModule vs Standalone — qual usar?
+
+Este plugin gera **Standalone Components** (padrão Angular 17+):
+
+```typescript
+@Component({
+  standalone: true,       // ← standalone
+  imports: [PoTableModule],
+  ...
+})
+```
+
+**O curso POUI usa `ng new --no-standalone`** (NgModules) por compatibilidade com
+versões de Angular anteriores ao 17. Ambos funcionam com PO-UI e Protheus.
+
+| | Standalone (este plugin) | NgModules (curso) |
+|---|---|---|
+| Angular mínimo | 14+ (estável no 17) | Todas as versões |
+| Padrão oficial | ✅ Angular 17+ recomendado | ⚠️ Legado |
+| Geração | `ng new <projeto>` | `ng new <projeto> --no-standalone` |
+| Bootstrap | `bootstrapApplication()` | `platformBrowserDynamic().bootstrapModule()` |
+| Providers | `app.config.ts` | `app.module.ts` |
+
+**Para projetos novos: use Standalone.** Para integrar em projetos NgModule
+existentes, envolva o componente em um `NgModule` wrapper e importe nos
+módulos que precisam dele.
+
+---
+
 ## app.routes.ts
 
 ```typescript
