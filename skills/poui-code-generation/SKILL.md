@@ -47,5 +47,7 @@ All templates use these substitution placeholders:
 | Template | File | Description |
 |----------|------|-------------|
 | **service** | `templates-service.md` | Angular service consuming Protheus REST CRUD |
-| **module** | `templates-module.md` | App scaffold: config, routes, shell, package.json, proxy |
+| **module** | `templates-module.md` | App scaffold: config, routes, shell, package.json, proxy, tsconfig |
 | **dashboard** | `templates-dashboard.md` | Analytics page: po-widget KPIs + po-chart |
+| **models** | `templates-models.md` | TypeScript model interfaces: simple, composite key, flat relational |
+| **tlpp-contract** | `templates-tlpp-contract.md` | Backend REST contract: endpoints, error format, WsRestFul skeleton |
