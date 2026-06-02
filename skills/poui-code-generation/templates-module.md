@@ -229,3 +229,28 @@ Used during local development to proxy `/rest` calls to the Protheus AppServer:
 ```
 
 Run with: `ng serve --proxy-config proxy.conf.json`
+
+---
+
+## tsconfig.json — desabilitar strict mode
+
+Todos os projetos PO-UI / Protheus devem desabilitar o strict mode para evitar
+erros de compilação gerados pelas restrições do TypeScript strict com os padrões
+de criação de objetos usados pelas libs do Protheus:
+
+```json
+{
+  "compilerOptions": {
+    "strict": false,
+    "noPropertyAccessFromIndexSignature": false,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true
+  }
+}
+```
+
+Edite o arquivo `tsconfig.json` na raiz do projeto e altere `"strict": true` para
+`"strict": false` e `"noPropertyAccessFromIndexSignature": true` para `false`.
+As demais flags (`noImplicitOverride`, `noImplicitReturns`, `noFallthroughCasesInSwitch`)
+podem ser mantidas pois não causam incompatibilidades.
