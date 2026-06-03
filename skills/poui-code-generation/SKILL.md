@@ -35,6 +35,7 @@ All templates use these substitution placeholders:
 | **page-list** | `templates-page-list.md` | Simple list with only quick search |
 | **page-dynamic-search** | `templates-page-dynamic-search.md` | List with quick search + advanced search + disclaimers (standard Protheus pattern) |
 | **page-dynamic** | `templates-page-dynamic.md` | Zero-boilerplate list using PoPageDynamicTableComponent (API must follow plugin contract) |
+| **master-detail** | `templates-master-detail.md` | List with expandable child rows (order items, invoice lines) via po-table detail |
 
 ### Edit pages
 
