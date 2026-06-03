@@ -41,6 +41,8 @@ All templates use these substitution placeholders:
 |----------|------|-------------|
 | **page-edit** | `templates-page-edit.md` | Complex form with many fields, sections, navigates via route |
 | **modal-crud** | `templates-modal-crud.md` | All-in-one list + modal add/edit (simpler entities, up to ~10 fields) |
+| **page-detail** | `templates-page-detail.md` | Read-only detail view with po-page-detail + po-dynamic-view, route-based load |
+| **stepper-form** | `templates-stepper-form.md` | Multi-step wizard form with po-stepper (3+ distinct sections) |
 
 ### Other
 
