@@ -12,6 +12,22 @@ Activate when the user:
 - Wants to scaffold an Angular feature for Protheus REST integration
 - Provides a `.prw` or `.tlpp` file and asks to refactor/convert to PO-UI → use `refactor-from-tlpp` template
 
+## No Project Scanning (CRITICAL)
+
+**Never scan the Angular project source files.** Generation is template-driven — all code comes from the plugin's templates, not from the customer's codebase.
+
+**Forbidden:**
+- `Glob "**/*.ts"`, `Glob "**/*.component.ts"`, `Glob "src/**/*"` — never list customer files
+- `Grep` across the Angular project to discover naming or patterns
+- `Read` customer source files "to understand the codebase" — templates are self-contained
+- `Bash ls/find/tree` on the project root to discover structure
+
+**Allowed:**
+- `Read`/`Write` files **inside this plugin** (`skills/*`, `agents/*`, `commands/*`)
+- `Write` the final generated `.ts`/`.html`/`.scss` files to the correct path
+- `Read` a **single specific file** the user explicitly named in their request (e.g., *"converta este FATA001.prw"*)
+- `Read angular.json` only when the user asks about build configuration
+
 ## Core Principles
 
 1. **Standalone only** — never generate NgModule-based components; use `standalone: true` always
@@ -40,13 +56,33 @@ Activate when the user:
 
 ### Phase 1: Planning
 
-1. Parse type: `page-list` | `page-dynamic-search` | `page-edit` | `modal-crud` | `service` | `module` | `dashboard`
+1. Parse type from the full list below
 2. Parse name and derive all naming conventions from the table above
-3. Parse `--module` if present
-4. Load skill `poui-code-generation` — read SKILL.md and the relevant template file
-5. Load skill `poui-components` — for component property reference
-6. Load skill `poui-patterns` — for Protheus REST and module structure
-7. Present the plan to the user before writing any file:
+3. Parse `--module` if present; if required and absent, ask before continuing
+4. **Load ONLY the files listed for the identified type** — do not load anything else
+
+#### Conditional load map (read ONLY these files per type)
+
+| Type | Files to read |
+|------|--------------|
+| `page-list` | `skills/poui-code-generation/templates-page-list.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/table-components.md` |
+| `page-dynamic-search` | `skills/poui-code-generation/templates-page-dynamic-search.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/table-components.md`<br>`skills/poui-components/form-fields.md` |
+| `page-edit` | `skills/poui-code-generation/templates-page-edit.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/form-fields.md`<br>`skills/poui-components/dynamic-form-fields.md` |
+| `page-detail` | `skills/poui-code-generation/templates-page-detail.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/modal-dialog.md` |
+| `modal-crud` | `skills/poui-code-generation/templates-modal-crud.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/form-fields.md`<br>`skills/poui-components/modal-dialog.md` |
+| `stepper-form` | `skills/poui-code-generation/templates-stepper-form.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/form-fields.md`<br>`skills/poui-components/dynamic-form-fields.md` |
+| `page-dynamic` | `skills/poui-code-generation/templates-page-dynamic.md`<br>`skills/poui-components/dynamic-pages.md` |
+| `master-detail` | `skills/poui-code-generation/templates-master-detail.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/table-components.md` |
+| `service` | `skills/poui-code-generation/templates-service.md`<br>`skills/poui-patterns/protheus-rest.md` |
+| `module` | `skills/poui-code-generation/templates-module.md`<br>`skills/poui-patterns/module-structure.md` |
+| `dashboard` | `skills/poui-code-generation/templates-dashboard.md` |
+| `refactor` | `skills/poui-code-generation/templates-refactor-from-tlpp.md`<br>`skills/poui-components/form-fields.md`<br>`skills/poui-components/table-components.md` |
+
+> **Why conditional?** Loading all skills for every generation wastes tokens. A `page-list`
+> does not need `dynamic-form-fields.md`, `reactive-forms.md`, or `navigation-components.md`.
+> Load only what the type requires.
+
+5. Present the plan to the user before writing any file:
 
 ```
 Vou criar os seguintes arquivos:
@@ -69,14 +105,14 @@ Prosseguir? (s/n)
 
 ### Phase 2: Validation
 
-1. If `--module` is missing for `page-list`, `page-dynamic-search`, `page-edit`, `modal-crud`, or `service` — ask the user before proceeding
+1. If `--module` is missing for any type except `module` — ask the user before proceeding
 2. If the target directory does not exist — inform the user and confirm creation
 3. If any target file already exists — list conflicting files, ask for confirmation before overwriting
 4. If the name contains invalid characters (spaces, special chars) — suggest a corrected kebab/PascalCase version
 
 ### Phase 3: Generation
 
-Load the template from `poui-code-generation` and apply substitutions:
+Load the template files identified in Phase 1 and apply substitutions:
 
 | Placeholder | Replaced with | Example |
 |-------------|--------------|---------|
@@ -84,10 +120,13 @@ Load the template from `poui-code-generation` and apply substitutions:
 | `{{kebab-name}}` | kebab-case filename | `clientes-list` |
 | `{{selector}}` | CSS selector | `app-clientes-list` |
 | `{{ModelInterface}}` | Singular PascalCase model | `Cliente` |
+| `{{DetailInterface}}` | PascalCase child model (master-detail) | `PedidoItem` |
 | `{{ServiceClass}}` | Service class name | `ClientesService` |
 | `{{serviceFile}}` | Service file name (no extension) | `clientes.service` |
-| `{{apiPath}}` | Protheus REST path | `/api/custom/v1/clientes` |
-| `{{moduleName}}` | Module folder name | `financeiro` |
+| `{{modelFile}}` | Model file name (no extension) | `cliente.model` |
+| `{{apiPath}}` | Protheus REST path | `/rest/api/custom/v1/clientes` |
+| `{{moduleName}}` | Module folder name (lowercase) | `financeiro` |
+| `{{ModuleName}}` | Module display name (PascalCase) | `Financeiro` |
 
 After writing all files, confirm with absolute paths and suggest the route addition:
 
