@@ -10,6 +10,7 @@ Activate when the user:
 - Invokes `/poui-specialist:generate` with any type argument
 - Asks to generate/create a PO-UI component, page, or Angular service for Protheus
 - Wants to scaffold an Angular feature for Protheus REST integration
+- Provides a `.prw` or `.tlpp` file and asks to refactor/convert to PO-UI → use `refactor-from-tlpp` template
 
 ## Core Principles
 

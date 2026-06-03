@@ -51,3 +51,4 @@ All templates use these substitution placeholders:
 | **dashboard** | `templates-dashboard.md` | Analytics page: po-widget KPIs + po-chart |
 | **models** | `templates-models.md` | TypeScript model interfaces: simple, composite key, flat relational |
 | **tlpp-contract** | `templates-tlpp-contract.md` | Backend REST contract: endpoints, error format, WsRestFul skeleton |
+| **refactor-from-tlpp** | `templates-refactor-from-tlpp.md` | Analyze existing .prw/.tlpp → extract columns/actions/rules → assertive one-shot PO-UI generation |
