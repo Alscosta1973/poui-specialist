@@ -28,6 +28,8 @@ npm install @po-ui/ng-components @po-ui/ng-templates
 - **Modal, Dialog & Dynamic View** (po-modal, PoDialogService, po-dynamic-view): see `modal-dialog.md`
 - **Feedback & Status** (po-tag, po-info, [p-tooltip], po-progress): see `feedback-components.md`
 - **Layout** (po-container, po-accordion, po-list-view): see `layout-components.md`
+- **Dynamic Pages** (PoPageDynamic* do @po-ui/ng-templates — table, search, edit, detail): see `dynamic-pages.md`
+- **Dynamic Form & View Fields** (PoDynamicFormField completo, PoDynamicViewField, mapeamento tipo→componente): see `dynamic-form-fields.md`
 
 ## Common Imports for Standalone Components
 
