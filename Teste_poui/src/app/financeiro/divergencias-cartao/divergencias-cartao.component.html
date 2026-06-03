@@ -125,7 +125,7 @@
       <div class="card-header">
         <span class="card-dot" [attr.data-txok]="s.txok"></span>
         {{ s.label }}
-        <span class="card-qty">{{ s.qtd }}</span>
+        <span class="card-qty">Qtde <strong>{{ s.qtd }}</strong></span>
       </div>
       <div class="card-body">
         <div class="val-block">
@@ -145,7 +145,7 @@
     <div class="stat-card stat-card-sel" *ngIf="markedNsus().size > 0">
       <div class="card-header">
         ✅ Selecionados
-        <span class="card-qty">{{ selectedSummary().qtd }}</span>
+        <span class="card-qty">Qtde <strong>{{ selectedSummary().qtd }}</strong></span>
       </div>
       <div class="card-body">
         <div class="val-block">
