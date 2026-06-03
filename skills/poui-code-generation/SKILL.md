@@ -1,6 +1,6 @@
 ---
 name: poui-code-generation
-description: Use when generating PO-UI Angular code — complete ready-to-adapt templates for page-list, page-dynamic-search, page-edit, modal-crud, service, module, and dashboard artifacts for Protheus integration
+description: Use when generating PO-UI Angular code — complete ready-to-adapt templates for page-list, page-dynamic-search, page-edit, page-detail, modal-crud, stepper-form, page-dynamic, master-detail, service, module, and dashboard artifacts for Protheus integration
 ---
 
 # PO-UI Code Generation Templates
@@ -8,6 +8,30 @@ description: Use when generating PO-UI Angular code — complete ready-to-adapt 
 ## Overview
 
 Complete Angular 17+ templates for PO-UI components integrated with Protheus REST API. All templates use standalone components, `ChangeDetectionStrategy.OnPush`, and Angular signals.
+
+## Quick Selection Guide
+
+Answer these questions to pick the right template before loading any file:
+
+**Is it a list screen?**
+- Needs inline child rows (itens de pedido)? → `master-detail`
+- API follows plugin contract exactly, no custom logic? → `page-dynamic`
+- Needs advanced search filters + disclaimers? → `page-dynamic-search`
+- Quick search only? → `page-list`
+
+**Is it a form/edit screen?**
+- Has 3+ logically distinct sections (wizard flow)? → `stepper-form`
+- Simple entity, up to ~10 fields, no separate route? → `modal-crud`
+- Complex form, many fields, navigates via route? → `page-edit`
+
+**Is it a detail/view screen?**
+- Read-only, route-based, with edit/delete actions? → `page-detail`
+
+**Other?**
+- Existing `.prw`/`.tlpp` to convert → `refactor`
+- Analytics + KPIs + charts → `dashboard`
+- Angular service only → `service`
+- Full app scaffold → `module`
 
 ## Placeholder Reference
 
