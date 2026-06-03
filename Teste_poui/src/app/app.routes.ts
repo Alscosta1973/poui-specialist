@@ -58,5 +58,14 @@ export const routes: Routes = [
       ),
   },
 
+  // Financeiro — Divergências de Cartão (ORTA012)
+  {
+    path: 'financeiro/divergencias-cartao',
+    loadComponent: () =>
+      import('./financeiro/divergencias-cartao/divergencias-cartao.component').then(
+        (m) => m.DivergenciasCartaoComponent
+      ),
+  },
+
   { path: '**', redirectTo: 'estoque/produtos' },
 ];

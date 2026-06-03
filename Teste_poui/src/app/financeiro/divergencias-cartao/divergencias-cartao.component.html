@@ -1,0 +1,167 @@
+<po-page-list
+  p-title="Regularização de Divergências de Cartão"
+  p-subtitle="Conciliação de taxas MDR e Antecipação — Tabela ZB1"
+  [p-actions]="pageActions">
+
+  <!-- FILTER CHIPS -->
+  <div class="filter-bar">
+    <span class="filter-label">Status:</span>
+    <span *ngFor="let s of statusFilter"
+          class="status-chip"
+          [class.active]="filterTxok() === s.value"
+          (click)="onFilterTxok(s.value)">
+      {{ s.label }}
+    </span>
+    <span class="status-chip chip-all"
+          [class.active]="!filterTxok()"
+          (click)="onFilterTxok('')">
+      Todos
+    </span>
+    <span *ngIf="markedNsus().size > 0" class="sel-badge">
+      {{ markedNsus().size }} selecionado{{ markedNsus().size > 1 ? 's' : '' }}
+    </span>
+  </div>
+
+  <!-- TABLE + DRAWER wrapper -->
+  <div class="table-drawer-wrap">
+
+    <div class="table-scroll" [class.drawer-open]="drawerItem()">
+      <po-loading-overlay [hidden]="!loading()" p-screen-lock="true"></po-loading-overlay>
+
+      <po-table
+        [p-columns]="columns"
+        [p-items]="items()"
+        [p-selectable]="false"
+        [p-striped]="true"
+        (p-cell-click)="onRowClick($event.row)"
+        [p-track-by]="'ZB1_NSU'">
+
+        <!-- checkbox column override -->
+        <ng-template p-column-template="ZB1_NSU" let-row>
+          <span class="row-mark" (click)="$event.stopPropagation(); drawerItem.set(row); toggleMark()">
+            <span class="mark-icon">{{ isMarked(row) ? '☑' : '☐' }}</span>
+          </span>
+          <strong>{{ row.ZB1_NSU }}</strong>
+        </ng-template>
+
+        <!-- Dif Blu×Ort com cor semântica -->
+        <ng-template p-column-template="TT_DIFBLU" let-row>
+          <span [class]="difClass(row.TT_DIFBLU)">
+            {{ row.TT_DIFBLU < 0 ? '-' : '' }}{{ row.TT_DIFBLU | currency:'BRL':'symbol':'1.2-2' | slice:(row.TT_DIFBLU < 0 ? 1 : 0) }}
+          </span>
+        </ng-template>
+
+      </po-table>
+    </div>
+
+    <!-- DRAWER LATERAL -->
+    <div class="drawer" [class.open]="drawerItem()">
+      <div class="drawer-header">
+        <span>{{ drawerItem()?.ZB1_NSU }} — {{ drawerItem()?.ZB1_BAND }}</span>
+        <button class="drawer-close" (click)="closeDrawer()">✕</button>
+      </div>
+      <div class="drawer-body" *ngIf="drawerItem() as row">
+
+        <section class="drawer-section">
+          <div class="section-title">Identificação</div>
+          <po-info p-label="Data"    [p-value]="row.ZB1_DTTRAN | date:'dd/MM/yyyy'"></po-info>
+          <po-info p-label="Bandeira" [p-value]="row.ZB1_BAND"></po-info>
+          <po-info p-label="Status"   [p-value]="statusLabel(row.ZB1_TXOK)"></po-info>
+        </section>
+
+        <section class="drawer-section">
+          <div class="section-title">Valores</div>
+          <po-info p-label="Valor Bruto"      [p-value]="row.ZB1_VLBRUT | currency:'BRL'"></po-info>
+          <po-info p-label="Parcelas"         [p-value]="row.ZB1_PARCTT + 'x'"></po-info>
+          <po-info p-label="Tx Contrato"      [p-value]="(row.ZB1_ZB4PER | number:'1.2-2') + '%'"></po-info>
+          <po-info p-label="Vlr Liq Contrato" [p-value]="row.TT_VLVLIQ | currency:'BRL'"></po-info>
+        </section>
+
+        <section class="drawer-section">
+          <div class="section-title">Divergência</div>
+          <po-info p-label="Tx MDR Informada"  [p-value]="(row.ZB1_TXADM | number:'1.2-2') + '%'"></po-info>
+          <po-info p-label="Vlr MDR Informado" [p-value]="row.ZB1_VLRLIQ | currency:'BRL'"></po-info>
+          <po-info p-label="Dif Blu×Ort"
+                   [p-value]="row.TT_DIFBLU | currency:'BRL'"
+                   [p-label-color]="row.TT_DIFBLU < 0 ? 'color-06' : 'color-07'">
+          </po-info>
+          <po-info p-label="Tx Adicional" [p-value]="(row.ZB1_TXADCL | number:'1.2-2') + '%'"></po-info>
+        </section>
+
+        <section class="drawer-section">
+          <div class="section-title">
+            Observação <span *ngIf="row.ZB1_TXOK !== '5'" class="required">*</span>
+          </div>
+          <po-textarea
+            name="obs"
+            p-label=""
+            p-placeholder="Digite a observação sobre esta divergência..."
+            p-rows="4"
+            [(ngModel)]="obsText"
+            [ngModel]="obsText()"
+            (ngModelChange)="obsText.set($event)">
+          </po-textarea>
+          <span *ngIf="row.ZB1_TXOK !== '5'" class="obs-hint">
+            * Obrigatória para confirmar marcação
+          </span>
+        </section>
+
+      </div>
+      <div class="drawer-footer" *ngIf="drawerItem() as row">
+        <button po-button
+                [p-label]="isMarked(row) ? 'Desmarcar' : 'Marcar Registro'"
+                [p-kind]="isMarked(row) ? 'secondary' : 'primary'"
+                (click)="toggleMark()">
+        </button>
+        <button po-button p-label="Fechar" p-kind="tertiary" (click)="closeDrawer()"></button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SUMMARY CARDS -->
+  <div class="summary-strip">
+    <div class="stat-card" *ngFor="let s of summary()">
+      <div class="card-header">
+        <span class="card-dot" [attr.data-txok]="s.txok"></span>
+        {{ s.label }}
+        <span class="card-qty">{{ s.qtd }}</span>
+      </div>
+      <div class="card-body">
+        <div class="val-block">
+          <div class="val-label">VLR LIQ CONTRATO</div>
+          <div class="val-main">{{ s.vlrLiqContrato | currency:'BRL':'symbol':'1.2-2' }}</div>
+        </div>
+        <div class="dif-block">
+          <div class="val-label">DIF BLU×ORT</div>
+          <div class="val-dif" [class.dif-neg]="s.difBluOrt < 0" [class.dif-pos]="s.difBluOrt > 0">
+            {{ s.difBluOrt < 0 ? '-' : '' }}{{ s.difBluOrt | currency:'BRL':'symbol':'1.2-2' | slice:(s.difBluOrt < 0 ? 1 : 0) }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- card selecionados -->
+    <div class="stat-card stat-card-sel" *ngIf="markedNsus().size > 0">
+      <div class="card-header">
+        ✅ Selecionados
+        <span class="card-qty">{{ selectedSummary().qtd }}</span>
+      </div>
+      <div class="card-body">
+        <div class="val-block">
+          <div class="val-label">VLR MARCADO</div>
+          <div class="val-main">{{ selectedSummary().vlrLiqContrato | currency:'BRL':'symbol':'1.2-2' }}</div>
+        </div>
+        <div class="dif-block">
+          <div class="val-label">DIF MARCADOS</div>
+          <div class="val-dif"
+               [class.dif-neg]="selectedSummary().difBluOrt < 0"
+               [class.dif-pos]="selectedSummary().difBluOrt > 0">
+            {{ selectedSummary().difBluOrt | currency:'BRL':'symbol':'1.2-2' }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</po-page-list>
