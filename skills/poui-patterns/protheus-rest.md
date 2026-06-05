@@ -42,25 +42,25 @@ export interface GetAllParams {
 }
 
 @Injectable({ providedIn: 'root' })
-export class ClientesService {
+export class PedidosService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = '/rest/api/custom/v1/clientes';
+  private readonly baseUrl = '/rest/api/custom/v1/pedidos';
 
-  getAll(params: GetAllParams = {}): Observable<ProtheusListResponse<Cliente>> {
+  getAll(params: GetAllParams = {}): Observable<ProtheusListResponse<Pedido>> {
     const httpParams = new HttpParams({ fromObject: this.cleanParams(params) });
-    return this.http.get<ProtheusListResponse<Cliente>>(this.baseUrl, { params: httpParams });
+    return this.http.get<ProtheusListResponse<Pedido>>(this.baseUrl, { params: httpParams });
   }
 
-  getById(id: string): Observable<Cliente> {
-    return this.http.get<Cliente>(`${this.baseUrl}/${id}`);
+  getById(id: string): Observable<Pedido> {
+    return this.http.get<Pedido>(`${this.baseUrl}/${id}`);
   }
 
-  create(data: Partial<Cliente>): Observable<Cliente> {
-    return this.http.post<Cliente>(this.baseUrl, data);
+  create(data: Partial<Pedido>): Observable<Pedido> {
+    return this.http.post<Pedido>(this.baseUrl, data);
   }
 
-  update(id: string, data: Partial<Cliente>): Observable<Cliente> {
-    return this.http.put<Cliente>(`${this.baseUrl}/${id}`, data);
+  update(id: string, data: Partial<Pedido>): Observable<Pedido> {
+    return this.http.put<Pedido>(`${this.baseUrl}/${id}`, data);
   }
 
   delete(id: string): Observable<void> {
@@ -85,12 +85,12 @@ Most Protheus entities use a composite key: `codigo` (6 chars) + `loja` (2 chars
 
 ```typescript
 // Service — composite key in URL path
-getByKey(codigo: string, loja: string): Observable<Fornecedor> {
-  return this.http.get<Fornecedor>(`${this.baseUrl}/${codigo}/${loja}`);
+getByKey(codigo: string, loja: string): Observable<Parceiro> {
+  return this.http.get<Parceiro>(`${this.baseUrl}/${codigo}/${loja}`);
 }
 
-updateByKey(codigo: string, loja: string, data: Partial<Fornecedor>): Observable<Fornecedor> {
-  return this.http.put<Fornecedor>(`${this.baseUrl}/${codigo}/${loja}`, data);
+updateByKey(codigo: string, loja: string, data: Partial<Parceiro>): Observable<Parceiro> {
+  return this.http.put<Parceiro>(`${this.baseUrl}/${codigo}/${loja}`, data);
 }
 
 deleteByKey(codigo: string, loja: string): Observable<void> {
@@ -102,7 +102,7 @@ tableActions: PoTableAction[] = [
   {
     label: 'Editar',
     icon: 'po-icon-edit',
-    action: (row: Fornecedor) =>
+    action: (row: Parceiro) =>
       this.router.navigate([row.codigo, row.loja], { relativeTo: this.route }),
   },
 ];
@@ -130,7 +130,7 @@ Protheus REST does **not** follow a simple `{ message }` error shape. Errors arr
 
 ```json
 {
-  "errorMessage": "{\"code\":\"MA0001\",\"message\":\"Fornecedor j\\u00e1 existe\",\"detailedMessage\":\"\"}"
+  "errorMessage": "{\"code\":\"MA0001\",\"message\":\"Registro j\\u00e1 existe\",\"detailedMessage\":\"\"}"
 }
 ```
 
@@ -220,5 +220,5 @@ export const environment = {
 };
 
 // In service — use environment to build URL
-private readonly baseUrl = `${environment.apiBaseUrl}/api/custom/v1/clientes`;
+private readonly baseUrl = `${environment.apiBaseUrl}/api/custom/v1/pedidos`;
 ```

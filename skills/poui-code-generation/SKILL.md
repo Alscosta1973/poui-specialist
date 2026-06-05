@@ -11,24 +11,24 @@ Complete Angular 17+ templates for PO-UI components integrated with Protheus RES
 
 ## Quick Selection Guide
 
-Answer these questions to pick the right template before loading any file:
+Use this numbered algorithm to choose the right template before loading any file:
 
-**Is it a list screen?**
-- Needs inline child rows (itens de pedido)? → `master-detail`
-- API follows plugin contract exactly, no custom logic? → `page-dynamic`
-- Needs advanced search filters + disclaimers? → `page-dynamic-search`
-- Quick search only? → `page-list`
-
-**Is it a form/edit screen?**
-- Has 3+ logically distinct sections (wizard flow)? → `stepper-form`
-- Simple entity, up to ~10 fields, no separate route? → `modal-crud`
-- Complex form, many fields, navigates via route? → `page-edit`
-
-**Is it a detail/view screen?**
-- Read-only, route-based, with edit/delete actions? → `page-detail`
+1. If the request is for analytics, KPIs, or charts, choose `dashboard`.
+2. If the request is for a route-based detail screen with a read-only view plus edit/delete actions, choose `page-detail`.
+3. If the request is for a form/edit screen:
+   - If the screen has 3+ distinct sections or wizard steps, choose `stepper-form`.
+   - If the screen has 1-10 editable fields, no dedicated route, and no multi-step flow, choose `modal-crud`; otherwise choose `page-edit`.
+4. If the request is for a list screen:
+   - If it requires inline child rows or master-detail item lines, choose `master-detail`.
+   - If it includes at least 3 filter fields and a standard disclaimer block required by the Protheus pattern, choose `page-dynamic-search`.
+   - If the endpoint matches the documented Protheus plugin contract for list/search/filter/pagination responses and the screen needs no custom business rules beyond standard CRUD, choose `page-dynamic`.
+   - If it only needs a quick search list with no advanced filters, choose `page-list`.
+5. If the request matches more than one template, ask one concise clarifying question before choosing a template. Example: "This screen is both a list and a detail view. Do you want a master-detail page or separate detail routes?"
+6. If none of these conditions match, stop and ask for screen type, data source, and whether the API follows the Protheus plugin contract; do not guess a template.
+7. If the user’s description is incomplete or contradictory, ask one concise clarifying question and wait for an answer before generating code. Do not infer missing details.
 
 **Other?**
-- Existing `.prw`/`.tlpp` to convert → `refactor`
+- Existing `.prw`/`.tlpp` to convert → `refactor-from-tlpp`
 - Analytics + KPIs + charts → `dashboard`
 - Angular service only → `service`
 - Full app scaffold → `module`
@@ -39,14 +39,14 @@ All templates use these substitution placeholders:
 
 | Placeholder | Description | Example |
 |-------------|-------------|---------|
-| `{{ComponentClass}}` | PascalCase component class | `ClientesListComponent` |
-| `{{kebab-name}}` | kebab-case file name | `clientes-list` |
-| `{{selector}}` | CSS selector | `app-clientes-list` |
-| `{{ModelInterface}}` | Singular PascalCase model | `Cliente` |
-| `{{modelFile}}` | Model file kebab-case | `cliente` |
-| `{{ServiceClass}}` | Service class name | `ClientesService` |
-| `{{serviceFile}}` | Service file kebab-case | `clientes.service` |
-| `{{apiPath}}` | Protheus REST path | `/rest/api/custom/v1/clientes` |
+| `{{ComponentClass}}` | PascalCase component class | `PedidosListComponent` |
+| `{{kebab-name}}` | kebab-case file name | `pedidos-list` |
+| `{{selector}}` | CSS selector | `app-pedidos-list` |
+| `{{ModelInterface}}` | Singular PascalCase model | `Pedido` |
+| `{{modelFile}}` | Model file kebab-case | `pedido` |
+| `{{ServiceClass}}` | Service class name | `PedidosService` |
+| `{{serviceFile}}` | Service file kebab-case | `pedidos-service` |
+| `{{apiPath}}` | Protheus REST path | `/rest/api/custom/v1/pedidos` |
 | `{{moduleName}}` | Feature folder name | `financeiro` |
 | `{{ModuleName}}` | PascalCase module label | `Financeiro` |
 
@@ -80,3 +80,55 @@ All templates use these substitution placeholders:
 | **models** | `templates-models.md` | TypeScript model interfaces: simple, composite key, flat relational |
 | **tlpp-contract** | `templates-tlpp-contract.md` | Backend REST contract: endpoints, error format, WsRestFul skeleton |
 | **refactor-from-tlpp** | `templates-refactor-from-tlpp.md` | Analyze existing .prw/.tlpp → extract columns/actions/rules → assertive one-shot PO-UI generation |
+
+---
+
+## Critical Rules — Always Apply
+
+### 1. angular.json styles (MANDATORY — check on every generation)
+Without these 3 files, all PO-UI components render without any styling:
+```json
+"styles": [
+  "node_modules/@totvs/po-theme/css/po-theme-default-variables.min.css",
+  "node_modules/@totvs/po-theme/css/po-theme-default.min.css",
+  "node_modules/@po-ui/style/css/po-theme-core.min.css",
+  "src/styles.scss"
+]
+```
+After generating any component, read `angular.json` and add them if missing.
+
+### 2. Correct NgModule imports for standalone components
+| Component | Correct import | WRONG (do not use) |
+|---|---|---|
+| po-page-default | `PoPageModule` | `PoPageDefaultModule` ❌ |
+| po-textarea | `PoFieldModule` | `PoTextareaModule` ❌ |
+| po-table | `PoTableModule` | — |
+| po-widget | `PoWidgetModule` | — |
+| po-modal | `PoModalModule` | — |
+| po-button | `PoButtonModule` | — |
+| po-divider | `PoDividerModule` | — |
+
+### 3. PoTableColumn types and formats
+- `type` is a plain `string`, not an enum. Valid values: `'string' | 'number' | 'currency' | 'date' | 'dateTime' | 'time' | 'boolean' | 'label' | 'icon' | 'tag'`
+- For `type: 'currency'`, set `format: 'BRL'` (the currency code string)
+- For `type: 'date'`, set `format: 'dd/MM/yyyy'`
+- For `type: 'number'` with decimals, set `format: '1.4-4'`
+- **Never** use `PoTableColumnType` enum — it does not exist in the installed version
+
+### 4. po-table selection event
+- Use `(p-selected-rows)="onSelectionChange($event)"` — emits the full `any[]` array of selected rows
+- **Never** use `(p-selected)` / `(p-unselected)` — those are individual-row events that require manual accumulation
+
+### 5. No mock data files
+Never create `*.mock.ts`, `*.data.ts`, or `useMock` flags. If demo data is needed for local development, add a `const DEMO_*` constant at the top of the component file and load it in the `error` callback of the load method.
+
+### 6. Locale for pt-BR currency formatting
+Register pt-BR in `app.config.ts`:
+```typescript
+import { registerLocaleData } from '@angular/common';
+import localePtBr from '@angular/common/locales/pt';
+import { LOCALE_ID } from '@angular/core';
+registerLocaleData(localePtBr, 'pt-BR');
+// in providers: { provide: LOCALE_ID, useValue: 'pt-BR' }
+```
+For `PoTableColumn` currency columns, always set `format: 'BRL'` regardless of locale.

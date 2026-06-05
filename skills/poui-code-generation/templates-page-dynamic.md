@@ -129,7 +129,7 @@ export class {{ComponentClass}} {
 ## Route configuration
 
 ```typescript
-// In your feature routes file (e.g., clientes.routes.ts)
+// In your feature routes file (e.g., pedidos.routes.ts)
 import { Routes } from '@angular/router';
 
 export const {{moduleName}}Routes: Routes = [

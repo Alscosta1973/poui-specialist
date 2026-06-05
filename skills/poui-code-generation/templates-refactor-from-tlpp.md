@@ -18,8 +18,8 @@ Read every file provided (`.prw`, `.tlpp`, or both). Do not ask questions yet.
 Extract the following into a structured analysis (internal only — never dump raw extraction at the user):
 
 ### 1.1 Domain
-- Routine name (e.g. `ORTA012`)
-- Main table(s) accessed (e.g. `ZB1`, `ZB4`)
+- Routine name (e.g. `MYRTN001`)
+- Main table(s) accessed (e.g. `ZXX`, `ZXY`)
 - Business description (1 sentence from `/*/{Protheus.doc}` or inferred)
 
 ### 1.2 Browse columns
@@ -34,7 +34,7 @@ Look for: `MenuDef` / `ADD OPTION`, toolbar buttons, `FWDialogModal:AddButton`, 
 For each action record: `{ label, trigger, description }`.
 
 ### 1.4 Status / color coding
-Look for: `#Define` constants with status values, `AddLegend`, `TBitmap` color arrays, `ZB1_TXOK`-style fields.
+Look for: `#Define` constants with status values, `AddLegend`, `TBitmap` color arrays, `ZXX_STATUS`-style fields.
 
 Map each status code → `{ value, label, color }`.
 
@@ -131,7 +131,24 @@ On confirmation, invoke the `poui-code-generation` skill (load SKILL.md + releva
 | `{{drawerFields}}` | Browse fields → drawer detail block |
 | `{{businessRules}}` | Rules → comments + validation code |
 
-Generate **mock data** matching the extracted model shape so the screen renders without a real API.
+**No mock data files.** Never create `*.mock.ts`, `*.data.ts`, or separate mock files.
+If the app needs demo data for local development (no backend), add a `const DEMO_*: Model[] = [...]` at the top of the component file and load it only in the `error` handler of `carregar()`. This keeps the component self-contained and production-clean.
+
+---
+
+## Step 5 — Verify angular.json
+
+After generating all component files, read `angular.json` (search upward from the component directory to the workspace root).
+
+Check that `architect.build.options.styles` contains the 3 PO-UI theme files:
+```json
+"node_modules/@totvs/po-theme/css/po-theme-default-variables.min.css"
+"node_modules/@totvs/po-theme/css/po-theme-default.min.css"
+"node_modules/@po-ui/style/css/po-theme-core.min.css"
+```
+
+If any are missing, add them **before** `src/styles.scss`. Report the fix to the user.
+Without these 3 files, all PO-UI components render with no styling (no colors, no layout, no typography).
 
 ---
 

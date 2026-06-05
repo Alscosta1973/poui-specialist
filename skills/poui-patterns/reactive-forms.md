@@ -41,8 +41,8 @@ import {
   PoSwitchModule,
   PoTextareaModule,
 } from '@po-ui/ng-components';
-import { ClientesService } from '../clientes.service';
-import { Cliente } from '../models/cliente.model';
+import { PedidosService } from '../pedidos.service';
+import { Pedido } from '../models/pedido.model';
 
 @Component({
   standalone: true,
@@ -58,11 +58,11 @@ import { Cliente } from '../models/cliente.model';
     PoLoadingModule,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: './clientes-edit.component.html',
+  templateUrl: './pedidos-edit.component.html',
 })
-export class ClientesEditComponent implements OnInit {
+export class PedidosEditComponent implements OnInit {
   private readonly fb           = inject(FormBuilder);
-  private readonly service      = inject(ClientesService);
+  private readonly service      = inject(PedidosService);
   private readonly router       = inject(Router);
   private readonly route        = inject(ActivatedRoute);
   private readonly notification = inject(PoNotificationService);
@@ -127,7 +127,7 @@ export class ClientesEditComponent implements OnInit {
     }
     this.loading.set(true);
     // getRawValue() inclui campos disabled — use sempre no submit
-    const payload: Cliente = this.form.getRawValue();
+    const payload: Pedido = this.form.getRawValue();
     const request$ = this.isEdit()
       ? this.service.update(this.recordId, payload)
       : this.service.create(payload);

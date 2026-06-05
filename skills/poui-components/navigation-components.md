@@ -27,7 +27,7 @@ Normalmente declarado uma vez no shell/app component — **não** em cada tela.
 ```typescript
 interface PoMenuItem {
   label:       string;          // texto exibido no item
-  link?:       string;          // rota Angular (ex: '/financeiro/clientes') ou URL externa
+  link?:       string;          // rota Angular (ex: '/financeiro/pedidos') ou URL externa
   icon?:       string;          // ícone PO (ex: 'po-icon-home', 'po-icon-finance')
   shortLabel?: string;          // label curto exibido no modo recolhido
   subItems?:   PoMenuItem[];    // subitens — apenas 1 nível de aninhamento suportado
@@ -62,8 +62,8 @@ readonly menuItems: PoMenuItem[] = [
     icon:       'po-icon-finance',
     shortLabel: 'Fin',
     subItems: [
-      { label: 'Clientes',     link: '/financeiro/clientes' },
-      { label: 'Fornecedores', link: '/financeiro/fornecedores' },
+      { label: 'Pedidos',      link: '/financeiro/pedidos' },
+      { label: 'Parceiros',    link: '/financeiro/parceiros' },
       {
         label:      'Contas a Pagar',
         link:       '/financeiro/contas-pagar',
@@ -78,7 +78,7 @@ readonly menuItems: PoMenuItem[] = [
     shortLabel: 'Cmp',
     subItems: [
       { label: 'Pedidos de Compra', link: '/compras/pedidos' },
-      { label: 'Fornecedores',      link: '/compras/fornecedores' },
+      { label: 'Parceiros',         link: '/compras/parceiros' },
     ],
   },
   {
@@ -217,7 +217,7 @@ private logout(): void {
 
 ```html
 <po-toolbar
-  p-title="Ortobom ERP"
+  p-title="Protheus ERP"
   p-logo="/assets/logo.png"
   [p-profile]="toolbarProfile"
   [p-items]="toolbarItems">
@@ -280,8 +280,8 @@ interface PoBreadcrumbItem {
 readonly breadcrumb: PoBreadcrumb = {
   items: [
     { label: 'Financeiro',    link: '/financeiro' },
-    { label: 'Clientes',      link: '/financeiro/clientes' },
-    { label: 'Editar Cliente' },          // último — sem link
+    { label: 'Pedidos',       link: '/financeiro/pedidos' },
+    { label: 'Editar Pedido' },           // último — sem link
   ],
 };
 
@@ -289,7 +289,7 @@ readonly breadcrumb: PoBreadcrumb = {
 readonly breadcrumb: PoBreadcrumb = {
   items: [
     { label: 'Financeiro', link: '/financeiro' },
-    { label: 'Clientes' },
+    { label: 'Pedidos' },
   ],
 };
 ```

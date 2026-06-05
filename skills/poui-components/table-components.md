@@ -52,8 +52,8 @@ interface PoTableColumn {
 readonly columns: PoTableColumn[] = [
   { property: 'codigo',  label: 'Código',  width: '10%', sortable: true },
   { property: 'nome',    label: 'Nome',    sortable: true },
-  { property: 'valor',   label: 'Valor',   type: 'currency', width: '12%' },
-  { property: 'emissao', label: 'Emissão', type: 'date', format: 'dd/mm/yyyy', width: '12%' },
+  { property: 'valor',   label: 'Valor',   type: 'currency', format: 'BRL', width: '12%' },
+  { property: 'emissao', label: 'Emissão', type: 'date', format: 'dd/MM/yyyy', width: '12%' },
   { property: 'ativo',   label: 'Ativo',   type: 'boolean', width: '8%' },
   {
     property: 'status',

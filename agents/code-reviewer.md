@@ -73,18 +73,18 @@ Map `--focus` flag to rule categories:
 For each file, apply the relevant rules. Format the report per file:
 
 ```
-## Review: clientes-list.component.ts
+## Review: pedidos-list.component.ts
 
 ### CRITICAL (1)
-1. **[BP-001]** `clientes-list.component.ts:8` — OnPush ausente
+1. **[BP-001]** `pedidos-list.component.ts:8` — OnPush ausente
    Atual:
    \`\`\`typescript
-   @Component({ selector: 'app-clientes-list', standalone: true, ... })
+   @Component({ selector: 'app-pedidos-list', standalone: true, ... })
    \`\`\`
    Sugestão:
    \`\`\`typescript
    @Component({
-     selector: 'app-clientes-list',
+     selector: 'app-pedidos-list',
      standalone: true,
      changeDetection: ChangeDetectionStrategy.OnPush,
      ...
@@ -102,6 +102,6 @@ Ao final de revisão com múltiplos arquivos, adicione tabela resumo:
 
 | Arquivo | Critical | Warning | Info | Total |
 |---------|----------|---------|------|-------|
-| clientes-list.component.ts | 1 | 1 | 0 | 2 |
+| pedidos-list.component.ts | 1 | 1 | 0 | 2 |
 | **Total** | **1** | **1** | **0** | **2** |
 ```

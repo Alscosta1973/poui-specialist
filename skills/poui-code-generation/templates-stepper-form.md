@@ -283,7 +283,7 @@ export class {{ComponentClass}} {
 ## Route configuration
 
 ```typescript
-// In your feature routes file (e.g., clientes.routes.ts)
+// In your feature routes file (e.g., pedidos.routes.ts)
 {
   path: 'novo',
   loadComponent: () =>

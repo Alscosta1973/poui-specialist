@@ -53,7 +53,7 @@ readonly filterSettings: PoPageFilter = {
 
 ```html
 <po-page-list
-  p-title="Clientes"
+  p-title="Pedidos"
   [p-actions]="pageActions"
   [p-filter]="filterSettings">
   <po-table ...></po-table>
@@ -102,7 +102,7 @@ readonly editActions: PoPageEditActions = {
 
 ```html
 <po-page-edit
-  p-title="Novo Cliente"
+  p-title="Novo Pedido"
   [p-actions]="editActions"
   [p-disable-submit]="form.invalid">
   <form [formGroup]="form">
@@ -139,7 +139,7 @@ interface PoPageDetailActions {
 
 ```html
 <po-page-detail
-  p-title="Cliente: João Silva"
+  p-title="Pedido: João Silva"
   [p-actions]="detailActions">
   <!-- po-info fields or po-dynamic-view -->
 </po-page-detail>

@@ -96,7 +96,7 @@ export class AppComponent {
 
   readonly menus: PoMenuItem[] = [
     // TODO: add menu items matching routes
-    // { label: 'Clientes', link: '/clientes', shortLabel: 'Clientes', icon: 'po-icon-user' },
+    // { label: 'Pedidos', link: '/pedidos', shortLabel: 'Pedidos', icon: 'po-icon-user' },
     { label: 'Sair', shortLabel: 'Sair', icon: 'po-icon-exit', action: this.closeApp.bind(this) },
   ];
 

@@ -159,7 +159,7 @@ como listas de documentos, produtos com imagem, ou registros com muita informaç
 </ng-template>
 ```
 
-### Exemplo completo — lista de fornecedores
+### Exemplo completo — lista de parceiros
 
 ```typescript
 import {

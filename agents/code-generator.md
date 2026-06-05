@@ -37,20 +37,58 @@ Activate when the user:
 5. **Plan before write** — always show the file list to the user before writing any file
 6. **Protheus contract** — services always expect `{ items: T[], hasNext: boolean }` response shape
 
+## Critical Rules — Apply to Every Generation
+
+### NgModule imports for standalone components
+| Component | Correct import | WRONG (do not use) |
+|---|---|---|
+| `po-page-default` / `po-page-list` | `PoPageModule` | `PoPageDefaultModule` ❌ `PoPageListModule` ❌ |
+| `po-textarea` | `PoFieldModule` | `PoTextareaModule` ❌ |
+| `po-table` | `PoTableModule` | — |
+| `po-widget` | `PoWidgetModule` | — |
+| `po-modal` | `PoModalModule` | — |
+| `po-button` | `PoButtonModule` | — |
+| `po-divider` | `PoDividerModule` | — |
+
+### PoTableColumn types and formats
+- `type` is a plain `string` — never use `PoTableColumnType` enum (it does not exist)
+- Valid values: `'string' | 'number' | 'currency' | 'date' | 'dateTime' | 'time' | 'boolean' | 'label' | 'icon' | 'tag'`
+- For `type: 'currency'`, always set `format: 'BRL'` (not `'pt-BR'`, not omitted)
+- For `type: 'date'`, always set `format: 'dd/MM/yyyy'` (capital MM = months, lowercase mm = minutes)
+- For `type: 'number'` with decimals, set `format: '1.4-4'`
+
+### po-table selection
+- Use `(p-selected-rows)="onSelectionChange($event)"` — emits the full `any[]` array
+- **Never** use `(p-selected)` / `(p-unselected)` — those are single-row events requiring manual accumulation
+
+### No mock data files
+- Never create `*.mock.ts`, `*.data.ts`, or `useMock` flags
+- If demo data is needed, add `const DEMO_*: Model[] = [...]` at the top of the component file and load it only in the `error` handler of the load method
+
+### Locale for currency
+Register pt-BR in `app.config.ts` (only if not already present):
+```typescript
+import { registerLocaleData } from '@angular/common';
+import localePtBr from '@angular/common/locales/pt';
+import { LOCALE_ID } from '@angular/core';
+registerLocaleData(localePtBr, 'pt-BR');
+// providers: [..., { provide: LOCALE_ID, useValue: 'pt-BR' }]
+```
+
 ## Naming Conventions
 
-| Element | Convention | Example (input: `ClientesList`, module: `financeiro`) |
+| Element | Convention | Example (input: `PedidosList`, module: `financeiro`) |
 |---------|-----------|------------------------------------------------------|
-| CSS Selector | `app-` + kebab-case of name | `app-clientes-list` |
-| Class name | PascalCase + type suffix | `ClientesListComponent` |
-| Component file | kebab-case.component.ts | `clientes-list.component.ts` |
-| Template file | kebab-case.component.html | `clientes-list.component.html` |
-| Styles file | kebab-case.component.scss | `clientes-list.component.scss` |
-| Service class | Singular PascalCase + `Service` | `ClientesService` |
-| Service file | singular-kebab.service.ts | `clientes.service.ts` |
-| Model interface | Singular PascalCase | `Cliente` |
-| Directory | `src/app/<module>/<kebab-name>/` | `src/app/financeiro/clientes-list/` |
-| REST path (inferred) | `/api/custom/v1/<plural-kebab>` | `/api/custom/v1/clientes` |
+| CSS Selector | `app-` + kebab-case of name | `app-pedidos-list` |
+| Class name | PascalCase + type suffix | `PedidosListComponent` |
+| Component file | kebab-case.component.ts | `pedidos-list.component.ts` |
+| Template file | kebab-case.component.html | `pedidos-list.component.html` |
+| Styles file | kebab-case.component.scss | `pedidos-list.component.scss` |
+| Service class | Singular PascalCase + `Service` | `PedidosService` |
+| Service file | singular-kebab.service.ts | `pedidos.service.ts` |
+| Model interface | Singular PascalCase | `Pedido` |
+| Directory | `src/app/<module>/<kebab-name>/` | `src/app/financeiro/pedidos-list/` |
+| REST path (inferred) | `/api/custom/v1/<plural-kebab>` | `/api/custom/v1/pedidos` |
 
 ## Workflow
 
@@ -116,15 +154,15 @@ Load the template files identified in Phase 1 and apply substitutions:
 
 | Placeholder | Replaced with | Example |
 |-------------|--------------|---------|
-| `{{ComponentClass}}` | PascalCase class name | `ClientesListComponent` |
-| `{{kebab-name}}` | kebab-case filename | `clientes-list` |
-| `{{selector}}` | CSS selector | `app-clientes-list` |
-| `{{ModelInterface}}` | Singular PascalCase model | `Cliente` |
+| `{{ComponentClass}}` | PascalCase class name | `PedidosListComponent` |
+| `{{kebab-name}}` | kebab-case filename | `pedidos-list` |
+| `{{selector}}` | CSS selector | `app-pedidos-list` |
+| `{{ModelInterface}}` | Singular PascalCase model | `Pedido` |
 | `{{DetailInterface}}` | PascalCase child model (master-detail) | `PedidoItem` |
-| `{{ServiceClass}}` | Service class name | `ClientesService` |
-| `{{serviceFile}}` | Service file name (no extension) | `clientes.service` |
-| `{{modelFile}}` | Model file name (no extension) | `cliente.model` |
-| `{{apiPath}}` | Protheus REST path | `/rest/api/custom/v1/clientes` |
+| `{{ServiceClass}}` | Service class name | `PedidosService` |
+| `{{serviceFile}}` | Service file name (no extension) | `pedidos.service` |
+| `{{modelFile}}` | Model file name (no extension) | `pedido.model` |
+| `{{apiPath}}` | Protheus REST path | `/rest/api/custom/v1/pedidos` |
 | `{{moduleName}}` | Module folder name (lowercase) | `financeiro` |
 | `{{ModuleName}}` | Module display name (PascalCase) | `Financeiro` |
 
@@ -132,15 +170,30 @@ After writing all files, confirm with absolute paths and suggest the route addit
 
 ```
 ✔ Arquivos criados:
-  src/app/financeiro/clientes-list/clientes-list.component.ts
-  src/app/financeiro/clientes-list/clientes-list.component.html
-  src/app/financeiro/clientes-list/clientes-list.component.scss
-  src/app/financeiro/clientes.service.ts
+  src/app/financeiro/pedidos-list/pedidos-list.component.ts
+  src/app/financeiro/pedidos-list/pedidos-list.component.html
+  src/app/financeiro/pedidos-list/pedidos-list.component.scss
+  src/app/financeiro/pedidos.service.ts
 
 Próximo passo — adicione a rota em src/app/app.routes.ts:
   {
-    path: 'clientes',
-    loadComponent: () => import('./financeiro/clientes-list/clientes-list.component')
-      .then(m => m.ClientesListComponent)
+    path: 'pedidos',
+    loadComponent: () => import('./financeiro/pedidos-list/pedidos-list.component')
+      .then(m => m.PedidosListComponent)
   }
 ```
+
+### Phase 4: Post-Generation — Verify angular.json (MANDATORY)
+
+After writing all component files, read `angular.json` from the workspace root.
+
+Check that `projects.<name>.architect.build.options.styles` contains these 3 PO-UI theme files:
+```json
+"node_modules/@totvs/po-theme/css/po-theme-default-variables.min.css",
+"node_modules/@totvs/po-theme/css/po-theme-default.min.css",
+"node_modules/@po-ui/style/css/po-theme-core.min.css"
+```
+
+If any are missing, add them **before** `src/styles.scss` and report the fix to the user.
+
+**Why this matters:** Without these 3 files, all PO-UI components render with no styling — no colors, no typography, no layout. This is the most common silent failure in new PO-UI projects and causes the entire screen to look broken even when the code is correct.

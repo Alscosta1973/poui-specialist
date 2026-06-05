@@ -79,7 +79,7 @@ export class AppComponent {
   }
 
   readonly menus: PoMenuItem[] = [
-    { label: 'Clientes', link: '/clientes', shortLabel: 'Clientes', icon: 'po-icon-user' },
+    { label: 'Pedidos', link: '/pedidos', shortLabel: 'Pedidos', icon: 'po-icon-user' },
     { label: 'Sair',     shortLabel: 'Sair', icon: 'po-icon-exit', action: this.closeApp.bind(this) },
   ];
 
@@ -162,26 +162,26 @@ módulos que precisam dele.
 import { Routes } from '@angular/router';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'clientes', pathMatch: 'full' },
+  { path: '', redirectTo: 'pedidos', pathMatch: 'full' },
   {
-    path: 'clientes',
+    path: 'pedidos',
     loadComponent: () =>
-      import('./financeiro/clientes-list/clientes-list.component')
-        .then(m => m.ClientesListComponent),
+      import('./financeiro/pedidos-list/pedidos-list.component')
+        .then(m => m.PedidosListComponent),
   },
   {
-    path: 'clientes/novo',
+    path: 'pedidos/novo',
     loadComponent: () =>
-      import('./financeiro/clientes-edit/clientes-edit.component')
-        .then(m => m.ClientesEditComponent),
+      import('./financeiro/pedidos-edit/pedidos-edit.component')
+        .then(m => m.PedidosEditComponent),
   },
   {
-    path: 'clientes/:codigo/:loja',
+    path: 'pedidos/:codigo/:loja',
     loadComponent: () =>
-      import('./financeiro/clientes-edit/clientes-edit.component')
-        .then(m => m.ClientesEditComponent),
+      import('./financeiro/pedidos-edit/pedidos-edit.component')
+        .then(m => m.PedidosEditComponent),
   },
-  { path: '**', redirectTo: 'clientes' },
+  { path: '**', redirectTo: 'pedidos' },
 ];
 ```
 
@@ -218,24 +218,24 @@ import {
   PoTableModule,
   PoNotificationService,
 } from '@po-ui/ng-components';
-import { ClientesService } from '../clientes.service';
-import { Cliente } from '../models/cliente.model';
+import { PedidosService } from '../pedidos.service';
+import { Pedido } from '../models/pedido.model';
 
 @Component({
-  selector: 'app-clientes-list',
+  selector: 'app-pedidos-list',
   standalone: true,
   imports: [PoPageListModule, PoTableModule],
-  templateUrl: './clientes-list.component.html',
-  styleUrl: './clientes-list.component.scss',
+  templateUrl: './pedidos-list.component.html',
+  styleUrl: './pedidos-list.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ClientesListComponent implements OnInit {
-  private readonly service = inject(ClientesService);
+export class PedidosListComponent implements OnInit {
+  private readonly service = inject(PedidosService);
   private readonly router = inject(Router);
   private readonly notification = inject(PoNotificationService);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly items = signal<Cliente[]>([]);
+  readonly items = signal<Pedido[]>([]);
   readonly loading = signal(false);
   readonly hasNext = signal(false);
 

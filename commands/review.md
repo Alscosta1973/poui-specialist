@@ -22,7 +22,7 @@ Reviews PO-UI Angular code against established rules for best practices, perform
 ## Examples
 
 ```bash
-/poui-specialist:review src/app/clientes
+/poui-specialist:review src/app/pedidos
 /poui-specialist:review src/app/pedido/pedido-list.component.ts --focus performance
 /poui-specialist:review src/ --focus acessibilidade
 ```

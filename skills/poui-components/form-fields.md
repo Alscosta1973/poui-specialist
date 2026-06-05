@@ -109,7 +109,7 @@ readonly estadoOptions: PoComboOption[] = [
 ## po-lookup
 
 ```typescript
-readonly clienteColumns: PoLookupColumn[] = [
+readonly pedidoColumns: PoLookupColumn[] = [
   { property: 'codigo', label: 'Código', width: '20%' },
   { property: 'nome', label: 'Nome' },
 ];
@@ -117,12 +117,12 @@ readonly clienteColumns: PoLookupColumn[] = [
 
 ```html
 <po-lookup
-  p-label="Cliente"
+  p-label="Pedido"
   p-field-value="codigo"
   p-field-label="nome"
-  formControlName="clienteCodigo"
-  [p-columns]="clienteColumns"
-  [p-filter-service]="clienteFilterService">
+  formControlName="pedidoCodigo"
+  [p-columns]="pedidoColumns"
+  [p-filter-service]="pedidoFilterService">
 </po-lookup>
 ```
 
@@ -353,7 +353,7 @@ interface PoLookupResponseApi {
 ### Implementação — chave simples
 
 ```typescript
-// src/app/<modulo>/services/cliente-lookup.service.ts
+// src/app/<modulo>/services/pedido-lookup.service.ts
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -364,9 +364,9 @@ import {
 } from '@po-ui/ng-components';
 
 @Injectable({ providedIn: 'root' })
-export class ClienteLookupService implements PoLookupFilter {
+export class PedidoLookupService implements PoLookupFilter {
   private readonly http    = inject(HttpClient);
-  private readonly baseUrl = '/rest/api/custom/v1/clientes';
+  private readonly baseUrl = '/rest/api/custom/v1/pedidos';
 
   getFilteredData(
     { filter, page, pageSize }: PoLookupFilteredItemsParams,
@@ -388,9 +388,9 @@ export class ClienteLookupService implements PoLookupFilter {
 
 ```typescript
 @Injectable({ providedIn: 'root' })
-export class FornecedorLookupService implements PoLookupFilter {
+export class ParceiroLookupService implements PoLookupFilter {
   private readonly http    = inject(HttpClient);
-  private readonly baseUrl = '/rest/api/custom/v1/fornecedores';
+  private readonly baseUrl = '/rest/api/custom/v1/parceiros';
 
   getFilteredData(
     { filter, page, pageSize }: PoLookupFilteredItemsParams,
@@ -415,12 +415,12 @@ export class FornecedorLookupService implements PoLookupFilter {
 ```typescript
 import { inject } from '@angular/core';
 import { PoLookupColumn, PoLookupModule } from '@po-ui/ng-components';
-import { ClienteLookupService } from '../services/cliente-lookup.service';
+import { PedidoLookupService } from '../services/pedido-lookup.service';
 
 // No @Component:
-readonly clienteLookupService = inject(ClienteLookupService);
+readonly pedidoLookupService = inject(PedidoLookupService);
 
-readonly clienteColumns: PoLookupColumn[] = [
+readonly pedidoColumns: PoLookupColumn[] = [
   { property: 'codigo', label: 'Código', width: '12%' },
   { property: 'loja',   label: 'Loja',   width: '8%' },
   { property: 'nome',   label: 'Nome' },
@@ -430,12 +430,12 @@ readonly clienteColumns: PoLookupColumn[] = [
 
 ```html
 <po-lookup
-  p-label="Cliente"
+  p-label="Pedido"
   p-field-value="codigo"
   p-field-label="nome"
-  formControlName="clienteCodigo"
-  [p-columns]="clienteColumns"
-  [p-filter-service]="clienteLookupService">
+  formControlName="pedidoCodigo"
+  [p-columns]="pedidoColumns"
+  [p-filter-service]="pedidoLookupService">
 </po-lookup>
 ```
 

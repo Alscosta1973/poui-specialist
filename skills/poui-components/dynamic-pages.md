@@ -21,7 +21,7 @@ seleção de itens, ações por linha (editar/excluir), e breadcrumb.
 
 | Input | Type | Description |
 |-------|------|-------------|
-| `p-service-api` | `string` | URL base da API REST (ex: `/rest/api/custom/v1/clientes`) |
+| `p-service-api` | `string` | URL base da API REST (ex: `/rest/api/custom/v1/pedidos`) |
 | `p-fields` | `PoPageDynamicTableField[]` | Definição de colunas e filtros |
 | `p-actions` | `PoPageDynamicTableActions` | Ações de nova, editar, remover, detalhe |
 | `p-title` | `string` | Título da página |
@@ -86,8 +86,8 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <po-page-dynamic-table
-      p-title="Clientes"
-      p-service-api="/rest/api/custom/v1/clientes"
+      p-title="Pedidos"
+      p-service-api="/rest/api/custom/v1/pedidos"
       [p-breadcrumb]="breadcrumb"
       [p-fields]="fields"
       [p-actions]="actions"
@@ -95,9 +95,9 @@ import {
     </po-page-dynamic-table>
   `,
 })
-export class ClientesListComponent {
+export class PedidosListComponent {
   readonly breadcrumb: PoBreadcrumb = {
-    items: [{ label: 'Financeiro', link: '/financeiro' }, { label: 'Clientes' }],
+    items: [{ label: 'Financeiro', link: '/financeiro' }, { label: 'Pedidos' }],
   };
 
   readonly fields: PoPageDynamicTableField[] = [
@@ -219,18 +219,18 @@ import { PoPageDynamicEditModule } from '@po-ui/ng-templates';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <po-page-dynamic-edit
-      p-title="Cliente"
-      p-service-api="/rest/api/custom/v1/clientes"
+      p-title="Pedido"
+      p-service-api="/rest/api/custom/v1/pedidos"
       [p-breadcrumb]="breadcrumb"
       [p-fields]="fields">
     </po-page-dynamic-edit>
   `,
 })
-export class ClientesEditComponent {
+export class PedidosEditComponent {
   readonly breadcrumb: PoBreadcrumb = {
     items: [
       { label: 'Financeiro', link: '/financeiro' },
-      { label: 'Clientes', link: '/financeiro/clientes' },
+      { label: 'Pedidos', link: '/financeiro/pedidos' },
       { label: 'Editar' },
     ],
   };
@@ -288,19 +288,19 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <po-page-dynamic-detail
-      p-title="Detalhe do Cliente"
-      p-service-api="/rest/api/custom/v1/clientes"
+      p-title="Detalhe do Pedido"
+      p-service-api="/rest/api/custom/v1/pedidos"
       [p-breadcrumb]="breadcrumb"
       [p-fields]="fields"
       [p-actions]="actions">
     </po-page-dynamic-detail>
   `,
 })
-export class ClientesDetailComponent {
+export class PedidosDetailComponent {
   readonly breadcrumb: PoBreadcrumb = {
     items: [
       { label: 'Financeiro', link: '/financeiro' },
-      { label: 'Clientes', link: '/financeiro/clientes' },
+      { label: 'Pedidos', link: '/financeiro/pedidos' },
       { label: 'Detalhe' },
     ],
   };

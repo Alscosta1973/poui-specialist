@@ -39,14 +39,14 @@ Generates standalone Angular 17+ artifacts using PO-UI components, integrated wi
 ## Examples
 
 ```bash
-/poui-specialist:generate page-dynamic-search Clientes --module financeiro
-/poui-specialist:generate page-dynamic Fornecedores --module compras
+/poui-specialist:generate page-dynamic-search Pedidos --module financeiro
+/poui-specialist:generate page-dynamic Parceiros --module compras
 /poui-specialist:generate modal-crud Produtos --module estoque
 /poui-specialist:generate page-edit Pedido --module faturamento
 /poui-specialist:generate page-detail Pedido --module faturamento
-/poui-specialist:generate stepper-form CadastroCliente --module financeiro
+/poui-specialist:generate stepper-form CadastroPedido --module financeiro
 /poui-specialist:generate master-detail PedidoCompra --module compras
-/poui-specialist:generate page-list Fornecedores --module compras
+/poui-specialist:generate page-list Parceiros --module compras
 /poui-specialist:generate service PedidoService --module faturamento
 /poui-specialist:generate dashboard Estoque --module estoque
 /poui-specialist:generate module Faturamento
