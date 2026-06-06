@@ -6,6 +6,7 @@ import {
   DivergenciaCartao,
   RegularizarRequest,
   RevalidarTaxaRequest,
+  SalvarObsRequest,
 } from './divergencia-cartao.model';
 
 @Injectable({ providedIn: 'root' })
@@ -27,6 +28,10 @@ export class DivergenciaCartaoService {
 
   revalidarTaxa(body: RevalidarTaxaRequest): Observable<void> {
     return this.http.patch<void>(`${this.baseUrl}/revalidar-taxa`, body);
+  }
+
+  salvarObs(body: SalvarObsRequest): Observable<void> {
+    return this.http.patch<void>(`${this.baseUrl}/obs`, body);
   }
 
   relatorio(): Observable<Blob> {

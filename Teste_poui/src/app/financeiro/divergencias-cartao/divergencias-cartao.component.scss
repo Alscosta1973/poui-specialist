@@ -116,18 +116,18 @@
 }
 
 /* Cores das bordas dos widgets = cores dos labels de status no po-table */
-.widget-1 { border-left-color: var(--color-08); } /* Div. MDR   — laranja  */
-.widget-2 { border-left-color: var(--color-07); } /* Div. Ant.  — vermelho */
-.widget-3 { border-left-color: var(--color-05); } /* MDR+Ant.   — roxo    */
-.widget-4 { border-left-color: var(--color-06); } /* Em Acordo  — magenta  */
-.widget-5 { border-left-color: var(--color-10); } /* Regular.   — verde    */
+.widget-1 { border-left-color: var(--color-01); }                    /* Div. MDR   — azul     */
+.widget-2 { border-left-color: var(--color-feedback-warning-base); } /* Div. Ant.  — amarelo  */
+.widget-3 { border-left-color: var(--color-07); }                    /* MDR+Ant.   — vermelho */
+.widget-4 { border-left-color: var(--color-neutral-mid-40); }        /* Em Acordo  — cinza    */
+.widget-5 { border-left-color: var(--color-10); }                    /* Regular.   — verde    */
 
-/* Painel de observacao — barra horizontal compacta no rodapé */
+/* Painel de observacao — editavel no rodapé */
 .div-obs-panel {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
-  padding: 4px 10px;
+  padding: 6px 10px;
   background: #f5f6fa;
   border-top: 2px solid #e0e0e0;
   min-height: 28px;
@@ -137,29 +137,47 @@
     font-weight: 700;
     color: #555;
     white-space: nowrap;
-  }
-
-  .obs-sep {
-    color: #ccc;
+    padding-top: 6px;
     flex-shrink: 0;
   }
 
-  .obs-texto {
+  .obs-textarea {
     flex: 1;
+    resize: none;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 4px 6px;
     font-size: 11px;
+    font-family: inherit;
     color: #333;
-    white-space: pre-line;
-    line-height: 1.4;
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
+    background: #fff;
+    outline: none;
+    line-height: 1.45;
+
+    &:focus {
+      border-color: var(--color-action-default, #0079c3);
+      box-shadow: 0 0 0 2px rgba(0, 121, 195, 0.15);
+    }
+
+    &::placeholder {
+      color: #bbb;
+      font-style: italic;
+    }
+  }
+
+  .obs-acoes {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+    padding-top: 2px;
   }
 
   .obs-vazio {
     font-size: 11px;
     color: #bbb;
     font-style: italic;
+    padding-top: 4px;
   }
 }
 
@@ -173,10 +191,10 @@
 }
 
 /* Mesmas cores dos labels status no po-table */
-.status-dot-1 { background-color: var(--color-08); }
-.status-dot-2 { background-color: var(--color-07); }
-.status-dot-3 { background-color: var(--color-05); }
-.status-dot-4 { background-color: var(--color-06); }
+.status-dot-1 { background-color: var(--color-01); }
+.status-dot-2 { background-color: var(--color-feedback-warning-base); }
+.status-dot-3 { background-color: var(--color-07); }
+.status-dot-4 { background-color: var(--color-neutral-mid-40); }
 .status-dot-5 { background-color: var(--color-10); }
 
 /* Valores monetarios — display:block necessario para text-align funcionar dentro de columnTemplate */

@@ -38,3 +38,8 @@ export interface RegularizarRequest {
 export interface RevalidarTaxaRequest {
   nsus: string[];
 }
+
+export interface SalvarObsRequest {
+  nsu: string;
+  observacao: string;
+}

@@ -28,6 +28,7 @@ import {
 } from '@po-ui/ng-components';
 import { DivergenciaCartao, TotaisStatus, TxOkStatus } from './divergencia-cartao.model';
 import { DivergenciaCartaoService } from './divergencia-cartao.service';
+import { catchError, EMPTY } from 'rxjs';
 
 const STATUS_LABELS: Record<TxOkStatus, string> = {
   '1': 'Diverg. MDR',
@@ -91,6 +92,8 @@ export class DivergenciasCartaoComponent implements OnInit, AfterViewInit {
   readonly filtroStatus = signal<TxOkStatus | null>(null);
   readonly selecionados = signal<DivergenciaCartao[]>([]);
   readonly divergenciaAtiva = signal<DivergenciaCartao | null>(null);
+  readonly obsTextoAtual = signal('');
+  readonly obsModificado = signal(false);
   readonly loading = signal(false);
   readonly tableHeight = signal(400);
 
@@ -151,8 +154,8 @@ export class DivergenciasCartaoComponent implements OnInit, AfterViewInit {
   }
 
   private calcTableHeight(): number {
-    // viewport - po-toolbar(55) - page header(68) - buttons row(44) - widgets(92) - obs panel(68) - misc(28)
-    return Math.max(200, window.innerHeight - 355);
+    // viewport - po-toolbar(55) - page header(68) - buttons row(44) - widgets(92) - obs panel(100) - misc(31)
+    return Math.max(200, window.innerHeight - 390);
   }
 
   carregar(): void {
@@ -176,7 +179,7 @@ export class DivergenciasCartaoComponent implements OnInit, AfterViewInit {
 
   onSelect(row: DivergenciaCartao): void {
     this.selecionados.update((prev) => [...prev, row]);
-    this.divergenciaAtiva.set(row);
+    this.definirAtivo(row);
   }
 
   onUnselect(row: DivergenciaCartao): void {
@@ -193,7 +196,6 @@ export class DivergenciasCartaoComponent implements OnInit, AfterViewInit {
 
   onTableContainerClick(event: Event): void {
     const target = event.target as HTMLElement;
-    // PO-UI renders each data row in its own <tbody>; header is in <thead>
     const tbody = target.closest('tbody') as HTMLTableSectionElement | null;
     if (!tbody) return;
 
@@ -206,8 +208,49 @@ export class DivergenciasCartaoComponent implements OnInit, AfterViewInit {
 
     const items = this.divergenciasFiltradas();
     if (index < items.length) {
-      this.divergenciaAtiva.set(items[index]);
+      this.definirAtivo(items[index]);
     }
+  }
+
+  private definirAtivo(row: DivergenciaCartao): void {
+    this.divergenciaAtiva.set(row);
+    this.obsTextoAtual.set(row.observacao);
+    this.obsModificado.set(false);
+  }
+
+  onObsChange(texto: string): void {
+    this.obsTextoAtual.set(texto);
+    this.obsModificado.set(true);
+  }
+
+  salvarObs(): void {
+    const ativa = this.divergenciaAtiva();
+    if (!ativa) return;
+    const obs = this.obsTextoAtual();
+    // Atualiza localmente
+    const atualizada = { ...ativa, observacao: obs };
+    this.divergencias.update((list) =>
+      list.map((d) => (d.nsu === ativa.nsu ? atualizada : d))
+    );
+    this.divergenciaAtiva.set(atualizada);
+    this.obsModificado.set(false);
+    // Persiste no backend (best-effort: erro nao reverte estado local)
+    this.service
+      .salvarObs({ nsu: ativa.nsu, observacao: obs })
+      .pipe(
+        catchError(() => {
+          this.notification.warning('Obs salva localmente — backend indisponivel.');
+          return EMPTY;
+        }),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(() => this.notification.success('Observacao salva.'));
+  }
+
+  fecharObs(): void {
+    this.divergenciaAtiva.set(null);
+    this.obsTextoAtual.set('');
+    this.obsModificado.set(false);
   }
 
   filtrarPorStatus(status: TxOkStatus | null): void {
