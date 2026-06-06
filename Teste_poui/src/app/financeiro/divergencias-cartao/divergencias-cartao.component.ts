@@ -4,6 +4,7 @@ import {
   Component,
   computed,
   DestroyRef,
+  effect,
   HostListener,
   inject,
   OnInit,
@@ -87,6 +88,15 @@ export class DivergenciasCartaoComponent implements OnInit, AfterViewInit {
   private readonly service = inject(DivergenciaCartaoService);
   private readonly notification = inject(PoNotificationService);
   private readonly destroyRef = inject(DestroyRef);
+
+  constructor() {
+    // Re-aplica highlight na linha ativa apos cada ciclo de render
+    effect(() => {
+      this.divergenciaAtiva();
+      this.divergenciasFiltradas();
+      setTimeout(() => this.highlightActiveRow(), 0);
+    });
+  }
 
   readonly divergencias = signal<DivergenciaCartao[]>([]);
   readonly filtroStatus = signal<TxOkStatus | null>(null);
@@ -356,6 +366,20 @@ export class DivergenciasCartaoComponent implements OnInit, AfterViewInit {
 
   difClass(v: number): string {
     return v < 0 ? 'valor-negativo' : 'valor-positivo';
+  }
+
+  private highlightActiveRow(): void {
+    document.querySelectorAll('.div-table-container .row-ativa').forEach(
+      (el) => el.classList.remove('row-ativa')
+    );
+    const ativa = this.divergenciaAtiva();
+    if (!ativa) return;
+    const index = this.divergenciasFiltradas().findIndex((d) => d.nsu === ativa.nsu);
+    if (index < 0) return;
+    const table = document.querySelector('.div-table-container table');
+    if (!table) return;
+    const tbodies = table.querySelectorAll<HTMLTableSectionElement>(':scope > tbody');
+    tbodies[index]?.classList.add('row-ativa');
   }
 
   private downloadBlob(blob: Blob, fileName: string): void {

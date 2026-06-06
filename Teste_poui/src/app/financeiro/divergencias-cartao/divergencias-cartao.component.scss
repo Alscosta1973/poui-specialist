@@ -32,6 +32,11 @@
     padding-top: 4px !important;
     padding-bottom: 4px !important;
   }
+
+  /* Linha ativa (cursor/foco) — destaque azul independente de selecao */
+  ::ng-deep .row-ativa td {
+    background-color: #dbeafe !important;
+  }
 }
 
 /* Widgets — rodapé */
@@ -82,7 +87,8 @@
 
 .card-col-hdr {
   font-size: 9px;
-  color: #bbb;
+  font-weight: 700;
+  color: #888;
   text-align: right;
 }
 
