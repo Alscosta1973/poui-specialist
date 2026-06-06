@@ -1,238 +1,184 @@
-/* ── filter bar ──────────────────────────────────────────────────────────── */
-.filter-bar {
+:host {
+  display: block;
+  font-size: 12px;
+}
+
+/* Barra de botoes */
+.div-toolbar {
   display: flex;
-  align-items: center;
-  gap: 8px;
   flex-wrap: wrap;
-  padding: 8px 16px;
-  background: #f8f9fb;
-  border-bottom: 1px solid #d0d4da;
-}
-
-.filter-label { font-size: 11px; font-weight: 700; color: #6c757d; }
-
-.status-chip {
-  padding: 3px 12px;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: 600;
-  cursor: pointer;
-  border: 2px solid transparent;
-  transition: opacity 0.15s;
-
-  &:hover { opacity: 0.85; }
-  &.active { border-color: rgba(0,0,0,.3); }
-
-  &:nth-child(2) { background: #0079c4; color: #fff; }   /* MDR */
-  &:nth-child(3) { background: #f5a623; color: #fff; }   /* Antecipação */
-  &:nth-child(4) { background: #c94949; color: #fff; }   /* MDR+Ant */
-  &:nth-child(5) { background: #9da7b3; color: #fff; }   /* Acordo */
-  &:nth-child(6) { background: #28a745; color: #fff; }   /* Regularizado */
-}
-
-.chip-all { background: #fff; color: #3d4451; border: 1px solid #d0d4da; }
-.chip-all.active { border-color: #0079c4; color: #0079c4; }
-
-.sel-badge {
-  margin-left: auto;
-  background: #e8f4fd;
-  color: #0079c4;
-  border: 1px solid #b8d8f5;
-  border-radius: 12px;
-  padding: 2px 12px;
-  font-size: 11px;
-  font-weight: 600;
-}
-
-/* ── table + drawer layout ───────────────────────────────────────────────── */
-.table-drawer-wrap {
-  display: flex;
-  position: relative;
-  flex: 1;
-  overflow: hidden;
-}
-
-.table-scroll {
-  flex: 1;
-  overflow: auto;
-  transition: margin-right 0.25s ease;
-
-  &.drawer-open { margin-right: 360px; }
-}
-
-/* ── drawer ──────────────────────────────────────────────────────────────── */
-.drawer {
-  position: fixed;
-  top: 0;
-  right: -380px;
-  width: 360px;
-  height: 100vh;
-  background: #fff;
-  border-left: 3px solid #0079c4;
-  box-shadow: -4px 0 12px rgba(0,0,0,.12);
-  transition: right 0.25s ease;
-  z-index: 100;
-  display: flex;
-  flex-direction: column;
-
-  &.open { right: 0; }
-}
-
-.drawer-header {
-  background: #0079c4;
-  color: #fff;
-  padding: 12px 16px;
-  display: flex;
-  justify-content: space-between;
   align-items: center;
-  font-weight: 700;
-  font-size: 14px;
-}
-
-.drawer-close {
-  background: none;
-  border: none;
-  color: #fff;
-  font-size: 18px;
-  cursor: pointer;
-}
-
-.drawer-body {
-  flex: 1;
-  overflow-y: auto;
-  padding: 16px;
-}
-
-.drawer-section { margin-bottom: 16px; }
-
-.section-title {
-  font-size: 10px;
-  font-weight: 800;
-  color: #6c757d;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border-bottom: 1px solid #eef0f3;
-  padding-bottom: 4px;
-  margin-bottom: 8px;
-}
-
-.required { color: #c94949; }
-.obs-hint { font-size: 10px; color: #6c757d; }
-
-.drawer-footer {
-  padding: 12px 16px;
-  border-top: 1px solid #d0d4da;
-  display: flex;
-  gap: 8px;
-  background: #f8f9fb;
-}
-
-/* ── summary strip ───────────────────────────────────────────────────────── */
-.summary-strip {
-  display: flex;
-  gap: 8px;
-  padding: 8px 16px;
-  background: #fff;
-  border-top: 2px solid #d0d4da;
-  flex-wrap: wrap;
-}
-
-.stat-card {
-  flex: 1 1 150px;
-  background: #f8f9fb;
-  border: 1px solid #d0d4da;
-  border-radius: 4px;
-  padding: 8px 12px;
-  min-width: 0;
-}
-
-.stat-card-sel {
-  border-color: #0079c4;
-  background: #e8f4fd;
-
-  .val-main { color: #0079c4; }
-  .card-header { color: #0079c4; }
-}
-
-.card-header {
-  font-size: 11px;
-  font-weight: 700;
-  color: #6c757d;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  display: flex;
-  align-items: center;
-  gap: 5px;
+  gap: 6px;
   margin-bottom: 6px;
-}
 
-.card-dot {
-  width: 10px; height: 10px;
-  border-radius: 50%;
-  display: inline-block;
-
-  &[data-txok="1"] { background: #0079c4; }
-  &[data-txok="2"] { background: #f5a623; }
-  &[data-txok="3"] { background: #c94949; }
-  &[data-txok="4"] { background: #9da7b3; }
-  &[data-txok="5"] { background: #28a745; }
-}
-
-.card-qty {
-  margin-left: auto;
-  font-size: 11px;
-  color: #6c757d;
-  font-weight: 600;
-  white-space: nowrap;
-
-  strong {
-    color: #1a2332;
-    font-size: 13px;
-    margin-left: 3px;
+  .toolbar-info {
+    margin-left: auto;
+    font-size: 11px;
+    color: #666;
+    white-space: nowrap;
   }
 }
 
-.card-body {
-  display: flex;
-  gap: 10px;
-  align-items: flex-end;
-  flex-wrap: wrap;
-  min-width: 0;
+/* Browse — gear do table fica oculto (acionado via botao "Colunas" no cabecalho da pagina) */
+.div-table-container {
+  margin-bottom: 6px;
+
+  ::ng-deep .po-table-actions-column-manager {
+    display: none;
+  }
+
+  /* Reduz padding vertical das celulas para linhas compactas */
+  ::ng-deep tbody td {
+    padding-top: 4px !important;
+    padding-bottom: 4px !important;
+  }
 }
 
-.val-block { flex: 1 1 100px; min-width: 0; }
-.dif-block { flex: 1 1 80px; min-width: 0; border-left: 1px solid #d0d4da; padding-left: 8px; }
+/* Widgets — rodapé */
+.div-widgets {
+  display: flex;
+  gap: 5px;
+  border-top: 1px solid #e8e8e8;
+  padding-top: 5px;
+  margin-bottom: 2px;
+}
 
-.val-label {
-  font-size: 9.5px;
-  font-weight: 800;
-  color: #6c757d;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
+.status-card {
+  flex: 1;
+  min-width: 138px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-left: 3px solid #ccc;
+  cursor: pointer;
+  font-size: 11px;
+  user-select: none;
+  transition: box-shadow 0.1s;
+
+  &:hover {
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.card-titulo {
+  font-weight: 600;
+  font-size: 10px;
+  color: #444;
   margin-bottom: 2px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.val-main {
-  font-size: 15px;
-  font-weight: 800;
-  color: #1a2332;
-  white-space: nowrap;
+/* Grid 3 colunas: label | Total | Selecionados */
+.card-grid {
+  display: grid;
+  grid-template-columns: auto 1fr 1fr;
+  gap: 0 5px;
+  align-items: center;
+  line-height: 1.7;
 }
 
-.val-dif {
-  font-size: 13px;
+.card-col-hdr {
+  font-size: 9px;
+  color: #bbb;
+  text-align: right;
+}
+
+.card-label {
   font-weight: 700;
-  color: #9da7b3;
+  color: #555;
+  font-size: 10px;
   white-space: nowrap;
 }
 
-/* ── cor semântica diferença ─────────────────────────────────────────────── */
-.dif-neg { color: #c94949; font-weight: 700; }   /* faltante */
-.dif-pos { color: #0079c4; font-weight: 700; }   /* a mais   */
+.card-count {
+  font-size: 12px;
+  font-weight: 700;
+  text-align: right;
+}
 
-/* ── row mark icon ───────────────────────────────────────────────────────── */
-.row-mark { cursor: pointer; margin-right: 6px; }
-.mark-icon { font-size: 14px; color: #0079c4; }
+.card-val {
+  font-size: 10px;
+  font-weight: 600;
+  text-align: right;
+}
+
+/* Coluna "Selecionados" levemente opaca para diferenciar */
+.card-sel {
+  opacity: 0.65;
+}
+
+.card-ativo {
+  outline: 2px solid var(--color-action-default);
+  outline-offset: 1px;
+}
+
+/* Cores das bordas dos widgets = cores dos labels de status no po-table */
+.widget-1 { border-left-color: var(--color-08); } /* Div. MDR   — laranja  */
+.widget-2 { border-left-color: var(--color-07); } /* Div. Ant.  — vermelho */
+.widget-3 { border-left-color: var(--color-07); } /* MDR+Ant.   — vermelho */
+.widget-4 { border-left-color: var(--color-06); } /* Em Acordo  — magenta  */
+.widget-5 { border-left-color: var(--color-10); } /* Regular.   — verde    */
+
+/* Painel de observacao — rodapé */
+.div-obs-panel {
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  padding: 5px 10px;
+  background: #f8f9fa;
+  border-top: 1px solid #e0e0e0;
+  min-height: 32px;
+
+  .obs-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 3px;
+  }
+
+  .obs-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: #444;
+  }
+
+  .obs-placeholder {
+    font-size: 11px;
+    color: #bbb;
+    font-style: italic;
+    line-height: 22px;
+  }
+}
+
+/* Circulo de status (coluna St.) */
+.status-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  vertical-align: middle;
+}
+
+/* Mesmas cores dos labels status no po-table */
+.status-dot-1 { background-color: var(--color-08); }
+.status-dot-2 { background-color: var(--color-07); }
+.status-dot-3 { background-color: var(--color-07); }
+.status-dot-4 { background-color: var(--color-06); }
+.status-dot-5 { background-color: var(--color-10); }
+
+/* Valores monetarios */
+.valor-negativo { color: #d32f2f; font-weight: 600; }
+.valor-positivo { color: #1565c0; font-weight: 600; }
+
+/* Fonte menor nas celulas do browse */
+::ng-deep .po-table-body-ellipsis {
+  font-size: 11px;
+}
+
+::ng-deep .po-table-header-ellipsis {
+  font-size: 11px;
+}

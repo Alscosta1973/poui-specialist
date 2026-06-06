@@ -20,22 +20,10 @@ export class AppComponent {
 
   readonly menus: PoMenuItem[] = [
     {
-      label: 'Produtos',
-      link: '/estoque/produtos',
-      shortLabel: 'Produtos',
-      icon: 'po-icon-clipboard',
-    },
-    {
-      label: 'Fornecedores',
-      link: '/compras/fornecedores',
-      shortLabel: 'Fornecedores',
-      icon: 'po-icon-user',
-    },
-    {
-      label: 'Clientes',
-      link: '/financeiro/clientes',
-      shortLabel: 'Clientes',
-      icon: 'po-icon-user',
+      label: 'Divergencias Cartao',
+      shortLabel: 'Div. Cartao',
+      icon: 'po-icon-finance',
+      link: '/financeiro/divergencias-cartao',
     },
     {
       label: 'Sair',
