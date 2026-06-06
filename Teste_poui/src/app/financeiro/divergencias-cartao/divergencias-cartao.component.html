@@ -81,17 +81,16 @@
     </div>
   </div>
 
-  <!-- Painel de observacao no rodapé -->
+  <!-- Painel de observacao no rodapé — barra horizontal inline -->
   <div class="div-obs-panel">
     <ng-container *ngIf="divergenciaAtiva(); else obsVazio">
-      <div class="obs-header">
-        <span class="obs-title">Obs — NSU {{ divergenciaAtiva()!.nsu }}</span>
-        <po-button p-label="Fechar" p-kind="tertiary" p-icon="po-icon-close" (p-click)="divergenciaAtiva.set(null)"></po-button>
-      </div>
-      <po-textarea name="obsAtiva" p-label="" [p-rows]="2" [p-readonly]="true" [ngModel]="divergenciaAtiva()!.observacao"></po-textarea>
+      <span class="obs-nsu">NSU {{ divergenciaAtiva()!.nsu }}</span>
+      <span class="obs-sep">|</span>
+      <span class="obs-texto">{{ divergenciaAtiva()!.observacao || '(sem observacao)' }}</span>
+      <po-button p-icon="po-icon-close" p-kind="tertiary" (p-click)="divergenciaAtiva.set(null)"></po-button>
     </ng-container>
     <ng-template #obsVazio>
-      <span class="obs-placeholder">Clique em um registro para visualizar a observacao</span>
+      <span class="obs-vazio">Clique em um registro para visualizar a observacao</span>
     </ng-template>
   </div>
 

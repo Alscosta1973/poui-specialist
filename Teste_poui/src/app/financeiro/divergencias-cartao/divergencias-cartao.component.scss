@@ -101,7 +101,7 @@
 
 .card-val {
   font-size: 10px;
-  font-weight: 600;
+  font-weight: 700;
   text-align: right;
 }
 
@@ -118,39 +118,48 @@
 /* Cores das bordas dos widgets = cores dos labels de status no po-table */
 .widget-1 { border-left-color: var(--color-08); } /* Div. MDR   — laranja  */
 .widget-2 { border-left-color: var(--color-07); } /* Div. Ant.  — vermelho */
-.widget-3 { border-left-color: var(--color-07); } /* MDR+Ant.   — vermelho */
+.widget-3 { border-left-color: var(--color-05); } /* MDR+Ant.   — roxo    */
 .widget-4 { border-left-color: var(--color-06); } /* Em Acordo  — magenta  */
 .widget-5 { border-left-color: var(--color-10); } /* Regular.   — verde    */
 
-/* Painel de observacao — rodapé */
+/* Painel de observacao — barra horizontal compacta no rodapé */
 .div-obs-panel {
   display: flex;
-  align-items: flex-start;
-  flex-direction: column;
-  padding: 5px 10px;
-  background: #f8f9fa;
-  border-top: 1px solid #e0e0e0;
-  min-height: 32px;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  background: #f5f6fa;
+  border-top: 2px solid #e0e0e0;
+  min-height: 28px;
 
-  .obs-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-    margin-bottom: 3px;
+  .obs-nsu {
+    font-size: 10px;
+    font-weight: 700;
+    color: #555;
+    white-space: nowrap;
   }
 
-  .obs-title {
+  .obs-sep {
+    color: #ccc;
+    flex-shrink: 0;
+  }
+
+  .obs-texto {
+    flex: 1;
     font-size: 11px;
-    font-weight: 600;
-    color: #444;
+    color: #333;
+    white-space: pre-line;
+    line-height: 1.4;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
   }
 
-  .obs-placeholder {
+  .obs-vazio {
     font-size: 11px;
     color: #bbb;
     font-style: italic;
-    line-height: 22px;
   }
 }
 
@@ -166,13 +175,13 @@
 /* Mesmas cores dos labels status no po-table */
 .status-dot-1 { background-color: var(--color-08); }
 .status-dot-2 { background-color: var(--color-07); }
-.status-dot-3 { background-color: var(--color-07); }
+.status-dot-3 { background-color: var(--color-05); }
 .status-dot-4 { background-color: var(--color-06); }
 .status-dot-5 { background-color: var(--color-10); }
 
-/* Valores monetarios */
-.valor-negativo { color: #d32f2f; font-weight: 600; }
-.valor-positivo { color: #1565c0; font-weight: 600; }
+/* Valores monetarios — display:block necessario para text-align funcionar dentro de columnTemplate */
+.valor-negativo { display: block; text-align: right; color: #d32f2f; font-weight: 600; }
+.valor-positivo { display: block; text-align: right; color: #1565c0; font-weight: 600; }
 
 /* Fonte menor nas celulas do browse */
 ::ng-deep .po-table-body-ellipsis {
