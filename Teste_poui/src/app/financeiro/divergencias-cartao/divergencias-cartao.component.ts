@@ -207,8 +207,11 @@ export class DivergenciasCartaoComponent implements OnInit, AfterViewInit {
   onKeydown(event: KeyboardEvent): void {
     const tag = (event.target as HTMLElement).tagName;
     if (tag === 'INPUT' || tag === 'TEXTAREA') return;
-    if (event.key === 'ArrowDown')      { event.preventDefault(); this.moverCursor(1);  }
+    if      (event.key === 'ArrowDown') { event.preventDefault(); this.moverCursor(1);  }
     else if (event.key === 'ArrowUp')   { event.preventDefault(); this.moverCursor(-1); }
+    else return;
+    // Re-aplica highlight apos PO-UI processar a tecla (pode resetar o DOM)
+    setTimeout(() => this.highlightActiveRow(), 50);
   }
 
   private calcTableHeight(): number {
