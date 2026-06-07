@@ -47,7 +47,7 @@ function calcularTotais(items: DivergenciaCartao[]): TotaisStatus[] {
       label: STATUS_LABELS[tipo],
       count: grupo.length,
       vlTotal: grupo.reduce((s, d) => s + d.vlLiquido, 0),
-      vlDif: grupo.reduce((s, d) => s + d.difBlumar, 0),
+      vlDif: grupo.reduce((s, d) => s + d.difBlumar, 0), // difBlumar ja e pre-calculado como vlLiquido - vlInformado
     };
   });
 }
@@ -90,9 +90,9 @@ export class DivergenciasCartaoComponent implements OnInit, AfterViewInit {
   private readonly destroyRef = inject(DestroyRef);
 
   constructor() {
-    // Re-aplica highlight na linha ativa apos cada ciclo de render
+    // Re-aplica highlight na linha do cursor apos cada ciclo de render
     effect(() => {
-      this.divergenciaAtiva();
+      this.cursorIndex();
       this.divergenciasFiltradas();
       setTimeout(() => this.highlightActiveRow(), 0);
     });
@@ -102,6 +102,7 @@ export class DivergenciasCartaoComponent implements OnInit, AfterViewInit {
   readonly filtroStatus = signal<TxOkStatus | null>(null);
   readonly selecionados = signal<DivergenciaCartao[]>([]);
   readonly divergenciaAtiva = signal<DivergenciaCartao | null>(null);
+  readonly cursorIndex = signal<number>(-1);
   readonly obsTextoAtual = signal('');
   readonly obsModificado = signal(false);
   readonly loading = signal(false);
@@ -163,6 +164,14 @@ export class DivergenciasCartaoComponent implements OnInit, AfterViewInit {
     this.tableHeight.set(this.calcTableHeight());
   }
 
+  @HostListener('window:keydown', ['$event'])
+  onKeydown(event: KeyboardEvent): void {
+    const tag = (event.target as HTMLElement).tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+    if (event.key === 'ArrowDown') { event.preventDefault(); this.moverCursor(1); }
+    else if (event.key === 'ArrowUp') { event.preventDefault(); this.moverCursor(-1); }
+  }
+
   private calcTableHeight(): number {
     // viewport - po-toolbar(55) - page header(68) - buttons row(44) - widgets(92) - obs panel(100) - misc(31)
     return Math.max(200, window.innerHeight - 390);
@@ -175,16 +184,26 @@ export class DivergenciasCartaoComponent implements OnInit, AfterViewInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (data) => {
-          this.divergencias.set(data);
+          const processed = this.processarDivergencias(data);
+          this.divergencias.set(processed);
           this.selecionados.set([]);
           this.loading.set(false);
+          if (processed.length > 0) this.definirAtivo(processed[0]);
         },
         error: () => {
-          this.divergencias.set(DEMO_DIVERGENCIAS);
+          const processed = this.processarDivergencias(DEMO_DIVERGENCIAS);
+          this.divergencias.set(processed);
           this.selecionados.set([]);
           this.loading.set(false);
+          if (processed.length > 0) this.definirAtivo(processed[0]);
         },
       });
+  }
+
+  // Garante que difBlumar = vlLiquido - vlInformado (formula padrao).
+  // Quando o backend vier, o valor sera sobrescrito por esta logica.
+  private processarDivergencias(data: DivergenciaCartao[]): DivergenciaCartao[] {
+    return data.map((d) => ({ ...d, difBlumar: d.vlLiquido - d.vlInformado }));
   }
 
   onSelect(row: DivergenciaCartao): void {
@@ -223,9 +242,20 @@ export class DivergenciasCartaoComponent implements OnInit, AfterViewInit {
   }
 
   private definirAtivo(row: DivergenciaCartao): void {
+    const index = this.divergenciasFiltradas().findIndex((d) => d.nsu === row.nsu);
+    this.cursorIndex.set(index);
     this.divergenciaAtiva.set(row);
     this.obsTextoAtual.set(row.observacao);
     this.obsModificado.set(false);
+  }
+
+  private moverCursor(delta: number): void {
+    const items = this.divergenciasFiltradas();
+    if (!items.length) return;
+    const current = this.cursorIndex();
+    const next = current < 0 ? 0 : Math.max(0, Math.min(items.length - 1, current + delta));
+    if (next === current && current >= 0) return;
+    this.definirAtivo(items[next]);
   }
 
   onObsChange(texto: string): void {
@@ -266,6 +296,13 @@ export class DivergenciasCartaoComponent implements OnInit, AfterViewInit {
   filtrarPorStatus(status: TxOkStatus | null): void {
     this.filtroStatus.set(status);
     this.selecionados.set([]);
+    const items = this.divergenciasFiltradas();
+    if (items.length > 0) {
+      this.definirAtivo(items[0]);
+    } else {
+      this.cursorIndex.set(-1);
+      this.divergenciaAtiva.set(null);
+    }
   }
 
   abrirColunas(): void {
@@ -372,14 +409,15 @@ export class DivergenciasCartaoComponent implements OnInit, AfterViewInit {
     document.querySelectorAll('.div-table-container .row-ativa').forEach(
       (el) => el.classList.remove('row-ativa')
     );
-    const ativa = this.divergenciaAtiva();
-    if (!ativa) return;
-    const index = this.divergenciasFiltradas().findIndex((d) => d.nsu === ativa.nsu);
+    const index = this.cursorIndex();
     if (index < 0) return;
     const table = document.querySelector('.div-table-container table');
     if (!table) return;
     const tbodies = table.querySelectorAll<HTMLTableSectionElement>(':scope > tbody');
-    tbodies[index]?.classList.add('row-ativa');
+    const el = tbodies[index];
+    if (!el) return;
+    el.classList.add('row-ativa');
+    el.querySelector('td')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }
 
   private downloadBlob(blob: Blob, fileName: string): void {
