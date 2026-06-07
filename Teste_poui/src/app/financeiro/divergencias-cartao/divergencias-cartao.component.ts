@@ -483,7 +483,40 @@ export class DivergenciasCartaoComponent implements OnInit, AfterViewInit {
     const el = tbodies[index];
     if (!el) return;
     el.classList.add('row-ativa');
-    el.querySelector('td')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    this.scrollRowIntoView(el);
+  }
+
+  // Rola .po-table-container-overflow para manter a linha ativa visivel.
+  // IMPORTANTE: o thead tem position:sticky e cobre os primeiros Npx do container.
+  // O scroll deve descontar a altura do thead para evitar que a linha fique
+  // escondida atras do cabecalho fixo (era o bug: linha 1 ficava atras do thead).
+  private scrollRowIntoView(row: HTMLElement): void {
+    const container = document.querySelector(
+      '.div-table-container .po-table-container-overflow'
+    ) as HTMLElement | null;
+    if (!container) return;
+
+    // Altura do cabecalho fixo (sticky thead) dentro do container
+    const thead  = container.querySelector('thead') as HTMLElement | null;
+    const theadH = thead ? thead.offsetHeight : 0;
+
+    // rowTop em coordenadas do conteudo do container
+    const cRect     = container.getBoundingClientRect();
+    const rRect     = row.getBoundingClientRect();
+    const rowTop    = rRect.top - cRect.top + container.scrollTop;
+    const rowBottom = rowTop + row.offsetHeight;
+
+    // Topo efetivo da area visivel (abaixo do cabecalho fixo)
+    const visTop = container.scrollTop + theadH;
+    const visBot = container.scrollTop + container.clientHeight;
+
+    if (rowTop < visTop) {
+      // Linha esta acima ou atras do cabecalho: sobe descontando o thead
+      container.scrollTop = Math.max(0, rowTop - theadH);
+    } else if (rowBottom > visBot) {
+      // Linha esta abaixo da area visivel: desce o minimo necessario
+      container.scrollTop = rowBottom - container.clientHeight;
+    }
   }
 
   private downloadBlob(blob: Blob, fileName: string): void {
