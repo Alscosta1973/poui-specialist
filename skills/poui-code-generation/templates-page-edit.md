@@ -20,8 +20,7 @@ import {
   PoDynamicFormField,
   PoDynamicModule,
   PoNotificationService,
-  PoPageEditModule,
-  PoPageEditActions,
+  PoPageModule,
 } from '@po-ui/ng-components';
 import { {{ServiceClass}} } from '../{{serviceFile}}';
 import { {{ModelInterface}} } from '../models/{{modelFile}}.model';
@@ -29,7 +28,7 @@ import { {{ModelInterface}} } from '../models/{{modelFile}}.model';
 @Component({
   selector: '{{selector}}',
   standalone: true,
-  imports: [PoPageEditModule, PoDynamicModule],
+  imports: [PoPageModule, PoDynamicModule],
   templateUrl: './{{kebab-name}}.component.html',
   styleUrl: './{{kebab-name}}.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -150,17 +149,6 @@ export class {{ComponentClass}} implements OnInit {
     // },
   ];
 
-  readonly editActions: PoPageEditActions = {
-    save: {
-      label: 'Salvar',
-      action: () => this.save(),
-    },
-    cancel: {
-      label: 'Cancelar',
-      action: () => this.goBack(),
-    },
-  };
-
   get pageTitle(): string {
     return this.isEdit() ? 'Editar {{ModelInterface}}' : 'Novo {{ModelInterface}}';
   }
@@ -241,8 +229,9 @@ export class {{ComponentClass}} implements OnInit {
 ```html
 <po-page-edit
   [p-title]="pageTitle"
-  [p-actions]="editActions"
-  [p-loading]="loading()">
+  [p-disable-submit]="loading()"
+  (p-save)="save()"
+  (p-cancel)="goBack()">
 
   <po-dynamic-form
     [p-fields]="fields"

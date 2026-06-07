@@ -214,7 +214,7 @@ import {
 import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
-  PoPageListModule,
+  PoPageModule,
   PoTableModule,
   PoNotificationService,
 } from '@po-ui/ng-components';
@@ -224,7 +224,7 @@ import { Pedido } from '../models/pedido.model';
 @Component({
   selector: 'app-pedidos-list',
   standalone: true,
-  imports: [PoPageListModule, PoTableModule],
+  imports: [PoPageModule, PoTableModule],
   templateUrl: './pedidos-list.component.html',
   styleUrl: './pedidos-list.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

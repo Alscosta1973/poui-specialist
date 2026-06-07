@@ -21,7 +21,7 @@ import {
   PoChartSerie,
   PoChartType,
   PoLoadingModule,
-  PoPageDefaultModule,
+  PoPageModule,
   PoToolbarModule,
   PoWidgetModule,
 } from '@po-ui/ng-components';
@@ -30,7 +30,7 @@ import {
   selector: '{{selector}}',
   standalone: true,
   imports: [
-    PoPageDefaultModule,
+    PoPageModule,
     PoToolbarModule,
     PoWidgetModule,
     PoChartModule,

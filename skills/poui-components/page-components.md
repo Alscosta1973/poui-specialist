@@ -64,47 +64,48 @@ readonly filterSettings: PoPageFilter = {
 
 ## po-page-edit
 
-Layout padrão para telas de cadastro e edição. Contém título, actions (Salvar / Cancelar) e slot para formulário.
+Layout padrão para telas de cadastro e edição. Contém título, botões Salvar/Cancelar e slot para formulário.
+
+> **Import correto:** `PoPageModule` — não existe `PoPageEditModule` nem `PoPageEditActions` na biblioteca.
 
 ### Key Inputs
 
 | Input | Type | Description |
 |-------|------|-------------|
 | `p-title` | `string` | Título da página |
-| `p-actions` | `PoPageEditActions` | Configuração de Salvar e Cancelar |
 | `p-breadcrumb` | `PoBreadcrumb` | Trilha de navegação |
-| `p-disable-submit` | `boolean` | Desabilita botão Salvar |
+| `p-disable-submit` | `boolean` | Desabilita os botões Salvar e Salvar e Novo |
+| `p-literals` | `PoPageEditLiterals` | Customiza rótulos dos botões |
+| `p-subtitle` | `string` | Subtítulo do header |
 
-### PoPageEditActions
+### Key Outputs (eventos — não `p-actions`)
 
-```typescript
-interface PoPageEditActions {
-  save?: string | PoPageEditAction;
-  saveNew?: string | PoPageEditAction;
-  cancel?: string | PoPageEditAction | boolean;
-}
+| Output | Description |
+|--------|-------------|
+| `(p-save)` | Disparado ao clicar em "Salvar" — exibe o botão somente quando este evento está vinculado |
+| `(p-cancel)` | Disparado ao clicar em "Cancelar" — exibe o botão somente quando este evento está vinculado |
+| `(p-save-new)` | Disparado ao clicar em "Salvar e Novo" — exibe o botão somente quando este evento está vinculado |
 
-interface PoPageEditAction {
-  label?: string;
-  action?: () => void;
-  disabled?: boolean | (() => boolean);
-}
-```
+> Os botões só são exibidos quando o respectivo output está vinculado no template.
 
 ### Usage Example
 
 ```typescript
-readonly editActions: PoPageEditActions = {
-  save: { label: 'Salvar', action: () => this.save() },
-  cancel: { label: 'Cancelar', action: () => this.router.navigate(['..']) },
-};
+// Não há PoPageEditActions — use eventos diretamente
+import { PoPageModule } from '@po-ui/ng-components';
+
+// Em @Component imports: [PoPageModule]
+
+save(): void { /* ... */ }
+goBack(): void { this.router.navigate(['..'], { relativeTo: this.route }); }
 ```
 
 ```html
 <po-page-edit
   p-title="Novo Pedido"
-  [p-actions]="editActions"
-  [p-disable-submit]="form.invalid">
+  [p-disable-submit]="loading()"
+  (p-save)="save()"
+  (p-cancel)="goBack()">
   <form [formGroup]="form">
     <!-- campos aqui -->
   </form>
@@ -117,30 +118,39 @@ readonly editActions: PoPageEditActions = {
 
 Layout para telas de visualização (somente leitura).
 
+> **Import correto:** `PoPageModule` — não existe `PoPageDetailModule` nem `PoPageDetailActions` na biblioteca.
+
 ### Key Inputs
 
 | Input | Type | Description |
 |-------|------|-------------|
 | `p-title` | `string` | Título da página |
-| `p-actions` | `PoPageDetailActions` | Edit, Remove, Back actions |
 | `p-breadcrumb` | `PoBreadcrumb` | Trilha de navegação |
+| `p-literals` | `PoPageDetailLiterals` | Customiza rótulos dos botões |
+| `p-subtitle` | `string` | Subtítulo do header |
 
-### PoPageDetailActions
+### Key Outputs (eventos — não `p-actions`)
 
-```typescript
-interface PoPageDetailActions {
-  edit?: string | PoPageDetailAction;
-  remove?: string | PoPageDetailAction;
-  back?: string | PoPageDetailAction | boolean;
-}
-```
+| Output | Description |
+|--------|-------------|
+| `(p-edit)` | Disparado ao clicar em "Editar" — exibe o botão somente quando vinculado |
+| `(p-remove)` | Disparado ao clicar em "Remover" — exibe o botão somente quando vinculado |
+| `(p-back)` | Disparado ao clicar em "Voltar" — exibe o botão somente quando vinculado |
 
 ### Usage Example
+
+```typescript
+import { PoPageModule } from '@po-ui/ng-components';
+// em @Component imports: [PoPageModule]
+```
 
 ```html
 <po-page-detail
   p-title="Pedido: João Silva"
-  [p-actions]="detailActions">
-  <!-- po-info fields or po-dynamic-view -->
+  [p-breadcrumb]="breadcrumb"
+  (p-edit)="navigateToEdit()"
+  (p-remove)="confirmDelete()"
+  (p-back)="goBack()">
+  <!-- po-dynamic-view ou po-info -->
 </po-page-detail>
 ```

@@ -29,7 +29,7 @@ import {
   PoNotificationService,
   PoPageAction,
   PoPageFilter,
-  PoPageListModule,
+  PoPageModule,
   PoTableAction,
   PoTableColumn,
   PoTableDetail,
@@ -41,7 +41,7 @@ import { {{ModelInterface}}, {{DetailInterface}} } from '../models/{{modelFile}}
 @Component({
   selector: '{{selector}}',
   standalone: true,
-  imports: [PoPageListModule, PoTableModule, PoLoadingModule],
+  imports: [PoPageModule, PoTableModule, PoLoadingModule],
   templateUrl: './{{kebab-name}}.component.html',
   styleUrl: './{{kebab-name}}.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

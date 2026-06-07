@@ -35,8 +35,7 @@ import {
   PoInputModule,
   PoLoadingModule,
   PoNotificationService,
-  PoPageEditModule,
-  PoPageEditActions,
+  PoPageModule,
   PoSelectModule,
   PoSwitchModule,
   PoTextareaModule,
@@ -48,7 +47,7 @@ import { Pedido } from '../models/pedido.model';
   standalone: true,
   imports: [
     ReactiveFormsModule,
-    PoPageEditModule,
+    PoPageModule,
     PoInputModule,
     PoSelectModule,
     PoDecimalModule,
@@ -89,11 +88,6 @@ export class PedidosEditComponent implements OnInit {
     situacao:      ['S', Validators.required],
     observacoes:   [''],
   });
-
-  readonly editActions: PoPageEditActions = {
-    save:   { label: 'Salvar',   action: () => this.save() },
-    cancel: { label: 'Cancelar', action: () => this.cancel() },
-  };
 
   ngOnInit(): void {
     this.recordId = this.route.snapshot.paramMap.get('id') ?? '';
@@ -165,8 +159,9 @@ export class PedidosEditComponent implements OnInit {
 ```html
 <po-page-edit
   p-title="Cliente"
-  [p-actions]="editActions"
-  [p-disable-submit]="form.invalid || loading()">
+  [p-disable-submit]="form.invalid || loading()"
+  (p-save)="save()"
+  (p-cancel)="cancel()">
 
   @if (loading()) {
     <po-loading-overlay p-text="Carregando..."></po-loading-overlay>

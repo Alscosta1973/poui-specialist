@@ -40,7 +40,7 @@ npm install @po-ui/ng-components @po-ui/ng-templates
 ```typescript
 // Minimal import set for a page-list
 import {
-  PoPageListModule,
+  PoPageModule,       // ← único módulo para po-page-list, po-page-edit, po-page-detail, po-page-default
   PoTableModule,
   PoTableColumn,
   PoTableAction,
@@ -50,7 +50,7 @@ import {
 
 // Minimal import set for a page-edit
 import {
-  PoPageEditModule,
+  PoPageModule,       // ← não existe PoPageEditModule, PoPageListModule, etc.
   PoInputModule,
   PoSelectModule,
   PoFieldModule,

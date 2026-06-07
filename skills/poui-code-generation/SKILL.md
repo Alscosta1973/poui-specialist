@@ -101,6 +101,9 @@ After generating any component, read `angular.json` and add them if missing.
 | Component | Correct import | WRONG (do not use) |
 |---|---|---|
 | po-page-default | `PoPageModule` | `PoPageDefaultModule` ❌ |
+| po-page-list | `PoPageModule` | `PoPageListModule` ❌ |
+| po-page-edit | `PoPageModule` | `PoPageEditModule` ❌ |
+| po-page-detail | `PoPageModule` | `PoPageDetailModule` ❌ |
 | po-textarea | `PoFieldModule` | `PoTextareaModule` ❌ |
 | po-table | `PoTableModule` | — |
 | po-widget | `PoWidgetModule` | — |

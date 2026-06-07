@@ -24,7 +24,7 @@ import { finalize } from 'rxjs/operators';
 import {
   PoDialogService,
   PoNotificationService,
-  PoPageListModule,
+  PoPageModule,
   PoTableModule,
   PoTableColumn,
   PoTableAction,
@@ -37,7 +37,7 @@ import { {{ModelInterface}} } from '../models/{{modelFile}}.model';
 @Component({
   selector: '{{selector}}',
   standalone: true,
-  imports: [PoPageListModule, PoTableModule],
+  imports: [PoPageModule, PoTableModule],
   templateUrl: './{{kebab-name}}.component.html',
   styleUrl: './{{kebab-name}}.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

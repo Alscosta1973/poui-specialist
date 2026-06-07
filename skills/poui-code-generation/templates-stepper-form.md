@@ -29,7 +29,7 @@ import {
   PoDynamicViewField,
   PoLoadingModule,
   PoNotificationService,
-  PoPageDefaultModule,
+  PoPageModule,
   PoStepperItem,
   PoStepperModule,
 } from '@po-ui/ng-components';
@@ -40,7 +40,7 @@ import { {{ModelInterface}} } from '../models/{{modelFile}}.model';
   selector: '{{selector}}',
   standalone: true,
   imports: [
-    PoPageDefaultModule,
+    PoPageModule,
     PoStepperModule,
     PoDynamicModule,
     PoButtonModule,

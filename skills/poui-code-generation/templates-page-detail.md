@@ -29,8 +29,7 @@ import {
   PoDynamicViewField,
   PoLoadingModule,
   PoNotificationService,
-  PoPageDetailActions,
-  PoPageDetailModule,
+  PoPageModule,
 } from '@po-ui/ng-components';
 import { {{ServiceClass}} } from '../{{serviceFile}}';
 import { {{ModelInterface}} } from '../models/{{modelFile}}.model';
@@ -38,7 +37,7 @@ import { {{ModelInterface}} } from '../models/{{modelFile}}.model';
 @Component({
   selector: '{{selector}}',
   standalone: true,
-  imports: [PoPageDetailModule, PoDynamicModule, PoLoadingModule],
+  imports: [PoPageModule, PoDynamicModule, PoLoadingModule],
   templateUrl: './{{kebab-name}}.component.html',
   styleUrl: './{{kebab-name}}.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -74,21 +73,6 @@ export class {{ComponentClass}} implements OnInit {
     // { property: 'valorTotal',  label: 'Valor Total',  type: 'currency', gridColumns: 3 },
     // { property: 'ativo',       label: 'Ativo',        type: 'boolean', gridColumns: 3 },
   ];
-
-  readonly pageActions: PoPageDetailActions = {
-    edit: {
-      label: 'Editar',
-      action: () => this.router.navigate(['../', this.recordId, 'editar'], { relativeTo: this.route }),
-    },
-    remove: {
-      label: 'Excluir',
-      action: () => this.confirmDelete(),
-    },
-    back: {
-      label: 'Voltar',
-      action: () => this.router.navigate(['../'], { relativeTo: this.route }),
-    },
-  };
 
   ngOnInit(): void {
     this.recordId = this.route.snapshot.paramMap.get('id') ?? '';
@@ -151,7 +135,9 @@ export class {{ComponentClass}} implements OnInit {
 <po-page-detail
   p-title="Detalhe — {{ModelInterface}}"
   [p-breadcrumb]="breadcrumb"
-  [p-actions]="pageActions">
+  (p-edit)="router.navigate(['../', recordId, 'editar'], { relativeTo: route })"
+  (p-remove)="confirmDelete()"
+  (p-back)="router.navigate(['../'], { relativeTo: route })">
 
   @if (loading()) {
     <po-loading-overlay p-text="Carregando..."></po-loading-overlay>
@@ -200,7 +186,9 @@ For entities with many fields, organize into labeled sections using `po-containe
 <po-page-detail
   p-title="Detalhe — {{ModelInterface}}"
   [p-breadcrumb]="breadcrumb"
-  [p-actions]="pageActions">
+  (p-edit)="router.navigate(['../', recordId, 'editar'], { relativeTo: route })"
+  (p-remove)="confirmDelete()"
+  (p-back)="router.navigate(['../'], { relativeTo: route })">
 
   @if (record(); as rec) {
     <po-container p-title="Dados Principais">
