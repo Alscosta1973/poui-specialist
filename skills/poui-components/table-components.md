@@ -21,9 +21,15 @@
 
 | Output | Type | Description |
 |--------|------|-------------|
-| `(p-show-more)` | `void` | Fired when user clicks "Mostrar mais" |
-| `(p-selected-rows)` | `any[]` | Emits selected rows array |
+| `(p-show-more)` | `PoTableColumnSort` | Fired when user clicks "Carregar mais resultados"; emits current sort state |
+| `(p-selected)` | `any` | Fired when a single row is selected; emits the row object |
+| `(p-unselected)` | `any` | Fired when a single row is deselected; emits the row object |
+| `(p-all-selected)` | `any` | Fired when all rows are selected via header checkbox |
+| `(p-all-unselected)` | `any` | Fired when all rows are deselected |
 | `(p-sort-by)` | `PoTableColumnSort` | Emits sort column and direction |
+| `(p-change-visible-columns)` | `string[]` | Emits array of visible column names after column manager closes |
+
+> **`p-selected-rows` does not exist** — never use it. Accumulate selections manually via `p-selected`/`p-unselected`.
 
 ---
 
@@ -31,20 +37,30 @@
 
 ```typescript
 interface PoTableColumn {
-  property: string;
-  label: string;
+  property?: string;
+  label?: string;
   width?: string;
   type?: 'string' | 'number' | 'currency' | 'date' | 'dateTime'
-       | 'time' | 'boolean' | 'subtitle' | 'detail' | 'link'
-       | 'icon' | 'label' | 'tag';
+       | 'time' | 'boolean' | 'label' | 'icon' | 'link'
+       | 'detail' | 'subtitle' | 'cellTemplate' | 'columnTemplate';
   format?: string;
   sortable?: boolean;
   visible?: boolean;
-  noWrap?: boolean;
+  fixed?: boolean;
+  color?: string | Function;
+  action?: Function;
+  disabled?: Function;
+  tooltip?: string;
+  icons?: PoTableColumnIcon[];
   labels?: PoTableColumnLabel[];
+  subtitles?: PoTableSubtitleColumn[];
   detail?: PoTableDetail;
+  boolean?: PoTableBoolean;
+  link?: string;
 }
 ```
+
+> **`'tag'` is not a valid type** — it does not exist in the library. Use `'label'` with `labels` array for colored status badges.
 
 ### Column Type Examples
 

@@ -109,15 +109,41 @@ After generating any component, read `angular.json` and add them if missing.
 | po-divider | `PoDividerModule` | — |
 
 ### 3. PoTableColumn types and formats
-- `type` is a plain `string`, not an enum. Valid values: `'string' | 'number' | 'currency' | 'date' | 'dateTime' | 'time' | 'boolean' | 'label' | 'icon' | 'tag'`
+- `type` is a plain `string`, not an enum. Valid values: `'string' | 'number' | 'currency' | 'date' | 'dateTime' | 'time' | 'boolean' | 'label' | 'icon' | 'link' | 'detail' | 'subtitle' | 'cellTemplate' | 'columnTemplate'`
 - For `type: 'currency'`, set `format: 'BRL'` (the currency code string)
 - For `type: 'date'`, set `format: 'dd/MM/yyyy'`
 - For `type: 'number'` with decimals, set `format: '1.4-4'`
 - **Never** use `PoTableColumnType` enum — it does not exist in the installed version
+- **Never** use `'tag'` as column type — it does not exist in the library
 
-### 4. po-table selection event
-- Use `(p-selected-rows)="onSelectionChange($event)"` — emits the full `any[]` array of selected rows
-- **Never** use `(p-selected)` / `(p-unselected)` — those are individual-row events that require manual accumulation
+### 4. po-table selection events
+- `p-selected-rows` **does not exist** in the library — never use it
+- Row selection uses individual-row events from the base component:
+  - `(p-selected)` — fires when a single row is selected, emits the row object
+  - `(p-unselected)` — fires when a single row is deselected, emits the row object
+  - `(p-all-selected)` — fires when all rows are selected via header checkbox
+  - `(p-all-unselected)` — fires when all rows are deselected
+- To accumulate selected rows, maintain a local array in the component:
+```typescript
+readonly selectedRows = signal<any[]>([]);
+
+onRowSelected(row: any): void {
+  this.selectedRows.update(rows => [...rows, row]);
+}
+
+onRowUnselected(row: any): void {
+  this.selectedRows.update(rows => rows.filter(r => r !== row));
+}
+```
+```html
+<po-table
+  [p-selectable]="true"
+  (p-selected)="onRowSelected($event)"
+  (p-unselected)="onRowUnselected($event)"
+  (p-all-selected)="selectedRows.set(items())"
+  (p-all-unselected)="selectedRows.set([])">
+</po-table>
+```
 
 ### 5. No mock data files
 Never create `*.mock.ts`, `*.data.ts`, or `useMock` flags. If demo data is needed for local development, add a `const DEMO_*` constant at the top of the component file and load it in the `error` callback of the load method.

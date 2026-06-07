@@ -15,7 +15,9 @@ npm install @po-ui/ng-components @po-ui/ng-templates
 
 ```json
 "styles": [
-  "node_modules/@po-ui/style/css/po-theme-default.min.css",
+  "node_modules/@totvs/po-theme/css/po-theme-default-variables.min.css",
+  "node_modules/@totvs/po-theme/css/po-theme-default.min.css",
+  "node_modules/@po-ui/style/css/po-theme-core.min.css",
   "src/styles.scss"
 ]
 ```

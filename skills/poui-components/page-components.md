@@ -31,10 +31,10 @@ interface PoPageAction {
 
 ```typescript
 interface PoPageFilter {
+  action?: Function;
+  advancedAction?: Function;
   placeholder?: string;
-  action: (searchValue: string) => void;
-  advancedAction?: () => void;
-  ngModel?: string;
+  width?: number;
 }
 ```
 
