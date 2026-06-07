@@ -1,6 +1,4 @@
-<po-page-default
-  p-title="Regularizacao de Divergencias de Cartao"
-  [p-actions]="pageActions">
+<po-page-default p-title="Regularizacao de Divergencias de Cartao">
 
   <!-- Barra de botoes -->
   <div class="div-toolbar">
@@ -11,9 +9,11 @@
     <po-button p-label="Relatorio"    p-kind="tertiary"  p-icon="po-icon-document" (p-click)="exportarRelatorio()"></po-button>
     <po-button p-label="Exportar CSV" p-kind="tertiary"  p-icon="po-icon-export"   (p-click)="exportarCsv()"></po-button>
     <span class="toolbar-info">Selecionados: <strong>{{ selecionados().length }}</strong> NSUs</span>
+    <!-- Configurador de colunas: apenas engrenagem -->
+    <po-button p-icon="po-icon-settings" p-kind="tertiary" p-tooltip="Configurar colunas" (p-click)="abrirColunas()"></po-button>
   </div>
 
-  <!-- Browse com altura calculada para scroll vertical nos registros -->
+  <!-- Browse -->
   <div class="div-table-container" (click)="onTableContainerClick($event)">
     <po-table
       [p-columns]="colunas"
@@ -27,9 +27,13 @@
       (p-all-selected)="onAllSelected($event)"
       (p-all-unselected)="onAllUnselected()">
 
-      <!-- Coluna St.: circulo de cor sem texto -->
+      <!-- Coluna St.: circulo clicavel para filtrar por status -->
       <ng-template p-table-column-template [p-property]="'txOk'" let-value>
-        <span [class]="'status-dot status-dot-' + value" [title]="statusLabel(value)"></span>
+        <span
+          [class]="'status-dot status-dot-' + value"
+          [title]="'Filtrar: ' + statusLabel(value)"
+          (click)="toggleFiltroStatus(value, $event)">
+        </span>
       </ng-template>
 
       <ng-template p-table-column-template [p-property]="'vlBruto'" let-value>
@@ -55,7 +59,7 @@
     </po-table>
   </div>
 
-  <!-- Widgets no rodapé: 2 colunas (Total | Selecionados) -->
+  <!-- Widgets de totais -->
   <div class="div-widgets">
     <div *ngFor="let t of totais()"
          [ngClass]="['status-card', 'widget-' + t.tipo, filtroStatus() === t.tipo ? 'card-ativo' : '']"
@@ -81,28 +85,14 @@
     </div>
   </div>
 
-  <!-- Painel de observacao no rodapé — editavel -->
+  <!-- Painel de observacao — somente leitura, mostra historico do registro ativo -->
   <div class="div-obs-panel">
     <ng-container *ngIf="divergenciaAtiva(); else obsVazio">
       <span class="obs-nsu">NSU {{ divergenciaAtiva()!.nsu }}</span>
-      <textarea
-        class="obs-textarea"
-        name="obsEditando"
-        rows="2"
-        placeholder="Digite a observacao..."
-        [ngModel]="obsTextoAtual()"
-        (ngModelChange)="onObsChange($event)">
-      </textarea>
-      <div class="obs-acoes">
-        <po-button
-          p-label="Salvar"
-          p-kind="primary"
-          p-icon="po-icon-ok"
-          [p-disabled]="!obsModificado()"
-          (p-click)="salvarObs()">
-        </po-button>
-        <po-button p-icon="po-icon-close" p-kind="tertiary" (p-click)="fecharObs()"></po-button>
+      <div class="obs-historico-view">
+        {{ divergenciaAtiva()!.observacao || '(sem observacao)' }}
       </div>
+      <po-button p-icon="po-icon-close" p-kind="tertiary" p-tooltip="Fechar" (p-click)="fecharObs()"></po-button>
     </ng-container>
     <ng-template #obsVazio>
       <span class="obs-vazio">Clique em um registro para visualizar a observacao</span>
@@ -111,7 +101,46 @@
 
 </po-page-default>
 
-<!-- Modal de observacao para regularizar -->
+<!-- Modal: obs ao marcar registro(s) -->
+<po-modal
+  #modalObsEdicao
+  [p-title]="obsModalTitulo()"
+  [p-primary-action]="modalObsEdPrimario"
+  [p-secondary-action]="modalObsEdSecundario"
+  p-size="md">
+
+  <!-- Historico (somente para 1 registro com obs existente) -->
+  <ng-container *ngIf="obsModalRegistros().length === 1 && obsModalRegistros()[0].observacao">
+    <p class="obs-modal-label">Historico</p>
+    <div class="obs-modal-historico">{{ obsModalRegistros()[0].observacao }}</div>
+    <po-divider></po-divider>
+  </ng-container>
+
+  <!-- Aviso para multiplos registros -->
+  <ng-container *ngIf="obsModalRegistros().length > 1">
+    <p class="obs-modal-aviso">
+      Observacao sera aplicada a <strong>{{ obsModalRegistros().length }}</strong> registro(s):<br>
+      <span class="obs-modal-nsus">{{ obsModalNsusTexto() }}</span>
+    </p>
+    <po-divider></po-divider>
+  </ng-container>
+
+  <!-- Prefixo automatico -->
+  <p class="obs-modal-prefixo">{{ obsModalPrefixo }}</p>
+
+  <!-- Campo de nova observacao -->
+  <po-textarea
+    name="obsNova"
+    p-label="Nova observacao"
+    p-placeholder="Digite a observacao..."
+    [p-rows]="4"
+    [(ngModel)]="obsNovaTxt"
+    p-required="true">
+  </po-textarea>
+
+</po-modal>
+
+<!-- Modal: observacao para regularizar -->
 <po-modal #modalObs p-title="Informe a Observacao" [p-primary-action]="modalPrimario" [p-secondary-action]="modalSecundario">
   <po-textarea name="obsTexto" p-label="Observacao" p-required="true" [(ngModel)]="obsTexto" [p-rows]="5"></po-textarea>
 </po-modal>

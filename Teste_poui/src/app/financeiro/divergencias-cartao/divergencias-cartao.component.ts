@@ -22,14 +22,12 @@ import {
   PoModalComponent,
   PoModalModule,
   PoNotificationService,
-  PoPageAction,
   PoPageModule,
   PoTableColumn,
   PoTableModule,
 } from '@po-ui/ng-components';
 import { DivergenciaCartao, TotaisStatus, TxOkStatus } from './divergencia-cartao.model';
 import { DivergenciaCartaoService } from './divergencia-cartao.service';
-import { catchError, EMPTY } from 'rxjs';
 
 const STATUS_LABELS: Record<TxOkStatus, string> = {
   '1': 'Diverg. MDR',
@@ -47,7 +45,7 @@ function calcularTotais(items: DivergenciaCartao[]): TotaisStatus[] {
       label: STATUS_LABELS[tipo],
       count: grupo.length,
       vlTotal: grupo.reduce((s, d) => s + d.vlLiquido, 0),
-      vlDif: grupo.reduce((s, d) => s + d.difBlumar, 0), // difBlumar ja e pre-calculado como vlLiquido - vlInformado
+      vlDif: grupo.reduce((s, d) => s + d.difBlumar, 0),
     };
   });
 }
@@ -83,14 +81,14 @@ const DEMO_DIVERGENCIAS: DivergenciaCartao[] = [
   styleUrl: './divergencias-cartao.component.scss',
 })
 export class DivergenciasCartaoComponent implements OnInit, AfterViewInit {
-  @ViewChild('modalObs') modalObs!: PoModalComponent;
+  @ViewChild('modalObs')       modalObs!: PoModalComponent;
+  @ViewChild('modalObsEdicao') modalObsEdicao!: PoModalComponent;
 
-  private readonly service = inject(DivergenciaCartaoService);
+  private readonly service      = inject(DivergenciaCartaoService);
   private readonly notification = inject(PoNotificationService);
-  private readonly destroyRef = inject(DestroyRef);
+  private readonly destroyRef   = inject(DestroyRef);
 
   constructor() {
-    // Re-aplica highlight na linha do cursor apos cada ciclo de render
     effect(() => {
       this.cursorIndex();
       this.divergenciasFiltradas();
@@ -98,17 +96,36 @@ export class DivergenciasCartaoComponent implements OnInit, AfterViewInit {
     });
   }
 
-  readonly divergencias = signal<DivergenciaCartao[]>([]);
-  readonly filtroStatus = signal<TxOkStatus | null>(null);
-  readonly selecionados = signal<DivergenciaCartao[]>([]);
-  readonly divergenciaAtiva = signal<DivergenciaCartao | null>(null);
-  readonly cursorIndex = signal<number>(-1);
-  readonly obsTextoAtual = signal('');
-  readonly obsModificado = signal(false);
-  readonly loading = signal(false);
-  readonly tableHeight = signal(400);
+  // ── State ────────────────────────────────────────────────────────────────
+  readonly divergencias      = signal<DivergenciaCartao[]>([]);
+  readonly filtroStatus      = signal<TxOkStatus | null>(null);
+  readonly selecionados      = signal<DivergenciaCartao[]>([]);
+  readonly divergenciaAtiva  = signal<DivergenciaCartao | null>(null);
+  readonly cursorIndex       = signal<number>(-1);
+  readonly loading           = signal(false);
+  readonly tableHeight       = signal(400);
 
-  readonly totais = computed(() => calcularTotais(this.divergencias()));
+  // ── Obs modal state ──────────────────────────────────────────────────────
+  readonly obsModalRegistros = signal<DivergenciaCartao[]>([]);
+  obsNovaTxt     = '';
+  obsModalPrefixo = '';
+
+  readonly obsModalTitulo = computed(() => {
+    const n = this.obsModalRegistros().length;
+    return n === 1
+      ? `Observacao — NSU ${this.obsModalRegistros()[0]?.nsu ?? ''}`
+      : `Observacao — ${n} registros`;
+  });
+
+  readonly obsModalNsusTexto = computed(() =>
+    this.obsModalRegistros().map((r) => r.nsu).join(', ')
+  );
+
+  // ── Regularizar modal state ──────────────────────────────────────────────
+  obsTexto = '';
+
+  // ── Computed ─────────────────────────────────────────────────────────────
+  readonly totais    = computed(() => calcularTotais(this.divergencias()));
   readonly totaisSel = computed(() => calcularTotais(this.selecionados()));
   readonly totaisSelMap = computed(
     () => new Map<TxOkStatus, TotaisStatus>(this.totaisSel().map((t) => [t.tipo, t]))
@@ -118,23 +135,25 @@ export class DivergenciasCartaoComponent implements OnInit, AfterViewInit {
     return f ? this.divergencias().filter((d) => d.txOk === f) : this.divergencias();
   });
 
-  obsTexto = '';
-
-  readonly pageActions: PoPageAction[] = [
-    { label: 'Colunas', icon: 'po-icon-settings', action: () => this.abrirColunas() },
-  ];
-
+  // ── Modal actions ─────────────────────────────────────────────────────────
+  readonly modalObsEdPrimario: PoModalAction = {
+    label: 'Confirmar',
+    action: () => this.confirmarObsEdicao(),
+  };
+  readonly modalObsEdSecundario: PoModalAction = {
+    label: 'Cancelar',
+    action: () => this.modalObsEdicao.close(),
+  };
   readonly modalPrimario: PoModalAction = {
     label: 'Confirmar',
     action: () => this.confirmarRegularizar(),
   };
-
   readonly modalSecundario: PoModalAction = {
     label: 'Cancelar',
     action: () => this.modalObs.close(),
   };
 
-  // txOk: PRIMEIRO, tipo columnTemplate, fixed: true => aparece na seção "Fixo" do gerenciador
+  // ── Columns ───────────────────────────────────────────────────────────────
   readonly colunas: PoTableColumn[] = [
     { property: 'txOk',        label: 'St.',      type: 'columnTemplate',                     width: '28px',  fixed: true },
     { property: 'data',        label: 'Data',     type: 'date',          format: 'dd/MM/yyyy', width: '78px'  },
@@ -151,32 +170,27 @@ export class DivergenciasCartaoComponent implements OnInit, AfterViewInit {
     { property: 'difCliente',  label: 'Dif Cli',  type: 'columnTemplate',                      width: '62px'  },
   ];
 
-  ngOnInit(): void {
-    this.carregar();
-  }
+  // ── Lifecycle ─────────────────────────────────────────────────────────────
+  ngOnInit(): void { this.carregar(); }
 
-  ngAfterViewInit(): void {
-    this.tableHeight.set(this.calcTableHeight());
-  }
+  ngAfterViewInit(): void { this.tableHeight.set(this.calcTableHeight()); }
 
   @HostListener('window:resize')
-  onResize(): void {
-    this.tableHeight.set(this.calcTableHeight());
-  }
+  onResize(): void { this.tableHeight.set(this.calcTableHeight()); }
 
   @HostListener('window:keydown', ['$event'])
   onKeydown(event: KeyboardEvent): void {
     const tag = (event.target as HTMLElement).tagName;
     if (tag === 'INPUT' || tag === 'TEXTAREA') return;
-    if (event.key === 'ArrowDown') { event.preventDefault(); this.moverCursor(1); }
-    else if (event.key === 'ArrowUp') { event.preventDefault(); this.moverCursor(-1); }
+    if (event.key === 'ArrowDown')      { event.preventDefault(); this.moverCursor(1);  }
+    else if (event.key === 'ArrowUp')   { event.preventDefault(); this.moverCursor(-1); }
   }
 
   private calcTableHeight(): number {
-    // viewport - po-toolbar(55) - page header(68) - buttons row(44) - widgets(92) - obs panel(100) - misc(31)
     return Math.max(200, window.innerHeight - 390);
   }
 
+  // ── Data loading ─────────────────────────────────────────────────────────
   carregar(): void {
     this.loading.set(true);
     this.service
@@ -200,15 +214,16 @@ export class DivergenciasCartaoComponent implements OnInit, AfterViewInit {
       });
   }
 
-  // Garante que difBlumar = vlLiquido - vlInformado (formula padrao).
-  // Quando o backend vier, o valor sera sobrescrito por esta logica.
+  // difBlumar = vlLiquido - vlInformado (formula padrao; sobrescreve valor do backend)
   private processarDivergencias(data: DivergenciaCartao[]): DivergenciaCartao[] {
     return data.map((d) => ({ ...d, difBlumar: d.vlLiquido - d.vlInformado }));
   }
 
+  // ── Table events ──────────────────────────────────────────────────────────
   onSelect(row: DivergenciaCartao): void {
     this.selecionados.update((prev) => [...prev, row]);
     this.definirAtivo(row);
+    this.abrirObsModal([row]);
   }
 
   onUnselect(row: DivergenciaCartao): void {
@@ -217,6 +232,7 @@ export class DivergenciasCartaoComponent implements OnInit, AfterViewInit {
 
   onAllSelected(rows: DivergenciaCartao[]): void {
     this.selecionados.set(rows ?? []);
+    this.abrirObsModal(rows ?? []);
   }
 
   onAllUnselected(): void {
@@ -225,74 +241,96 @@ export class DivergenciasCartaoComponent implements OnInit, AfterViewInit {
 
   onTableContainerClick(event: Event): void {
     const target = event.target as HTMLElement;
-    const tbody = target.closest('tbody') as HTMLTableSectionElement | null;
+    const tbody  = target.closest('tbody') as HTMLTableSectionElement | null;
     if (!tbody) return;
-
-    const table = tbody.closest('table');
-    if (!table) return;
-
+    const table  = tbody.closest('table');
+    if (!table)  return;
     const tbodies = Array.from(table.querySelectorAll<HTMLTableSectionElement>(':scope > tbody'));
-    const index = tbodies.indexOf(tbody);
+    const index   = tbodies.indexOf(tbody);
     if (index < 0) return;
-
     const items = this.divergenciasFiltradas();
-    if (index < items.length) {
-      this.definirAtivo(items[index]);
-    }
+    if (index < items.length) this.definirAtivo(items[index]);
   }
 
+  // ── Navigation ────────────────────────────────────────────────────────────
   private definirAtivo(row: DivergenciaCartao): void {
     const index = this.divergenciasFiltradas().findIndex((d) => d.nsu === row.nsu);
     this.cursorIndex.set(index);
     this.divergenciaAtiva.set(row);
-    this.obsTextoAtual.set(row.observacao);
-    this.obsModificado.set(false);
   }
 
   private moverCursor(delta: number): void {
     const items = this.divergenciasFiltradas();
     if (!items.length) return;
     const current = this.cursorIndex();
-    const next = current < 0 ? 0 : Math.max(0, Math.min(items.length - 1, current + delta));
+    const next    = current < 0 ? 0 : Math.max(0, Math.min(items.length - 1, current + delta));
     if (next === current && current >= 0) return;
     this.definirAtivo(items[next]);
   }
 
-  onObsChange(texto: string): void {
-    this.obsTextoAtual.set(texto);
-    this.obsModificado.set(true);
-  }
-
-  salvarObs(): void {
-    const ativa = this.divergenciaAtiva();
-    if (!ativa) return;
-    const obs = this.obsTextoAtual();
-    // Atualiza localmente
-    const atualizada = { ...ativa, observacao: obs };
-    this.divergencias.update((list) =>
-      list.map((d) => (d.nsu === ativa.nsu ? atualizada : d))
-    );
-    this.divergenciaAtiva.set(atualizada);
-    this.obsModificado.set(false);
-    // Persiste no backend (best-effort: erro nao reverte estado local)
-    this.service
-      .salvarObs({ nsu: ativa.nsu, observacao: obs })
-      .pipe(
-        catchError(() => {
-          this.notification.warning('Obs salva localmente — backend indisponivel.');
-          return EMPTY;
-        }),
-        takeUntilDestroyed(this.destroyRef)
-      )
-      .subscribe(() => this.notification.success('Observacao salva.'));
-  }
-
   fecharObs(): void {
     this.divergenciaAtiva.set(null);
-    this.obsTextoAtual.set('');
-    this.obsModificado.set(false);
+    this.cursorIndex.set(-1);
   }
 
+  // ── Obs modal (marcar registro) ───────────────────────────────────────────
+  abrirObsModal(registros: DivergenciaCartao[]): void {
+    if (!registros.length) return;
+    this.obsModalRegistros.set(registros);
+    this.obsNovaTxt      = '';
+    this.obsModalPrefixo = this.gerarPrefixo();
+    this.modalObsEdicao.open();
+  }
+
+  private confirmarObsEdicao(): void {
+    const texto = this.obsNovaTxt.trim();
+    if (!texto) {
+      this.notification.warning('Informe a observacao antes de confirmar.');
+      return;
+    }
+    const novaEntrada = this.obsModalPrefixo + '\n' + texto;
+    const nsus = new Set(this.obsModalRegistros().map((r) => r.nsu));
+
+    this.divergencias.update((list) =>
+      list.map((d) => {
+        if (!nsus.has(d.nsu)) return d;
+        const obsAtualizada = d.observacao
+          ? d.observacao + '\n' + novaEntrada
+          : novaEntrada;
+        return { ...d, observacao: obsAtualizada };
+      })
+    );
+
+    // Atualiza o registro ativo se foi afetado
+    const ativa = this.divergenciaAtiva();
+    if (ativa && nsus.has(ativa.nsu)) {
+      const atualizado = this.divergenciasFiltradas().find((d) => d.nsu === ativa.nsu);
+      if (atualizado) this.divergenciaAtiva.set(atualizado);
+    }
+
+    this.modalObsEdicao.close();
+    this.notification.success('Observacao registrada.');
+  }
+
+  private gerarPrefixo(): string {
+    const agora = new Date();
+    return (
+      agora.toLocaleDateString('pt-BR') +
+      ' ' +
+      agora.toLocaleTimeString('pt-BR') +
+      ' - ' +
+      this.usuarioAtual()
+    );
+  }
+
+  // ── Status dot filter ─────────────────────────────────────────────────────
+  toggleFiltroStatus(status: string, event: Event): void {
+    event.stopPropagation();
+    const s = status as TxOkStatus;
+    this.filtrarPorStatus(this.filtroStatus() === s ? null : s);
+  }
+
+  // ── Filters ───────────────────────────────────────────────────────────────
   filtrarPorStatus(status: TxOkStatus | null): void {
     this.filtroStatus.set(status);
     this.selecionados.set([]);
@@ -305,96 +343,74 @@ export class DivergenciasCartaoComponent implements OnInit, AfterViewInit {
     }
   }
 
+  // ── Columns manager (triggered via gear in toolbar) ───────────────────────
   abrirColunas(): void {
     const btn = document.querySelector<HTMLButtonElement>('.po-table-actions-column-manager button');
     btn?.click();
   }
 
-  statusLabel(v: string): string {
-    return STATUS_LABELS[v as TxOkStatus] ?? '';
-  }
-
-  getTotalSel(tipo: TxOkStatus): TotaisStatus {
-    return this.totaisSelMap().get(tipo) ?? { tipo, label: '', count: 0, vlTotal: 0, vlDif: 0 };
-  }
-
+  // ── Actions ───────────────────────────────────────────────────────────────
   confirmar(): void {
     const nsus = this.selecionados().map((d) => d.nsu);
-    if (nsus.length === 0) {
-      this.notification.warning('Selecione ao menos um NSU para confirmar.');
-      return;
-    }
-    this.service
-      .confirmar({ nsus })
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: () => { this.notification.success('NSUs confirmados com sucesso.'); this.carregar(); },
-        error: () => { this.notification.error('Erro ao confirmar NSUs.'); },
-      });
+    if (!nsus.length) { this.notification.warning('Selecione ao menos um NSU para confirmar.'); return; }
+    this.service.confirmar({ nsus }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next:  () => { this.notification.success('NSUs confirmados com sucesso.'); this.carregar(); },
+      error: () =>   this.notification.error('Erro ao confirmar NSUs.'),
+    });
   }
 
   regularizar(): void {
-    if (this.selecionados().filter((d) => d.txOk !== '5').length === 0) {
-      this.notification.warning('Selecione ao menos um NSU nao regularizado.');
-      return;
+    if (!this.selecionados().filter((d) => d.txOk !== '5').length) {
+      this.notification.warning('Selecione ao menos um NSU nao regularizado.'); return;
     }
     this.obsTexto = '';
     this.modalObs.open();
   }
 
   private confirmarRegularizar(): void {
-    if (!this.obsTexto.trim()) {
-      this.notification.warning('Informe a observacao antes de confirmar.');
-      return;
-    }
-    const nsus = this.selecionados().filter((d) => d.txOk !== '5').map((d) => d.nsu);
-    const agora = new Date();
-    const prefixo =
-      agora.toLocaleDateString('pt-BR') + ' ' + agora.toLocaleTimeString('pt-BR') + ' - ' + this.usuarioAtual() + '\n';
-    this.service
-      .regularizar({ nsus, observacao: prefixo + this.obsTexto.trim() })
+    if (!this.obsTexto.trim()) { this.notification.warning('Informe a observacao antes de confirmar.'); return; }
+    const nsus     = this.selecionados().filter((d) => d.txOk !== '5').map((d) => d.nsu);
+    const prefixo  = this.gerarPrefixo() + '\n';
+    this.service.regularizar({ nsus, observacao: prefixo + this.obsTexto.trim() })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: () => {
-          this.notification.success('Regularizacao realizada com sucesso.');
-          this.modalObs.close();
-          this.carregar();
-        },
-        error: () => { this.notification.error('Erro ao regularizar NSUs.'); },
+        next:  () => { this.notification.success('Regularizacao realizada com sucesso.'); this.modalObs.close(); this.carregar(); },
+        error: () =>   this.notification.error('Erro ao regularizar NSUs.'),
       });
   }
 
   revalidarTaxa(): void {
     const nsus = this.selecionados().map((d) => d.nsu);
-    if (nsus.length === 0) {
-      this.notification.warning('Selecione ao menos um NSU para revalidar.');
-      return;
-    }
-    this.service
-      .revalidarTaxa({ nsus })
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: () => { this.notification.success('Taxa revalidada com sucesso.'); this.carregar(); },
-        error: () => { this.notification.error('Erro ao revalidar taxa.'); },
-      });
+    if (!nsus.length) { this.notification.warning('Selecione ao menos um NSU para revalidar.'); return; }
+    this.service.revalidarTaxa({ nsus }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next:  () => { this.notification.success('Taxa revalidada com sucesso.'); this.carregar(); },
+      error: () =>   this.notification.error('Erro ao revalidar taxa.'),
+    });
   }
 
   exportarRelatorio(): void {
     this.service.relatorio().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (blob) => this.downloadBlob(blob, 'relatorio-divergencias.pdf'),
-      error: () => this.notification.error('Erro ao gerar relatorio.'),
+      next:  (blob) => this.downloadBlob(blob, 'relatorio-divergencias.pdf'),
+      error: ()     => this.notification.error('Erro ao gerar relatorio.'),
     });
   }
 
   exportarCsv(): void {
     this.service.exportar().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (blob) => this.downloadBlob(blob, 'divergencias-cartao.csv'),
-      error: () => this.notification.error('Erro ao exportar CSV.'),
+      next:  (blob) => this.downloadBlob(blob, 'divergencias-cartao.csv'),
+      error: ()     => this.notification.error('Erro ao exportar CSV.'),
     });
   }
 
-  fechar(): void {
-    window.history.back();
+  fechar(): void { window.history.back(); }
+
+  // ── Formatting helpers ────────────────────────────────────────────────────
+  statusLabel(v: string): string {
+    return STATUS_LABELS[v as TxOkStatus] ?? '';
+  }
+
+  getTotalSel(tipo: TxOkStatus): TotaisStatus {
+    return this.totaisSelMap().get(tipo) ?? { tipo, label: '', count: 0, vlTotal: 0, vlDif: 0 };
   }
 
   fmtVal(v: number): string {
@@ -405,14 +421,15 @@ export class DivergenciasCartaoComponent implements OnInit, AfterViewInit {
     return v < 0 ? 'valor-negativo' : 'valor-positivo';
   }
 
+  // ── DOM helpers ───────────────────────────────────────────────────────────
   private highlightActiveRow(): void {
     document.querySelectorAll('.div-table-container .row-ativa').forEach(
       (el) => el.classList.remove('row-ativa')
     );
     const index = this.cursorIndex();
     if (index < 0) return;
-    const table = document.querySelector('.div-table-container table');
-    if (!table) return;
+    const table  = document.querySelector('.div-table-container table');
+    if (!table)   return;
     const tbodies = table.querySelectorAll<HTMLTableSectionElement>(':scope > tbody');
     const el = tbodies[index];
     if (!el) return;
@@ -421,15 +438,11 @@ export class DivergenciasCartaoComponent implements OnInit, AfterViewInit {
   }
 
   private downloadBlob(blob: Blob, fileName: string): void {
-    const url = URL.createObjectURL(blob);
+    const url  = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.href = url;
-    link.download = fileName;
-    link.click();
+    link.href = url; link.download = fileName; link.click();
     URL.revokeObjectURL(url);
   }
 
-  private usuarioAtual(): string {
-    return 'USUARIO';
-  }
+  private usuarioAtual(): string { return 'USUARIO'; }
 }

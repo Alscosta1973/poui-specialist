@@ -128,12 +128,12 @@
 .widget-4 { border-left-color: var(--color-neutral-mid-40); }        /* Em Acordo  — cinza    */
 .widget-5 { border-left-color: var(--color-10); }                    /* Regular.   — verde    */
 
-/* Painel de observacao — editavel no rodapé */
+/* Painel de observacao — somente leitura */
 .div-obs-panel {
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  padding: 6px 10px;
+  padding: 5px 10px;
   background: #f5f6fa;
   border-top: 2px solid #e0e0e0;
   min-height: 28px;
@@ -143,40 +143,22 @@
     font-weight: 700;
     color: #555;
     white-space: nowrap;
-    padding-top: 6px;
+    padding-top: 3px;
     flex-shrink: 0;
   }
 
-  .obs-textarea {
+  .obs-historico-view {
     flex: 1;
-    resize: none;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    padding: 4px 6px;
     font-size: 11px;
-    font-family: inherit;
-    color: #333;
-    background: #fff;
-    outline: none;
+    color: #444;
+    white-space: pre-wrap;
     line-height: 1.45;
-
-    &:focus {
-      border-color: var(--color-action-default, #0079c3);
-      box-shadow: 0 0 0 2px rgba(0, 121, 195, 0.15);
-    }
-
-    &::placeholder {
-      color: #bbb;
-      font-style: italic;
-    }
-  }
-
-  .obs-acoes {
-    display: flex;
-    align-items: center;
-    gap: 2px;
-    flex-shrink: 0;
-    padding-top: 2px;
+    max-height: 52px;
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    padding: 3px 6px;
   }
 
   .obs-vazio {
@@ -187,13 +169,62 @@
   }
 }
 
-/* Circulo de status (coluna St.) */
+/* Modal de observacao */
+.obs-modal-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #555;
+  margin: 0 0 4px;
+}
+
+.obs-modal-historico {
+  font-size: 11px;
+  color: #444;
+  white-space: pre-wrap;
+  background: #f5f6fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 6px 8px;
+  max-height: 120px;
+  overflow-y: auto;
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+.obs-modal-aviso {
+  font-size: 12px;
+  color: #444;
+  margin: 0 0 8px;
+}
+
+.obs-modal-nsus {
+  font-size: 10px;
+  color: #777;
+  word-break: break-all;
+}
+
+.obs-modal-prefixo {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-action-default, #0079c3);
+  margin: 0 0 6px;
+  font-family: monospace;
+}
+
+/* Circulo de status (coluna St.) — clicavel para filtrar */
 .status-dot {
   display: inline-block;
   width: 10px;
   height: 10px;
   border-radius: 50%;
   vertical-align: middle;
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s;
+
+  &:hover {
+    transform: scale(1.4);
+    box-shadow: 0 0 0 2px rgba(0,0,0,0.15);
+  }
 }
 
 /* Mesmas cores dos labels status no po-table */
