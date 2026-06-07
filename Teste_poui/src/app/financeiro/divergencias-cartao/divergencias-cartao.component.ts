@@ -106,9 +106,14 @@ export class DivergenciasCartaoComponent implements OnInit, AfterViewInit {
   readonly tableHeight       = signal(400);
 
   // ── Obs modal state ──────────────────────────────────────────────────────
-  readonly obsModalRegistros = signal<DivergenciaCartao[]>([]);
-  obsNovaTxt     = '';
+  readonly obsModalRegistros  = signal<DivergenciaCartao[]>([]);
+  obsNovaTxt      = '';
   obsModalPrefixo = '';
+
+  // Obs pendentes (staging): confirmadas no modal mas ainda nao committed ao dado.
+  // Sao committed quando o usuario clica Confirmar/Regularizar.
+  // Desmarcar um registro descarta a obs pendente dele.
+  readonly pendingObs = signal(new Map<string, string>());
 
   readonly obsModalTitulo = computed(() => {
     const n = this.obsModalRegistros().length;
@@ -120,6 +125,26 @@ export class DivergenciasCartaoComponent implements OnInit, AfterViewInit {
   readonly obsModalNsusTexto = computed(() =>
     this.obsModalRegistros().map((r) => r.nsu).join(', ')
   );
+
+  // Obs exibida no painel = obs committed + pending (se houver)
+  readonly obsAtivaDisplay = computed(() => {
+    const ativa = this.divergenciaAtiva();
+    if (!ativa) return '';
+    const pending = this.pendingObs().get(ativa.nsu) ?? '';
+    const stored  = ativa.observacao ?? '';
+    if (!pending) return stored;
+    return stored ? stored + '\n' + pending : pending;
+  });
+
+  // Historico exibido no modal = obs committed + pending (preview do estado final)
+  readonly obsModalHistoricoDisplay = computed(() => {
+    if (this.obsModalRegistros().length !== 1) return '';
+    const r       = this.obsModalRegistros()[0];
+    const pending = this.pendingObs().get(r.nsu) ?? '';
+    const stored  = r.observacao ?? '';
+    if (!pending) return stored;
+    return stored ? stored + '\n' + pending : pending;
+  });
 
   // ── Regularizar modal state ──────────────────────────────────────────────
   obsTexto = '';
@@ -221,22 +246,34 @@ export class DivergenciasCartaoComponent implements OnInit, AfterViewInit {
 
   // ── Table events ──────────────────────────────────────────────────────────
   onSelect(row: DivergenciaCartao): void {
+    const jaSelec = this.selecionados().some((r) => r.nsu === row.nsu);
     this.selecionados.update((prev) => [...prev, row]);
     this.definirAtivo(row);
-    this.abrirObsModal([row]);
+    if (!jaSelec) this.abrirObsModal([row]);
   }
 
   onUnselect(row: DivergenciaCartao): void {
     this.selecionados.update((prev) => prev.filter((r) => r.nsu !== row.nsu));
+    // Descarta obs pendente deste registro (nao foi committed)
+    this.pendingObs.update((map) => {
+      const m = new Map(map);
+      m.delete(row.nsu);
+      return m;
+    });
   }
 
   onAllSelected(rows: DivergenciaCartao[]): void {
-    this.selecionados.set(rows ?? []);
-    this.abrirObsModal(rows ?? []);
+    if (!rows?.length) { this.selecionados.set([]); return; }
+    const prevLen = this.selecionados().length;
+    this.selecionados.set(rows);
+    // So abre modal se a selecao cresceu (evita abrir ao desmarcar todos)
+    if (rows.length > prevLen) this.abrirObsModal(rows);
   }
 
   onAllUnselected(): void {
     this.selecionados.set([]);
+    // Descarta todas as obs pendentes
+    this.pendingObs.set(new Map());
   }
 
   onTableContainerClick(event: Event): void {
@@ -289,27 +326,34 @@ export class DivergenciasCartaoComponent implements OnInit, AfterViewInit {
       return;
     }
     const novaEntrada = this.obsModalPrefixo + '\n' + texto;
-    const nsus = new Set(this.obsModalRegistros().map((r) => r.nsu));
 
-    this.divergencias.update((list) =>
-      list.map((d) => {
-        if (!nsus.has(d.nsu)) return d;
-        const obsAtualizada = d.observacao
-          ? d.observacao + '\n' + novaEntrada
-          : novaEntrada;
-        return { ...d, observacao: obsAtualizada };
-      })
-    );
-
-    // Atualiza o registro ativo se foi afetado
-    const ativa = this.divergenciaAtiva();
-    if (ativa && nsus.has(ativa.nsu)) {
-      const atualizado = this.divergenciasFiltradas().find((d) => d.nsu === ativa.nsu);
-      if (atualizado) this.divergenciaAtiva.set(atualizado);
-    }
+    // Armazena em staging (pending) — nao committed ate Confirmar/Regularizar
+    this.pendingObs.update((map) => {
+      const m = new Map(map);
+      for (const r of this.obsModalRegistros()) {
+        const prev = m.get(r.nsu) ?? '';
+        m.set(r.nsu, prev ? prev + '\n' + novaEntrada : novaEntrada);
+      }
+      return m;
+    });
 
     this.modalObsEdicao.close();
-    this.notification.success('Observacao registrada.');
+    this.notification.success('Observacao registrada (pendente de confirmacao).');
+  }
+
+  // Commita obs pendentes para divergencias e limpa o staging
+  private aplicarPendingObs(): void {
+    const pending = this.pendingObs();
+    if (!pending.size) return;
+    this.divergencias.update((list) =>
+      list.map((d) => {
+        const novaObs = pending.get(d.nsu);
+        if (!novaObs) return d;
+        const completa = d.observacao ? d.observacao + '\n' + novaObs : novaObs;
+        return { ...d, observacao: completa };
+      })
+    );
+    this.pendingObs.set(new Map());
   }
 
   private gerarPrefixo(): string {
@@ -353,6 +397,7 @@ export class DivergenciasCartaoComponent implements OnInit, AfterViewInit {
   confirmar(): void {
     const nsus = this.selecionados().map((d) => d.nsu);
     if (!nsus.length) { this.notification.warning('Selecione ao menos um NSU para confirmar.'); return; }
+    this.aplicarPendingObs();
     this.service.confirmar({ nsus }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next:  () => { this.notification.success('NSUs confirmados com sucesso.'); this.carregar(); },
       error: () =>   this.notification.error('Erro ao confirmar NSUs.'),
@@ -363,6 +408,7 @@ export class DivergenciasCartaoComponent implements OnInit, AfterViewInit {
     if (!this.selecionados().filter((d) => d.txOk !== '5').length) {
       this.notification.warning('Selecione ao menos um NSU nao regularizado.'); return;
     }
+    this.aplicarPendingObs();
     this.obsTexto = '';
     this.modalObs.open();
   }

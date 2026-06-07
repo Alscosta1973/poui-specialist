@@ -167,6 +167,20 @@
     font-style: italic;
     padding-top: 4px;
   }
+
+  .obs-badge-pending {
+    display: inline-block;
+    margin-left: 4px;
+    padding: 1px 5px;
+    font-size: 9px;
+    font-weight: 700;
+    color: #fff;
+    background: var(--color-feedback-warning-base, #f5a623);
+    border-radius: 8px;
+    vertical-align: middle;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
 }
 
 /* Modal de observacao */
@@ -219,11 +233,9 @@
   border-radius: 50%;
   vertical-align: middle;
   cursor: pointer;
-  transition: transform 0.1s, box-shadow 0.1s;
 
   &:hover {
-    transform: scale(1.4);
-    box-shadow: 0 0 0 2px rgba(0,0,0,0.15);
+    opacity: 0.75;
   }
 }
 

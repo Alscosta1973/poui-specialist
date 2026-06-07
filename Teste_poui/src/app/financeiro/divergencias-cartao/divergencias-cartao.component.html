@@ -85,13 +85,14 @@
     </div>
   </div>
 
-  <!-- Painel de observacao — somente leitura, mostra historico do registro ativo -->
+  <!-- Painel de observacao — somente leitura (committed + pending) -->
   <div class="div-obs-panel">
     <ng-container *ngIf="divergenciaAtiva(); else obsVazio">
-      <span class="obs-nsu">NSU {{ divergenciaAtiva()!.nsu }}</span>
-      <div class="obs-historico-view">
-        {{ divergenciaAtiva()!.observacao || '(sem observacao)' }}
-      </div>
+      <span class="obs-nsu">
+        NSU {{ divergenciaAtiva()!.nsu }}
+        <span *ngIf="pendingObs().get(divergenciaAtiva()!.nsu)" class="obs-badge-pending">pendente</span>
+      </span>
+      <div class="obs-historico-view">{{ obsAtivaDisplay() || '(sem observacao)' }}</div>
       <po-button p-icon="po-icon-close" p-kind="tertiary" p-tooltip="Fechar" (p-click)="fecharObs()"></po-button>
     </ng-container>
     <ng-template #obsVazio>
@@ -109,10 +110,10 @@
   [p-secondary-action]="modalObsEdSecundario"
   p-size="md">
 
-  <!-- Historico (somente para 1 registro com obs existente) -->
-  <ng-container *ngIf="obsModalRegistros().length === 1 && obsModalRegistros()[0].observacao">
+  <!-- Historico: committed + pending (preview do estado final) -->
+  <ng-container *ngIf="obsModalRegistros().length === 1 && obsModalHistoricoDisplay()">
     <p class="obs-modal-label">Historico</p>
-    <div class="obs-modal-historico">{{ obsModalRegistros()[0].observacao }}</div>
+    <div class="obs-modal-historico">{{ obsModalHistoricoDisplay() }}</div>
     <po-divider></po-divider>
   </ng-container>
 
