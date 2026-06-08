@@ -148,6 +148,7 @@ export class DivergenciasCartaoComponent implements OnInit, AfterViewInit {
 
   // ── Regularizar modal state ──────────────────────────────────────────────
   obsTexto = '';
+  private _nsusRegularizar: string[] = [];
 
   // ── Computed ─────────────────────────────────────────────────────────────
   readonly totais    = computed(() => calcularTotais(this.divergencias()));
@@ -408,8 +409,22 @@ export class DivergenciasCartaoComponent implements OnInit, AfterViewInit {
   }
 
   regularizar(): void {
-    if (!this.selecionados().filter((d) => d.txOk !== '5').length) {
-      this.notification.warning('Selecione ao menos um NSU nao regularizado.'); return;
+    const paraReg = this.selecionados().filter((d) => d.txOk !== '5');
+    if (paraReg.length) {
+      // Com seleção marcada: regulariza todos os selecionados Em Acordo
+      this._nsusRegularizar = paraReg.map((d) => d.nsu);
+    } else {
+      // Sem seleção: opera no registro ativo (_RegSem do ADVPL)
+      const ativa = this.divergenciaAtiva();
+      if (!ativa) {
+        this.notification.warning('Posicione em um registro para regularizar.');
+        return;
+      }
+      if (ativa.txOk !== '4') {
+        this.notification.warning(`Regularizar exige status Em Acordo. Status atual: ${this.statusLabel(ativa.txOk)}.`);
+        return;
+      }
+      this._nsusRegularizar = [ativa.nsu];
     }
     this.aplicarPendingObs();
     this.obsTexto = '';
@@ -418,8 +433,8 @@ export class DivergenciasCartaoComponent implements OnInit, AfterViewInit {
 
   private confirmarRegularizar(): void {
     if (!this.obsTexto.trim()) { this.notification.warning('Informe a observacao antes de confirmar.'); return; }
-    const nsus     = this.selecionados().filter((d) => d.txOk !== '5').map((d) => d.nsu);
-    const prefixo  = this.gerarPrefixo() + '\n';
+    const nsus    = this._nsusRegularizar;
+    const prefixo = this.gerarPrefixo() + '\n';
     this.service.regularizar({ nsus, observacao: prefixo + this.obsTexto.trim() })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
@@ -429,8 +444,11 @@ export class DivergenciasCartaoComponent implements OnInit, AfterViewInit {
   }
 
   revalidarTaxa(): void {
-    const nsus = this.selecionados().map((d) => d.nsu);
-    if (!nsus.length) { this.notification.warning('Selecione ao menos um NSU para revalidar.'); return; }
+    // Revalida todos os registros com divergencia (TXOK 1,2,3) — sem filtro por selecao (_revalidarTaxa do ADVPL)
+    const nsus = this.divergencias()
+      .filter((d) => ['1', '2', '3'].includes(d.txOk))
+      .map((d) => d.nsu);
+    if (!nsus.length) { this.notification.warning('Nao ha registros com divergencia para revalidar.'); return; }
     this.service.revalidarTaxa({ nsus }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next:  () => { this.notification.success('Taxa revalidada com sucesso.'); this.carregar(); },
       error: () =>   this.notification.error('Erro ao revalidar taxa.'),

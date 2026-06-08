@@ -3,8 +3,8 @@
   <!-- Barra de botoes -->
   <div class="div-toolbar">
     <po-button p-label="Confirmar"    p-kind="primary"   p-icon="po-icon-ok"       [p-disabled]="selecionados().length === 0" (p-click)="confirmar()"></po-button>
-    <po-button p-label="Regularizar"  p-kind="secondary" p-icon="po-icon-edit"     [p-disabled]="selecionados().length === 0" (p-click)="regularizar()"></po-button>
-    <po-button p-label="Revalidar Tx" p-kind="secondary" p-icon="po-icon-refresh"  [p-disabled]="selecionados().length === 0" (p-click)="revalidarTaxa()"></po-button>
+    <po-button p-label="Regularizar"  p-kind="secondary" p-icon="po-icon-edit"    (p-click)="regularizar()"></po-button>
+    <po-button p-label="Revalidar Tx" p-kind="secondary" p-icon="po-icon-refresh" (p-click)="revalidarTaxa()"></po-button>
     <po-button p-label="Fechar"       p-kind="tertiary"  p-icon="po-icon-close"    (p-click)="fechar()"></po-button>
     <po-button p-label="Relatorio"    p-kind="tertiary"  p-icon="po-icon-document" (p-click)="exportarRelatorio()"></po-button>
     <po-button p-label="Exportar CSV" p-kind="tertiary"  p-icon="po-icon-export"   (p-click)="exportarCsv()"></po-button>
