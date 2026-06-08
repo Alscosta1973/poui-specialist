@@ -26,6 +26,12 @@ export class AppComponent {
       link: '/financeiro/divergencias-cartao',
     },
     {
+      label: 'Conciliacao Cartao',
+      shortLabel: 'Conciliacao',
+      icon: 'po-icon-finance',
+      link: '/financeiro/conciliacao-cartao',
+    },
+    {
       label: 'Sair',
       shortLabel: 'Sair',
       icon: 'po-icon-exit',

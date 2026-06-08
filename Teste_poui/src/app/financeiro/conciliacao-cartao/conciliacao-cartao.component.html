@@ -1,0 +1,170 @@
+<po-page-default p-title="Conciliação Cartão de Crédito">
+
+  <!-- Cabeçalho: filtros banco + botoes de ação -->
+  <div class="div-header">
+    <div class="header-filtros">
+      <po-input
+        name="banco"
+        p-label="Banco"
+        p-placeholder="000"
+        [p-maxlength]="3"
+        [(ngModel)]="banco"
+        class="input-banco">
+      </po-input>
+      <po-input
+        name="agencia"
+        p-label="Agência"
+        p-placeholder="00000"
+        [p-maxlength]="5"
+        [(ngModel)]="agencia"
+        class="input-agencia">
+      </po-input>
+      <po-input
+        name="conta"
+        p-label="Conta"
+        p-placeholder="000000-0"
+        [p-maxlength]="8"
+        [(ngModel)]="conta"
+        class="input-conta">
+      </po-input>
+      <po-button
+        p-label="Carregar"
+        p-kind="primary"
+        p-icon="po-icon-search"
+        (p-click)="carregar()">
+      </po-button>
+    </div>
+    <div class="header-botoes">
+      <po-button
+        p-label="Automático"
+        p-kind="secondary"
+        p-icon="po-icon-connect"
+        [p-disabled]="movimentos().length === 0"
+        (p-click)="automatico()">
+      </po-button>
+      <po-button
+        p-label="Confirmar"
+        p-kind="primary"
+        p-icon="po-icon-ok"
+        [p-disabled]="!marcadoAdq() || !marcadoRec()"
+        (p-click)="confirmar()">
+      </po-button>
+      <po-button
+        p-label="Cancelar"
+        p-kind="tertiary"
+        p-icon="po-icon-close"
+        (p-click)="cancelar()">
+      </po-button>
+    </div>
+  </div>
+
+  <!-- Barra de contexto: exibe adquirente selecionado e orienta próximo passo -->
+  <div class="div-status-sel" *ngIf="marcadoAdq()">
+    <span class="sel-info">
+      Adquirente: <strong>{{ marcadoAdq()!.numPedido }}</strong> &nbsp;
+      Par.: <strong>{{ marcadoAdq()!.numParcela }}</strong> &nbsp;
+      Vl. Líquido: <strong>{{ fmtVal(marcadoAdq()!.vlLiquido) }}</strong>
+    </span>
+    <span class="sel-seta" *ngIf="!marcadoRec()">→ Marque o título correspondente à direita</span>
+    <span class="sel-seta" *ngIf="marcadoRec()">
+      ✓ Título: <strong>{{ marcadoRec()!.numTitulo }}</strong> marcado — clique em Confirmar
+    </span>
+  </div>
+
+  <!-- Dois browses lado a lado -->
+  <div class="div-browses">
+
+    <!-- Browse01: Movimentos Adquirentes (SZ7) -->
+    <div class="browse-panel">
+      <div class="browse-titulo">
+        <span class="browse-nome">Movimentos Adquirentes</span>
+        <span class="browse-count">{{ movimentos().length }} reg.</span>
+      </div>
+      <po-table
+        [p-columns]="colunasAdq"
+        [p-items]="movimentos()"
+        [p-selectable]="true"
+        [p-selectable-entire-line]="false"
+        [p-loading]="loading()"
+        [p-height]="browseHeight"
+        [p-virtual-scroll]="false"
+        [p-hide-action-fixed-columns]="true"
+        (p-selected)="onSelectAdq($event)"
+        (p-unselected)="onUnselectAdq($event)"
+        (p-all-selected)="onAllSelectedAdq($event)"
+        (p-all-unselected)="marcadoAdq.set(null)">
+
+        <ng-template p-table-column-template [p-property]="'status'" let-value>
+          <span [class]="'status-dot status-dot-' + value" [title]="statusLabel(value)"></span>
+        </ng-template>
+        <ng-template p-table-column-template [p-property]="'vlBruto'" let-value>
+          <span class="valor-num">{{ fmtVal(value) }}</span>
+        </ng-template>
+        <ng-template p-table-column-template [p-property]="'vlTaxa'" let-value>
+          <span class="valor-num valor-taxa">{{ fmtVal(value) }}</span>
+        </ng-template>
+        <ng-template p-table-column-template [p-property]="'vlLiquido'" let-value>
+          <span class="valor-num">{{ fmtVal(value) }}</span>
+        </ng-template>
+      </po-table>
+    </div>
+
+    <!-- Browse02: Contas a Receber (SE1) -->
+    <div class="browse-panel">
+      <div class="browse-titulo">
+        <span class="browse-nome">Contas a Receber</span>
+        <span class="browse-count">{{ contasReceber().length }} reg.</span>
+      </div>
+      <po-table
+        [p-columns]="colunasRec"
+        [p-items]="contasReceber()"
+        [p-selectable]="true"
+        [p-selectable-entire-line]="false"
+        [p-loading]="loading()"
+        [p-height]="browseHeight"
+        [p-virtual-scroll]="false"
+        [p-hide-action-fixed-columns]="true"
+        (p-selected)="onSelectRec($event)"
+        (p-unselected)="onUnselectRec($event)"
+        (p-all-selected)="onAllSelectedRec($event)"
+        (p-all-unselected)="marcadoRec.set(null)">
+
+        <ng-template p-table-column-template [p-property]="'status'" let-value>
+          <span [class]="'status-dot status-dot-' + value" [title]="statusLabel(value)"></span>
+        </ng-template>
+        <ng-template p-table-column-template [p-property]="'valor'" let-value>
+          <span class="valor-num">{{ fmtVal(value) }}</span>
+        </ng-template>
+        <ng-template p-table-column-template [p-property]="'vlTaxa'" let-value>
+          <span class="valor-num valor-taxa">{{ fmtVal(value) }}</span>
+        </ng-template>
+        <ng-template p-table-column-template [p-property]="'vlLiquido'" let-value>
+          <span class="valor-num">{{ fmtVal(value) }}</span>
+        </ng-template>
+      </po-table>
+    </div>
+
+  </div>
+
+  <!-- Legenda de status -->
+  <div class="div-legenda">
+    <span *ngFor="let l of legendas" class="legenda-item">
+      <span [class]="'status-dot status-dot-' + l.status"></span>
+      {{ l.label }}
+    </span>
+  </div>
+
+  <!-- Rodapé: totais -->
+  <div class="div-totais">
+    <div class="total-item">
+      <span class="total-label">Mov. Adquirente:</span>
+      <span class="total-valor">{{ fmtVal(totalMovimentos()) }}</span>
+    </div>
+    <div class="total-separador"></div>
+    <div class="total-item">
+      <span class="total-label">Selecionado:</span>
+      <span class="total-valor total-sel">{{ fmtVal(totalSelecionado()) }}</span>
+    </div>
+  </div>
+
+</po-page-default>
