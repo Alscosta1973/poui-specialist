@@ -241,3 +241,62 @@ To restrict selection to the checkbox only (not clicking anywhere on the row):
 
 This is essential for two-panel browse screens where accidental row selection
 while reading data would be disruptive.
+
+---
+
+## 8. po-table: programmatic `$selected: false` does not cancel a just-committed selection
+
+**Symptom:** When `(p-selected)` fires and you want to reject the selection (e.g., guard
+validation failed), setting `$selected: false` on the item synchronously has no effect.
+The row stays visually selected, and clicking it again fires `(p-selected)` instead of
+`(p-unselected)`, so the warning message fires a second time.
+
+**Root cause:** po-table adds the row to its internal `selectedRows` array **before**
+dispatching the `(p-selected)` event. Any synchronous `$selected: false` change on the
+items signal is processed in the same change-detection cycle — but po-table's internal
+state already has the row, so the visual state stays selected even though the data says
+`$selected: false`. This desync causes a second `(p-selected)` on the next click instead
+of `(p-unselected)`.
+
+**Fix:** Defer the items array replacement to `setTimeout(0)`. This lets the current
+event cycle complete, then replaces the items array in the next microtask. po-table's
+`ngOnChanges` receives the new array and reinitializes its selection from `$selected`,
+correctly showing the row as unselected.
+
+```typescript
+// ✗ Wrong — $selected: false is ignored; po-table already committed the selection
+onSelectRec(item: SomeModel): void {
+  if (!this.isValidSelection(item)) {
+    this.notification.warning('Cannot select this row.');
+    this.items.update(rows => rows.map(r =>
+      r.id === item.id ? { ...r, $selected: false } : r
+    ));
+    this.cdr.markForCheck();
+    return;
+  }
+}
+
+// ✓ Correct — deferred replacement forces po-table to reinitialize selection
+private rejectSelection(itemId: string): void {
+  setTimeout(() => {
+    // Rebuild the array restoring only the previously confirmed selection
+    this.items.update(rows => rows.map(r => ({
+      ...r,
+      $selected: r.id === this.confirmedItem()?.id,
+    })));
+    this.cdr.markForCheck();
+  }, 0);
+}
+
+onSelectRec(item: SomeModel): void {
+  if (!this.isValidSelection(item)) {
+    this.notification.warning('Cannot select this row.');
+    this.rejectSelection(item.id);
+    return;
+  }
+}
+```
+
+**Note:** The `setTimeout(0)` causes a ~1-frame visual flash where the row appears
+selected before reverting. This is imperceptible in practice but unavoidable with the
+current PO-UI `(p-selected)` API.

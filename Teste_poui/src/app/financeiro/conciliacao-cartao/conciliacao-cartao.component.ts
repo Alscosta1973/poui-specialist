@@ -214,12 +214,29 @@ export class ConciliacaoCartaoComponent implements OnInit, AfterViewInit {
     this.cdr.markForCheck();
   }
 
+  // po-table commits the selection internally before firing (p-selected).
+  // Setting $selected: false synchronously is ignored by the table's internal state.
+  // Deferring with setTimeout(0) lets the event cycle finish, then replaces the items
+  // array so po-table reinitializes selection from $selected on the next detection pass.
+  private rejectAdqSelection(itemId: string): void {
+    setTimeout(() => {
+      this.movimentos.update(movs => movs.map(m => ({ ...m, $selected: m.id === this.marcadoAdq()?.id })));
+      this.cdr.markForCheck();
+    }, 0);
+  }
+
+  private rejectRecSelection(itemId: string): void {
+    setTimeout(() => {
+      this.contasReceber.update(recs => recs.map(r => ({ ...r, $selected: r.id === this.marcadoRec()?.id })));
+      this.cdr.markForCheck();
+    }, 0);
+  }
+
   // ── Browse01: seleção única — somente status '1'
   onSelectAdq(item: MovimentoAdquirente): void {
     if (item.status !== '1') {
       this.notification.warning(`Apenas registros "Não Conciliados" podem ser marcados.`);
-      this.movimentos.update(movs => movs.map(m => m.id === item.id ? { ...m, $selected: false } : m));
-      this.cdr.markForCheck();
+      this.rejectAdqSelection(item.id);
       return;
     }
     const prev = this.marcadoAdq();
@@ -243,9 +260,11 @@ export class ConciliacaoCartaoComponent implements OnInit, AfterViewInit {
 
   onAllSelectedAdq(_items: MovimentoAdquirente[]): void {
     this.notification.warning('Somente pode marcar um registro por vez.');
-    this.movimentos.update(movs => movs.map(m => ({ ...m, $selected: false })));
-    this.marcadoAdq.set(null);
-    this.cdr.markForCheck();
+    setTimeout(() => {
+      this.movimentos.update(movs => movs.map(m => ({ ...m, $selected: false })));
+      this.marcadoAdq.set(null);
+      this.cdr.markForCheck();
+    }, 0);
   }
 
   // ── Browse02: requer Browse01 marcado, valida parcela
@@ -253,20 +272,17 @@ export class ConciliacaoCartaoComponent implements OnInit, AfterViewInit {
     const adq = this.marcadoAdq();
     if (!adq) {
       this.notification.warning('Marque primeiro um Movimento Adquirente.');
-      this.contasReceber.update(recs => recs.map(r => r.id === item.id ? { ...r, $selected: false } : r));
-      this.cdr.markForCheck();
+      this.rejectRecSelection(item.id);
       return;
     }
     if (item.status !== '1') {
       this.notification.warning(`Apenas títulos "Não Conciliados" podem ser marcados.`);
-      this.contasReceber.update(recs => recs.map(r => r.id === item.id ? { ...r, $selected: false } : r));
-      this.cdr.markForCheck();
+      this.rejectRecSelection(item.id);
       return;
     }
     if (item.parcela !== adq.numParcela) {
       this.notification.warning(`Parcela não confere: Adquirente ${adq.numParcela} × Título ${item.parcela}.`);
-      this.contasReceber.update(recs => recs.map(r => r.id === item.id ? { ...r, $selected: false } : r));
-      this.cdr.markForCheck();
+      this.rejectRecSelection(item.id);
       return;
     }
     const prev = this.marcadoRec();
@@ -286,9 +302,11 @@ export class ConciliacaoCartaoComponent implements OnInit, AfterViewInit {
 
   onAllSelectedRec(_items: ContaReceber[]): void {
     this.notification.warning('Somente pode marcar um registro por vez.');
-    this.contasReceber.update(recs => recs.map(r => ({ ...r, $selected: false })));
-    this.marcadoRec.set(null);
-    this.cdr.markForCheck();
+    setTimeout(() => {
+      this.contasReceber.update(recs => recs.map(r => ({ ...r, $selected: false })));
+      this.marcadoRec.set(null);
+      this.cdr.markForCheck();
+    }, 0);
   }
 
   statusLabel(status: StatusConciliacao): string {
