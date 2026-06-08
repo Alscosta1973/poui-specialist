@@ -57,7 +57,7 @@
 /* Dois browses lado a lado */
 .div-browses {
   display: flex;
-  gap: 8px;
+  gap: 4px;
   margin-bottom: 4px;
 }
 
@@ -69,6 +69,14 @@
 
   ::ng-deep .po-table-actions-column-manager {
     display: none;
+  }
+
+  ::ng-deep .po-table-column-selectable {
+    width: 40px !important;
+    min-width: 40px !important;
+    max-width: 40px !important;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
   }
 
   ::ng-deep tbody td {

@@ -84,25 +84,25 @@ export class ConciliacaoCartaoComponent implements OnInit, AfterViewInit {
   ];
 
   readonly colunasAdq: PoTableColumn[] = [
-    { property: 'status',      label: 'St.',         width: '40px',  type: 'columnTemplate' },
-    { property: 'dtPagamento', label: 'Dt Pgto',     width: '95px',  type: 'date', format: 'dd/MM/yyyy' },
-    { property: 'titulo',      label: 'Título',      width: '80px'  },
-    { property: 'numPedido',   label: 'Num. Pedido', width: '95px'  },
-    { property: 'numParcela',  label: 'Par.',        width: '50px'  },
-    { property: 'vlBruto',     label: 'Vl Bruto',    width: '90px',  type: 'columnTemplate' },
-    { property: 'vlTaxa',      label: 'Vl Taxa',     width: '80px',  type: 'columnTemplate' },
-    { property: 'vlLiquido',   label: 'Vl Líquido',  width: '90px',  type: 'columnTemplate' },
+    { property: 'status',      label: 'St.',     width: '28px',  type: 'columnTemplate' },
+    { property: 'dtPagamento', label: 'Pgto',    width: '84px',  type: 'date', format: 'dd/MM/yyyy' },
+    { property: 'titulo',      label: 'Título',  width: '52px'  },
+    { property: 'numPedido',   label: 'Pedido',  width: '62px'  },
+    { property: 'numParcela',  label: 'Par.',    width: '38px'  },
+    { property: 'vlBruto',     label: 'V.Bruto', width: '68px',  type: 'columnTemplate' },
+    { property: 'vlTaxa',      label: 'V.Taxa',  width: '64px',  type: 'columnTemplate' },
+    { property: 'vlLiquido',   label: 'V.Líq.',  width: '68px',  type: 'columnTemplate' },
   ];
 
   readonly colunasRec: PoTableColumn[] = [
-    { property: 'status',    label: 'St.',         width: '40px',  type: 'columnTemplate' },
-    { property: 'pedido',    label: 'Pedido',      width: '80px'  },
-    { property: 'emissao',   label: 'Emissão',     width: '95px',  type: 'date', format: 'dd/MM/yyyy' },
-    { property: 'numTitulo', label: 'Título',      width: '80px'  },
-    { property: 'parcela',   label: 'Par.',        width: '50px'  },
-    { property: 'valor',     label: 'Valor',       width: '90px',  type: 'columnTemplate' },
-    { property: 'vlTaxa',    label: 'Vl Taxa',     width: '80px',  type: 'columnTemplate' },
-    { property: 'vlLiquido', label: 'Vl Líquido',  width: '90px',  type: 'columnTemplate' },
+    { property: 'status',    label: 'St.',     width: '28px',  type: 'columnTemplate' },
+    { property: 'pedido',    label: 'Pedido',  width: '66px'  },
+    { property: 'emissao',   label: 'Emissão', width: '84px',  type: 'date', format: 'dd/MM/yyyy' },
+    { property: 'numTitulo', label: 'Título',  width: '50px'  },
+    { property: 'parcela',   label: 'Par.',    width: '38px'  },
+    { property: 'valor',     label: 'Valor',   width: '68px',  type: 'columnTemplate' },
+    { property: 'vlTaxa',    label: 'V.Taxa',  width: '64px',  type: 'columnTemplate' },
+    { property: 'vlLiquido', label: 'V.Líq.',  width: '66px',  type: 'columnTemplate' },
   ];
 
   ngOnInit(): void {
