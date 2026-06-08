@@ -1,9 +1,11 @@
 import {
+  AfterViewInit,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
   computed,
   DestroyRef,
+  HostListener,
   inject,
   OnInit,
   signal,
@@ -44,7 +46,7 @@ import {
   styleUrl: './conciliacao-cartao.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ConciliacaoCartaoComponent implements OnInit {
+export class ConciliacaoCartaoComponent implements OnInit, AfterViewInit {
   private readonly service      = inject(ConciliacaoCartaoService);
   private readonly notification = inject(PoNotificationService);
   private readonly destroyRef   = inject(DestroyRef);
@@ -65,7 +67,12 @@ export class ConciliacaoCartaoComponent implements OnInit {
   );
   readonly totalSelecionado = computed(() => this.marcadoAdq()?.vlLiquido ?? 0);
 
-  readonly browseHeight = 350;
+  private readonly _winH = signal(window.innerHeight);
+
+  readonly browseHeight = computed(() => {
+    const hasStatusBar = this.marcadoAdq() !== null;
+    return Math.max(180, this._winH() - (hasStatusBar ? 456 : 420));
+  });
 
   readonly legendas: { status: StatusConciliacao; label: string }[] = [
     { status: '1', label: 'Não Conciliado' },
@@ -100,6 +107,15 @@ export class ConciliacaoCartaoComponent implements OnInit {
 
   ngOnInit(): void {
     this.carregar();
+  }
+
+  ngAfterViewInit(): void {
+    this._winH.set(window.innerHeight);
+  }
+
+  @HostListener('window:resize')
+  onResize(): void {
+    this._winH.set(window.innerHeight);
   }
 
   carregar(): void {
