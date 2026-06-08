@@ -258,14 +258,6 @@ export class ConciliacaoCartaoComponent implements OnInit, AfterViewInit {
     this.cdr.markForCheck();
   }
 
-  onAllSelectedAdq(_items: MovimentoAdquirente[]): void {
-    this.notification.warning('Somente pode marcar um registro por vez.');
-    setTimeout(() => {
-      this.movimentos.update(movs => movs.map(m => ({ ...m, $selected: false })));
-      this.marcadoAdq.set(null);
-      this.cdr.markForCheck();
-    }, 0);
-  }
 
   // ── Browse02: requer Browse01 marcado, valida parcela
   onSelectRec(item: ContaReceber): void {
@@ -300,14 +292,6 @@ export class ConciliacaoCartaoComponent implements OnInit, AfterViewInit {
     this.cdr.markForCheck();
   }
 
-  onAllSelectedRec(_items: ContaReceber[]): void {
-    this.notification.warning('Somente pode marcar um registro por vez.');
-    setTimeout(() => {
-      this.contasReceber.update(recs => recs.map(r => ({ ...r, $selected: false })));
-      this.marcadoRec.set(null);
-      this.cdr.markForCheck();
-    }, 0);
-  }
 
   statusLabel(status: StatusConciliacao): string {
     const map: Record<StatusConciliacao, string> = {

@@ -71,6 +71,11 @@
     display: none;
   }
 
+  ::ng-deep thead .po-table-column-selectable .po-checkbox-outline {
+    display: none;
+    pointer-events: none;
+  }
+
   ::ng-deep .po-table-column-selectable {
     width: 40px !important;
     min-width: 40px !important;
