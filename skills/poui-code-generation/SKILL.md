@@ -19,6 +19,7 @@ Use this numbered algorithm to choose the right template before loading any file
    - If the screen has 3+ distinct sections or wizard steps, choose `stepper-form`.
    - If the screen has 1-10 editable fields, no dedicated route, and no multi-step flow, choose `modal-crud`; otherwise choose `page-edit`.
 4. If the request is for a list screen:
+   - If the screen shows **two browse panels side by side** where the user selects one row from each panel and confirms a pairing/matching action (reconciliation, matching, conciliation), choose `two-panel-browse`.
    - If it requires inline child rows or master-detail item lines, choose `master-detail`.
    - If it includes at least 3 filter fields and a standard disclaimer block required by the Protheus pattern, choose `page-dynamic-search`.
    - If the endpoint matches the documented Protheus plugin contract for list/search/filter/pagination responses and the screen needs no custom business rules beyond standard CRUD, choose `page-dynamic`.
@@ -51,6 +52,12 @@ All templates use these substitution placeholders:
 | `{{ModuleName}}` | PascalCase module label | `Financeiro` |
 
 ## Templates
+
+### Reconciliation / matching pages
+
+| Template | File | When to use |
+|----------|------|-------------|
+| **two-panel-browse** | `templates-two-panel-browse.md` | Two po-table panels side by side; user selects one row from each and confirms a pairing action (card reconciliation, document matching, A/R conciliation). Includes dynamic height, horizontal-scroll prevention, single-select enforcement, and cross-browse validation. |
 
 ### List pages
 
