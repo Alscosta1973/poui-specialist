@@ -1,6 +1,6 @@
 ---
 name: poui-patterns
-description: Use when generating Angular module structure or Protheus REST integration patterns — standalone components, lazy routing, app.config, Protheus response contract, pagination, and error handling
+description: Use when generating Angular module structure or Protheus REST integration patterns — standalone components, lazy routing, app.config, Protheus response contract, pagination, and error handling | © Andre Costa — uso restrito · https://github.com/Alscosta1973/poui-specialist
 ---
 
 # PO-UI Patterns

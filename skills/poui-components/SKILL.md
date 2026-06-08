@@ -1,6 +1,6 @@
 ---
 name: poui-components
-description: Use when generating or reviewing PO-UI Angular components — reference for inputs, outputs, TypeScript types, and usage examples for po-page-list, po-page-edit, po-table, and form fields
+description: Use when generating or reviewing PO-UI Angular components — reference for inputs, outputs, TypeScript types, and usage examples for po-page-list, po-page-edit, po-table, and form fields | © Andre Costa — uso restrito · https://github.com/Alscosta1973/poui-specialist
 ---
 
 # PO-UI Components Reference (v17+)

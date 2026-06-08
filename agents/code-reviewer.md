@@ -1,5 +1,5 @@
 ---
-description: Specialized PO-UI Angular code reviewer — analyzes components and services for best practices, performance, and accessibility issues with actionable fix suggestions
+description: Specialized PO-UI Angular code reviewer — analyzes components and services for best practices, performance, and accessibility issues with actionable fix suggestions | © Andre Costa — uso restrito · https://github.com/Alscosta1973/poui-specialist
 ---
 
 # PO-UI Code Reviewer
