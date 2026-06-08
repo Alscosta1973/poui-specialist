@@ -142,12 +142,27 @@
 
   </div>
 
-  <!-- Legenda de status -->
+  <!-- Legenda de status com contagens por painel -->
   <div class="div-legenda">
-    <span *ngFor="let l of legendas" class="legenda-item">
-      <span [class]="'status-dot status-dot-' + l.status"></span>
-      {{ l.label }}
-    </span>
+    <ng-container *ngFor="let l of legendas">
+      <span class="legenda-item"
+            *ngIf="(contagemAdq()[l.status] ?? 0) + (contagemRec()[l.status] ?? 0) > 0">
+        <span [class]="'status-dot status-dot-' + l.status"></span>
+        {{ l.label }}
+        <span class="legenda-badges">
+          <span class="legenda-badge legenda-badge-adq"
+                *ngIf="contagemAdq()[l.status]"
+                title="Movimentos Adquirentes">
+            Adq {{ contagemAdq()[l.status] }}
+          </span>
+          <span class="legenda-badge legenda-badge-rec"
+                *ngIf="contagemRec()[l.status]"
+                title="Contas a Receber">
+            Rec {{ contagemRec()[l.status] }}
+          </span>
+        </span>
+      </span>
+    </ng-container>
   </div>
 
   <!-- Rodapé: totais -->

@@ -67,6 +67,20 @@ export class ConciliacaoCartaoComponent implements OnInit, AfterViewInit {
   );
   readonly totalSelecionado = computed(() => this.marcadoAdq()?.vlLiquido ?? 0);
 
+  readonly contagemAdq = computed(() =>
+    this.movimentos().reduce((acc, r) => {
+      acc[r.status] = (acc[r.status] ?? 0) + 1;
+      return acc;
+    }, {} as Record<string, number>)
+  );
+
+  readonly contagemRec = computed(() =>
+    this.contasReceber().reduce((acc, r) => {
+      acc[r.status] = (acc[r.status] ?? 0) + 1;
+      return acc;
+    }, {} as Record<string, number>)
+  );
+
   private readonly _winH = signal(window.innerHeight);
 
   readonly browseHeight = computed(() => {

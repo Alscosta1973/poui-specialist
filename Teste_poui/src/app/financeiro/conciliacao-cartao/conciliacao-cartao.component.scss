@@ -122,7 +122,7 @@
 .div-legenda {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
   padding: 5px 10px;
   background: #f5f6fa;
   border-top: 1px solid #e0e0e0;
@@ -137,6 +137,30 @@
     font-size: 10px;
     color: #555;
     white-space: nowrap;
+  }
+
+  .legenda-badges {
+    display: flex;
+    gap: 3px;
+    margin-left: 2px;
+  }
+
+  .legenda-badge {
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 8px;
+    line-height: 14px;
+  }
+
+  .legenda-badge-adq {
+    background: #e3f0fb;
+    color: #1565c0;
+  }
+
+  .legenda-badge-rec {
+    background: #e8f5e9;
+    color: #2e7d32;
   }
 }
 
