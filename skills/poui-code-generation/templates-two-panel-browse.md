@@ -20,6 +20,10 @@ Use cases: card reconciliation, accounts payable/receivable matching, document p
 | Cross-browse validation | Left must be selected before right; validate in `(p-selected)` of right browse |
 | Button alignment with po-input | `.header-botoes { margin-bottom: 8px }` — cancels po-input's internal 8px error-space |
 | Checkbox column width | Override with `::ng-deep .po-table-column-selectable { width: 41px !important }` |
+| Keyboard navigation | `@HostListener('window:keydown')` routes ArrowUp/Down to active panel; Tab switches panel |
+| Scroll sync | `_scrollRowIntoView()` walks DOM for real scrollable ancestor; callers use `setTimeout(..., 50)` |
+| Focus ring suppression | `::ng-deep *:focus, *:focus-visible { outline: none }` — prevents scroll artifact at browse edge |
+| Active panel indicator | `border-top-color` on `.browse-titulo` — never `outline` on po-table-container |
 
 ---
 
@@ -80,6 +84,11 @@ export class {{ComponentClass}} implements OnInit, AfterViewInit {
   readonly selectedLeft = signal<{{LeftModel}} | null>(null);
   readonly selectedRight= signal<{{RightModel}} | null>(null);
 
+  // ── Keyboard navigation
+  readonly cursorLeft   = signal<number>(-1);
+  readonly cursorRight  = signal<number>(-1);
+  readonly activeBrowse = signal<'left' | 'right'>('left');
+
   // ── Dynamic height (no page scroll)
   // OFFSET = sum of all fixed-height elements outside the browse:
   //   PO shell (~232px) + header (~90px) + browse-title (~30px) + footer (~50px) = ~402px
@@ -129,8 +138,85 @@ export class {{ComponentClass}} implements OnInit, AfterViewInit {
   }
 
   @HostListener('window:resize')
-  onResize(): void {
-    this._winH.set(window.innerHeight);
+  onResize(): void { this._winH.set(window.innerHeight); }
+
+  @HostListener('window:keydown', ['$event'])
+  onKeyDown(event: KeyboardEvent): void {
+    const tag = (event.target as HTMLElement)?.tagName?.toLowerCase();
+    if (tag === 'input' || tag === 'textarea') return;
+
+    if (event.key === 'Tab') {
+      event.preventDefault();
+      this.activeBrowse.set(this.activeBrowse() === 'left' ? 'right' : 'left');
+      return;
+    }
+
+    if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+    event.preventDefault();
+    const delta = event.key === 'ArrowDown' ? 1 : -1;
+
+    if (this.activeBrowse() === 'left') {
+      this._moverCursorLeft(delta);
+    } else {
+      this._moverCursorRight(delta);
+    }
+  }
+
+  onPanelLeftClick(): void  { this.activeBrowse.set('left'); }
+  onPanelRightClick(): void { this.activeBrowse.set('right'); }
+
+  private _moverCursorLeft(delta: number): void {
+    const its  = this.leftItems();
+    if (!its.length) return;
+    const cur  = this.cursorLeft();
+    const next = cur < 0 ? 0 : Math.max(0, Math.min(its.length - 1, cur + delta));
+    if (next === cur && cur >= 0) return;
+    this.cursorLeft.set(next);
+    setTimeout(() => this._highlightRow('left', next), 50);
+  }
+
+  private _moverCursorRight(delta: number): void {
+    const its  = this.rightItems();
+    if (!its.length) return;
+    const cur  = this.cursorRight();
+    const next = cur < 0 ? 0 : Math.max(0, Math.min(its.length - 1, cur + delta));
+    if (next === cur && cur >= 0) return;
+    this.cursorRight.set(next);
+    setTimeout(() => this._highlightRow('right', next), 50);
+  }
+
+  private _highlightRow(side: 'left' | 'right', idx: number): void {
+    const sel = side === 'left' ? '.browse-panel-left' : '.browse-panel-right';
+    document.querySelectorAll(`${sel} .row-ativa`).forEach(el => el.classList.remove('row-ativa'));
+    if (idx < 0) return;
+    const rows = document.querySelectorAll<HTMLElement>(`${sel} table tbody tr`);
+    const row  = rows[idx];
+    if (!row) return;
+    row.classList.add('row-ativa');
+    this._scrollRowIntoView(row);
+  }
+
+  // Walks up from the row to find the real scrollable ancestor.
+  // Callers MUST use setTimeout(..., 50) — NOT 0ms — so PO-UI's change detection
+  // has completed and getBoundingClientRect() returns correct values.
+  private _scrollRowIntoView(row: HTMLElement): void {
+    let container: HTMLElement | null = row.parentElement;
+    while (container && container !== document.documentElement) {
+      const s = window.getComputedStyle(container);
+      if ((s.overflowY === 'auto' || s.overflowY === 'scroll') && container.scrollHeight > container.clientHeight) break;
+      container = container.parentElement;
+    }
+    if (!container || container === document.documentElement) return;
+    const thead     = container.querySelector('thead') as HTMLElement | null;
+    const theadH    = thead ? thead.offsetHeight : 0;
+    const cRect     = container.getBoundingClientRect();
+    const rRect     = row.getBoundingClientRect();
+    const rowTop    = rRect.top - cRect.top + container.scrollTop;
+    const rowBottom = rowTop + row.offsetHeight;
+    const visTop    = container.scrollTop + theadH;
+    const visBot    = container.scrollTop + container.clientHeight;
+    if (rowTop    < visTop)  container.scrollTop = Math.max(0, rowTop - theadH);
+    else if (rowBottom > visBot) container.scrollTop = rowBottom - container.clientHeight;
   }
 
   carregar(): void {
@@ -344,10 +430,10 @@ export class {{ComponentClass}} implements OnInit, AfterViewInit {
   <div class="div-browses">
 
     <!-- Left browse -->
-    <div class="browse-panel">
-      <div class="browse-titulo">
+    <div class="browse-panel browse-panel-left" (click)="onPanelLeftClick()">
+      <div class="browse-titulo" [class.browse-titulo-ativo]="activeBrowse() === 'left'">
         <span class="browse-nome">{{LeftPanelTitle}}</span>
-        <span class="browse-count">{{ leftItems().length }} reg.</span>
+        <span class="browse-count">{{ leftItems().length }} reg. &nbsp;·&nbsp; Tab ↔ ↑↓</span>
       </div>
       <po-table
         [p-columns]="colunasLeft"
@@ -379,8 +465,8 @@ export class {{ComponentClass}} implements OnInit, AfterViewInit {
     </div>
 
     <!-- Right browse -->
-    <div class="browse-panel">
-      <div class="browse-titulo">
+    <div class="browse-panel browse-panel-right" (click)="onPanelRightClick()">
+      <div class="browse-titulo" [class.browse-titulo-ativo]="activeBrowse() === 'right'">
         <span class="browse-nome">{{RightPanelTitle}}</span>
         <span class="browse-count">{{ rightItems().length }} reg.</span>
       </div>
@@ -535,6 +621,17 @@ export class {{ComponentClass}} implements OnInit, AfterViewInit {
   ::ng-deep .po-table-header-ellipsis {
     font-size: 11px;
   }
+
+  // Row highlight from keyboard navigation (set via classList in component)
+  ::ng-deep .row-ativa td { background-color: #dbeafe !important; }
+
+  // Suppress ALL browser focus rings — prevents the blue outline artifact that
+  // appears on the po-table-container-overflow element when clicking or scrolling.
+  ::ng-deep *:focus,
+  ::ng-deep *:focus-visible {
+    outline:    none !important;
+    box-shadow: none !important;
+  }
 }
 
 .browse-titulo {
@@ -547,9 +644,17 @@ export class {{ComponentClass}} implements OnInit, AfterViewInit {
   border-bottom: none;
   border-top-left-radius: 4px;
   border-top-right-radius: 4px;
+  // Active-panel indicator: 2px top border changes color (same pattern as stacked-browse).
+  // Using border-top-color avoids the scroll artifact caused by outline on the table container.
+  border-top: 2px solid var(--color-neutral-light-10, #e0e0e0);
+  transition: border-top-color 0.1s;
 
   .browse-nome  { font-size: 12px; font-weight: 700; color: #333; }
   .browse-count { font-size: 10px; color: #777; }
+}
+
+.browse-titulo-ativo {
+  border-top-color: var(--color-action-default, #0079c3) !important;
 }
 
 // ── Status dot (colored circle in St. column)

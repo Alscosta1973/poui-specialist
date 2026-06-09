@@ -1,6 +1,6 @@
 ---
 name: poui-code-generation
-description: Use when generating PO-UI Angular code — complete ready-to-adapt templates for page-list, page-dynamic-search, page-edit, page-detail, modal-crud, stepper-form, page-dynamic, master-detail, service, module, and dashboard artifacts for Protheus integration | © Andre Costa — uso restrito · https://github.com/Alscosta1973/poui-specialist
+description: Use when generating PO-UI Angular code — complete ready-to-adapt templates for page-list, page-dynamic-search, page-edit, page-detail, modal-crud, stepper-form, page-dynamic, master-detail, stacked-browse, two-panel-browse, service, module, and dashboard artifacts for Protheus integration | © Andre Costa — uso restrito · https://github.com/Alscosta1973/poui-specialist
 ---
 
 # PO-UI Code Generation Templates
@@ -20,6 +20,7 @@ Use this numbered algorithm to choose the right template before loading any file
    - If the screen has 1-10 editable fields, no dedicated route, and no multi-step flow, choose `modal-crud`; otherwise choose `page-edit`.
 4. If the request is for a list screen:
    - If the screen shows **two browse panels side by side** where the user selects one row from each panel and confirms a pairing/matching action (reconciliation, matching, conciliation), choose `two-panel-browse`.
+   - If the screen has **two vertically stacked browses** where the top browse (master) drives what appears in the bottom browse (detail), with independent ArrowKey navigation, Tab to switch, a compact filter bar with "Remover Filtro", and a confirmation footer (e.g. SC5 orders → SC6 items, generate NF, process records), choose `stacked-browse`.
    - If it requires inline child rows or master-detail item lines, choose `master-detail`.
    - If it includes at least 3 filter fields and a standard disclaimer block required by the Protheus pattern, choose `page-dynamic-search`.
    - If the endpoint matches the documented Protheus plugin contract for list/search/filter/pagination responses and the screen needs no custom business rules beyond standard CRUD, choose `page-dynamic`.
@@ -58,6 +59,12 @@ All templates use these substitution placeholders:
 | Template | File | When to use |
 |----------|------|-------------|
 | **two-panel-browse** | `templates-two-panel-browse.md` | Two po-table panels side by side; user selects one row from each and confirms a pairing action (card reconciliation, document matching, A/R conciliation). Includes dynamic height, horizontal-scroll prevention, single-select enforcement, and cross-browse validation. |
+
+### ERP master-detail / dual-browse pages
+
+| Template | File | When to use |
+|----------|------|-------------|
+| **stacked-browse** | `templates-stacked-browse.md` | Two vertically stacked po-tables: master (top) drives detail (bottom). Full keyboard nav (ArrowUp/Down per browse, Tab to switch), compact filter bar with "Remover Filtro", border-top active indicator, scroll sync, focus ring suppression. Use for SC5/SC6, orders+items, any ERP master-detail needing keyboard-first UX. |
 
 ### List pages
 
