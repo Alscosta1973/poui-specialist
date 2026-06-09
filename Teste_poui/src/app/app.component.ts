@@ -20,6 +20,12 @@ export class AppComponent {
 
   readonly menus: PoMenuItem[] = [
     {
+      label: 'Gerar NF Pedidos',
+      shortLabel: 'Gerar NF',
+      icon: 'po-icon-document',
+      link: '/faturamento/gerar-nf-pedido',
+    },
+    {
       label: 'Divergencias Cartao',
       shortLabel: 'Div. Cartao',
       icon: 'po-icon-finance',

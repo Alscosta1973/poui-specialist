@@ -300,3 +300,270 @@ onSelectRec(item: SomeModel): void {
 **Note:** The `setTimeout(0)` causes a ~1-frame visual flash where the row appears
 selected before reverting. This is imperceptible in practice but unavoidable with the
 current PO-UI `(p-selected)` API.
+
+---
+
+## 9. po-table: keyboard row navigation (ArrowUp / ArrowDown)
+
+**Context:** po-table has no built-in keyboard navigation. Protheus users expect arrow-key
+navigation between rows (like the native Protheus grid). When a browse acts as a master
+that loads detail data on row change, this is especially important.
+
+**Pattern — three-part implementation:**
+
+### Part 1 — State
+```typescript
+readonly cursorIndex = signal<number>(0);
+```
+
+### Part 2 — Keyboard listener + cursor movement
+```typescript
+@HostListener('window:keydown', ['$event'])
+onKeyDown(event: KeyboardEvent): void {
+  // Do not capture arrows while user is typing in inputs
+  const tag = (event.target as HTMLElement)?.tagName?.toLowerCase();
+  if (tag === 'input' || tag === 'textarea') return;
+
+  if      (event.key === 'ArrowDown') { event.preventDefault(); this._moverCursor(1);  }
+  else if (event.key === 'ArrowUp')   { event.preventDefault(); this._moverCursor(-1); }
+  else return;
+
+  // Re-apply highlight after PO-UI may reset the DOM
+  setTimeout(() => this._highlightActiveRow(), 0);
+}
+
+private _moverCursor(delta: number): void {
+  const items   = this.items();           // replace with your items signal
+  if (!items.length) return;
+  const current = this.cursorIndex();
+  const next    = current < 0 ? 0 : Math.max(0, Math.min(items.length - 1, current + delta));
+  if (next === current && current >= 0) return;
+  this.cursorIndex.set(next);
+  this._onRowActivated(items[next]);      // replace with your row-activation method
+}
+```
+
+### Part 3 — DOM highlight + scroll (manual, because CSS `:focus` does not reach table rows)
+
+> **⚠️ Never use `row.scrollIntoView({ block: 'nearest' })`** — it does not account for the
+> sticky `thead`. When navigating to row 0 (or any row near the top), the row becomes hidden
+> behind the fixed header. Use the manual scroll calculation below instead.
+
+```typescript
+private _highlightActiveRow(): void {
+  document.querySelectorAll('.my-browse-container .row-ativa').forEach(
+    el => el.classList.remove('row-ativa')
+  );
+  const idx = this.cursorIndex();
+  if (idx < 0) return;
+  const rows = document.querySelectorAll<HTMLElement>('.my-browse-container table tbody tr');
+  const row  = rows[idx];
+  if (!row) return;
+  row.classList.add('row-ativa');
+  this._scrollRowIntoView(row);
+}
+
+// Walks up the DOM from the active row to find the real scrollable ancestor.
+// Does NOT depend on any PO-UI internal class name — works across all versions.
+//
+// Two critical rules:
+// 1. Use setTimeout(..., 50) — NOT 0ms. At 0ms the DOM is not yet updated
+//    by PO-UI's change detection, so getBoundingClientRect() returns stale values
+//    and the scroll calculation is wrong.
+// 2. Never use scrollIntoView({ block: 'nearest' }): it does not discount the
+//    sticky thead, so row 0 ends up hidden behind the fixed header.
+private _scrollRowIntoView(row: HTMLElement): void {
+  // Walk up from the row to find the first truly scrollable ancestor
+  let container: HTMLElement | null = row.parentElement;
+  while (container && container !== document.documentElement) {
+    const style = window.getComputedStyle(container);
+    if (
+      (style.overflowY === 'auto' || style.overflowY === 'scroll') &&
+      container.scrollHeight > container.clientHeight
+    ) { break; }
+    container = container.parentElement;
+  }
+  if (!container || container === document.documentElement) return;
+
+  const thead  = container.querySelector('thead') as HTMLElement | null;
+  const theadH = thead ? thead.offsetHeight : 0;
+
+  const cRect     = container.getBoundingClientRect();
+  const rRect     = row.getBoundingClientRect();
+  const rowTop    = rRect.top - cRect.top + container.scrollTop;
+  const rowBottom = rowTop + row.offsetHeight;
+
+  const visTop = container.scrollTop + theadH;
+  const visBot = container.scrollTop + container.clientHeight;
+
+  if (rowTop < visTop) {
+    container.scrollTop = Math.max(0, rowTop - theadH);
+  } else if (rowBottom > visBot) {
+    container.scrollTop = rowBottom - container.clientHeight;
+  }
+}
+```
+
+### Part 4 — SCSS
+```scss
+/* Wrapper around the po-table (e.g. <div class="my-browse-container">) */
+.my-browse-container ::ng-deep tbody tr.row-ativa td {
+  background-color: var(--color-brand-01-lighter, #cce5ff) !important;
+}
+
+.my-browse-container ::ng-deep tbody tr td {
+  cursor: pointer;
+}
+```
+
+### Part 5 — Wiring click + init
+```typescript
+// In the (p-selected) handler:
+onRowSelected(row: MyModel): void {
+  const idx = this.items().findIndex(i => i.id === row.id);
+  this.cursorIndex.set(idx);
+  this._onRowActivated(row);
+  setTimeout(() => this._highlightActiveRow(), 0);
+}
+
+// In ngOnInit — auto-select first row:
+ngOnInit(): void {
+  this.loadData();   // sets items signal
+  this.cursorIndex.set(0);
+  if (this.items().length) this._onRowActivated(this.items()[0]);
+  setTimeout(() => this._highlightActiveRow(), 0);
+}
+```
+
+**Important notes:**
+- Use `setTimeout(..., 50)` — NOT `0ms`. At 0ms, PO-UI's change detection has not completed and `getBoundingClientRect()` returns stale values. 50ms matches the pattern used in production Divergências screens.
+- The `input/textarea` guard prevents arrow keys from triggering navigation while the user types in filter fields.
+- Works for standard `po-table` (all rows are `<tr>` inside a single `<tbody>`). For tables with `p-detail` (expandable rows), each item renders as its own `<tbody>` — use `querySelectorAll(':scope > tbody')` on the `<table>` element instead.
+- To hide PO-UI's checkbox column when using `p-selectable` purely for click events:
+```scss
+.my-browse-container ::ng-deep thead th:first-child,
+.my-browse-container ::ng-deep tbody td:first-child {
+  display: none !important;
+  width: 0 !important;
+  padding: 0 !important;
+}
+```
+
+---
+
+## 10. Dual-browse keyboard navigation (master → detail)
+
+When a screen has **two stacked po-table components** where the top one (master) drives the bottom one (detail), both need independent keyboard navigation. Use `activeBrowse` to route arrow keys, **Tab** to switch between browses.
+
+### State
+```typescript
+readonly cursorMaster  = signal<number>(0);
+readonly cursorDetail  = signal<number>(-1);
+readonly activeBrowse  = signal<'master' | 'detail'>('master');
+```
+
+### Keyboard handler
+```typescript
+@HostListener('window:keydown', ['$event'])
+onKeyDown(event: KeyboardEvent): void {
+  const tag = (event.target as HTMLElement)?.tagName?.toLowerCase();
+  if (tag === 'input' || tag === 'textarea') return;
+
+  if (event.key === 'Tab') {
+    event.preventDefault();
+    this.activeBrowse.set(this.activeBrowse() === 'master' ? 'detail' : 'master');
+    if (this.activeBrowse() === 'detail' && this.cursorDetail() < 0 && this.detailItems().length) {
+      this.cursorDetail.set(0);
+      setTimeout(() => this._highlightDetailRow(), 50);
+    }
+    return;
+  }
+
+  if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+  event.preventDefault();
+  const delta = event.key === 'ArrowDown' ? 1 : -1;
+
+  if (this.activeBrowse() === 'master') {
+    this._moverCursorMaster(delta);
+    setTimeout(() => this._highlightMasterRow(), 50);
+  } else {
+    this._moverCursorDetail(delta);
+    setTimeout(() => this._highlightDetailRow(), 50);
+  }
+}
+```
+
+### Click handlers — switching browse focus
+```typescript
+onMasterClick(): void { this.activeBrowse.set('master'); }
+
+onDetailClick(): void {
+  this.activeBrowse.set('detail');
+  if (this.cursorDetail() < 0 && this.detailItems().length) {
+    this.cursorDetail.set(0);
+    setTimeout(() => this._highlightDetailRow(), 50);
+  }
+}
+```
+
+### Reset detail cursor when master changes row
+```typescript
+onMasterRowSelected(row: MasterModel): void {
+  const idx = this.masterItems().findIndex(i => i.id === row.id);
+  this.cursorMaster.set(idx);
+  this.cursorDetail.set(-1);       // ← reset detail on every master change
+  this.activeBrowse.set('master');
+  this.loadDetailItems(row.id);
+  setTimeout(() => this._highlightMasterRow(), 50);
+}
+```
+
+### Template — wrappers with click and active-browse indicator
+```html
+<!-- MASTER browse -->
+<div class="master-browse" [class.browse-ativo]="activeBrowse() === 'master'" (click)="onMasterClick()">
+  <po-table [p-columns]="masterCols" [p-items]="masterItems()" [p-selectable]="true"
+    [p-selectable-entire-line]="true" [p-hide-columns-manager]="true" [p-height]="masterHeight()"
+    (p-selected)="onMasterRowSelected($event)">
+  </po-table>
+</div>
+
+<!-- DETAIL browse -->
+<div class="detail-browse" [class.browse-ativo]="activeBrowse() === 'detail'" (click)="onDetailClick()">
+  <po-table [p-columns]="detailCols" [p-items]="detailItems()" [p-selectable]="true"
+    [p-hide-columns-manager]="true" [p-height]="detailHeight()"
+    (p-selected)="onDetailRowSelected($event)">
+  </po-table>
+</div>
+```
+
+### SCSS — compact rows + active-browse outline + row highlight (same for both)
+```scss
+:host { display: block; font-size: 12px; }
+
+.master-browse, .detail-browse {
+  ::ng-deep tbody td             { padding-top: 4px !important; padding-bottom: 4px !important; }
+  ::ng-deep .po-table-body-ellipsis   { font-size: 11px; }
+  ::ng-deep .po-table-header-ellipsis { font-size: 11px; }
+  ::ng-deep .row-ativa td        { background-color: #dbeafe !important; }
+  ::ng-deep tbody tr td          { cursor: pointer; }
+}
+
+/* Blue outline shows which browse receives keyboard input */
+.browse-ativo ::ng-deep .po-table-container {
+  outline: 2px solid var(--color-action-default, #0079c3);
+  outline-offset: -2px;
+}
+
+/* Master: hide PO-UI checkbox when using p-selectable for click-only */
+.master-browse {
+  ::ng-deep thead th:first-child,
+  ::ng-deep tbody td:first-child { display: none !important; width: 0 !important; padding: 0 !important; }
+}
+```
+
+### Hint in the browse header
+Show a hint so the user knows how to switch and navigate:
+```html
+<span class="browse-count">Tab para alternar browse &nbsp;·&nbsp; ↑↓ para navegar</span>
+```

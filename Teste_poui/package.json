@@ -23,6 +23,7 @@
     "@totvs/po-theme": "^17.0.0",
     "@totvs/protheus-lib-core": "^17.0.0",
     "rxjs": "~7.8.0",
+    "subsink": "^1.0.2",
     "tslib": "^2.6.0",
     "zone.js": "~0.14.0"
   },

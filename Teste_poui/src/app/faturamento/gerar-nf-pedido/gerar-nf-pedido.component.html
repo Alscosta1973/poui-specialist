@@ -1,0 +1,64 @@
+<po-page-default p-title="Geração de NF — Pedidos de Venda">
+
+  <!-- Filtros -->
+  <div class="filtros-bar">
+    <po-input name="numPedido"    p-label="Nº Pedido"    p-placeholder="000000"    [(ngModel)]="filtros.numPedido"    class="filtro-campo"></po-input>
+    <po-input name="codCliente"   p-label="Cliente"      p-placeholder="CLI000"    [(ngModel)]="filtros.codCliente"   class="filtro-campo"></po-input>
+    <po-datepicker name="dataEmissaoDe"  p-label="Emissão De"  [(ngModel)]="filtros.dataEmissaoDe"  class="filtro-campo filtro-data"></po-datepicker>
+    <po-datepicker name="dataEmissaoAte" p-label="Emissão Até" [(ngModel)]="filtros.dataEmissaoAte" class="filtro-campo filtro-data"></po-datepicker>
+    <po-button p-label="Buscar" p-kind="primary" p-icon="po-icon-search" (p-click)="buscarPedidos()" class="btn-buscar"></po-button>
+  </div>
+
+  <!-- Browse SC5 — Pedidos -->
+  <div class="browse-cabecalho" [class.browse-cabecalho-ativo]="activeBrowse() === 'sc5'">
+    <span class="browse-titulo">Pedidos de Venda (SC5)</span>
+    <div class="browse-direita">
+      <span class="browse-count" *ngIf="pedidos().length > 0">{{ pedidos().length }} registro(s) &nbsp;·&nbsp; Tab para alternar browse &nbsp;·&nbsp; ↑↓ para navegar</span>
+      <span class="link-remover-filtro"
+            [class.link-remover-filtro--ativo]="isFiltrado()"
+            (click)="isFiltrado() && removerFiltro()">✕ Remover Filtro</span>
+    </div>
+  </div>
+  <div class="sc5-browse" [class.browse-ativo]="activeBrowse() === 'sc5'" (click)="onSC5Click()">
+    <po-table
+      [p-columns]="colunasSC5"
+      [p-items]="pedidosParaExibir()"
+      [p-selectable]="true"
+      [p-selectable-entire-line]="true"
+      [p-hide-columns-manager]="true"
+      [p-height]="sc5Height()"
+      (p-selected)="onPedidoSelecionado($event)"
+      (p-unselected)="onPedidoDeselecionado($event)">
+    </po-table>
+  </div>
+
+  <!-- Browse SC6 — Itens do Pedido -->
+  <div class="browse-cabecalho browse-cabecalho-sc6" [class.browse-cabecalho-ativo]="activeBrowse() === 'sc6'">
+    <span class="browse-titulo">{{ tituloSC6() }}</span>
+    <span class="browse-count" *ngIf="itensPedidoAtual().length > 0">{{ itensPedidoAtual().length }} item(ns)</span>
+  </div>
+  <div class="sc6-browse" [class.browse-ativo]="activeBrowse() === 'sc6'" (click)="onSC6Click()">
+    <po-table
+      [p-columns]="colunasSC6"
+      [p-items]="itensPedidoAtual()"
+      [p-selectable]="true"
+      [p-hide-columns-manager]="true"
+      [p-height]="sc6Height()"
+      (p-selected)="onItemSelecionado($event)"
+      (p-unselected)="onItemDeselecionado($event)"
+      (p-all-selected)="onTodosItensSelecionados()"
+      (p-all-unselected)="onTodosItensDeselecionados()">
+    </po-table>
+  </div>
+
+  <!-- Rodapé -->
+  <div class="rodape-bar">
+    <span class="rodape-info">
+      <strong>{{ qtdItens() }}</strong> iten(s) &nbsp;·&nbsp;
+      <strong>{{ qtdPedidos() }}</strong> pedido(s) &nbsp;·&nbsp;
+      Total:&nbsp;<strong class="rodape-total">R$&nbsp;{{ fmtVal(totalSelecionado()) }}</strong>
+    </span>
+    <po-button p-label="Gerar NF" p-kind="primary" p-icon="po-icon-document" [p-disabled]="!podeGerar()" (p-click)="abrirModal()"></po-button>
+  </div>
+
+</po-page-default>
