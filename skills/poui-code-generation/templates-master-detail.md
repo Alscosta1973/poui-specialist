@@ -183,16 +183,18 @@ export class {{ComponentClass}} implements OnInit {
 
   // ── Configuração das colunas de DETALHE ──
   // TODO: ajuste para os campos de {{DetailInterface}}
+  // IMPORTANT: PoTableDetailColumn does NOT support 'width' — remove all width properties
+  // from detail columns or the compiler throws TS2353 (unknown property).
   private buildDetailConfig(): PoTableDetail {
     return {
       columns: [
-        { property: 'sequencia',  label: 'Seq',       width: '8%' },
-        { property: 'produto',    label: 'Produto',    width: '12%' },
+        { property: 'sequencia',  label: 'Seq' },
+        { property: 'produto',    label: 'Produto' },
         { property: 'descricao',  label: 'Descrição' },
-        { property: 'unidade',    label: 'UN',         width: '6%' },
-        { property: 'quantidade', label: 'Qtde',       type: 'number',   width: '8%' },
-        { property: 'valorUnit',  label: 'Vlr Unit.',  type: 'currency', width: '12%' },
-        { property: 'valorTotal', label: 'Total',      type: 'currency', width: '12%' },
+        { property: 'unidade',    label: 'UN' },
+        { property: 'quantidade', label: 'Qtde',      type: 'number',   format: '1.4-4' },
+        { property: 'valorUnit',  label: 'Vlr Unit.', type: 'currency', format: 'BRL' },
+        { property: 'valorTotal', label: 'Total',     type: 'currency', format: 'BRL' },
       ],
       typeHeader: 'inline',   // 'inline' | 'top' | 'none'
     };

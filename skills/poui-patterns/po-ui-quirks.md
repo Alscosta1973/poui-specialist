@@ -567,3 +567,33 @@ Show a hint so the user knows how to switch and navigate:
 ```html
 <span class="browse-count">Tab para alternar browse &nbsp;·&nbsp; ↑↓ para navegar</span>
 ```
+
+---
+
+## 11. PoTableDetail — `width` property not supported (TS2353)
+
+**Symptom:** TypeScript compiler throws `TS2353: Object literal may only specify known properties, and 'width' does not exist in type 'PoTableDetailColumn'` when defining columns inside `buildDetailConfig()`.
+
+**Root cause:** `PoTableDetail.columns` uses the internal type `PoTableDetailColumn`, which is a subset of `PoTableColumn` and does **not** include `width`. The `width` property is only valid on master columns (`PoTableColumn[]`), not on detail columns.
+
+**Fix:** Remove all `width` properties from detail columns. Only `property`, `label`, `type`, and `format` are supported.
+
+```typescript
+// WRONG — causes TS2353
+private buildDetailConfig(): PoTableDetail {
+  return {
+    columns: [
+      { property: 'quantidade', label: 'Qtde', type: 'number', width: '8%' }, // ❌ TS2353
+    ],
+  };
+}
+
+// RIGHT — no width on detail columns
+private buildDetailConfig(): PoTableDetail {
+  return {
+    columns: [
+      { property: 'quantidade', label: 'Qtde', type: 'number', format: '1.4-4' }, // ✓
+    ],
+  };
+}
+```

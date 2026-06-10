@@ -1,0 +1,19 @@
+<po-page-list
+  p-title="Pedidos de Compra"
+  [p-actions]="pageActions"
+  [p-filter]="filterSettings">
+
+  @if (loading()) {
+    <po-loading-overlay p-text="Carregando..."></po-loading-overlay>
+  }
+
+  <po-table
+    [p-columns]="columns"
+    [p-items]="items()"
+    [p-loading]="loading()"
+    [p-actions]="tableActions"
+    [p-show-more-disabled]="!hasNext()"
+    (p-show-more)="onShowMore()">
+  </po-table>
+
+</po-page-list>
