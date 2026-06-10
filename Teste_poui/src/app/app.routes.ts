@@ -59,4 +59,10 @@ export const routes: Routes = [
       import('./compras/pedido-compra-crud/pedido-compra-edit.component')
         .then(m => m.PedidoCompraEditComponent),
   },
+  {
+    path: 'compras/pedido-compra-crud/:numero/detalhe',
+    loadComponent: () =>
+      import('./compras/pedido-compra-crud/pedido-compra-detail.component')
+        .then(m => m.PedidoCompraDetailComponent),
+  },
 ];

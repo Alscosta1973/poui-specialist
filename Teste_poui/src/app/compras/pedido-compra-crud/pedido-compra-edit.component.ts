@@ -140,10 +140,12 @@ export class PedidoCompraEditComponent implements OnInit {
 
   adicionarItem(): void {
     this.itensArray.push(this.criarLinhaItem());
+    this.cdr.markForCheck();
   }
 
   removerItem(index: number): void {
     this.itensArray.removeAt(index);
+    this.cdr.markForCheck();
   }
 
   /** Recalcula valorTotal da linha ao alterar quantidade ou valorUnit. */
