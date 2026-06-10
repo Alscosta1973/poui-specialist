@@ -36,7 +36,51 @@ import {
 import { CommonModule } from '@angular/common';
 
 import { PedidoCompraCrudService } from '../pedido-compra-crud.service';
-import { ItemCompraForm, PedidoCompraForm } from '../models/pedido-compra-crud.model';
+import { ItemCompraForm, PedidoCompraForm, PedidoCompraItem } from '../models/pedido-compra-crud.model';
+
+const DEMO_PEDIDOS: PedidoCompraItem[] = [
+  {
+    numero: '000001', emissao: '2026-01-10', fornecedor: 'METALURGICA BRASILFOR LTDA',
+    loja: '01', condPagto: '028', observacao: 'Pedido urgente — entrega em 5 dias úteis.',
+    totalPedido: 48750.00,
+    itens: [
+      { produto: 'ACO001', descricao: 'Aço carbono 1020 barra redonda', unidade: 'KG', quantidade: 500, valorUnit: 8.50, valorTotal: 4250.00 },
+      { produto: 'ACO002', descricao: 'Aço inox 304 chapa 2mm', unidade: 'KG', quantidade: 200, valorUnit: 32.50, valorTotal: 6500.00 },
+      { produto: 'TUB001', descricao: 'Tubo aço galvanizado 2"', unidade: 'PC', quantidade: 100, valorUnit: 380.00, valorTotal: 38000.00 },
+    ],
+  },
+  {
+    numero: '000002', emissao: '2026-02-03', fornecedor: 'DISTRIBUIDORA QUIMICOR S.A.',
+    loja: '01', condPagto: '030', observacao: '',
+    totalPedido: 12340.50,
+    itens: [
+      { produto: 'QUI001', descricao: 'Solvente industrial 200L', unidade: 'LT', quantidade: 200, valorUnit: 28.90, valorTotal: 5780.00 },
+      { produto: 'QUI002', descricao: 'Detergente industrial 5L', unidade: 'UN', quantidade: 100, valorUnit: 65.60, valorTotal: 6560.50 },
+    ],
+  },
+  {
+    numero: '000003', emissao: '2026-02-18', fornecedor: 'ACOS ESPECIAIS NORTECO LTDA',
+    loja: '02', condPagto: '028', observacao: 'Verificar certificado de qualidade.',
+    totalPedido: 97200.00,
+    itens: [
+      { produto: 'ACO003', descricao: 'Aço ferramenta D2 barra', unidade: 'KG', quantidade: 800, valorUnit: 121.50, valorTotal: 97200.00 },
+    ],
+  },
+  {
+    numero: '000004', emissao: '2026-03-05', fornecedor: 'PLASTICOS INDUMAX INDUSTRIA',
+    loja: '01', condPagto: '000', observacao: 'Pedido cancelado — fornecedor sem estoque.',
+    totalPedido: 6580.75, itens: [],
+  },
+  {
+    numero: '000005', emissao: '2026-04-22', fornecedor: 'ROLAMENTOS E MANCAIS TECNO',
+    loja: '03', condPagto: '028', observacao: '',
+    totalPedido: 23415.90,
+    itens: [
+      { produto: 'ROL001', descricao: 'Rolamento rígido de esferas 6205', unidade: 'UN', quantidade: 50, valorUnit: 185.00, valorTotal: 9250.00 },
+      { produto: 'ROL002', descricao: 'Rolamento cônico 30207', unidade: 'UN', quantidade: 30, valorUnit: 472.20, valorTotal: 14165.90 },
+    ],
+  },
+];
 
 @Component({
   selector: 'app-pedido-compra-edit',
@@ -246,10 +290,22 @@ export class PedidoCompraEditComponent implements OnInit {
           this.loading.set(false);
           this.cdr.markForCheck();
         },
-        error: (err) => {
-          this.notification.error(this.parseError(err));
+        error: () => {
+          const demo = DEMO_PEDIDOS.find(p => p.numero === this.recordNumero) ?? null;
+          if (demo) {
+            this.itensArray.clear();
+            (demo.itens ?? []).forEach(item => this.itensArray.push(this.criarLinhaItem(item)));
+            this.form.patchValue({
+              numero: demo.numero, emissao: demo.emissao, fornecedor: demo.fornecedor,
+              loja: demo.loja, condPagto: demo.condPagto, observacao: demo.observacao,
+            });
+            this.notification.warning('Dados demo — serviço indisponível.');
+          } else {
+            this.notification.error('Pedido não encontrado.');
+            this.goBack();
+          }
           this.loading.set(false);
-          this.goBack();
+          this.cdr.markForCheck();
         },
       });
   }
@@ -257,6 +313,7 @@ export class PedidoCompraEditComponent implements OnInit {
   private parseError(err: any): string {
     try {
       const errObj = JSON.parse(err.error?.errorMessage ?? '{}');
+      if (!errObj.code) return err.error?.message ?? 'Erro ao processar a requisição.';
       const msg    = decodeURIComponent(escape(errObj.message ?? ''));
       const detail = errObj.detailedMessage
         ? ` — ${decodeURIComponent(escape(errObj.detailedMessage))}`
