@@ -26,4 +26,16 @@ export const routes: Routes = [
         './financeiro/conciliacao-cartao/conciliacao-cartao.component'
       ).then((m) => m.ConciliacaoCartaoComponent),
   },
+  {
+    path: 'compras/pedido-compra',
+    loadComponent: () =>
+      import('./compras/pedido-compra/pedido-compra.component')
+        .then(m => m.PedidoCompraComponent),
+  },
+  {
+    path: 'compras/pedido-compra-stacked',
+    loadComponent: () =>
+      import('./compras/pedido-compra-stacked/pedido-compra-stacked.component')
+        .then(m => m.PedidoCompraStackedComponent),
+  },
 ];

@@ -38,6 +38,18 @@ export class AppComponent {
       link: '/financeiro/conciliacao-cartao',
     },
     {
+      label: 'Pedidos de Compra',
+      shortLabel: 'Ped. Compra',
+      icon: 'po-icon-purchase',
+      link: '/compras/pedido-compra',
+    },
+    {
+      label: 'Ped. Compra (Stacked)',
+      shortLabel: 'Compra Stack',
+      icon: 'po-icon-purchase',
+      link: '/compras/pedido-compra-stacked',
+    },
+    {
       label: 'Sair',
       shortLabel: 'Sair',
       icon: 'po-icon-exit',

@@ -1,0 +1,102 @@
+<po-page-default p-title="Pedidos de Compra — Itens">
+
+  <!-- Filtros ─────────────────────────────────────────────────────────── -->
+  <div class="filtros-bar">
+    <po-input
+      name="campo1"
+      p-label="Nº Pedido"
+      p-placeholder="000000"
+      [(ngModel)]="filtros.campo1"
+      class="filtro-campo filtro-numero">
+    </po-input>
+    <po-input
+      name="campo2"
+      p-label="Fornecedor"
+      p-placeholder="Código/Nome"
+      [(ngModel)]="filtros.campo2"
+      class="filtro-campo filtro-fornecedor">
+    </po-input>
+    <po-datepicker
+      name="dataDE"
+      p-label="Emissão De"
+      [(ngModel)]="filtros.dataDE"
+      class="filtro-campo filtro-data">
+    </po-datepicker>
+    <po-datepicker
+      name="dataATE"
+      p-label="Emissão Até"
+      [(ngModel)]="filtros.dataATE"
+      class="filtro-campo filtro-data">
+    </po-datepicker>
+    <po-button
+      p-label="Buscar"
+      p-kind="primary"
+      p-icon="po-icon-search"
+      (p-click)="buscar()"
+      class="btn-buscar">
+    </po-button>
+  </div>
+
+  <!-- Browse Master — Pedidos de Compra (SC7) ──────────────────────────── -->
+  <div class="browse-cabecalho" [class.browse-cabecalho-ativo]="activeBrowse() === 'master'">
+    <span class="browse-titulo">Pedidos de Compra (SC7)</span>
+    <div class="browse-direita">
+      <span class="browse-count" *ngIf="items().length > 0">
+        {{ items().length }} registro(s) &nbsp;·&nbsp; Tab para alternar &nbsp;·&nbsp; ↑↓ para navegar
+      </span>
+      <span
+        class="link-remover-filtro"
+        [class.link-remover-filtro--ativo]="isFiltrado()"
+        (click)="isFiltrado() && removerFiltro()">
+        ✕ Remover Filtro
+      </span>
+    </div>
+  </div>
+  <div class="master-browse" [class.browse-ativo]="activeBrowse() === 'master'" (click)="onMasterClick()">
+    <po-table
+      [p-columns]="colunasMaster"
+      [p-items]="items()"
+      [p-selectable]="true"
+      [p-selectable-entire-line]="true"
+      [p-hide-columns-manager]="true"
+      [p-height]="masterHeight()"
+      (p-selected)="onMasterSelecionado($event)"
+      (p-unselected)="onMasterDeselecionado($event)">
+    </po-table>
+  </div>
+
+  <!-- Browse Detail — Itens do Pedido (SC7) ───────────────────────────── -->
+  <div class="browse-cabecalho browse-cabecalho-detail" [class.browse-cabecalho-ativo]="activeBrowse() === 'detail'">
+    <span class="browse-titulo">{{ tituloDetail() }}</span>
+    <span class="browse-count" *ngIf="detailItems().length > 0">{{ detailItems().length }} item(ns)</span>
+  </div>
+  <div class="detail-browse" [class.browse-ativo]="activeBrowse() === 'detail'" (click)="onDetailClick()">
+    <po-table
+      [p-columns]="colunasDetail"
+      [p-items]="detailItems()"
+      [p-selectable]="true"
+      [p-hide-columns-manager]="true"
+      [p-height]="detailHeight()"
+      (p-selected)="onItemSelecionado($event)"
+      (p-unselected)="onItemDeselecionado($event)"
+      (p-all-selected)="onTodosItensSelecionados()"
+      (p-all-unselected)="onTodosItensDeselecionados()">
+    </po-table>
+  </div>
+
+  <!-- Rodapé ───────────────────────────────────────────────────────────── -->
+  <div class="rodape-bar">
+    <span class="rodape-info">
+      <strong>{{ qtdSelecionados() }}</strong> item(ns) selecionado(s) &nbsp;·&nbsp;
+      Total:&nbsp;<strong class="rodape-total">R$&nbsp;{{ fmtVal(totalSelecionado()) }}</strong>
+    </span>
+    <po-button
+      p-label="Aprovar Itens"
+      p-kind="primary"
+      p-icon="po-icon-ok"
+      [p-disabled]="!podeConfirmar()"
+      (p-click)="aprovarItens()">
+    </po-button>
+  </div>
+
+</po-page-default>
