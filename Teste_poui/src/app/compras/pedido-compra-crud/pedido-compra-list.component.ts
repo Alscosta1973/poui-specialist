@@ -12,7 +12,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize } from 'rxjs/operators';
 import {
@@ -97,7 +97,6 @@ const DEMO_PEDIDOS: PedidoCompraItem[] = [
 })
 export class PedidoCompraListComponent implements OnInit {
   private readonly router        = inject(Router);
-  private readonly route         = inject(ActivatedRoute);
   private readonly notification  = inject(PoNotificationService);
   private readonly dialog        = inject(PoDialogService);
   private readonly destroyRef    = inject(DestroyRef);
@@ -185,7 +184,7 @@ export class PedidoCompraListComponent implements OnInit {
     {
       label: 'Incluir',
       icon: 'po-icon-plus',
-      action: () => this.router.navigate(['novo'], { relativeTo: this.route }),
+      action: () => this.router.navigate(['/compras/pedido-compra-crud/novo']),
     },
   ];
 
@@ -197,13 +196,13 @@ export class PedidoCompraListComponent implements OnInit {
       label: 'Editar',
       icon: 'po-icon-edit',
       action: (row: PedidoCompraItem) =>
-        this.router.navigate([row.numero, 'editar'], { relativeTo: this.route }),
+        this.router.navigate(['/compras/pedido-compra-crud', row.numero, 'editar']),
     },
     {
       label: 'Visualizar',
       icon: 'po-icon-eye',
       action: (row: PedidoCompraItem) =>
-        this.router.navigate([row.numero, 'detalhe'], { relativeTo: this.route }),
+        this.router.navigate(['/compras/pedido-compra-crud', row.numero, 'detalhe']),
     },
     {
       label: 'Cancelar',
