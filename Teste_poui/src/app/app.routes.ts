@@ -38,4 +38,25 @@ export const routes: Routes = [
       import('./compras/pedido-compra-stacked/pedido-compra-stacked.component')
         .then(m => m.PedidoCompraStackedComponent),
   },
+  {
+    path: 'compras/pedido-compra-crud',
+    loadComponent: () =>
+      import('./compras/pedido-compra-crud/pedido-compra-list.component')
+        .then(m => m.PedidoCompraListComponent),
+  },
+  // ------------------------------------------------------------------
+  // Pedido de Compra — CRUD (page-edit)
+  // ------------------------------------------------------------------
+  {
+    path: 'compras/pedido-compra-crud/novo',
+    loadComponent: () =>
+      import('./compras/pedido-compra-crud/pedido-compra-edit.component')
+        .then(m => m.PedidoCompraEditComponent),
+  },
+  {
+    path: 'compras/pedido-compra-crud/:numero/editar',
+    loadComponent: () =>
+      import('./compras/pedido-compra-crud/pedido-compra-edit.component')
+        .then(m => m.PedidoCompraEditComponent),
+  },
 ];

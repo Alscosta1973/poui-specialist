@@ -50,6 +50,12 @@ export class AppComponent {
       link: '/compras/pedido-compra-stacked',
     },
     {
+      label: 'Ped. Compra (CRUD)',
+      shortLabel: 'CRUD Compra',
+      icon: 'po-icon-list',
+      link: '/compras/pedido-compra-crud',
+    },
+    {
       label: 'Sair',
       shortLabel: 'Sair',
       icon: 'po-icon-exit',

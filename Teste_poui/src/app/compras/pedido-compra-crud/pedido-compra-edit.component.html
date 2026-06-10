@@ -1,0 +1,181 @@
+<po-page-edit
+  [p-title]="pageTitle"
+  [p-disable-submit]="loading()"
+  (p-save)="save()"
+  (p-cancel)="goBack()">
+
+  <form [formGroup]="form">
+
+    <!-- ================================================================== -->
+    <!-- Seção: Dados do Pedido                                               -->
+    <!-- ================================================================== -->
+    <po-divider p-label="Dados do Pedido"></po-divider>
+
+    <div class="po-row">
+
+      <po-input
+        class="po-md-2"
+        p-label="Nº Pedido"
+        formControlName="numero"
+        p-disabled="true">
+      </po-input>
+
+      <po-datepicker
+        class="po-md-2"
+        p-label="Emissão"
+        formControlName="emissao"
+        p-required="true"
+        p-error-pattern="Campo obrigatório">
+      </po-datepicker>
+
+      <po-input
+        class="po-md-2"
+        p-label="Fornecedor"
+        formControlName="fornecedor"
+        p-required="true"
+        [p-maxlength]="6"
+        p-error-pattern="Campo obrigatório">
+      </po-input>
+
+      <po-input
+        class="po-md-1"
+        p-label="Loja"
+        formControlName="loja"
+        p-required="true"
+        [p-maxlength]="2"
+        p-error-pattern="Campo obrigatório">
+      </po-input>
+
+      <po-input
+        class="po-md-2"
+        p-label="Cond. Pagamento"
+        formControlName="condPagto"
+        [p-maxlength]="3">
+      </po-input>
+
+    </div>
+
+    <div class="po-row">
+
+      <po-textarea
+        class="po-md-12"
+        p-label="Observação"
+        formControlName="observacao"
+        [p-maxlength]="250"
+        [p-rows]="3">
+      </po-textarea>
+
+    </div>
+
+    <!-- ================================================================== -->
+    <!-- Seção: Itens do Pedido                                              -->
+    <!-- ================================================================== -->
+    <po-divider p-label="Itens do Pedido"></po-divider>
+
+    <div formArrayName="itens">
+
+      <!-- Cabeçalho da grade -->
+      <div class="po-row pedido-grade-header">
+        <span class="po-md-2">Produto</span>
+        <span class="po-md-3">Descrição</span>
+        <span class="po-md-1">UN</span>
+        <span class="po-md-2">Quantidade</span>
+        <span class="po-md-2">Vlr Unitário</span>
+        <span class="po-md-1">Total</span>
+        <span class="po-md-1"></span>
+      </div>
+
+      <!-- Linhas editáveis -->
+      @for (ctrl of itemControls(); track $index) {
+        <div class="po-row pedido-grade-linha" [formGroupName]="$index">
+
+          <div class="po-md-2">
+            <po-input
+              p-label=""
+              formControlName="produto"
+              p-required="true"
+              [p-maxlength]="15"
+              (p-blur)="onProdutoBlur($index)">
+            </po-input>
+          </div>
+
+          <div class="po-md-3">
+            <po-input
+              p-label=""
+              formControlName="descricao"
+              p-disabled="true">
+            </po-input>
+          </div>
+
+          <div class="po-md-1">
+            <po-input
+              p-label=""
+              formControlName="unidade"
+              [p-maxlength]="2">
+            </po-input>
+          </div>
+
+          <div class="po-md-2">
+            <po-decimal
+              p-label=""
+              formControlName="quantidade"
+              p-required="true"
+              [p-decimals-length]="2"
+              (p-change)="recalcularLinha($index)">
+            </po-decimal>
+          </div>
+
+          <div class="po-md-2">
+            <po-decimal
+              p-label=""
+              formControlName="valorUnit"
+              p-required="true"
+              [p-decimals-length]="2"
+              (p-change)="recalcularLinha($index)">
+            </po-decimal>
+          </div>
+
+          <div class="po-md-1 pedido-total-linha">
+            {{ ctrl.get('valorTotal')?.value | number:'1.2-2' }}
+          </div>
+
+          <div class="po-md-1">
+            <po-button
+              p-icon="po-icon-delete"
+              p-kind="tertiary"
+              p-type="button"
+              p-label=""
+              p-tooltip="Remover item"
+              (p-click)="removerItem($index)">
+            </po-button>
+          </div>
+
+        </div>
+      }
+
+    </div>
+
+    <!-- Botão Adicionar Item -->
+    <div class="po-row">
+      <div class="po-md-12 pedido-btn-adicionar">
+        <po-button
+          p-icon="po-icon-plus"
+          p-label="Adicionar Item"
+          p-kind="secondary"
+          p-type="button"
+          (p-click)="adicionarItem()">
+        </po-button>
+      </div>
+    </div>
+
+    <!-- Total Geral -->
+    <div class="po-row pedido-total-geral">
+      <div class="po-md-12">
+        <strong>Total Geral do Pedido:</strong>
+        {{ totalGeral | number:'1.2-2' }}
+      </div>
+    </div>
+
+  </form>
+
+</po-page-edit>
