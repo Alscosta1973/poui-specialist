@@ -17,7 +17,7 @@ import {
 ```typescript
 interface PoDynamicFormField {
   // ──────────── OBRIGATÓRIO ────────────
-  property: string;          // nome da propriedade no objeto de dados
+  property: string;
 
   // ──────────── RÓTULO E LAYOUT ────────────
   label?: string;            // rótulo do campo (default: property em Title Case)
@@ -29,12 +29,12 @@ interface PoDynamicFormField {
   // ──────────── VALIDAÇÃO ────────────
   required?: boolean;        // campo obrigatório — exibe indicador visual *
   optional?: boolean;        // exibe "(Opcional)" mesmo quando required é false
-  disabled?: boolean;        // campo somente leitura (desabilitado)
+  disabled?: boolean;
   minLength?: number;        // mínimo de caracteres (type: 'string')
   maxLength?: number;        // máximo de caracteres (type: 'string')
   min?: number;              // valor mínimo (type: 'number' | 'currency')
   max?: number;              // valor máximo (type: 'number' | 'currency')
-  regex?: string;            // padrão regex para validação customizada
+  regex?: string;
   errorMessage?: string;     // mensagem exibida quando regex ou validação falha
 
   // ──────────── TIPO ────────────
@@ -107,7 +107,7 @@ readonly fields: PoDynamicFormField[] = [
   {
     property:   'codigo',
     label:      'Código',
-    divider:    'Identificação',   // cabeçalho de seção acima deste campo
+    divider:    'Identificação',
     required:   true,
     maxLength:  6,
     gridColumns: 4,
@@ -126,14 +126,14 @@ readonly fields: PoDynamicFormField[] = [
   {
     property: 'cnpj',
     label:    'CNPJ',
-    type:     'cnpj',             // aplica máscara 00.000.000/0000-00 e valida dígitos
+    type:     'cnpj',
     required: true,
     gridColumns: 5,
   },
   {
     property: 'cpf',
     label:    'CPF',
-    type:     'cpf',              // aplica máscara 000.000.000-00 e valida dígitos
+    type:     'cpf',
     gridColumns: 4,
   },
   {
@@ -241,7 +241,7 @@ readonly fields: PoDynamicFormField[] = [
     property:    'observacoes',
     label:       'Observações',
     divider:     'Complemento',
-    rows:        4,               // número de linhas → ativa textarea
+    rows:        4,
     maxLength:   500,
     optional:    true,
     gridColumns: 12,
@@ -256,7 +256,7 @@ readonly fields: PoDynamicFormField[] = [
 ```typescript
 interface PoDynamicViewField {
   // ──────────── OBRIGATÓRIO ────────────
-  property: string;          // nome da propriedade no objeto de dados
+  property: string;
 
   // ──────────── RÓTULO E LAYOUT ────────────
   label?: string;            // rótulo exibido (default: property em Title Case)
@@ -267,7 +267,7 @@ interface PoDynamicViewField {
   type?: 'string'
        | 'number'
        | 'currency'          // formata como moeda (R$)
-       | 'date'              // formata como data
+       | 'date'
        | 'dateTime'          // formata como data + hora
        | 'boolean'           // exibe booleanTrue/booleanFalse como texto
        | 'link'              // renderiza como <a href> (value = URL)
@@ -276,7 +276,7 @@ interface PoDynamicViewField {
   // ──────────── FORMATAÇÃO ────────────
   format?: string;           // ex: 'dd/MM/yyyy' para date | 'dd/MM/yyyy HH:mm' para dateTime
   concatLinesLimit?: number; // limita o número de linhas (para arrays de string)
-  tag?: boolean;             // renderiza o valor como po-tag
+  tag?: boolean;
   color?: string;            // token de cor PO-UI (ex: 'color-10', 'color-07')
 
   // ──────────── BOOLEAN ────────────
