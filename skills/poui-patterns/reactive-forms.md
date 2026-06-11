@@ -77,7 +77,6 @@ export class PedidosEditComponent implements OnInit {
     { label: 'Bloqueado', value: 'B' },
   ];
 
-  // Definição do FormGroup com valores iniciais e validadores
   readonly form: FormGroup = this.fb.group({
     codigo:        ['',  [Validators.required, Validators.maxLength(6)]],
     loja:          ['01',[Validators.required, Validators.maxLength(2)]],
@@ -199,7 +198,6 @@ export class PedidosEditComponent implements OnInit {
 ```typescript
 import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 
-// Validator de fábrica — retorna a função validadora
 export function passwordMatchValidator(): ValidatorFn {
   return (group: AbstractControl): ValidationErrors | null => {
     const senha    = group.get('senha')?.value;
@@ -210,7 +208,6 @@ export function passwordMatchValidator(): ValidatorFn {
   };
 }
 
-// Uso no FormGroup (segundo argumento de fb.group)
 readonly form = this.fb.group(
   {
     senha:          ['', [Validators.required, Validators.minLength(8)]],
@@ -221,7 +218,6 @@ readonly form = this.fb.group(
 ```
 
 ```html
-<!-- Exibir erro cross-field no template -->
 @if (form.hasError('passwordMismatch') && form.get('confirmarSenha')!.touched) {
   <span class="po-text-color-feedback-negative">As senhas não coincidem.</span>
 }
@@ -274,7 +270,6 @@ get itens(): FormArray {
   return this.form.get('itens') as FormArray;
 }
 
-// FormGroup do pedido com array de itens
 readonly form: FormGroup = this.fb.group({
   numeroPedido: ['', Validators.required],
   dataEmissao:  ['', Validators.required],
@@ -321,7 +316,6 @@ get totalPedido(): number {
 ```
 
 ```html
-<!-- Template: linhas repetíveis com FormArray -->
 <po-container p-title="Itens do Pedido">
 
   <div formArrayName="itens">
