@@ -2,6 +2,26 @@
 
 All fields below work with Angular Reactive Forms (`formControlName`) and Template-driven Forms (`[(ngModel)]`).
 
+## Quick Reference — Form Field Components
+
+| Component | Key inputs | Critical notes |
+|---|---|---|
+| `po-input` | `p-label`, `p-maxlength`, `p-placeholder` | Use `p-maxlength` — not `p-max-length` (causes NG8002) |
+| `po-number` | `p-label`, `p-min`, `p-max`, `p-step` | Set `p-min`/`p-max` for business rule enforcement |
+| `po-decimal` | `p-label`, `p-decimals-length` | Default 2 decimal places |
+| `po-select` | `p-label`, `p-options`, `p-required` | Options: `PoSelectOption[]` — `{ label, value }` |
+| `po-combo` | `p-label`, `p-options`, `p-filter-service` | Use filter service for server-side search |
+| `po-lookup` | `p-label`, `p-filter-service`, `p-columns`, `p-field-value`, `p-field-label` | Requires `PoLookupFilterService` implementation |
+| `po-datepicker` | `p-label`, `p-min-date`, `p-max-date`, `p-format` | Default format `dd/MM/yyyy` |
+| `po-switch` | `p-label`, `p-true-value`, `p-false-value` | Boolean by default |
+| `po-checkbox-group` | `p-label`, `p-checkboxes` | Options: `PoCheckboxGroupItem[]` |
+| `po-radio-group` | `p-label`, `p-options` | Options: `PoRadioGroupOption[]` |
+| `po-multiselect` | `p-label`, `p-options`, `p-filter-mode` | Returns `string[]` |
+| `po-textarea` | `p-label`, `p-rows`, `p-maxlength` | Import `PoFieldModule`, **not** `PoTextareaModule` |
+| `po-upload` | `p-url`, `p-multiple`, `p-auto-upload` | Returns `PoUploadFile[]` |
+
+---
+
 ## Common Inputs (all fields)
 
 | Input | Type | Description |
