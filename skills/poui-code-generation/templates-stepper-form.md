@@ -61,12 +61,11 @@ export class {{ComponentClass}} {
   readonly currentStep = signal(1);           // 1-based; po-stepper uses 1-based index
   readonly stepData    = signal<Partial<{{ModelInterface}}>>({});
 
-  // Steps declarados como array de PoStepperItem
   readonly steps: PoStepperItem[] = [
-    { label: 'Identificação' },   // step 1
-    { label: 'Contato' },         // step 2
-    { label: 'Complemento' },     // step 3
-    { label: 'Confirmação' },     // step 4
+    { label: 'Identificação' },
+    { label: 'Contato' },
+    { label: 'Complemento' },
+    { label: 'Confirmação' },
   ];
 
   // TODO: define one field array per step matching {{ModelInterface}} properties
@@ -116,7 +115,6 @@ export class {{ComponentClass}} {
     },
   ];
 
-  // Campos de confirmação (somente leitura — agrupa todos os steps)
   readonly confirmFields: PoDynamicViewField[] = [
     { property: 'codigo',      label: 'Código',       gridColumns: 4 },
     { property: 'nome',        label: 'Nome',         gridColumns: 8 },
@@ -125,7 +123,6 @@ export class {{ComponentClass}} {
     { property: 'observacoes', label: 'Observações',  gridColumns: 12 },
   ];
 
-  // Campos do step atual para bind dinâmico no template
   readonly currentFields = computed<PoDynamicFormField[]>(() => {
     switch (this.currentStep()) {
       case 1: return this.step1Fields;
@@ -156,7 +153,6 @@ export class {{ComponentClass}} {
   }
 
   onFormChange(values: Partial<{{ModelInterface}}>): void {
-    // Merge values from each step into a single accumulated object
     this.stepData.update(prev => ({ ...prev, ...values }));
   }
 
@@ -205,14 +201,12 @@ export class {{ComponentClass}} {
     <po-loading-overlay p-text="Salvando..."></po-loading-overlay>
   }
 
-  <!-- Navegação por steps (clique direto habilitado por padrão) -->
   <po-stepper
     [p-steps]="steps"
     [p-current-active-step]="currentStep()"
     (p-current-active-step)="onStepChange($event)">
   </po-stepper>
 
-  <!-- Formulário dos steps 1 a N-1 -->
   @if (!isConfirmStep()) {
     <po-dynamic-form
       [p-fields]="currentFields()"
@@ -221,7 +215,6 @@ export class {{ComponentClass}} {
     </po-dynamic-form>
   }
 
-  <!-- Step final: confirmação somente leitura antes de salvar -->
   @if (isConfirmStep()) {
     <p class="po-font-text-large po-mt-3 po-mb-1">Revise os dados antes de confirmar:</p>
     <po-dynamic-view
@@ -230,7 +223,6 @@ export class {{ComponentClass}} {
     </po-dynamic-view>
   }
 
-  <!-- Botões de navegação -->
   <div class="po-row po-mt-3">
     <div class="po-md-12">
 
@@ -283,7 +275,7 @@ export class {{ComponentClass}} {
 ## Route configuration
 
 ```typescript
-// In your feature routes file (e.g., pedidos.routes.ts)
+// In your feature routes file
 {
   path: 'novo',
   loadComponent: () =>

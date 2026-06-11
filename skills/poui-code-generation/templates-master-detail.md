@@ -62,7 +62,6 @@ export class {{ComponentClass}} implements OnInit {
   private readonly pageSize = 10;
   private lastSearch = '';
 
-  // ── Colunas do MASTER (cabeçalho do pedido / NF) ──
   // TODO: ajuste para os campos de {{ModelInterface}}
   readonly columns: PoTableColumn[] = [
     { property: 'numero',      label: 'Número',    width: '10%', sortable: true },
@@ -181,7 +180,6 @@ export class {{ComponentClass}} implements OnInit {
       });
   }
 
-  // ── Configuração das colunas de DETALHE ──
   // TODO: ajuste para os campos de {{DetailInterface}}
   // IMPORTANT: PoTableDetailColumn does NOT support 'width' — remove all width properties
   // from detail columns or the compiler throws TS2353 (unknown property).
@@ -282,7 +280,7 @@ interface PoTableDetail {
 
 ## API contract — response do GET lista
 
-O endpoint deve embutir o array de itens **dentro de cada objeto master**:
+O endpoint deve embutir o array de itens dentro de cada objeto master:
 
 ```json
 {

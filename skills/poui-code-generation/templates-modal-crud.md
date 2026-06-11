@@ -1,12 +1,6 @@
 # Template: modal-crud
 
-Generates an all-in-one component combining list + add/edit in a modal dialog — the standard Protheus PO-UI pattern for simpler entities (no separate edit page/route needed).
-
-Uses: `po-page-dynamic-search` + `po-modal` + `po-dynamic-form` + `PoDialogService`.
-
-> **When to use vs `page-edit`:**
-> Use `modal-crud` for entities with **up to ~10 fields** that don't justify a full separate page.
-> Use `page-edit` for complex forms with sections, many fields, or nested data.
+All-in-one list + add/edit modal for simple entities (up to ~10 fields); uses `po-page-dynamic-search` + `po-modal` + `po-dynamic-form` + `PoDialogService`. Use `page-edit` instead for complex forms with sections, many fields, or nested data.
 
 ## {{kebab-name}}.component.ts
 
