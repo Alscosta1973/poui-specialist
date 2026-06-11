@@ -58,13 +58,13 @@ All templates use these substitution placeholders:
 
 | Template | File | When to use |
 |----------|------|-------------|
-| **two-panel-browse** | `templates-two-panel-browse.md` | Two po-table panels side by side; user selects one row from each and confirms a pairing action (card reconciliation, document matching, A/R conciliation). Includes dynamic height, horizontal-scroll prevention, single-select enforcement, and cross-browse validation. |
+| **two-panel-browse** | `templates-two-panel-browse.md` (index) + `-ts.md` + `-html.md` | Two po-table panels side by side; user selects one row from each and confirms a pairing action (card reconciliation, document matching, A/R conciliation). Includes dynamic height, horizontal-scroll prevention, single-select enforcement, and cross-browse validation. |
 
 ### ERP master-detail / dual-browse pages
 
 | Template | File | When to use |
 |----------|------|-------------|
-| **stacked-browse** | `templates-stacked-browse.md` | Two vertically stacked po-tables: master (top) drives detail (bottom). Full keyboard nav (ArrowUp/Down per browse, Tab to switch), compact filter bar with "Remover Filtro", border-top active indicator, scroll sync, focus ring suppression. Use for SC5/SC6, orders+items, any ERP master-detail needing keyboard-first UX. |
+| **stacked-browse** | `templates-stacked-browse.md` (index) + `-ts.md` + `-html.md` | Two vertically stacked po-tables: master (top) drives detail (bottom). Full keyboard nav (ArrowUp/Down per browse, Tab to switch), compact filter bar with "Remover Filtro", border-top active indicator, scroll sync, focus ring suppression. Use for SC5/SC6, orders+items, any ERP master-detail needing keyboard-first UX. |
 
 ### List pages
 
