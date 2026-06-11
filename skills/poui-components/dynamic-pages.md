@@ -1,8 +1,6 @@
 # PO-UI Dynamic Pages — @po-ui/ng-templates
 
-Os componentes `PoPageDynamic*` do pacote `@po-ui/ng-templates` geram telas completas
-automaticamente a partir de uma URL de API REST e uma configuração de campos —
-sem precisar implementar lógica de listagem, paginação, busca, exclusão ou navegação.
+Os componentes `PoPageDynamic*` de `@po-ui/ng-templates` geram telas completas (listagem, paginação, busca, exclusão, navegação) a partir de uma URL REST e uma configuração de campos.
 
 ```bash
 npm install @po-ui/ng-templates
@@ -135,9 +133,7 @@ export class PedidosListComponent {
 **Seletor:** `po-page-dynamic-search`  
 **Pacote:** `@po-ui/ng-templates`
 
-Barra de busca com suporte a filtro rápido e busca avançada com disclaimers.
-**Já usado no template `modal-crud` do plugin.** Referência aqui para uso standalone
-com `po-table` manual.
+Barra de busca com filtro rápido e busca avançada com disclaimers. **Já usado no template `modal-crud` do plugin**; referência aqui para uso standalone com `po-table` manual.
 
 ### Key Inputs
 
@@ -178,8 +174,7 @@ interface PoPageDynamicSearchFilters {
 **Seletor:** `po-page-dynamic-edit`  
 **Pacote:** `@po-ui/ng-templates`
 
-Gera automaticamente um formulário de inclusão/alteração conectado à API,
-com navegação de breadcrumb e ações de Salvar/Cancelar.
+Formulário de inclusão/alteração conectado à API, com breadcrumb e ações Salvar/Cancelar gerados automaticamente.
 
 ### Key Inputs
 
@@ -250,7 +245,7 @@ export class PedidosEditComponent {
 **Seletor:** `po-page-dynamic-detail`  
 **Pacote:** `@po-ui/ng-templates`
 
-Gera automaticamente uma tela de detalhe somente leitura conectada à API.
+Tela de detalhe somente leitura gerada automaticamente a partir da API.
 
 ### Key Inputs
 

@@ -101,7 +101,6 @@ readonly menuItems: PoMenuItem[] = [
 ```
 
 ```html
-<!-- Em app.component.html / shell.component.html -->
 <po-menu
   p-logo="/assets/logo.png"
   p-short-logo="/assets/logo-icon.png"
@@ -112,9 +111,7 @@ readonly menuItems: PoMenuItem[] = [
 <router-outlet></router-outlet>
 ```
 
-> **Nota de integração:** O `po-menu` gerencia a navegação Angular via `[routerLink]`
-> internamente quando `link` é fornecido. Certifique-se de que o `provideRouter()` está
-> configurado no `app.config.ts`.
+> **Nota:** `po-menu` usa `[routerLink]` internamente quando `link` é fornecido — requer `provideRouter()` no `app.config.ts`.
 
 ---
 
@@ -210,7 +207,6 @@ readonly toolbarItems: PoToolbarItem[] = [
 ];
 
 private logout(): void {
-  // limpar sessão / redirect para login
   this.router.navigate(['/login']);
 }
 ```
@@ -258,8 +254,7 @@ import { RouterOutlet } from '@angular/router';
 
 ## PoBreadcrumb — Interface TypeScript completa
 
-O `PoBreadcrumb` é consumido por `po-page-list`, `po-page-edit`, `po-page-detail`
-e pelos componentes `PoPageDynamic*`. Registrado aqui como referência única:
+Interface consumida por `po-page-list`, `po-page-edit`, `po-page-detail` e `PoPageDynamic*`. Referência única:
 
 ```typescript
 interface PoBreadcrumb {

@@ -24,13 +24,11 @@ Etiqueta visual para status, categorias e indicadores coloridos. Alternativa ao 
 ### Exemplos
 
 ```html
-<!-- Status semântico -->
 <po-tag p-value="Aprovado"  p-kind="success"></po-tag>
 <po-tag p-value="Pendente"  p-kind="warning"></po-tag>
 <po-tag p-value="Recusado"  p-kind="danger"></po-tag>
 <po-tag p-value="Rascunho"  p-kind="neutral"></po-tag>
 
-<!-- Tag com ícone -->
 <po-tag p-value="Enviado" p-kind="success" p-icon="po-icon-ok"></po-tag>
 
 <!-- Tags removíveis (ex: filtros ativos em busca) -->
@@ -52,7 +50,6 @@ import { PoTagModule } from '@po-ui/ng-components';
 ### Mapeamento Protheus S/N → kind
 
 ```typescript
-// Helper para converter flag 'S'|'N' em kind semântico
 tagKind(ativo: string): 'success' | 'danger' {
   return ativo === 'S' ? 'success' : 'danger';
 }
@@ -69,8 +66,7 @@ tagLabel(ativo: string): string {
 
 ## po-info
 
-Exibe um par rótulo/valor em layout compacto — padrão para telas de detalhe com `po-page-detail`.
-Alternativa leve ao `po-dynamic-view` quando os campos são fixos e conhecidos em tempo de compilação.
+Par rótulo/valor em layout compacto — alternativa leve ao `po-dynamic-view` quando os campos são fixos em tempo de compilação.
 
 ### Key Inputs
 
@@ -99,16 +95,13 @@ import { PoInfoModule } from '@po-ui/ng-components';
 // em imports do @Component: [PoInfoModule]
 ```
 
-> **po-info vs po-dynamic-view:** Use `po-info` quando os campos são fixos e você quer controle
-> total de layout com grid classes. Use `po-dynamic-view` quando os campos são configurados
-> em runtime ou quando quer reaproveitá-los de um `po-dynamic-form`.
+> **po-info vs po-dynamic-view:** Use `po-info` para campos fixos com controle total de grid; use `po-dynamic-view` para campos configurados em runtime ou reaproveitados de um `po-dynamic-form`.
 
 ---
 
 ## [p-tooltip] — Diretiva de tooltip
 
-Exibe tooltip ao passar o mouse ou focar em qualquer elemento. Funciona em qualquer tag HTML
-ou componente PO-UI.
+Exibe tooltip ao hover/foco em qualquer tag HTML ou componente PO-UI.
 
 ### Key Inputs
 
@@ -156,7 +149,7 @@ import { PoTooltipModule } from '@po-ui/ng-components';
 
 ## po-progress
 
-Barra de progresso linear ou circular — útil em uploads, importações e indicadores de meta.
+Barra de progresso linear ou circular para uploads, importações e indicadores de meta.
 
 ### Key Inputs
 
@@ -184,7 +177,6 @@ get progressStatus(): 'default' | 'success' | 'error' {
 ```
 
 ```html
-<!-- Progresso de upload com estado dinâmico -->
 <po-progress
   [p-value]="uploadProgress()"
   p-kind="linear"
@@ -193,14 +185,14 @@ get progressStatus(): 'default' | 'success' | 'error' {
   p-text="Enviando arquivo...">
 </po-progress>
 
-<!-- Indicador circular em card KPI (ex: meta de vendas) -->
+<!-- indicador circular (ex: meta de vendas) -->
 <po-progress
   [p-value]="metaAtingida()"
   p-kind="circular"
   [p-show-percentage]="true">
 </po-progress>
 
-<!-- Barra fina de carregamento no topo da página -->
+<!-- barra fina no topo da página -->
 <po-progress
   [p-value]="loadingPercent()"
   p-kind="linear"
