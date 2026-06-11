@@ -60,12 +60,10 @@ export class {{ComponentClass}} implements OnInit {
   private readonly pageSize = 10;
   private activeFilters = '';
 
-  // TODO: define columns matching {{ModelInterface}} fields
-  // Use type:'label' + labels:[{value,color,label}] for status fields
+  // TODO: define columns; use type:'label' + labels:[{value,color,label}] for status fields
   readonly columns: PoTableColumn[] = [];
 
-  // TODO: define advanced search filters — shown in the sidebar filter form
-  // gridColumns controls the width in the filter panel (12 = full width)
+  // TODO: define advanced search filters (sidebar panel); gridColumns 1-12
   readonly advancedFilters: PoPageDynamicSearchFilters[] = [
     // { property: 'codigo',    label: 'Código',     gridColumns: 6 },
     // { property: 'descricao', label: 'Descrição',  gridColumns: 6 },

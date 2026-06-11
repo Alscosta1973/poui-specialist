@@ -48,10 +48,8 @@ export class {{ComponentClass}} implements OnInit {
   values: Partial<{{ModelInterface}}> = {};
 
   // TODO: define fields matching {{ModelInterface}} properties.
-  // Use `divider` to create section headers.
-  // Use `gridColumns` (1-12) to control width in the form grid.
+  // `divider` creates a section header above the field; `gridColumns` (1-12) controls width.
   readonly fields: PoDynamicFormField[] = [
-    // --- Texto com comprimento obrigatório ---
     {
       property: 'codigo',
       label: 'Código',
@@ -68,8 +66,6 @@ export class {{ComponentClass}} implements OnInit {
       maxLength: 40,
       gridColumns: 12,
     },
-
-    // --- E-mail com regex ---
     {
       property: 'email',
       label: 'E-mail',
@@ -78,8 +74,6 @@ export class {{ComponentClass}} implements OnInit {
       errorMessage: 'Informe um e-mail válido',
       gridColumns: 12,
     },
-
-    // --- Valor monetário ---
     {
       property: 'valor',
       label: 'Valor',
@@ -88,65 +82,14 @@ export class {{ComponentClass}} implements OnInit {
       min: 0,
       gridColumns: 6,
     },
-
-    // --- Campos com máscara nativa PO-UI ---
-    // {
-    //   property: 'cnpj',
-    //   label: 'CNPJ',
-    //   type: 'cnpj',     // aplica máscara e validação automática
-    //   required: true,
-    //   gridColumns: 6,
-    // },
-    // {
-    //   property: 'cpf',
-    //   label: 'CPF',
-    //   type: 'cpf',
-    //   required: true,
-    //   gridColumns: 6,
-    // },
-    // {
-    //   property: 'cep',
-    //   label: 'CEP',
-    //   type: 'cep',
-    //   gridColumns: 4,
-    // },
-    // {
-    //   property: 'telefone',
-    //   label: 'Telefone',
-    //   mask: '(99) 99999-9999',
-    //   gridColumns: 4,
-    // },
-
-    // --- Select (options fixas) ---
-    // {
-    //   property: 'situacao',
-    //   label: 'Situação',
-    //   divider: 'Status',
-    //   options: [
-    //     { label: 'Ativo',   value: '1' },
-    //     { label: 'Inativo', value: '2' },
-    //   ],
-    //   gridColumns: 6,
-    // },
-
-    // --- Data ---
-    // {
-    //   property: 'dataEmissao',
-    //   label: 'Data de Emissão',
-    //   type: 'date',
-    //   required: true,
-    //   gridColumns: 4,
-    // },
-
-    // --- Número inteiro com limites ---
-    // {
-    //   property: 'quantidade',
-    //   label: 'Quantidade',
-    //   type: 'number',
-    //   min: 0,
-    //   max: 9999,
-    //   gridColumns: 4,
-    // },
+    // { property: 'cnpj',        label: 'CNPJ',             type: 'cnpj',   required: true,  gridColumns: 6 },
+    // { property: 'cpf',         label: 'CPF',              type: 'cpf',    required: true,  gridColumns: 6 },
+    // { property: 'cep',         label: 'CEP',              type: 'cep',                     gridColumns: 4 },
+    // { property: 'telefone',    label: 'Telefone',         mask: '(99) 99999-9999',          gridColumns: 4 },
+    // { property: 'situacao',    label: 'Situação',         divider: 'Status',
+    //   options: [{ label: 'Ativo', value: '1' }, { label: 'Inativo', value: '2' }],         gridColumns: 6 },
+    // { property: 'dataEmissao', label: 'Data de Emissão',  type: 'date',   required: true,  gridColumns: 4 },
+    // { property: 'quantidade',  label: 'Quantidade',       type: 'number', min: 0, max: 9999, gridColumns: 4 },
   ];
 
   get pageTitle(): string {

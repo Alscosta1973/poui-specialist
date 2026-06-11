@@ -62,9 +62,7 @@ export class {{ComponentClass}} implements OnInit {
     ],
   };
 
-  // TODO: define view fields matching {{ModelInterface}} properties.
-  // gridColumns: 1-12 (responsive PO-UI grid)
-  // type: 'string' | 'number' | 'currency' | 'date' | 'dateTime' | 'boolean' | 'link'
+  // TODO: define view fields. gridColumns: 1-12; type: 'string'|'number'|'currency'|'date'|'dateTime'|'boolean'|'link'
   readonly viewFields: PoDynamicViewField[] = [
     { property: 'codigo',      label: 'Código',       gridColumns: 3 },
     { property: 'nome',        label: 'Nome',         gridColumns: 9 },
@@ -162,7 +160,6 @@ export class {{ComponentClass}} implements OnInit {
 ## Route configuration
 
 ```typescript
-// In your feature routes file (e.g., pedidos.routes.ts)
 {
   path: ':id/detalhe',
   loadComponent: () =>
@@ -204,7 +201,6 @@ For entities with many fields, organize into labeled sections using `po-containe
 ```
 
 ```typescript
-// Split viewFields into logical groups
 readonly mainFields: PoDynamicViewField[] = [
   { property: 'codigo', label: 'Código', gridColumns: 3 },
   { property: 'nome',   label: 'Nome',   gridColumns: 9 },
