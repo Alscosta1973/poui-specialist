@@ -4,6 +4,22 @@ Documented behavior differences, internal implementation details, and CSS overri
 discovered through production use of PO-UI with Protheus. Apply these fixes proactively
 when generating or reviewing code.
 
+## Quick Reference — 11 Known Quirks
+
+| # | Component / API | Symptom | Fix |
+|---|---|---|---|
+| 1 | po-page-content | Content invisible on load | Trigger HTTP observable in `ngOnInit`, not `ngAfterViewInit` |
+| 2 | po-input | Buttons 8px below field edge | `margin-bottom: 8px` on the button container |
+| 3 | po-table | Horizontal scroll in side-by-side panels | Override checkbox col to 41px via `::ng-deep`; recalculate `p-width` sum |
+| 4 | po-input | `NG8002` on `p-max-length` | Use `p-maxlength` (no hyphen between `max` and `length`) |
+| 5 | po-table | Page-level scrollbar appears | `tableHeight = computed(() => _winH() - OFFSET)` signal |
+| 6 | po-table | Selection never accumulates | `p-selected-rows` does not exist — use `(p-selected)` / `(p-unselected)` events |
+| 7 | po-table | Checkbox col freezes all columns | Expected PO-UI behavior; set `[p-selectable-entire-line]="false"` for browse screens |
+| 8 | po-table | Synchronous `$selected: false` ignored | Defer items array replacement to `setTimeout(0)` |
+| 9 | po-table | No built-in keyboard row navigation | 3-part pattern: `cursorIndex` signal + `@HostListener` + `_scrollRowIntoView` |
+| 10 | po-table (dual) | Two stacked tables, independent arrow-key nav | `activeBrowse` signal + `Tab` handler routes arrow keys to correct browse |
+| 11 | PoTableDetail | TS2353: `width` not in type | Remove `width` from detail columns — only `property`, `label`, `type`, `format` valid |
+
 ---
 
 ## 1. po-page-content blank on load (opacity timing)
