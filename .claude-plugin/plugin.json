@@ -1,7 +1,7 @@
 {
   "name": "poui-specialist",
   "description": "Especialista em PO-UI (Portinari) para projetos Angular integrados ao TOTVS Protheus — geração de componentes, review de código e referência de API",
-  "version": "1.0.0",
+  "version": "1.3.0",
   "author": { "name": "Andre Costa" },
   "license": "MIT",
   "keywords": ["poui", "portinari", "angular", "protheus", "totvs", "po-ui", "frontend", "claude-code-plugin"]

@@ -19,6 +19,8 @@ Generates standalone Angular 17+ artifacts using PO-UI components, integrated wi
 | `page-dynamic-search` | `*.component.ts/html/scss` | Yes | List + advanced search + disclaimers — **padrão Protheus** |
 | `page-dynamic` | `*.component.ts/html` | Yes | Zero-boilerplate via PoPageDynamicTableComponent — API must follow plugin contract |
 | `master-detail` | `*.component.ts/html/scss` + model | Yes | List with expandable child rows (pedido/itens, NF/itens) |
+| `stacked-browse` | `*.component.ts/html/scss` | Yes | Dois po-table empilhados (master/detail) com navegação por teclado ArrowUp/Down e Tab para alternar |
+| `two-panel-browse` | `*.component.ts/html/scss` | Yes | Dois po-table lado a lado para conciliação/matching (seleciona um de cada e confirma) |
 
 ### Edit / Detail pages
 | Type | Generated Files | `--module` required? | When to use |
@@ -35,6 +37,8 @@ Generates standalone Angular 17+ artifacts using PO-UI components, integrated wi
 | `module` | `app.routes.ts`, `app.config.ts`, `app.component.ts`, `package.json`, `proxy.conf.json`, `index.html` | No | Full application scaffold |
 | `dashboard` | `*.component.ts/html/scss` | Yes | Analytics page with po-widget + po-chart |
 | `refactor` | `*.component.ts/html/scss` + service + model | Yes | Convert existing `.prw`/`.tlpp` to PO-UI (provide source file) |
+| `models` | `<entity>.model.ts` | Yes | TypeScript interfaces: simple, composite key, flat relational (padrão Protheus) |
+| `tlpp-contract` | skeleton WsRestFul `.tlpp` | Yes | Contrato REST backend para implementar com `/advpl-specialist:generate rest` |
 
 ## Examples
 
@@ -51,6 +55,10 @@ Generates standalone Angular 17+ artifacts using PO-UI components, integrated wi
 /poui-specialist:generate dashboard Estoque --module estoque
 /poui-specialist:generate module Faturamento
 /poui-specialist:generate refactor --module financeiro   # will ask for .prw/.tlpp file
+/poui-specialist:generate stacked-browse AprovacaoPedido --module compras
+/poui-specialist:generate two-panel-browse ConciliacaoCartao --module financeiro
+/poui-specialist:generate models Pedido --module compras
+/poui-specialist:generate tlpp-contract Pedido --module compras
 ```
 
 ## Process

@@ -11,3 +11,4 @@ description: Use when generating Angular module structure or Protheus REST integ
 - **Protheus REST integration** (response contract, pagination, error handling): see `protheus-rest.md`
 - **Reactive Forms with PO-UI** (FormGroup, FormBuilder, cross-field validation, FormArray): see `reactive-forms.md`
 - **PO-UI known quirks and fixes** (po-page-content opacity, po-input 8px offset, po-table horizontal scroll, dynamic table height): see `po-ui-quirks.md`
+- **Deploy no Protheus** (build `ng build`, pasta `.app`, rdmake com `FWCallApp`, `appserver.ini`): see `deploy-protheus.md`
