@@ -90,7 +90,8 @@
         [p-virtual-scroll]="false"
         [p-hide-action-fixed-columns]="true"
         (p-selected)="onSelectAdq($event)"
-        (p-unselected)="onUnselectAdq($event)">
+        (p-unselected)="onUnselectAdq($event)"
+        (p-all-selected)="onAllSelectedAdq($event)">
 
         <ng-template p-table-column-template [p-property]="'status'" let-value>
           <span [class]="'status-dot status-dot-' + value" [title]="statusLabel(value)"></span>
@@ -123,7 +124,8 @@
         [p-virtual-scroll]="false"
         [p-hide-action-fixed-columns]="true"
         (p-selected)="onSelectRec($event)"
-        (p-unselected)="onUnselectRec($event)">
+        (p-unselected)="onUnselectRec($event)"
+        (p-all-selected)="onAllSelectedRec($event)">
 
         <ng-template p-table-column-template [p-property]="'status'" let-value>
           <span [class]="'status-dot status-dot-' + value" [title]="statusLabel(value)"></span>

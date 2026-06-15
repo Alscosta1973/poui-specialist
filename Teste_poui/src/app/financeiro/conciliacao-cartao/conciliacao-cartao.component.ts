@@ -52,9 +52,10 @@ export class ConciliacaoCartaoComponent implements OnInit, AfterViewInit {
   private readonly destroyRef   = inject(DestroyRef);
   private readonly cdr          = inject(ChangeDetectorRef);
 
-  banco   = '341';
-  agencia = '00001';
-  conta   = '000001';
+  banco     = '341';
+  agencia   = '00001';
+  conta     = '000001';
+  tolerancia = 0.01; // equivale ao MV NL_CONCIL2 — diferença máxima de valor aceita na conciliação
 
   readonly loading       = signal(false);
   readonly movimentos    = signal<MovimentoAdquirente[]>([]);
@@ -229,42 +230,67 @@ export class ConciliacaoCartaoComponent implements OnInit, AfterViewInit {
   }
 
   // po-table commits the selection internally before firing (p-selected).
-  // Setting $selected: false synchronously is ignored by the table's internal state.
-  // Deferring with setTimeout(0) lets the event cycle finish, then replaces the items
-  // array so po-table reinitializes selection from $selected on the next detection pass.
-  private rejectAdqSelection(itemId: string): void {
+  // Deferring with setTimeout(0) lets the event cycle finish before replacing
+  // the items array — po-table reinitializes $selected on the next detection pass.
+  private rejectAdqSelection(_itemId: string): void {
     setTimeout(() => {
       this.movimentos.update(movs => movs.map(m => ({ ...m, $selected: m.id === this.marcadoAdq()?.id })));
       this.cdr.markForCheck();
     }, 0);
   }
 
-  private rejectRecSelection(itemId: string): void {
+  private rejectRecSelection(_itemId: string): void {
     setTimeout(() => {
       this.contasReceber.update(recs => recs.map(r => ({ ...r, $selected: r.id === this.marcadoRec()?.id })));
       this.cdr.markForCheck();
     }, 0);
   }
 
-  // ── Browse01: seleção única — somente status '1'
+  // SetMrkAll: bloqueia marcar-todos no Browse01 (Adquirentes)
+  onAllSelectedAdq(_rows: MovimentoAdquirente[]): void {
+    this.notification.warning('Somente pode marcar um registro por vez.');
+    setTimeout(() => {
+      this.movimentos.update(movs => movs.map(m => ({ ...m, $selected: false })));
+      this.cdr.markForCheck();
+    }, 0);
+  }
+
+  // SetMrkAll: bloqueia marcar-todos no Browse02 (Contas a Receber)
+  onAllSelectedRec(_rows: ContaReceber[]): void {
+    this.notification.warning('Somente pode marcar um registro por vez.');
+    setTimeout(() => {
+      this.contasReceber.update(recs => recs.map(r => ({ ...r, $selected: false })));
+      this.cdr.markForCheck();
+    }, 0);
+  }
+
+  // RegMark01 — marcar Browse01: seleção única, somente status '1'
   onSelectAdq(item: MovimentoAdquirente): void {
     if (item.status !== '1') {
-      this.notification.warning(`Apenas registros "Não Conciliados" podem ser marcados.`);
+      this.notification.warning('Status do registro diferente de "Não Conciliado".');
       this.rejectAdqSelection(item.id);
       return;
     }
+    // Já existe marcação em Browse01 com registro diferente (equivale ao controle MV_PAR60)
     const prev = this.marcadoAdq();
     if (prev && prev.id !== item.id) {
-      this.movimentos.update(movs => movs.map(m => m.id === prev.id ? { ...m, $selected: false } : m));
+      this.notification.warning('Já existe marcação não conciliada.');
+      this.rejectAdqSelection(item.id);
+      return;
     }
     this.marcadoAdq.set(item);
-    // Limpa seleção de Browse02 ao trocar Browse01
+    // Limpa Browse02 ao marcar Browse01
     this.marcadoRec.set(null);
     this.contasReceber.update(recs => recs.map(r => ({ ...r, $selected: false })));
     this.cdr.markForCheck();
   }
 
+  // RegMark01 — desmarcar Browse01: desvincular os dois registros se havia titulo linkado
   onUnselectAdq(item: MovimentoAdquirente): void {
+    const current = this.movimentos().find(m => m.id === item.id) ?? item;
+    if (current.titulo) {
+      this._desvinculaAdq(current);
+    }
     if (this.marcadoAdq()?.id === item.id) {
       this.marcadoAdq.set(null);
       this.marcadoRec.set(null);
@@ -272,38 +298,109 @@ export class ConciliacaoCartaoComponent implements OnInit, AfterViewInit {
     this.cdr.markForCheck();
   }
 
-
-  // ── Browse02: requer Browse01 marcado, valida parcela
+  // RegMark02 — marcar Browse02: requer Browse01 marcado, valida parcela e tolerância de valor
   onSelectRec(item: ContaReceber): void {
     const adq = this.marcadoAdq();
+    // Marcação inicial deve ser pelo Adquirente
     if (!adq) {
-      this.notification.warning('Marque primeiro um Movimento Adquirente.');
+      this.notification.warning('Marcação inicial deve ser pelo Adquirente.');
       this.rejectRecSelection(item.id);
       return;
     }
     if (item.status !== '1') {
-      this.notification.warning(`Apenas títulos "Não Conciliados" podem ser marcados.`);
+      this.notification.warning('Status do registro diferente de "Não Conciliado".');
       this.rejectRecSelection(item.id);
       return;
     }
+    // Valida parcela (equivale a TT_XNUMPAR == TT_PARCELA)
     if (item.parcela !== adq.numParcela) {
-      this.notification.warning(`Parcela não confere: Adquirente ${adq.numParcela} × Título ${item.parcela}.`);
+      this.notification.warning(
+        `Parcela para Conciliação não coincidem. Adquirente: ${adq.numParcela} | Título: ${item.parcela}.`
+      );
       this.rejectRecSelection(item.id);
       return;
     }
+    // Valida tolerância de valor (equivale a |TT_XVLBRUT - TT_VALOR| <= NL_CONCIL2)
+    const difValor = Math.abs(adq.vlBruto - item.valor);
+    if (difValor > this.tolerancia) {
+      this.notification.warning(
+        `Dados para Conciliação não coincidem. Diferença de valor: ${this.fmtVal(difValor)}.`
+      );
+      this.rejectRecSelection(item.id);
+      return;
+    }
+    // Desvincular seleção anterior de Browse02 se houver
     const prev = this.marcadoRec();
     if (prev && prev.id !== item.id) {
       this.contasReceber.update(recs => recs.map(r => r.id === prev.id ? { ...r, $selected: false } : r));
     }
-    this.marcadoRec.set(item);
+    // Vincula os dois registros: status → '2' (Conciliado), titulo do adq = numTitulo do SE1
+    const adqCurrent = this.movimentos().find(m => m.id === adq.id) ?? adq;
+    this.movimentos.update(movs =>
+      movs.map(m => m.id === adq.id
+        ? { ...m, status: '2' as StatusConciliacao, titulo: item.numTitulo }
+        : m
+      )
+    );
+    this.contasReceber.update(recs =>
+      recs.map(r => r.id === item.id
+        ? { ...r, status: '2' as StatusConciliacao }
+        : r
+      )
+    );
+    // Atualiza os sinais com o estado vinculado
+    this.marcadoAdq.set({ ...adqCurrent, status: '2' as StatusConciliacao, titulo: item.numTitulo });
+    this.marcadoRec.set({ ...item, status: '2' as StatusConciliacao });
     this.cdr.markForCheck();
   }
 
+  // RegMark02 — desmarcar Browse02: desvincular os dois registros se estava conciliado
   onUnselectRec(item: ContaReceber): void {
+    const current = this.contasReceber().find(r => r.id === item.id) ?? item;
+    if (current.status === '2') {
+      // Localiza o adquirente vinculado pelo titulo e parcela
+      const adqVinc = this.movimentos().find(
+        m => m.titulo === current.numTitulo && m.numParcela === current.parcela
+      );
+      if (adqVinc) {
+        this.movimentos.update(movs =>
+          movs.map(m => m.id === adqVinc.id
+            ? { ...m, status: '1' as StatusConciliacao, titulo: '', $selected: false }
+            : m
+          )
+        );
+        this.marcadoAdq.set(null);
+      }
+      this.contasReceber.update(recs =>
+        recs.map(r => r.id === current.id
+          ? { ...r, status: '1' as StatusConciliacao, $selected: false }
+          : r
+        )
+      );
+    }
     if (this.marcadoRec()?.id === item.id) {
       this.marcadoRec.set(null);
     }
     this.cdr.markForCheck();
+  }
+
+  // Desvincola adquirente e o título SE1 correspondente (usado em onUnselectAdq)
+  private _desvinculaAdq(adq: MovimentoAdquirente): void {
+    this.contasReceber.update(recs =>
+      recs.map(r =>
+        r.numTitulo === adq.titulo && r.parcela === adq.numParcela
+          ? { ...r, status: '1' as StatusConciliacao, $selected: false }
+          : r
+      )
+    );
+    this.movimentos.update(movs =>
+      movs.map(m =>
+        m.id === adq.id
+          ? { ...m, status: '1' as StatusConciliacao, titulo: '', $selected: false }
+          : m
+      )
+    );
+    this.marcadoRec.set(null);
   }
 
 
