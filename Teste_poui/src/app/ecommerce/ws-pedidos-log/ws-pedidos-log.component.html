@@ -1,0 +1,70 @@
+<po-page-default p-title="WsPedidos - Log's">
+
+  <div class="log-container">
+
+    <!-- ── Linha 1: Arquivos | Log do Arquivo ───────────────────────── -->
+    <div class="log-row">
+
+      <div class="painel-nav painel-arq"
+           [class.painel-ativo]="activeBrowse() === 'arquivos'"
+           (click)="activeBrowse.set('arquivos')">
+        <div class="painel-titulo">Arquivos</div>
+        <po-table
+          [p-columns]="colunasArq"
+          [p-items]="arquivos()"
+          [p-loading]="loading()"
+          [p-selectable]="true"
+          [p-selectable-entire-line]="true"
+          [p-hide-columns-manager]="true"
+          [p-height]="panelHeight()"
+          (p-selected)="onArquivoSelecionado($event)"
+          (p-unselected)="onArquivoDeselecionado($event)">
+        </po-table>
+      </div>
+
+      <div class="painel-log">
+        <div class="painel-titulo painel-titulo-log">{{ tituloLogArq() }}</div>
+        <po-table
+          [p-columns]="colunasLogArq"
+          [p-items]="logArquivo()"
+          [p-hide-columns-manager]="true"
+          [p-height]="panelHeight()">
+        </po-table>
+      </div>
+
+    </div>
+
+    <!-- ── Linha 2: Pedidos | Log do Pedido ─────────────────────────── -->
+    <div class="log-row">
+
+      <div class="painel-nav painel-ped"
+           [class.painel-ativo]="activeBrowse() === 'pedidos'"
+           (click)="activeBrowse.set('pedidos')">
+        <div class="painel-titulo">{{ tituloPedidos() }}</div>
+        <po-table
+          [p-columns]="colunasPed"
+          [p-items]="pedidos()"
+          [p-selectable]="true"
+          [p-selectable-entire-line]="true"
+          [p-hide-columns-manager]="true"
+          [p-height]="panelHeight()"
+          (p-selected)="onPedidoSelecionado($event)"
+          (p-unselected)="onPedidoDeselecionado($event)">
+        </po-table>
+      </div>
+
+      <div class="painel-log">
+        <div class="painel-titulo painel-titulo-log">{{ tituloLogPed() }}</div>
+        <po-table
+          [p-columns]="colunasLogPed"
+          [p-items]="logPedido()"
+          [p-hide-columns-manager]="true"
+          [p-height]="panelHeight()">
+        </po-table>
+      </div>
+
+    </div>
+
+  </div>
+
+</po-page-default>

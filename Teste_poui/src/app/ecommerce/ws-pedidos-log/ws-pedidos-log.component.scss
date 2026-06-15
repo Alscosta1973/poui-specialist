@@ -1,0 +1,106 @@
+:host {
+  display: block;
+}
+
+// ── Outer container — fills available page height, no document scroll
+.log-container {
+  display:        flex;
+  flex-direction: column;
+  gap:            8px;
+  height:         calc(100vh - 140px);
+}
+
+// ── Each half-row: left nav panel + right log panel side by side
+.log-row {
+  display:    flex;
+  gap:        8px;
+  flex:       1;
+  min-height: 0;
+}
+
+// ── Left navigation panel (fixed width)
+.painel-nav {
+  flex:           0 0 240px;
+  display:        flex;
+  flex-direction: column;
+  border-top:     2px solid var(--color-neutral-light-10, #e0e0e0);
+  transition:     border-top-color 0.1s;
+
+  &.painel-ativo {
+    border-top-color: var(--color-action-default, #0079c3);
+  }
+}
+
+// ── Right log panel (flex grow)
+.painel-log {
+  flex:           1;
+  display:        flex;
+  flex-direction: column;
+  min-width:      0;
+  border-top:     2px solid var(--color-neutral-light-10, #e0e0e0);
+}
+
+// ── Panel title bar
+.painel-titulo {
+  flex:           0 0 auto;
+  font-size:      0.82rem;
+  font-weight:    600;
+  color:          var(--color-neutral-dark-70, #4a4a4a);
+  padding:        3px 6px;
+  background:     var(--color-neutral-light-05, #f5f6fa);
+  border-bottom:  1px solid var(--color-neutral-light-20, #e0e3ec);
+  white-space:    nowrap;
+  overflow:       hidden;
+  text-overflow:  ellipsis;
+}
+
+.painel-titulo-log {
+  color: var(--color-neutral-dark-50, #6c757d);
+}
+
+// ── Nav panels: hide checkbox column, compact rows, row highlight
+.painel-arq,
+.painel-ped {
+  ::ng-deep thead th:first-child,
+  ::ng-deep tbody td:first-child {
+    display: none !important;
+    width:   0    !important;
+    padding: 0    !important;
+  }
+
+  ::ng-deep tbody td {
+    font-size:      11px;
+    padding-top:    3px !important;
+    padding-bottom: 3px !important;
+    cursor:         pointer;
+    white-space:    nowrap;
+    overflow:       hidden;
+    text-overflow:  ellipsis;
+  }
+
+  ::ng-deep .po-table-header-ellipsis { font-size: 11px; }
+
+  // Active row highlight (set via JS classList)
+  ::ng-deep .row-ativa td { background-color: #dbeafe !important; }
+
+  // Suppress focus ring — prevents scroll artifact at browse bottom edge
+  ::ng-deep *:focus,
+  ::ng-deep *:focus-visible {
+    outline:    none !important;
+    box-shadow: none !important;
+  }
+}
+
+// ── Log panels: monospace, compact, no wrap
+.painel-log {
+  ::ng-deep tbody td {
+    font-family:    'Courier New', Courier, monospace;
+    font-size:      11px;
+    padding-top:    2px !important;
+    padding-bottom: 2px !important;
+    white-space:    pre;
+    overflow:       hidden;
+  }
+
+  ::ng-deep .po-table-header-ellipsis { font-size: 11px; }
+}

@@ -1,0 +1,106 @@
+<po-page-default
+  p-title="Importação de Contas Pagar e Receber"
+  [p-actions]="pageActions">
+
+  <po-divider p-label="Informações Bancárias"></po-divider>
+
+  <div class="bancario-row">
+    <div class="bancario-field bancario-banco">
+      <po-input
+        p-label="Banco"
+        p-placeholder="Código do banco"
+        [p-required]="true"
+        [p-maxlength]="3"
+        [(ngModel)]="banco">
+      </po-input>
+    </div>
+    <div class="bancario-field bancario-agencia">
+      <po-input
+        p-label="Agência"
+        p-placeholder="Agência"
+        [p-required]="true"
+        [p-maxlength]="5"
+        [(ngModel)]="agencia">
+      </po-input>
+    </div>
+    <div class="bancario-field bancario-conta">
+      <po-input
+        p-label="Conta"
+        p-placeholder="Número da conta"
+        [p-required]="true"
+        [p-maxlength]="10"
+        [(ngModel)]="conta">
+      </po-input>
+    </div>
+  </div>
+
+  <po-divider p-label="Resumo de Status"></po-divider>
+
+  <div class="status-bar">
+    <span class="status-chip status-amarelo">Aguardando: {{ qtdAguardando() }}</span>
+    <span class="status-chip status-verde">Gerado/Baixado: {{ qtdGerado() }}</span>
+    <span class="status-chip status-azul">Gerado c/ Aviso: {{ qtdAviso() }}</span>
+    <span class="status-chip status-vermelho">Erro Geração: {{ qtdErroGer() }}</span>
+    <span class="status-chip status-violeta">Erro Baixa: {{ qtdErroBx() }}</span>
+  </div>
+
+  <po-divider p-label="Itens Importados"></po-divider>
+
+  <po-table
+    #table
+    [p-columns]="columns"
+    [p-items]="itens()"
+    [p-loading]="loading()"
+    [p-selectable]="true"
+    [p-sort]="true"
+    [p-striped]="true"
+    [p-height]="480"
+    [p-hide-columns-manager]="true"
+    (p-selected)="onRowSelected($event)"
+    (p-unselected)="onRowUnselected($event)"
+    (p-all-selected)="onAllSelected($event)"
+    (p-all-unselected)="onAllUnselected()">
+
+    <ng-template p-table-column-template [p-property]="'status'" let-value>
+      <span class="status-dot"
+            [style.background-color]="corStatus(value)"
+            [title]="labelStatus(value)">
+      </span>
+    </ng-template>
+
+  </po-table>
+
+  @if (itensSelecionados().length > 0) {
+    <div class="selecao-info">
+      {{ itensSelecionados().length }} item(ns) selecionado(s) para geração.
+    </div>
+  }
+
+</po-page-default>
+
+<po-modal
+  #modalUpload
+  p-title="Importar Planilha"
+  p-size="sm"
+  [p-primary-action]="modalUploadPrimary"
+  [p-secondary-action]="modalUploadSecondary">
+
+  <p class="upload-instrucao">Selecione uma planilha nos formatos <strong>.xlsx</strong>, <strong>.xls</strong> ou <strong>.csv</strong>.</p>
+
+  <label class="upload-label">
+    <input
+      type="file"
+      accept=".xlsx,.xls,.csv"
+      class="upload-input"
+      (change)="onArquivoSelecionado($event)">
+    <span class="upload-btn">
+      <span class="po-icon po-icon-upload"></span>
+      Escolher arquivo
+    </span>
+  </label>
+
+  @if (arquivoNome()) {
+    <p class="upload-nome">{{ arquivoNome() }}</p>
+  }
+
+</po-modal>

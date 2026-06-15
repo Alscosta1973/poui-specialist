@@ -56,6 +56,24 @@ export class AppComponent {
       link: '/compras/pedido-compra-crud',
     },
     {
+      label: 'Importação Financeira',
+      shortLabel: 'Imp. Fin.',
+      icon: 'po-icon-upload',
+      link: '/financeiro/importacao-financeira',
+    },
+    {
+      label: 'WsPedidos Log',
+      shortLabel: 'Ws Log',
+      icon: 'po-icon-list',
+      link: '/ecommerce/ws-pedidos-log',
+    },
+    {
+      label: 'WsPedidos Parametros',
+      shortLabel: 'Ws Params',
+      icon: 'po-icon-settings',
+      link: '/ecommerce/ws-pedidos-parametros',
+    },
+    {
       label: 'Sair',
       shortLabel: 'Sair',
       icon: 'po-icon-exit',

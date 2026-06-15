@@ -65,4 +65,22 @@ export const routes: Routes = [
       import('./compras/pedido-compra-crud/pedido-compra-detail.component')
         .then(m => m.PedidoCompraDetailComponent),
   },
+  {
+    path: 'financeiro/importacao-financeira',
+    loadComponent: () =>
+      import('./financeiro/importacao-financeira/importacao-financeira.component')
+        .then(m => m.ImportacaoFinanceiraComponent),
+  },
+  {
+    path: 'ecommerce/ws-pedidos-log',
+    loadComponent: () =>
+      import('./ecommerce/ws-pedidos-log/ws-pedidos-log.component')
+        .then(m => m.WsPedidosLogComponent),
+  },
+  {
+    path: 'ecommerce/ws-pedidos-parametros',
+    loadComponent: () =>
+      import('./ecommerce/ws-pedidos-parametros/ws-pedidos-parametros.component')
+        .then(m => m.WsPedidosParametrosComponent),
+  },
 ];

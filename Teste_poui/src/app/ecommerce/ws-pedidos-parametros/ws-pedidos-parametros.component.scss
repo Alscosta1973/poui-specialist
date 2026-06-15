@@ -1,0 +1,76 @@
+// ---------------------------------------------------------------------------
+// Category selector bar
+// ---------------------------------------------------------------------------
+
+.categoria-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.categoria-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-neutral-dark-70, #6c757d);
+  margin-right: 4px;
+}
+
+// ---------------------------------------------------------------------------
+// Edit modal — info rows
+// ---------------------------------------------------------------------------
+
+.modal-info {
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background: var(--color-neutral-light-05, #f5f6fa);
+  border-radius: 4px;
+  border: 1px solid var(--color-neutral-light-20, #e0e3ec);
+}
+
+.modal-info-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 8px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.modal-info-label {
+  flex: 0 0 120px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-neutral-dark-70, #6c757d);
+}
+
+.modal-info-value {
+  flex: 1;
+  font-size: 13px;
+  color: var(--color-neutral-dark-90, #2c2c2c);
+  word-break: break-all;
+}
+
+.modal-info-code {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-action-default, #0079c3);
+}
+
+.modal-info-muted {
+  color: var(--color-neutral-dark-50, #9a9a9a);
+  font-style: italic;
+}
+
+// ---------------------------------------------------------------------------
+// Table — mute the "Conteúdo Anterior" column (4th column)
+// ---------------------------------------------------------------------------
+
+::ng-deep po-table tbody tr td:nth-child(5) {
+  color: var(--color-neutral-dark-50, #9a9a9a) !important;
+  font-style: italic;
+}

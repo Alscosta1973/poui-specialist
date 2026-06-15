@@ -1,0 +1,90 @@
+<po-page-default p-title="WsPedidos - Parametros">
+
+  <!-- ------------------------------------------------------------------ -->
+  <!-- Category selector (replaces left panel) -->
+  <!-- ------------------------------------------------------------------ -->
+  <div class="categoria-bar">
+
+    <span class="categoria-label">Categoria:</span>
+
+    <po-button
+      p-label="Usuário"
+      [p-kind]="kindFor('USR')"
+      (p-click)="selecionarCategoria('USR')">
+    </po-button>
+
+    <po-button
+      p-label="Retorno"
+      [p-kind]="kindFor('RET')"
+      (p-click)="selecionarCategoria('RET')">
+    </po-button>
+
+    @if (isAdmin()) {
+      <po-button
+        p-label="Administração"
+        [p-kind]="kindFor('ADM')"
+        (p-click)="selecionarCategoria('ADM')">
+      </po-button>
+    }
+
+  </div>
+
+  <!-- ------------------------------------------------------------------ -->
+  <!-- Parameters table -->
+  <!-- ------------------------------------------------------------------ -->
+  <po-table
+    [p-columns]="columns"
+    [p-items]="itensFiltrados"
+    [p-loading]="loading()"
+    [p-actions]="tableActions"
+    [p-hide-columns-manager]="true"
+    [p-show-more-disabled]="true">
+  </po-table>
+
+</po-page-default>
+
+<!-- -------------------------------------------------------------------- -->
+<!-- Edit modal -->
+<!-- -------------------------------------------------------------------- -->
+<po-modal
+  #editModal
+  p-title="Confirma a Alteração"
+  [p-primary-action]="modalPrimaryAction"
+  [p-secondary-action]="modalSecondaryAction">
+
+  @if (itemEditando(); as item) {
+    <div class="modal-info">
+
+      <div class="modal-info-row">
+        <span class="modal-info-label">Parâmetro:</span>
+        <span class="modal-info-value modal-info-code">{{ item.x6Var }}</span>
+      </div>
+
+      <div class="modal-info-row">
+        <span class="modal-info-label">Descrição:</span>
+        <span class="modal-info-value">{{ item.descricao }}</span>
+      </div>
+
+      <div class="modal-info-row">
+        <span class="modal-info-label">Valor original:</span>
+        <span class="modal-info-value modal-info-muted">{{ item.contAnt }}</span>
+      </div>
+
+      <div class="modal-info-row">
+        <span class="modal-info-label">Valor atual:</span>
+        <span class="modal-info-value modal-info-muted">{{ item.conteudo }}</span>
+      </div>
+
+    </div>
+
+    <po-input
+      p-label="Novo Conteúdo"
+      p-placeholder="Digite o novo valor do parâmetro"
+      [p-maxlength]="250"
+      [(ngModel)]="novoConteudo"
+      [p-disabled]="saving()">
+    </po-input>
+
+  }
+
+</po-modal>
