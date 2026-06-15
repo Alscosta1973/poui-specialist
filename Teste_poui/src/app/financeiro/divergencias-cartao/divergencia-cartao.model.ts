@@ -14,6 +14,7 @@ export interface DivergenciaCartao {
   difCliente: number;    // diferenca pelo cliente
   txOk: TxOkStatus;     // status de divergencia
   observacao: string;    // ZB1_OBS - historico com prefixo data/hora/usuario
+  $selected?: boolean;   // propriedade injetada pelo po-table para controle de marcacao
 }
 
 export type TxOkStatus = '1' | '2' | '3' | '4' | '5';

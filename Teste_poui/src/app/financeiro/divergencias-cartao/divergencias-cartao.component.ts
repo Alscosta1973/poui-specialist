@@ -249,35 +249,55 @@ export class DivergenciasCartaoComponent implements OnInit, AfterViewInit {
   }
 
   // ── Table events ──────────────────────────────────────────────────────────
+  // SetMrkAll: impede "marcar todos" — somente um registro por vez
+  onAllSelected(_rows: DivergenciaCartao[]): void {
+    this.notification.warning('Somente pode marcar um registro por vez.');
+    setTimeout(() => {
+      this.divergencias.update(list => list.map(d => ({ ...d, $selected: false })));
+      this.selecionados.set([]);
+      this.pendingObs.set(new Map());
+    }, 0);
+  }
+
+  onAllUnselected(): void {
+    this.selecionados.set([]);
+    this.pendingObs.set(new Map());
+  }
+
+  // RegMark01: valida status e impede multiplas marcacoes simultaneas
   onSelect(row: DivergenciaCartao): void {
+    // Apenas registros com divergencia ativa (txOk 1, 2 ou 3) podem ser marcados
+    if (!['1', '2', '3'].includes(row.txOk)) {
+      this.notification.warning(`Status "${this.statusLabel(row.txOk)}" não permite marcação.`);
+      setTimeout(() => {
+        this.divergencias.update(list => list.map(d => d.nsu === row.nsu ? { ...d, $selected: false } : d));
+      }, 0);
+      return;
+    }
+
+    // Somente um registro marcado por vez — equivale ao controle MV_PAR60 do RegMark01
     const jaSelec = this.selecionados().some((r) => r.nsu === row.nsu);
+    if (!jaSelec && this.selecionados().length > 0) {
+      this.notification.warning('Já existe marcação pendente. Desmarque o registro atual antes de marcar outro.');
+      setTimeout(() => {
+        this.divergencias.update(list => list.map(d => d.nsu === row.nsu ? { ...d, $selected: false } : d));
+      }, 0);
+      return;
+    }
+
     this.selecionados.update((prev) => [...prev, row]);
     this.definirAtivo(row);
     if (!jaSelec) this.abrirObsModal([row]);
   }
 
+  // RegMark02 / RegMark01 desmarcar: descarta obs pendente e limpa selecao
   onUnselect(row: DivergenciaCartao): void {
     this.selecionados.update((prev) => prev.filter((r) => r.nsu !== row.nsu));
-    // Descarta obs pendente deste registro (nao foi committed)
     this.pendingObs.update((map) => {
       const m = new Map(map);
       m.delete(row.nsu);
       return m;
     });
-  }
-
-  onAllSelected(rows: DivergenciaCartao[]): void {
-    if (!rows?.length) { this.selecionados.set([]); return; }
-    const prevLen = this.selecionados().length;
-    this.selecionados.set(rows);
-    // So abre modal se a selecao cresceu (evita abrir ao desmarcar todos)
-    if (rows.length > prevLen) this.abrirObsModal(rows);
-  }
-
-  onAllUnselected(): void {
-    this.selecionados.set([]);
-    // Descarta todas as obs pendentes
-    this.pendingObs.set(new Map());
   }
 
   onTableContainerClick(event: Event): void {
