@@ -46,35 +46,54 @@
 
   <po-divider p-label="Itens Importados"></po-divider>
 
-  <po-table
-    #table
-    [p-columns]="columns"
-    [p-items]="itens()"
-    [p-loading]="loading()"
-    [p-selectable]="true"
-    [p-sort]="true"
-    [p-striped]="true"
-    [p-height]="480"
-    [p-hide-columns-manager]="true"
-    (p-selected)="onRowSelected($event)"
-    (p-unselected)="onRowUnselected($event)"
-    (p-all-selected)="onAllSelected($event)"
-    (p-all-unselected)="onAllUnselected()">
+  <!-- Toolbar do browse -->
+  <div class="imp-fin-toolbar">
+    @if (itensSelecionados().length > 0) {
+      <span class="toolbar-info">{{ itensSelecionados().length }} item(ns) selecionado(s) para geração.</span>
+    }
+  </div>
 
-    <ng-template p-table-column-template [p-property]="'status'" let-value>
-      <span class="status-dot"
-            [style.background-color]="corStatus(value)"
-            [title]="labelStatus(value)">
-      </span>
-    </ng-template>
+  <div class="div-table-container" (click)="onTableContainerClick($event)">
+    <po-table
+      #table
+      [p-columns]="columns"
+      [p-items]="itens()"
+      [p-loading]="loading()"
+      [p-selectable]="true"
+      [p-selectable-entire-line]="false"
+      [p-sort]="true"
+      [p-striped]="true"
+      [p-height]="tableHeight()"
+      (p-selected)="onRowSelected($event)"
+      (p-unselected)="onRowUnselected($event)"
+      (p-all-selected)="onAllSelected($event)"
+      (p-all-unselected)="onAllUnselected()">
 
-  </po-table>
+      <ng-template p-table-column-template [p-property]="'status'" let-value>
+        <span class="status-dot"
+              [style.background-color]="corStatus(value)"
+              [title]="labelStatus(value)">
+        </span>
+      </ng-template>
 
-  @if (itensSelecionados().length > 0) {
-    <div class="selecao-info">
-      {{ itensSelecionados().length }} item(ns) selecionado(s) para geração.
+      <ng-template p-table-column-template [p-property]="'valor'" let-value>
+        <span class="valor-positivo">{{ fmtVal(value) }}</span>
+      </ng-template>
+
+    </po-table>
+  </div>
+
+  <!-- Painel fixo: Histórico e Mensagem -->
+  <div class="imp-fin-detail-panel">
+    <div class="detail-box">
+      <span class="detail-label">Histórico</span>
+      <div class="detail-content">{{ itemAtivo()?.historico || '' }}</div>
     </div>
-  }
+    <div class="detail-box detail-box-mensagem">
+      <span class="detail-label">Mensagem</span>
+      <div class="detail-content">{{ itemAtivo()?.mensagem || '' }}</div>
+    </div>
+  </div>
 
 </po-page-default>
 

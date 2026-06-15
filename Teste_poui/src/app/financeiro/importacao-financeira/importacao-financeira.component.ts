@@ -5,10 +5,12 @@
  * @see        https://github.com/Alscosta1973/poui-specialist
  */
 import {
+  AfterViewInit,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
   DestroyRef,
+  HostListener,
   OnInit,
   ViewChild,
   computed,
@@ -196,22 +198,24 @@ const DEMO_ITENS: ImportacaoItem[] = [
   templateUrl: './importacao-financeira.component.html',
   styleUrls: ['./importacao-financeira.component.scss'],
 })
-export class ImportacaoFinanceiraComponent implements OnInit {
+export class ImportacaoFinanceiraComponent implements OnInit, AfterViewInit {
   @ViewChild('modalUpload') modalUpload!: PoModalComponent;
   @ViewChild('table')       table!: PoTableComponent;
 
-  private readonly http = inject(HttpClient);
+  private readonly http         = inject(HttpClient);
   private readonly notification = inject(PoNotificationService);
-  private readonly cdr = inject(ChangeDetectorRef);
-  private readonly destroyRef = inject(DestroyRef);
+  private readonly cdr          = inject(ChangeDetectorRef);
+  private readonly destroyRef   = inject(DestroyRef);
 
-  readonly itens = signal<ImportacaoItem[]>([]);
+  readonly itens            = signal<ImportacaoItem[]>([]);
   readonly itensSelecionados = signal<ImportacaoItem[]>([]);
-  readonly loading = signal(false);
+  readonly itemAtivo        = signal<ImportacaoItem | null>(null);
+  readonly loading          = signal(false);
+  readonly tableHeight      = signal(400);
 
-  banco = '';
+  banco   = '';
   agencia = '';
-  conta = '';
+  conta   = '';
 
   readonly qtdAguardando = computed(() => this.itens().filter(i => i.status === '1').length);
   readonly qtdGerado     = computed(() => this.itens().filter(i => i.status === '2').length);
@@ -225,11 +229,6 @@ export class ImportacaoFinanceiraComponent implements OnInit {
         label: 'Importar Planilha',
         icon: 'po-icon-upload',
         action: () => this.abrirModalUpload(),
-      },
-      {
-        label: 'Gerenciador de Colunas',
-        icon: 'po-icon-settings',
-        action: () => this.table?.onOpenColumnManager(),
       },
       {
         label: 'Gerar Títulos',
@@ -253,27 +252,40 @@ export class ImportacaoFinanceiraComponent implements OnInit {
 
   readonly columns: PoTableColumn[] = [
     { property: 'status',     label: 'St.',        width: '44px',  type: 'columnTemplate' },
-    { property: 'pagRec',     label: 'Módulo',     width: '100px' },
-    { property: 'prefixo',    label: 'Prefixo',    width: '80px' },
-    { property: 'titulo',     label: 'Título',     width: '90px' },
-    { property: 'parcela',    label: 'Parcela',    width: '80px' },
-    { property: 'tipo',       label: 'Tipo',       width: '70px' },
-    { property: 'forCli',     label: 'For/Cli',    width: '90px' },
-    { property: 'loja',       label: 'Loja',       width: '60px' },
+    { property: 'prefixo',    label: 'Prefixo',    width: '80px'  },
+    { property: 'titulo',     label: 'Título',     width: '90px'  },
+    { property: 'parcela',    label: 'Parcela',    width: '80px'  },
+    { property: 'tipo',       label: 'Tipo',       width: '70px'  },
+    { property: 'forCli',     label: 'For/Cli',    width: '90px'  },
+    { property: 'loja',       label: 'Loja',       width: '60px'  },
     { property: 'emissao',    label: 'Emissão',    width: '100px', type: 'date', format: 'dd/MM/yyyy' },
     { property: 'vencimento', label: 'Vencimento', width: '110px', type: 'date', format: 'dd/MM/yyyy' },
     { property: 'vencReal',   label: 'Venc. Real', width: '110px', type: 'date', format: 'dd/MM/yyyy' },
-    { property: 'valor',      label: 'Valor',      width: '120px', type: 'currency', format: 'BRL' },
-    { property: 'natureza',   label: 'Natureza',   width: '90px' },
-    { property: 'projeto',    label: 'Projeto',    width: '90px' },
-    { property: 'ccusto',     label: 'C. Custo',   width: '90px' },
-    { property: 'historico',  label: 'Histórico' },
-    { property: 'mensagem',   label: 'Mensagem' },
+    { property: 'valor',      label: 'Valor',      width: '120px', type: 'columnTemplate' },
+    { property: 'natureza',   label: 'Natureza',   width: '90px'  },
+    { property: 'projeto',    label: 'Projeto',    width: '90px'  },
+    { property: 'ccusto',     label: 'C. Custo',   width: '90px'  },
   ];
 
   ngOnInit(): void {
     this._carregarItens();
   }
+
+  ngAfterViewInit(): void {
+    this.tableHeight.set(this.calcTableHeight());
+  }
+
+  @HostListener('window:resize')
+  onResize(): void {
+    this.tableHeight.set(this.calcTableHeight());
+  }
+
+  private calcTableHeight(): number {
+    // Reserva espaço para: header da página + bancário + status + detail panel
+    return Math.max(200, window.innerHeight - 600);
+  }
+
+  // ── Formatação ────────────────────────────────────────────────────────────
 
   labelStatus(status: string): string {
     const map: Record<string, string> = {
@@ -286,19 +298,41 @@ export class ImportacaoFinanceiraComponent implements OnInit {
     return map[status] ?? status;
   }
 
-  tipoStatus(status: string): string {
-    const map: Record<string, string> = {
-      '1': 'warning', '2': 'success', '3': 'info', '4': 'danger', '5': 'danger',
-    };
-    return map[status] ?? 'warning';
-  }
-
   corStatus(status: string): string {
     const map: Record<string, string> = {
       '1': '#f0a500', '2': '#2c9f45', '3': '#0079b8', '4': '#c91f37', '5': '#7d4dcc',
     };
     return map[status] ?? '#999';
   }
+
+  fmtVal(v: number): string {
+    return v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  // ── Navegação / cursor (padrão divergências-cartão) ───────────────────────
+
+  abrirColunas(): void {
+    const btn = document.querySelector<HTMLButtonElement>('.po-table-actions-column-manager button');
+    btn?.click();
+  }
+
+  onTableContainerClick(event: Event): void {
+    const target  = event.target as HTMLElement;
+    const tbody   = target.closest('tbody') as HTMLTableSectionElement | null;
+    if (!tbody) return;
+    const tbl     = tbody.closest('table');
+    if (!tbl)    return;
+    const tbodies = Array.from(tbl.querySelectorAll<HTMLTableSectionElement>(':scope > tbody'));
+    const index   = tbodies.indexOf(tbody);
+    if (index < 0) return;
+    const items = this.itens();
+    if (index < items.length) {
+      this.itemAtivo.set(items[index]);
+      this.cdr.markForCheck();
+    }
+  }
+
+  // ── Seleção ───────────────────────────────────────────────────────────────
 
   onRowSelected(row: ImportacaoItem): void {
     const invalido = row.pagRec === 'VERIFICAR' || row.status !== '1';
@@ -307,7 +341,6 @@ export class ImportacaoFinanceiraComponent implements OnInit {
         ? 'Linhas com módulo "VERIFICAR" não podem ser processadas.'
         : 'Apenas itens "Aguardando" podem ser selecionados.';
       this.notification.warning(msg);
-      // Desfaz a marcação visual (Quirk 8: defer to setTimeout 0)
       setTimeout(() => {
         this.itens.update(list => list.map(i => i.id === row.id ? { ...i, $selected: false } : i));
         this.cdr.markForCheck();
@@ -324,11 +357,10 @@ export class ImportacaoFinanceiraComponent implements OnInit {
   }
 
   onAllSelected(rows: ImportacaoItem[]): void {
-    const validos  = rows.filter(r => r.pagRec !== 'VERIFICAR' && r.status === '1');
+    const validos   = rows.filter(r => r.pagRec !== 'VERIFICAR' && r.status === '1');
     const invalidos = rows.filter(r => r.pagRec === 'VERIFICAR' || r.status !== '1');
     if (invalidos.length) {
       this.notification.warning(`${invalidos.length} item(ns) ignorado(s): módulo VERIFICAR ou status incompatível.`);
-      // Desfaz marcação dos inválidos (Quirk 8)
       setTimeout(() => {
         this.itens.update(list => list.map(i =>
           invalidos.some(inv => inv.id === i.id) ? { ...i, $selected: false } : i
@@ -344,6 +376,8 @@ export class ImportacaoFinanceiraComponent implements OnInit {
     this.itensSelecionados.set([]);
     this.cdr.markForCheck();
   }
+
+  // ── Upload ────────────────────────────────────────────────────────────────
 
   abrirModalUpload(): void {
     this.modalUpload.open();
@@ -369,18 +403,18 @@ export class ImportacaoFinanceiraComponent implements OnInit {
     this._loadDemo();
   }
 
+  // ── Ações ─────────────────────────────────────────────────────────────────
+
   gerarTitulos(): void {
     if (!this.banco || !this.agencia || !this.conta) {
       this.notification.warning('Informe Banco, Agência e Conta antes de gerar os títulos.');
       return;
     }
-
     const ids = this.itensSelecionados().map(i => i.id);
     if (ids.length === 0) {
       this.notification.warning('Selecione ao menos um item para processar.');
       return;
     }
-
     this.loading.set(true);
     this.cdr.markForCheck();
     try {
@@ -396,6 +430,7 @@ export class ImportacaoFinanceiraComponent implements OnInit {
           next: (res) => {
             this.itens.set(res.items);
             this.itensSelecionados.set([]);
+            this.itemAtivo.set(null);
             this.notification.success('Títulos gerados com sucesso.');
             this.cdr.markForCheck();
           },
@@ -410,6 +445,8 @@ export class ImportacaoFinanceiraComponent implements OnInit {
     }
   }
 
+  // ── Carregamento ──────────────────────────────────────────────────────────
+
   private _carregarItens(): void {
     this.loading.set(true);
     this.cdr.markForCheck();
@@ -421,7 +458,12 @@ export class ImportacaoFinanceiraComponent implements OnInit {
           finalize(() => { this.loading.set(false); this.cdr.markForCheck(); }),
         )
         .subscribe({
-          next: (res) => { this.itens.set(res.items); this.itensSelecionados.set([]); this.cdr.markForCheck(); },
+          next: (res) => {
+            this.itens.set(res.items);
+            this.itensSelecionados.set([]);
+            this.itemAtivo.set(null);
+            this.cdr.markForCheck();
+          },
           error: () => this._loadDemo(),
         });
     } catch {
@@ -433,6 +475,7 @@ export class ImportacaoFinanceiraComponent implements OnInit {
   private _loadDemo(): void {
     this.itens.set(DEMO_ITENS);
     this.itensSelecionados.set([]);
+    this.itemAtivo.set(null);
     this.notification.warning('Modo demonstração: dados da API não disponíveis.');
     this.cdr.markForCheck();
   }
