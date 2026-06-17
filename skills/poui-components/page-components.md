@@ -154,3 +154,53 @@ import { PoPageModule } from '@po-ui/ng-components';
   <!-- po-dynamic-view ou po-info -->
 </po-page-detail>
 ```
+
+---
+
+## po-page-default
+
+Página sem ações de cabeçalho predefinidas — base para telas custom onde você controla
+todos os botões e ações (ex: telas de parâmetros, dashboards, telas de configuração).
+
+### Key Inputs
+
+| Input | Type | Description |
+|-------|------|-------------|
+| `p-title` | `string` | Título da página |
+| `p-breadcrumb` | `PoBreadcrumb` | Trilha de navegação (opcional) |
+
+### Quando usar
+
+| Componente | Use quando... |
+|---|---|
+| `po-page-list` | Tela de consulta com filtro rápido e botões de "Incluir" padrão |
+| `po-page-edit` | Formulário de edição com botões "Salvar" / "Cancelar" padrão |
+| `po-page-detail` | Visualização de detalhe com botões "Editar" / "Excluir" / "Voltar" |
+| `po-page-default` | Qualquer outra tela — layout, parâmetros, dashboards, telas custom |
+
+### Exemplo
+
+```typescript
+import { PoPageModule } from '@po-ui/ng-components';
+// em imports do @Component: [PoPageModule]
+// po-page-default usa PoPageModule — não existe PoPageDefaultModule separado
+```
+
+```html
+<po-page-default p-title="Parâmetros do Sistema">
+
+  <!-- Conteúdo totalmente livre — você controla botões e ações -->
+  <div class="po-row">
+    <po-button p-label="Salvar" p-kind="primary" (p-click)="save()"></po-button>
+    <po-button p-label="Cancelar" p-kind="secondary" (p-click)="cancel()"></po-button>
+  </div>
+
+  <po-table [p-columns]="columns" [p-items]="items()" [p-height]="400"></po-table>
+
+</po-page-default>
+```
+
+> **Quirk:** `po-page-default` usa `PoPageContentComponent` internamente — conteúdo inicia
+> com `opacity: 0` e só torna-se visível após um `setTimeout`. Em componentes `OnPush` com
+> dados síncronos, adicione `ngAfterViewInit() { setTimeout(() => this.cdr.markForCheck()); }`
+> para garantir que o conteúdo apareça (ver Quirk #1 em `po-ui-quirks.md`).

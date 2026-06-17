@@ -208,3 +208,48 @@ import { PoBadgeModule } from '@po-ui/ng-components';
 > **po-badge vs po-tag:** Use `po-badge` para contadores numéricos sobrepostos a ícones
 > ou como indicadores de quantidade. Use `po-tag` para rótulos textuais de status em
 > listas e tabelas.
+
+---
+
+## po-skeleton
+
+Placeholder animado (shimmer) exibido enquanto dados são carregados — melhora a percepção
+de velocidade substituindo spinners por layout esqueleto fiel ao conteúdo real.
+
+### Key Inputs
+
+| Input | Type | Description |
+|-------|------|-------------|
+| `p-type` | `'default' \| 'lines' \| 'circle'` | Formato do skeleton (default `'default'`) |
+| `p-lines` | `number` | Número de linhas (quando `type='lines'`) |
+| `p-width` | `string` | Largura do skeleton (ex: `'100%'`, `'200px'`) |
+| `p-height` | `string` | Altura do skeleton (ex: `'40px'`) |
+
+### Exemplos
+
+```typescript
+import { PoSkeletonModule } from '@po-ui/ng-components';
+// em imports do @Component: [PoSkeletonModule]
+```
+
+```html
+<!-- Substituindo uma tabela durante carregamento -->
+@if (loading()) {
+  <po-skeleton p-type="lines" [p-lines]="8"></po-skeleton>
+} @else {
+  <po-table [p-columns]="columns" [p-items]="items()"></po-table>
+}
+
+<!-- Substituindo um card de KPI -->
+@if (loading()) {
+  <po-skeleton p-type="default" p-height="120px" p-width="100%"></po-skeleton>
+} @else {
+  <po-widget p-title="Vendas">{{ totalVendas() | currency:'BRL' }}</po-widget>
+}
+
+<!-- Avatar skeleton enquanto dados do usuário carregam -->
+@if (loadingUser()) {
+  <po-skeleton p-type="circle" p-width="40px" p-height="40px"></po-skeleton>
+} @else {
+  <po-avatar [p-src]="user().foto"></po-avatar>
+}

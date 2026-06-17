@@ -287,4 +287,199 @@ readonly breadcrumb: PoBreadcrumb = {
     { label: 'Pedidos' },
   ],
 };
+
+---
+
+## po-tabs
+
+Navegação em abas dentro de uma página — útil para separar seções de um formulário ou
+exibir dados relacionados em diferentes visões sem navegação de rota.
+
+### Key Inputs
+
+| Input | Type | Description |
+|-------|------|-------------|
+| `p-tabs` | `PoTab[]` | Definição das abas |
+
+### PoTab
+
+```typescript
+interface PoTab {
+  label:    string;           // texto exibido na aba
+  id?:      string;           // identificador único
+  disabled?: boolean;         // desabilita a aba
+  icon?:    string;           // ícone PO antes do label
+  badge?:   { value: number; color?: string }; // contador na aba
+}
+```
+
+### Key Outputs
+
+| Output | Payload | Description |
+|--------|---------|-------------|
+| `(p-activated)` | `PoTab` | Emitido ao ativar uma aba |
+
+### Exemplo
+
+```typescript
+import { PoTabsModule, PoTab } from '@po-ui/ng-components';
+// em imports do @Component: [PoTabsModule]
+
+readonly abas: PoTab[] = [
+  { label: 'Dados Gerais',  id: 'dados'    },
+  { label: 'Endereço',      id: 'endereco' },
+  { label: 'Financeiro',    id: 'fin'      },
+  { label: 'Histórico',     id: 'hist',   disabled: true },
+];
+
+abaAtiva = 'dados';
+
+onTabChange(tab: PoTab): void {
+  this.abaAtiva = tab.id ?? '';
+}
+```
+
+```html
+<po-tabs [p-tabs]="abas" (p-activated)="onTabChange($event)">
+
+  <po-tab-content p-tab-id="dados">
+    <!-- conteúdo da aba Dados Gerais -->
+  </po-tab-content>
+
+  <po-tab-content p-tab-id="endereco">
+    <!-- conteúdo da aba Endereço -->
+  </po-tab-content>
+
+</po-tabs>
+```
+
+---
+
+## po-button-group
+
+Grupo de botões com estado selecionado — útil para filtros mutuamente exclusivos,
+toggle de visualização (grade/lista), ou seleção de período.
+
+### Key Inputs
+
+| Input | Type | Description |
+|-------|------|-------------|
+| `p-buttons` | `PoButtonGroupItem[]` | Definição dos botões |
+| `p-size` | `'medium' \| 'large'` | Tamanho dos botões (default `'medium'`) |
+
+### PoButtonGroupItem
+
+```typescript
+interface PoButtonGroupItem {
+  label:     string;
+  action?:   (button: PoButtonGroupItem) => void;
+  disabled?: boolean;
+  icon?:     string;
+  selected?: boolean;         // estado inicial selecionado
+  tooltip?:  string;
+  type?:     'danger' | 'default' | 'primary' | 'link';
+}
+```
+
+### Exemplo
+
+```typescript
+import { PoButtonGroupModule, PoButtonGroupItem } from '@po-ui/ng-components';
+// em imports: [PoButtonGroupModule]
+
+readonly viewButtons: PoButtonGroupItem[] = [
+  { label: 'Grade',  icon: 'po-icon-menu-grid',  selected: true,  action: () => this.setView('grid')  },
+  { label: 'Lista',  icon: 'po-icon-menu-lines',  selected: false, action: () => this.setView('list')  },
+];
+
+setView(mode: 'grid' | 'list'): void {
+  this.viewButtons.forEach(b => b.selected = b.label.toLowerCase() === mode);
+  this.viewMode.set(mode);
+}
+```
+
+```html
+<po-button-group [p-buttons]="viewButtons"></po-button-group>
+```
+
+---
+
+## po-dropdown
+
+Menu de dropdown com lista de ações — alternativa ao menu contextual para ações
+em massa ou ações de cabeçalho quando há muitas opções que não cabem como botões.
+
+### Key Inputs
+
+| Input | Type | Description |
+|-------|------|-------------|
+| `p-items` | `PoDropdownItem[]` | Lista de itens do dropdown |
+| `p-label` | `string` | Texto do botão que abre o dropdown |
+| `p-disabled` | `boolean` | Desabilita o dropdown |
+
+### PoDropdownItem
+
+```typescript
+interface PoDropdownItem {
+  label:      string;
+  action?:    () => void;
+  disabled?:  boolean;
+  icon?:      string;
+  separator?: boolean;        // linha separadora antes deste item
+  type?:      'danger' | 'default';
+  url?:       string;
+}
+```
+
+### Exemplo
+
+```typescript
+import { PoDropdownModule, PoDropdownItem } from '@po-ui/ng-components';
+// em imports: [PoDropdownModule]
+
+readonly exportActions: PoDropdownItem[] = [
+  { label: 'Exportar CSV',  icon: 'po-icon-export', action: () => this.exportCsv()  },
+  { label: 'Exportar PDF',  icon: 'po-icon-pdf',    action: () => this.exportPdf()  },
+  { separator: true, label: 'Imprimir', icon: 'po-icon-print', action: () => this.print() },
+];
+```
+
+```html
+<po-dropdown p-label="Exportar" [p-items]="exportActions"></po-dropdown>
+```
+
+---
+
+## po-divider
+
+Separador visual horizontal com rótulo opcional — usado para demarcar seções dentro
+de formulários, modais ou containers sem criar estrutura extra.
+
+### Key Inputs
+
+| Input | Type | Description |
+|-------|------|-------------|
+| `p-label` | `string` | Texto exibido ao lado da linha separadora |
+
+### Exemplos
+
+```typescript
+import { PoDividerModule } from '@po-ui/ng-components';
+// em imports do @Component: [PoDividerModule]
+```
+
+```html
+<!-- Separador simples (linha horizontal) -->
+<po-divider></po-divider>
+
+<!-- Separador com label de seção -->
+<po-divider p-label="Dados de Endereço"></po-divider>
+
+<!-- Uso típico dentro de formulário -->
+<po-divider p-label="Dados Fiscais"></po-divider>
+<div class="po-row">
+  <po-input class="po-md-4" p-label="CNPJ" formControlName="cnpj" p-mask="99.999.999/9999-99"></po-input>
+  <po-input class="po-md-4" p-label="IE"   formControlName="ie"></po-input>
+</div>
+```
 ```

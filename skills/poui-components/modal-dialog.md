@@ -92,8 +92,11 @@ export class MeuComponent {
 </po-modal>
 ```
 
-> **Nota sobre `[(p-value)]`:** O `po-dynamic-form` usa two-way binding via `p-value` + `p-value-change`.
-> Com signals, use `[p-value]="formValues()"` + `(p-value-change)="formValues.set($event)"`.
+> **Nota sobre `[(p-value)]`:** O `po-dynamic-form` suporta two-way binding com `[(p-value)]` para
+> objetos simples (não signals). Com signals, use `[p-value]="formValues()"` e inicialize o objeto
+> antes de abrir o modal. **Não existe `(p-value-change)`** nesta versão do PO-UI — nunca use-o.
+> Para reagir a mudanças de campo em tempo real, use `(p-form)` e assine `form.valueChanges`
+> (ver Quirk #13 em `po-ui-quirks.md`).
 
 ---
 

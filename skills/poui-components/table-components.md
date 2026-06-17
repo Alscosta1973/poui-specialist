@@ -164,3 +164,13 @@ onShowMore(): void {
   (p-show-more)="onShowMore()">
 </po-table>
 ```
+
+---
+
+## Template Directives
+
+Para personalização visual de células, cabeçalhos de coluna e linhas inteiras, use as diretivas de template do `po-table`. Consulte `table-templates.md` para a referência completa com exemplos de:
+
+- `[p-table-cell-template]` — personaliza o conteúdo da célula de uma coluna específica
+- `[p-table-column-template]` — personaliza o cabeçalho de uma coluna
+- `[p-table-row-template]` — substitui a linha inteira por um template customizado

@@ -330,6 +330,93 @@ onFilesSelected(files: PoUploadFile[]): void {
 
 ---
 
+## po-password
+
+Campo de senha com toggle de visibilidade, indicador de força e suporte a regras de validação.
+
+### Key Inputs
+
+| Input | Type | Description |
+|-------|------|-------------|
+| `p-label` | `string` | Rótulo do campo |
+| `p-required` | `boolean` | Campo obrigatório |
+| `p-disabled` | `boolean` | Desabilita o campo |
+| `p-placeholder` | `string` | Texto de placeholder |
+| `p-maxlength` | `number` | Comprimento máximo |
+| `p-error-message` | `string` | Mensagem de erro customizada |
+
+### Exemplos
+
+```typescript
+import { PoPasswordModule } from '@po-ui/ng-components';
+// em imports do @Component: [PoPasswordModule]
+```
+
+```html
+<!-- Senha com required e maxlength -->
+<po-password
+  class="po-md-6"
+  p-label="Senha"
+  [p-required]="true"
+  [p-maxlength]="20"
+  formControlName="senha">
+</po-password>
+
+<!-- Confirmação de senha com validação customizada -->
+<po-password
+  class="po-md-6"
+  p-label="Confirmar Senha"
+  [p-required]="true"
+  p-error-message="Senhas não conferem"
+  formControlName="confirmaSenha">
+</po-password>
+```
+
+---
+
+## po-time
+
+Campo de entrada de hora com máscara automática — formato HH:MM ou HH:MM:SS.
+
+### Key Inputs
+
+| Input | Type | Description |
+|-------|------|-------------|
+| `p-label` | `string` | Rótulo do campo |
+| `p-required` | `boolean` | Campo obrigatório |
+| `p-disabled` | `boolean` | Desabilita o campo |
+| `p-no-seconds` | `boolean` | Oculta os segundos — usa formato HH:MM (default `false`) |
+| `p-min-time` | `string` | Hora mínima permitida (formato `HH:MM` ou `HH:MM:SS`) |
+| `p-max-time` | `string` | Hora máxima permitida |
+
+### Exemplos
+
+```typescript
+import { PoTimeModule } from '@po-ui/ng-components';
+// em imports do @Component: [PoTimeModule]
+```
+
+```html
+<!-- Hora sem segundos (formato HH:MM) -->
+<po-time
+  class="po-md-3"
+  p-label="Hora de Início"
+  [p-no-seconds]="true"
+  formControlName="horaInicio">
+</po-time>
+
+<!-- Hora completa com restrição de intervalo comercial -->
+<po-time
+  class="po-md-3"
+  p-label="Hora de Agendamento"
+  p-min-time="08:00:00"
+  p-max-time="18:00:00"
+  formControlName="horaAgendamento">
+</po-time>
+```
+
+---
+
 ## PoLookupFilterService — implementação completa
 
 O `po-lookup` requer um serviço que implemente a interface `PoLookupFilter`.
