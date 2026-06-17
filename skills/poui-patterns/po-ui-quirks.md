@@ -8,7 +8,7 @@ when generating or reviewing code.
 
 | # | Component / API | Symptom | Fix |
 |---|---|---|---|
-| 1 | po-page-content | Content invisible on load | Trigger HTTP observable in `ngOnInit`, not `ngAfterViewInit` |
+| 1 | po-page-content | **Content invisible on load in OnPush + sync data** | `ngAfterViewInit() { setTimeout(() => this.cdr.markForCheck()); }` |
 | 2 | po-input | Buttons 8px below field edge | `margin-bottom: 8px` on the button container |
 | 3 | po-table | Horizontal scroll in side-by-side panels | Override checkbox col to 41px via `::ng-deep`; recalculate `p-width` sum |
 | 4 | po-input | `NG8002` on `p-max-length` | Use `p-maxlength` (no hyphen between `max` and `length`) |
@@ -24,36 +24,60 @@ when generating or reviewing code.
 
 ---
 
-## 1. po-page-content blank on load (opacity timing)
+## 1. po-page-content blank on load (opacity timing) — UPDATED
 
-**Symptom:** Page renders the title but the content area is invisible on first load.
+**Symptom:** Page renders the title/header but ALL content below it is invisible on first
+load (filter bar, tables, buttons — everything inside `ng-content`).
 
-**Root cause:** `po-page-default` sets `contentOpacity = 0` initially and transitions it to 1
-via `setTimeout` in `ngAfterViewInit`. If no HTTP request is made in `ngOnInit`, the
-`networkidle` event fires before the `setTimeout` runs, leaving content opacity at 0.
+**Root cause (confirmed by PO-UI source):**
+`PoPageContentComponent` sets `contentOpacity = 0` on creation and calls
+`recalculateHeaderSize()` in `ngAfterViewInit`, which uses `setTimeout` to set
+`contentOpacity = 1`. In **OnPush** components without an async data load (e.g., using
+synchronous demo data), the component is already "clean" when that `setTimeout` fires —
+Angular skips the entire subtree during CD and `contentOpacity = 1` is never reflected
+in the DOM. Components that make HTTP requests are "accidentally" safe because the HTTP
+response triggers a `markForCheck()` after the `setTimeout` has already run.
 
-**Fix:** Always trigger at least one observable (e.g., load data) in `ngOnInit`, not in
-`ngAfterViewInit` or lazily. A mock service with a small delay (≥500ms) is enough to
-give `po-page-default` time to run its `setTimeout`.
+**Affects:** Every OnPush component that uses `po-page-default`, `po-page-list`,
+`po-page-edit`, or `po-page-detail` AND loads data synchronously (demo constants, signals
+initialized at declaration, etc.).
+
+**Fix — mandatory for every OnPush component using `po-page-*`:**
 
 ```typescript
-// ✓ Correct — triggers HTTP in ngOnInit, po-page-content has time to become visible
-ngOnInit(): void {
-  this.carregar();
-}
+import { AfterViewInit, ChangeDetectorRef, inject } from '@angular/core';
 
-carregar(): void {
-  this.loading.set(true);
-  this.service.getAll()
-    .pipe(finalize(() => this.loading.set(false)))
-    .subscribe({ next: data => this.items.set(data) });
+export class MyComponent implements OnInit, AfterViewInit {
+  private readonly cdr = inject(ChangeDetectorRef);
+
+  ngOnInit(): void {
+    // synchronous data load is fine
+    this.items.set(DEMO_DATA);
+  }
+
+  // po-page-content fires its setTimeout in its own ngAfterViewInit (child first).
+  // Our setTimeout is queued after, so by the time it runs contentOpacity is already 1.
+  // markForCheck() forces Angular to re-check this component and render the content.
+  ngAfterViewInit(): void {
+    setTimeout(() => this.cdr.markForCheck());
+  }
 }
 ```
 
+**Alternative (when HTTP is used):** the HTTP response auto-triggers `markForCheck()` via
+signal update, so no explicit `ngAfterViewInit` is needed. But adding it anyway is safe
+and makes the component resilient to future refactors.
+
 ```typescript
-// ✗ Wrong — no HTTP call; page content stays invisible
-ngOnInit(): void { }
-// data loaded only on button click
+// ✗ Pattern that breaks (sync data, no ngAfterViewInit fix)
+ngOnInit(): void {
+  this.items.set(DEMO_DATA); // synchronous — component never re-checks after setTimeout
+}
+
+// ✓ Pattern that works (sync data WITH ngAfterViewInit fix)
+ngAfterViewInit(): void {
+  setTimeout(() => this.cdr.markForCheck()); // queued after po-page-content's setTimeout
+}
 ```
 
 ---

@@ -5,6 +5,7 @@
  * @see        https://github.com/Alscosta1973/poui-specialist
  */
 import {
+  AfterViewInit,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
@@ -100,7 +101,7 @@ const DEMO_ITENS: Record<string, ItemPedidoSC6[]> = {
   styleUrl:    './gerar-nf-pedido.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class GerarNfPedidoComponent implements OnInit {
+export class GerarNfPedidoComponent implements OnInit, AfterViewInit {
   private readonly notification = inject(PoNotificationService);
   private readonly cdr          = inject(ChangeDetectorRef);
 
@@ -168,6 +169,14 @@ export class GerarNfPedidoComponent implements OnInit {
     this.pedidos.set(DEMO_PEDIDOS.map(p => ({ ...p })));
     this.cursorIndex.set(0);
     this.onPedidoSelecionado(DEMO_PEDIDOS[0]);
+  }
+
+  // po-page-content initializes contentOpacity=0 and sets it to 1 via setTimeout
+  // in ngAfterViewInit. In OnPush components without async data load, the component
+  // is already "clean" when that setTimeout fires and never re-renders. This
+  // setTimeout ensures we markForCheck AFTER po-page-content's timeout has run.
+  ngAfterViewInit(): void {
+    setTimeout(() => this.cdr.markForCheck());
   }
 
   @HostListener('window:resize')
