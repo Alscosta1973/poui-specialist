@@ -1,0 +1,64 @@
+<po-page-edit
+  [p-title]="title"
+  (p-save)="onSave()"
+  (p-cancel)="onCancel()">
+
+  <po-dynamic-form
+    [p-fields]="headerFields"
+    [p-value]="headerValues"
+    (p-form)="onFormInit($event)">
+  </po-dynamic-form>
+
+  <div class="panels">
+
+    <!-- Esquerda: Antecipações (read-only) -->
+    <div class="panel-left">
+      <po-divider p-label="Antecipações — Ortobom"></po-divider>
+      <po-table
+        [p-columns]="colsAntec"
+        [p-items]="antecipacoes()"
+        [p-hide-columns-manager]="true"
+        [p-striped]="true"
+        [p-height]="340">
+      </po-table>
+    </div>
+
+    <!-- Direita: Modalidades / MDR -->
+    <div class="panel-right">
+
+      @if (!showForm()) {
+        <div class="modal-header">
+          <po-divider p-label="Modalidades / MDR"></po-divider>
+          <po-button
+            p-label="Incluir"
+            p-kind="primary"
+            p-size="small"
+            (p-click)="startAdd()">
+          </po-button>
+        </div>
+        <po-table
+          [p-columns]="colsModal"
+          [p-items]="modais()"
+          [p-actions]="tableActions"
+          [p-hide-columns-manager]="true"
+          [p-striped]="true"
+          [p-height]="340">
+        </po-table>
+      }
+
+      @if (showForm()) {
+        <po-divider [p-label]="formTitle()"></po-divider>
+        <po-dynamic-form
+          [p-fields]="modalFields"
+          [(p-value)]="formRow">
+        </po-dynamic-form>
+        <div class="form-btns">
+          <po-button p-label="Confirmar" p-kind="primary" p-size="small" (p-click)="confirmRow()"></po-button>
+          <po-button p-label="Cancelar"  p-kind="secondary" p-size="small" (p-click)="cancelForm()"></po-button>
+        </div>
+      }
+
+    </div>
+  </div>
+
+</po-page-edit>

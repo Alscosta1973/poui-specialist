@@ -26,10 +26,23 @@ export class AppComponent {
       link: '/faturamento/gerar-nf-pedido',
     },
     {
-      label: 'Divergencias Cartao',
-      shortLabel: 'Div. Cartao',
+      label: 'Divergência Cartão',
+      shortLabel: 'Div. Cartão',
       icon: 'po-icon-finance',
-      link: '/financeiro/divergencias-cartao',
+      subItems: [
+        {
+          label: 'Divergência',
+          link: '/financeiro/divergencias-cartao',
+        },
+        {
+          label: 'Cad. Taxa',
+          link: '/financeiro/cad-taxa',
+        },
+        {
+          label: 'Cad. Taxa V2',
+          link: '/financeiro/cad-taxa-v2/c',
+        },
+      ],
     },
     {
       label: 'Conciliacao Cartao',

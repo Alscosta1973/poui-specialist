@@ -66,6 +66,30 @@ export const routes: Routes = [
         .then(m => m.PedidoCompraDetailComponent),
   },
   {
+    path: 'financeiro/cad-taxa-v2/a',
+    loadComponent: () =>
+      import('./financeiro/cad-taxa-v2/cad-taxa-v2-a.component')
+        .then(m => m.CadTaxaV2AComponent),
+  },
+  {
+    path: 'financeiro/cad-taxa-v2/b',
+    loadComponent: () =>
+      import('./financeiro/cad-taxa-v2/cad-taxa-v2-b.component')
+        .then(m => m.CadTaxaV2BComponent),
+  },
+  {
+    path: 'financeiro/cad-taxa-v2/c',
+    loadComponent: () =>
+      import('./financeiro/cad-taxa-v2/cad-taxa-v2-c.component')
+        .then(m => m.CadTaxaV2CComponent),
+  },
+  {
+    path: 'financeiro/cad-taxa',
+    loadComponent: () =>
+      import('./financeiro/cad-taxa/cad-taxa.component')
+        .then(m => m.CadTaxaComponent),
+  },
+  {
     path: 'financeiro/importacao-financeira',
     loadComponent: () =>
       import('./financeiro/importacao-financeira/importacao-financeira.component')

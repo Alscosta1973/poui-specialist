@@ -1,0 +1,25 @@
+<po-page-edit
+  [p-title]="title"
+  (p-save)="onSave()"
+  (p-cancel)="onCancel()">
+
+  <po-divider p-label="Configuração"></po-divider>
+  <po-dynamic-form [p-fields]="headerFields" [(p-value)]="headerValues"></po-dynamic-form>
+
+  <po-divider p-label="Modalidades / MDR"></po-divider>
+  <po-table
+    [p-columns]="colsModal"
+    [p-items]="modais"
+    [p-actions]="tableActions"
+    [p-striped]="true">
+  </po-table>
+
+  <po-divider p-label="Antecipações — Ortobom (calculado pela Taxa Fixa)"></po-divider>
+  <po-table
+    [p-columns]="colsAntec"
+    [p-items]="antecipacoes"
+    [p-striped]="true"
+    [p-height]="240">
+  </po-table>
+
+</po-page-edit>
