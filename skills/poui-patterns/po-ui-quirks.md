@@ -4,7 +4,7 @@ Documented behavior differences, internal implementation details, and CSS overri
 discovered through production use of PO-UI with Protheus. Apply these fixes proactively
 when generating or reviewing code.
 
-## Quick Reference — 11 Known Quirks
+## Quick Reference — 13 Known Quirks
 
 | # | Component / API | Symptom | Fix |
 |---|---|---|---|
@@ -19,6 +19,8 @@ when generating or reviewing code.
 | 9 | po-table | No built-in keyboard row navigation | 3-part pattern: `cursorIndex` signal + `@HostListener` + `_scrollRowIntoView` |
 | 10 | po-table (dual) | Two stacked tables, independent arrow-key nav | `activeBrowse` signal + `Tab` handler routes arrow keys to correct browse |
 | 11 | PoTableDetail | TS2353: `width` not in type | Remove `width` from detail columns — only `property`, `label`, `type`, `format` valid |
+| 12 | po-table | **Invisible on first load in OnPush component** | Always set `[p-height]` — without it, opacity is set via async `setTimeout` and OnPush never re-renders |
+| 13 | po-dynamic-form | **`(p-value-change)` silently does nothing** | Output doesn't exist — use `(p-form)="fn($event)"` + subscribe `form.valueChanges` |
 
 ---
 
@@ -612,4 +614,114 @@ private buildDetailConfig(): PoTableDetail {
     ],
   };
 }
+```
+
+---
+
+## 12. po-table invisible on first load in OnPush components (MANDATORY `[p-height]`)
+
+**Symptom:** `po-table` renders correctly in the DOM but is invisible when the page is first
+navigated to. It only becomes visible after the user moves the mouse or triggers any event.
+The bug is most noticeable when the table is inside an `@if` block.
+
+**Root cause (verified against PO-UI source):**
+
+`po-table` initialises `tableOpacity = 0`. There are two paths to `setTableOpacity(1)`:
+
+| Path | Triggered by | Timing |
+|---|---|---|
+| `verifyCalculateHeightTableContainer()` → `calculateHeightTableContainer()` → `setTableOpacity(1)` | `[p-height]` is set | **Synchronous** — runs inside `ngDoCheck`, same CD cycle |
+| `debounceResize()` → `setTimeout(() => setTableOpacity(1))` | `offsetWidth > 0` detected in `ngDoCheck` without `[p-height]` | **Asynchronous** — `setTimeout` fires after current CD cycle |
+
+With `ChangeDetectionStrategy.OnPush`, the host component is already marked "clean" after the
+first CD cycle. When the async `setTimeout` fires and calls `setTableOpacity(1)`, Angular does
+not re-check the OnPush component, so the table stays invisible until a future event (mouse
+move, click) triggers the next CD cycle.
+
+**Fix: always set `[p-height]` on every `po-table` in OnPush components.**
+
+```html
+<!-- ✗ Wrong — invisible on first load in OnPush; opacity set asynchronously -->
+<po-table [p-columns]="cols" [p-items]="items()"></po-table>
+
+<!-- ✓ Correct — opacity set synchronously in ngDoCheck via verifyCalculateHeightTableContainer -->
+<po-table [p-columns]="cols" [p-items]="items()" [p-height]="340"></po-table>
+```
+
+For dynamic height (fills viewport), use a `computed` signal (see Quirk 5):
+```html
+<po-table [p-columns]="cols" [p-items]="items()" [p-height]="tableHeight()"></po-table>
+```
+
+**Rule:** Every `po-table` generated in a `ChangeDetectionStrategy.OnPush` component MUST
+have `[p-height]` set. No exceptions. A table inside an `@if` block is especially vulnerable.
+
+---
+
+## 13. po-dynamic-form: `(p-value-change)` does not exist
+
+**Symptom:** Binding `(p-value-change)="myHandler($event)"` on `po-dynamic-form` compiles
+without errors but the handler is never called, regardless of what the user types.
+
+**Root cause (verified against PO-UI source):**
+
+`PoDynamicFormBaseComponent` declares only one `@Output`:
+```typescript
+outputs: { formOutput: "p-form" }
+```
+
+There is no `p-value-change` output. Angular silently ignores unknown event bindings on
+custom elements, so there is no compilation error and no runtime warning — the handler
+simply never fires.
+
+**Fix: use `(p-form)` to receive the `NgForm` instance, then subscribe to `form.valueChanges`.**
+
+```typescript
+import { OnDestroy } from '@angular/core';
+import { Subscription } from 'rxjs';
+
+export class MyComponent implements OnDestroy {
+  headerValues: Record<string, unknown> = { adm: '46', band: 'VISA', txFixa: 1.5 };
+
+  private formSub: Subscription | null = null;
+  private _lastTx = 1.5;   // track last value to avoid recalculating on every other-field change
+
+  // (p-form) fires once after NgForm is initialised (inside a setTimeout in PO-UI source)
+  onFormInit(form: any): void {
+    if (!form?.valueChanges) return;
+    this.formSub?.unsubscribe();
+    this.formSub = form.valueChanges.subscribe((val: Record<string, unknown>) => {
+      this.headerValues = { ...val };            // keep all fields in sync
+      const tx = Number(val['myNumberField'] ?? 0);
+      if (tx > 0 && tx !== this._lastTx) {
+        this._lastTx = tx;
+        this.doSomethingWhenFieldChanges(tx);    // e.g. recalculate a derived signal
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.formSub?.unsubscribe();
+  }
+}
+```
+
+```html
+<!-- ✗ Wrong — (p-value-change) does not exist; handler is never called -->
+<po-dynamic-form [p-fields]="fields" [p-value]="vals" (p-value-change)="onChange($event)">
+</po-dynamic-form>
+
+<!-- ✓ Correct — (p-form) is the only reactive output; subscribe to form.valueChanges -->
+<po-dynamic-form [p-fields]="fields" [p-value]="headerValues" (p-form)="onFormInit($event)">
+</po-dynamic-form>
+```
+
+**Notes:**
+- `form.valueChanges` fires on **every keystroke** for `po-decimal` / `po-number` fields
+  (via `ControlValueAccessor.onChange` in `onInput`), and on **blur** for text fields.
+- `[(p-value)]` two-way binding silently fails for the same reason — there is no
+  `p-value-change` output for Angular to wire the write-back. Use `[p-value]` (one-way)
+  for initialisation and update `headerValues` manually inside `onFormInit`.
+- The `NgForm` instance is emitted inside a `setTimeout` in PO-UI's source, so `onFormInit`
+  will always be called asynchronously, after the first CD cycle completes.
 ```
