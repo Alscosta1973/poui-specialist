@@ -1,6 +1,6 @@
 # Template: service
 
-Generates an Angular `Injectable` service consuming Protheus REST API, including the standard Protheus error decoding helper.
+Gera um service Angular `Injectable` que consome a API REST do Protheus, incluindo o helper padrão de decodificação de erros do Protheus.
 
 ## {{serviceFile}}.ts
 
@@ -66,18 +66,18 @@ export class {{ServiceClass}} {
 
 ```typescript
 export interface {{ModelInterface}} {
-  // TODO: add fields matching the Protheus REST response
+  // TODO: adicione os campos correspondentes à resposta REST do Protheus
 }
 ```
 
 ---
 
-## Protheus Error Format
+## Formato de erro Protheus
 
-Protheus REST returns errors in a specific format that requires decoding. Always use `parseProtheusError` in components:
+O REST do Protheus retorna erros em um formato específico que requer decodificação. Sempre use `parseProtheusError` nos componentes:
 
 ```typescript
-// Copy this helper into any component that calls write operations (save/delete)
+// Copie este helper em qualquer componente que realize operações de escrita (salvar/excluir)
 private parseProtheusError(err: any): string {
   try {
     const errObj = JSON.parse(err.error?.errorMessage ?? '{}');
@@ -92,7 +92,7 @@ private parseProtheusError(err: any): string {
 }
 ```
 
-Usage in `catchError`:
+Uso no `catchError`:
 ```typescript
 .pipe(
   catchError((err) => {

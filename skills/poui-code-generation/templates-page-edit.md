@@ -1,6 +1,6 @@
 # Template: page-edit
 
-Generates a standalone `po-page-edit` component using `po-dynamic-form` + `PoDynamicFormField[]` for create and edit operations — the standard PO-UI/Protheus form pattern.
+Gera um componente standalone `po-page-edit` usando `po-dynamic-form` + `PoDynamicFormField[]` para operações de criação e edição — o padrão de formulário PO-UI/Protheus.
 
 ## {{kebab-name}}.component.ts
 
@@ -44,11 +44,11 @@ export class {{ComponentClass}} implements OnInit {
   readonly loading = signal(false);
   private recordId = '';
 
-  // Two-way bound to po-dynamic-form; populated on edit load
+  // Binding bidirecional com po-dynamic-form; populado ao carregar para edição
   values: Partial<{{ModelInterface}}> = {};
 
-  // TODO: define fields matching {{ModelInterface}} properties.
-  // `divider` creates a section header above the field; `gridColumns` (1-12) controls width.
+  // TODO: defina os campos correspondentes às propriedades de {{ModelInterface}}.
+  // `divider` cria um cabeçalho de seção acima do campo; `gridColumns` (1-12) controla a largura.
   readonly fields: PoDynamicFormField[] = [
     {
       property: 'codigo',
@@ -151,7 +151,7 @@ export class {{ComponentClass}} implements OnInit {
     this.router.navigate(['..'], { relativeTo: this.route });
   }
 
-  // Decodes Protheus REST error format: { errorMessage: JSON.stringify({code, message, detailedMessage}) }
+  // Decodifica o formato de erro REST do Protheus: { errorMessage: JSON.stringify({code, message, detailedMessage}) }
   private parseError(err: any): string {
     try {
       const errObj = JSON.parse(err.error?.errorMessage ?? '{}');
@@ -187,5 +187,5 @@ export class {{ComponentClass}} implements OnInit {
 ## {{kebab-name}}.component.scss
 
 ```scss
-// Add component-specific styles here
+// Adicione estilos específicos do componente aqui
 ```

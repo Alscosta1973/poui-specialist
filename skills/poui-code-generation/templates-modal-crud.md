@@ -1,6 +1,6 @@
 # Template: modal-crud
 
-All-in-one list + add/edit modal for simple entities (up to ~10 fields); uses `po-page-dynamic-search` + `po-modal` + `po-dynamic-form` + `PoDialogService`. Use `page-edit` instead for complex forms with sections, many fields, or nested data.
+Lista + modal de inclusão/edição em um único componente para entidades simples (até ~10 campos); usa `po-page-dynamic-search` + `po-modal` + `po-dynamic-form` + `PoDialogService`. Use `page-edit` para formulários complexos com seções, muitos campos ou dados aninhados.
 
 ## {{kebab-name}}.component.ts
 
@@ -77,16 +77,16 @@ export class {{ComponentClass}} implements OnInit {
   // Bound to po-dynamic-form via [(p-value)]
   formValues: Partial<{{ModelInterface}}> = {};
 
-  // TODO: define columns matching {{ModelInterface}} fields
+  // TODO: defina as colunas correspondentes aos campos de {{ModelInterface}}
   readonly columns: PoTableColumn[] = [
-    // Example:
+    // Exemplo:
     // { property: 'codigo',    label: 'Código',    width: '10%' },
     // { property: 'descricao', label: 'Descrição' },
     // { property: 'tipo',      label: 'Tipo',      width: '10%' },
   ];
 
-  // TODO: define form fields for add/edit modal
-  // gridColumns: 6 = half width, 12 = full width in the modal form
+  // TODO: defina os campos do formulário para o modal de inclusão/edição
+  // gridColumns: 6 = meia largura, 12 = largura total no formulário do modal
   readonly fields: PoDynamicFormField[] = [
     // { property: 'codigo',    label: 'Código',     required: true, maxLength: 6,  gridColumns: 6 },
     // { property: 'descricao', label: 'Descrição',  required: true, maxLength: 40, gridColumns: 12 },
@@ -94,7 +94,7 @@ export class {{ComponentClass}} implements OnInit {
     //   options: [{ value: 'PA', label: 'PA' }, { value: 'PI', label: 'PI' }] },
   ];
 
-  // TODO: define advanced search filters (shown in filter sidebar)
+  // TODO: defina os filtros de busca avançada (exibidos na barra lateral de filtros)
   readonly advancedFilters: PoPageDynamicSearchFilters[] = [
     // { property: 'codigo',    label: 'Código',    gridColumns: 6 },
     // { property: 'descricao', label: 'Descrição', gridColumns: 6 },
@@ -178,7 +178,7 @@ export class {{ComponentClass}} implements OnInit {
       this.editId = '';
       this.formValues = {};
     }
-    // Trigger change detection before opening so form receives updated values
+    // Dispara detecção de mudanças antes de abrir para que o formulário receba os valores atualizados
     this.cdr.markForCheck();
     this.poModal.open();
   }
@@ -295,5 +295,5 @@ export class {{ComponentClass}} implements OnInit {
 ## {{kebab-name}}.component.scss
 
 ```scss
-// Add component-specific styles here
+// Adicione estilos específicos do componente aqui
 ```

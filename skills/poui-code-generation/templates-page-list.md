@@ -1,11 +1,11 @@
 # Template: page-list
 
-Generates a standalone `po-page-list` component with `po-table`, server-side pagination, quick search, `PoDialogService` confirmation for delete, and `finalize()` for loading state.
+Gera um componente standalone `po-page-list` com `po-table`, paginação server-side, pesquisa rápida, confirmação via `PoDialogService` para exclusão e `finalize()` para estado de carregamento.
 
-> **Icon rule:** Always use `po-icon-*` names (e.g., `po-icon-edit`, `po-icon-delete`, `po-icon-plus`).
-> Never use `an an-*` — those are from a different icon library.
+> **Regra de ícones:** Sempre use nomes `po-icon-*` (ex: `po-icon-edit`, `po-icon-delete`, `po-icon-plus`).
+> Nunca use `an an-*` — esses são de uma biblioteca de ícones diferente.
 
-> **Tip:** For advanced search with filters/disclaimers, use `page-dynamic-search` instead.
+> **Dica:** Para busca avançada com filtros/disclaimers, use `page-dynamic-search` em vez deste.
 
 ## {{kebab-name}}.component.ts
 
@@ -59,10 +59,10 @@ export class {{ComponentClass}} implements OnInit {
   private readonly pageSize = 10;
   private lastSearch = '';
 
-  // TODO: define columns matching {{ModelInterface}} fields.
-  // Use type:'label' + labels:[{value,color,label}] for status fields.
+  // TODO: defina as colunas correspondentes aos campos de {{ModelInterface}}.
+  // Use type:'label' + labels:[{value,color,label}] para campos de status.
   readonly columns: PoTableColumn[] = [
-    // Example:
+    // Exemplo:
     // { property: 'codigo',  label: 'Código',   width: '8%' },
     // { property: 'nome',    label: 'Nome' },
     // { property: 'situacao', label: 'Situação',
@@ -200,13 +200,13 @@ export class {{ComponentClass}} implements OnInit {
 ## {{kebab-name}}.component.scss
 
 ```scss
-// Add component-specific styles here
+// Adicione estilos específicos do componente aqui
 ```
 
 ## models/{{modelFile}}.model.ts
 
 ```typescript
 export interface {{ModelInterface}} {
-  // TODO: add fields matching the Protheus REST response
+  // TODO: adicione os campos correspondentes à resposta REST do Protheus
 }
 ```

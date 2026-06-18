@@ -1,6 +1,6 @@
 # Template: dashboard
 
-Generates a standalone analytics dashboard page with `po-widget` (KPI cards), `po-chart` (line/bar), and `po-loading-overlay`.
+Gera uma página de dashboard analítico standalone com `po-widget` (cartões KPI), `po-chart` (linha/barra) e `po-loading-overlay`.
 
 ## {{kebab-name}}.component.ts
 
@@ -45,7 +45,7 @@ export class {{ComponentClass}} implements OnInit {
 
   readonly loading = signal(true);
 
-  // TODO: replace KPI signals with data from service
+  // TODO: substitua os signals de KPI com dados do service
   readonly kpi1Title = signal('KPI 1');
   readonly kpi1Value = signal('—');
   readonly kpi1Desc  = signal('');
@@ -66,8 +66,8 @@ export class {{ComponentClass}} implements OnInit {
   readonly chartSeries = signal<PoChartSerie[]>([]);
 
   ngOnInit(): void {
-    // TODO: inject a service and load dashboard data
-    // Example:
+    // TODO: injete um service e carregue os dados do dashboard
+    // Exemplo:
     // inject(DashService).getStats()
     //   .pipe(
     //     finalize(() => this.loading.set(false)),
@@ -95,7 +95,7 @@ export class {{ComponentClass}} implements OnInit {
   }
 
   @if (!loading()) {
-    <!-- KPI Cards -->
+    <!-- Cartões KPI -->
     <div class="po-row">
       <po-widget class="po-md-12 po-lg-4 po-mt-2" [p-title]="kpi1Title()">
         <div class="po-font-subtitle po-text-center">{{ kpi1Value() }}</div>
@@ -113,7 +113,7 @@ export class {{ComponentClass}} implements OnInit {
       </po-widget>
     </div>
 
-    <!-- Charts -->
+    <!-- Gráficos -->
     <div class="po-row">
       <po-chart
         class="po-md-12 po-lg-8 po-mt-2"
@@ -132,10 +132,10 @@ export class {{ComponentClass}} implements OnInit {
 ## {{kebab-name}}.component.scss
 
 ```scss
-// Dashboard-specific styles
+// Estilos específicos do dashboard
 ```
 
-## Dashboard service pattern
+## Padrão de service para o dashboard
 
 ```typescript
 import { Injectable, inject } from '@angular/core';

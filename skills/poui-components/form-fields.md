@@ -1,6 +1,6 @@
 # PO-UI Form Fields
 
-All fields below work with Angular Reactive Forms (`formControlName`) and Template-driven Forms (`[(ngModel)]`).
+Todos os campos abaixo funcionam com Angular Reactive Forms (`formControlName`) e Template-driven Forms (`[(ngModel)]`).
 
 ## Quick Reference — Form Field Components
 

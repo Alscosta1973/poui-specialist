@@ -128,9 +128,9 @@
   padding:     0 0 4px;
 
   /*
-    --font-size: 12px cascades to ALL PO-UI children via var(--font-size):
-    labels, inputs, datepickers, and buttons all shrink uniformly.
-    The forced min-height and padding below further compact the inputs.
+    --font-size: 12px cascateia para TODOS os filhos PO-UI via var(--font-size):
+    labels, inputs, datepickers e buttons encolhem uniformemente.
+    O min-height e o padding forçados abaixo compactam ainda mais os inputs.
   */
   --font-size: 12px;
 
@@ -141,21 +141,21 @@
 .filtro-campo { width: 130px; }
 
 /*
-  po-datepicker has 44px right padding for the calendar icon.
-  At 12px font, 170px fits "dd/MM/yyyy" (10 chars × ~8px + 44px icon + 6px padding).
-  Do NOT go below 170px — the rightmost year digit gets clipped.
+  po-datepicker tem 44px de padding à direita para o ícone do calendário.
+  Em fonte 12px, 170px comporta "dd/MM/yyyy" (10 chars × ~8px + 44px ícone + 6px padding).
+  NÃO reduza abaixo de 170px — o último dígito do ano será cortado.
 */
 .filtro-data { width: 170px; }
 
-/* Aligns button baseline with the input field (po-input has 8px invisible error space below) */
+/* Alinha a baseline do botão com o campo input (po-input tem 8px de espaço invisível de erro abaixo) */
 .btn-buscar  { margin-bottom: 4px; }
 
 /* ── Browse headers ──────────────────────────────────────────────────────── */
 /*
-  Active state uses border-top-color — NOT outline on the po-table container.
-  Reason: outline: 2px solid on .po-table-container draws on all 4 sides; when
-  the user scrolls the browse the bottom edge of the outline becomes visible as
-  a floating line, creating a visual artifact below the table.
+  O estado ativo usa border-top-color — NÃO outline no container do po-table.
+  Motivo: outline: 2px solid no .po-table-container desenha nos 4 lados; quando
+  o usuário rola o browse, a borda inferior do outline fica visível como
+  uma linha flutuante, criando um artefato visual abaixo da tabela.
 */
 .browse-cabecalho {
   display:         flex;
@@ -191,9 +191,9 @@
 }
 
 /*
-  "✕ Remover Filtro" is always red — the disabled state changes only the cursor
-  and removes the hover underline. This avoids visual inconsistency when the
-  filter state changes.
+  "✕ Remover Filtro" é sempre vermelho — o estado desabilitado muda apenas o cursor
+  e remove o sublinhado no hover. Isso evita inconsistência visual quando o
+  estado do filtro muda.
 */
 .link-remover-filtro {
   font-size:   0.72rem;
@@ -222,10 +222,10 @@
   ::ng-deep tbody tr td   { cursor: pointer; }
 
   /*
-    Suppress ALL browser focus rings inside the browse.
-    Without this, clicking a row or scrolling causes a blue outline to appear
-    on the po-table-container-overflow element — visible as a border around
-    the scroll area and as a floating line at the bottom edge during scroll.
+    Suprime TODOS os focos visuais do browser dentro do browse.
+    Sem isso, clicar em uma linha ou rolar causa o aparecimento de um contorno azul
+    no elemento po-table-container-overflow — visível como borda ao redor
+    da área de scroll e como linha flutuante na borda inferior durante o scroll.
   */
   ::ng-deep *:focus,
   ::ng-deep *:focus-visible {
@@ -234,7 +234,7 @@
   }
 }
 
-/* Master: hide PO-UI's built-in checkbox column (single-row navigation via p-selectable-entire-line) */
+/* Master: oculta a coluna de checkbox nativa do PO-UI (navegação por linha única via p-selectable-entire-line) */
 .master-browse {
   ::ng-deep thead th:first-child,
   ::ng-deep tbody td:first-child {
@@ -244,7 +244,7 @@
   }
 }
 
-/* Detail: unselected rows must stay transparent — only row-ativa shows highlight */
+/* Detail: linhas não selecionadas devem permanecer transparentes — apenas row-ativa mostra destaque */
 .detail-browse {
   ::ng-deep tbody tr:not(.row-ativa) td {
     background-color: transparent !important;
@@ -289,9 +289,9 @@ export interface {{DetailModel}} {
 
 ---
 
-## Height offset calibration
+## Calibração do offset de altura
 
-The `masterHeight` and `detailHeight` computeds use a 320px offset. Adjust if you add/remove fixed elements:
+Os computeds `masterHeight` e `detailHeight` usam um offset de 320px. Ajuste se você adicionar/remover elementos fixos:
 
 | Element | Approximate height |
 |---|---|
@@ -303,11 +303,11 @@ The `masterHeight` and `detailHeight` computeds use a 320px offset. Adjust if yo
 | Extra padding/margin | ~55px |
 | **Total** | **~320px** |
 
-Distribution 47% master / 40% detail leaves ~13% as natural breathing room. Increase the offset by 10-20px if you add a status bar or breadcrumb.
+Distribuição 47% master / 40% detail deixa ~13% como espaço natural de respiro. Aumente o offset em 10-20px se adicionar uma barra de status ou breadcrumb.
 
 ---
 
-## Placeholder reference for this template
+## Referência de placeholders deste template
 
 | Placeholder | Example |
 |---|---|

@@ -1,38 +1,38 @@
 # Template: stacked-browse
 
-Generates a master-detail screen with **two stacked po-table components**:
-- Top browse (master): user navigates rows with ArrowUp/Down; selecting a row loads its items in the detail browse below.
-- Bottom browse (detail): shows items of the selected master row; supports multi-select via checkboxes.
-- Tab key switches keyboard focus between the two browses.
-- Compact filter bar with "Remover Filtro" always visible in the master header.
+Gera uma tela master-detail com **dois componentes po-table empilhados**:
+- Browse superior (master): o usuário navega pelas linhas com ArrowUp/Down; selecionar uma linha carrega seus itens no browse de detalhe abaixo.
+- Browse inferior (detail): exibe os itens da linha master selecionada; suporta multi-seleção via checkboxes.
+- Tecla Tab alterna o foco do teclado entre os dois browses.
+- Barra de filtros compacta com "Remover Filtro" sempre visível no cabeçalho do master.
 
-Use cases: SC5/SC6 (orders + items), invoice lines, stock entries, any ERP master-detail where both levels need independent keyboard navigation.
+Casos de uso: SC5/SC6 (pedidos + itens), linhas de nota fiscal, entradas de estoque, qualquer master-detail ERP onde ambos os níveis precisam de navegação independente pelo teclado.
 
-> Use `two-panel-browse` for side-by-side reconciliation/matching.
-> Use `master-detail` for inline expandable rows (no separate detail browse needed).
-
----
-
-## Key patterns
-
-| Pattern | Implementation |
-|---|---|
-| Active browse indicator | `border-top-color` on `.browse-cabecalho` — never `outline` (outline creates a scroll artifact at the bottom edge of the browse) |
-| Keyboard navigation | `@HostListener('window:keydown')` routes ArrowUp/Down to active browse; Tab switches browse |
-| Scroll sync | `_scrollRowIntoView()` walks DOM to find real scrollable ancestor; callers use `setTimeout(..., 50)` NOT 0ms |
-| No page scroll | `masterHeight` + `detailHeight` computed signals using `_winH() - OFFSET` |
-| Focus ring suppression | `::ng-deep *:focus, ::ng-deep *:focus-visible { outline: none }` inside each browse container |
-| Compact filter bar | `--font-size: 12px` CSS variable on `.filtros-bar` cascades to all PO-UI children |
-| Remover Filtro | Always rendered + always red; cursor and underline-hover only when `isFiltrado()` is true |
-| Demo data | `const DEMO_*` at top of component file; loaded in `error` callback of service call |
+> Use `two-panel-browse` para conciliação/correspondência lado a lado.
+> Use `master-detail` para linhas expansíveis inline (sem browse de detalhe separado).
 
 ---
 
-## How to load sub-files
+## Padrões principais
 
-| What you are generating | File to load |
+| Padrão | Implementação |
 |---|---|
-| `.component.ts` only | `templates-stacked-browse-ts.md` |
-| `.component.html` + `.component.scss` only | `templates-stacked-browse-html.md` |
-| Model interfaces | `templates-stacked-browse-html.md` (contains model section) |
-| All artifacts | Load both sub-files |
+| Indicador de browse ativo | `border-top-color` em `.browse-cabecalho` — nunca `outline` (outline cria artefato de scroll na borda inferior do browse) |
+| Navegação pelo teclado | `@HostListener('window:keydown')` direciona ArrowUp/Down para o browse ativo; Tab alterna o browse |
+| Sincronização de scroll | `_scrollRowIntoView()` percorre o DOM para encontrar o ancestral scrollável real; chamadores usam `setTimeout(..., 50)` e NÃO 0ms |
+| Sem scroll na página | Signals computados `masterHeight` + `detailHeight` usando `_winH() - OFFSET` |
+| Supressão de foco visual | `::ng-deep *:focus, ::ng-deep *:focus-visible { outline: none }` dentro de cada container de browse |
+| Barra de filtros compacta | Variável CSS `--font-size: 12px` em `.filtros-bar` cascateia para todos os filhos PO-UI |
+| Remover Filtro | Sempre renderizado + sempre vermelho; cursor e sublinhado-hover apenas quando `isFiltrado()` é verdadeiro |
+| Dados de demonstração | `const DEMO_*` no topo do arquivo do componente; carregado no callback `error` da chamada do service |
+
+---
+
+## Como carregar os sub-arquivos
+
+| O que você está gerando | Arquivo a carregar |
+|---|---|
+| Apenas `.component.ts` | `templates-stacked-browse-ts.md` |
+| Apenas `.component.html` + `.component.scss` | `templates-stacked-browse-html.md` |
+| Interfaces do modelo | `templates-stacked-browse-html.md` (contém a seção do modelo) |
+| Todos os artefatos | Carregue ambos os sub-arquivos |

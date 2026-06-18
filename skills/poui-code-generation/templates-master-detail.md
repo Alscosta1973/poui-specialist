@@ -1,13 +1,13 @@
 # Template: master-detail
 
-Generates a `po-page-list` + `po-table` with expandable detail rows — the ERP pattern
-for parent records that embed child lists inline (orders with items, invoices with lines,
-stock movements with entries).
+Gera um `po-page-list` + `po-table` com linhas de detalhe expansíveis — o padrão ERP
+para registros pai que incorporam listas filhas inline (pedidos com itens, notas com linhas,
+movimentos de estoque com entradas).
 
-> **When to use vs alternatives:**
-> - `master-detail` → child records are display-only inline items (no separate CRUD for items)
-> - `page-list` + `page-edit` with `FormArray` → items need their own add/edit/delete UX
-> - `modal-crud` → child has up to ~10 fields and justifies a dedicated modal
+> **Quando usar vs alternativas:**
+> - `master-detail` → registros filhos são itens inline somente para exibição (sem CRUD próprio para os itens)
+> - `page-list` + `page-edit` com `FormArray` → itens precisam de UX própria de inclusão/edição/exclusão
+> - `modal-crud` → filho tem até ~10 campos e justifica um modal dedicado
 
 ## {{kebab-name}}.component.ts
 
@@ -181,8 +181,8 @@ export class {{ComponentClass}} implements OnInit {
   }
 
   // TODO: ajuste para os campos de {{DetailInterface}}
-  // IMPORTANT: PoTableDetailColumn does NOT support 'width' — remove all width properties
-  // from detail columns or the compiler throws TS2353 (unknown property).
+  // IMPORTANTE: PoTableDetailColumn NÃO suporta 'width' — remova todas as propriedades width
+  // das colunas de detalhe ou o compilador lançará TS2353 (propriedade desconhecida).
   private buildDetailConfig(): PoTableDetail {
     return {
       columns: [
@@ -240,7 +240,7 @@ export class {{ComponentClass}} implements OnInit {
 ## {{kebab-name}}.component.scss
 
 ```scss
-// Add component-specific styles here
+// Adicione estilos específicos do componente aqui
 ```
 
 ## models/{{modelFile}}.model.ts

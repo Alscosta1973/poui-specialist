@@ -1,12 +1,12 @@
 # Template: page-detail
 
-Generates a standalone `po-page-detail` component for read-only record visualization.
-Uses `po-dynamic-view` for field display and loads the record by route param `:id`.
+Gera um componente standalone `po-page-detail` para visualização de registro somente leitura.
+Usa `po-dynamic-view` para exibição dos campos e carrega o registro pelo parâmetro de rota `:id`.
 
-> **When to use vs alternatives:**
-> - `page-detail` → entity has a dedicated detail route, standalone read-only page
-> - `po-dynamic-view` inside `po-modal` → inline detail inside a list page (no separate route)
-> - `po-info` fields → few fixed fields with precise layout control
+> **Quando usar vs alternativas:**
+> - `page-detail` → entidade tem uma rota de detalhe dedicada, página standalone somente leitura
+> - `po-dynamic-view` dentro de `po-modal` → detalhe inline dentro de uma página de lista (sem rota separada)
+> - campos `po-info` → poucos campos fixos com controle preciso de layout
 
 ## {{kebab-name}}.component.ts
 
@@ -62,7 +62,7 @@ export class {{ComponentClass}} implements OnInit {
     ],
   };
 
-  // TODO: define view fields. gridColumns: 1-12; type: 'string'|'number'|'currency'|'date'|'dateTime'|'boolean'|'link'
+  // TODO: defina os campos de visualização. gridColumns: 1-12; type: 'string'|'number'|'currency'|'date'|'dateTime'|'boolean'|'link'
   readonly viewFields: PoDynamicViewField[] = [
     { property: 'codigo',      label: 'Código',       gridColumns: 3 },
     { property: 'nome',        label: 'Nome',         gridColumns: 9 },
@@ -154,10 +154,10 @@ export class {{ComponentClass}} implements OnInit {
 ## {{kebab-name}}.component.scss
 
 ```scss
-// Add component-specific styles here
+// Adicione estilos específicos do componente aqui
 ```
 
-## Route configuration
+## Configuração de rota
 
 ```typescript
 {
@@ -175,9 +175,9 @@ export class {{ComponentClass}} implements OnInit {
 },
 ```
 
-## Variant: with po-container sections
+## Variante: com seções po-container
 
-For entities with many fields, organize into labeled sections using `po-container`:
+Para entidades com muitos campos, organize em seções rotuladas usando `po-container`:
 
 ```html
 <po-page-detail
@@ -213,7 +213,7 @@ readonly contactFields: PoDynamicViewField[] = [
 ```
 
 ```typescript
-// Extra import needed for po-container variant
+// Import adicional necessário para a variante com po-container
 import { PoContainerModule } from '@po-ui/ng-components';
 // add PoContainerModule to imports: [...]
 ```

@@ -1,6 +1,6 @@
 # Template: module
 
-Generates the full Angular 17+ application scaffold: config, routing, shell component, entry point, and project files.
+Gera o scaffold completo de aplicação Angular 17+: config, roteamento, componente shell, ponto de entrada e arquivos de projeto.
 
 ---
 
@@ -33,7 +33,7 @@ import { Routes } from '@angular/router';
 
 export const routes: Routes = [
   { path: '', redirectTo: '{{firstRoute}}', pathMatch: 'full' },
-  // TODO: add feature routes using loadComponent:
+  // TODO: adicione as rotas de feature usando loadComponent:
   // {
   //   path: '{{firstRoute}}',
   //   loadComponent: () =>
@@ -95,7 +95,7 @@ export class AppComponent {
   }
 
   readonly menus: PoMenuItem[] = [
-    // TODO: add menu items matching routes
+    // TODO: adicione itens de menu correspondentes às rotas
     // { label: 'Pedidos', link: '/pedidos', shortLabel: 'Pedidos', icon: 'po-icon-user' },
     { label: 'Sair', shortLabel: 'Sair', icon: 'po-icon-exit', action: this.closeApp.bind(this) },
   ];
@@ -127,7 +127,7 @@ export class AppComponent {
 ## app.component.scss
 
 ```scss
-// Global app shell styles
+// Estilos globais do shell da aplicação
 ```
 
 ---
@@ -192,13 +192,13 @@ export class AppComponent {
 }
 ```
 
-> **Note:** Verify the latest compatible versions of `@po-ui/ng-components`, `@totvs/po-theme`, and `@totvs/protheus-lib-core` that match your Angular version on npm before running `npm install`.
+> **Nota:** Verifique as versões mais recentes compatíveis de `@po-ui/ng-components`, `@totvs/po-theme` e `@totvs/protheus-lib-core` que correspondam à sua versão do Angular no npm antes de executar `npm install`.
 
 ---
 
 ## angular.json (styles section — critical for PO-UI theme)
 
-The `architect.build.options.styles` array must include the PO-UI theme CSS files:
+O array `architect.build.options.styles` deve incluir os arquivos CSS do tema PO-UI:
 
 ```json
 "styles": [
@@ -209,13 +209,13 @@ The `architect.build.options.styles` array must include the PO-UI theme CSS file
 ]
 ```
 
-Without these files the PO-UI components render without any styling.
+Sem esses arquivos os componentes PO-UI são renderizados sem nenhum estilo.
 
 ---
 
 ## proxy.conf.json
 
-Used during local development to proxy `/rest` calls to the Protheus AppServer:
+Usado durante o desenvolvimento local para fazer proxy das chamadas `/rest` para o AppServer Protheus:
 
 ```json
 {
@@ -228,7 +228,7 @@ Used during local development to proxy `/rest` calls to the Protheus AppServer:
 }
 ```
 
-Run with: `ng serve --proxy-config proxy.conf.json`
+Execute com: `ng serve --proxy-config proxy.conf.json`
 
 ---
 

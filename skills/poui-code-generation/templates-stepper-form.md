@@ -1,12 +1,12 @@
 # Template: stepper-form
 
-Generates a standalone multi-step form using `po-stepper` — the PO-UI pattern for wizards and
-complex registration flows with 3+ logically distinct sections.
+Gera um formulário multi-etapas standalone usando `po-stepper` — o padrão PO-UI para wizards e
+fluxos de cadastro complexos com 3 ou mais seções logicamente distintas.
 
-> **When to use vs alternatives:**
-> - `stepper-form` → 3+ steps with distinct validation per step, wizard-style UX
-> - `page-edit` with `divider` → same form, single page, simpler entity
-> - `modal-crud` → all-in-one list+form for simple entities (up to ~10 fields)
+> **Quando usar vs alternativas:**
+> - `stepper-form` → 3 ou mais etapas com validação distinta por etapa, UX estilo wizard
+> - `page-edit` com `divider` → mesmo formulário, página única, entidade mais simples
+> - `modal-crud` → lista+formulário integrados para entidades simples (até ~10 campos)
 
 ## {{kebab-name}}.component.ts
 
@@ -68,7 +68,7 @@ export class {{ComponentClass}} {
     { label: 'Confirmação' },
   ];
 
-  // TODO: define one field array per step matching {{ModelInterface}} properties
+  // TODO: defina um array de campos por etapa correspondendo às propriedades de {{ModelInterface}}
   readonly step1Fields: PoDynamicFormField[] = [
     {
       property: 'codigo',
@@ -269,13 +269,13 @@ export class {{ComponentClass}} {
 ## {{kebab-name}}.component.scss
 
 ```scss
-// Add component-specific styles here
+// Adicione estilos específicos do componente aqui
 ```
 
-## Route configuration
+## Configuração de rota
 
 ```typescript
-// In your feature routes file
+// No arquivo de rotas da sua feature
 {
   path: 'novo',
   loadComponent: () =>
@@ -284,16 +284,16 @@ export class {{ComponentClass}} {
 },
 ```
 
-## Notes on po-stepper behavior
+## Notas sobre o comportamento do po-stepper
 
-- `[p-current-active-step]` is 1-based (step 1 = first item)
-- By default, the user can click any step directly — guard navigation with `onStepChange()` if you need validation before advancing
-- To mark steps as done/error programmatically, use `PoStepperItem.status: 'done' | 'error'` and update the `steps` array signal
+- `[p-current-active-step]` é baseado em 1 (etapa 1 = primeiro item)
+- Por padrão, o usuário pode clicar em qualquer etapa diretamente — proteja a navegação com `onStepChange()` se precisar de validação antes de avançar
+- Para marcar etapas como concluídas/com erro programaticamente, use `PoStepperItem.status: 'done' | 'error'` e atualize o signal do array `steps`
 
-## Variant: step-by-step validation before advancing
+## Variante: validação passo a passo antes de avançar
 
 ```typescript
-// Replace next() with a validated version:
+// Substitua next() por uma versão com validação:
 next(): void {
   if (this.isLastStep()) return;
   const isValid = this.validateCurrentStep();

@@ -1,9 +1,9 @@
 # Template: page-dynamic-search
 
-Generates a standalone list component using `po-page-dynamic-search` from `@po-ui/ng-templates` — the standard Protheus pattern for search pages with quick search, advanced search, and active-filter tags (disclaimers). Navigates to a separate edit page.
+Gera um componente de lista standalone usando `po-page-dynamic-search` de `@po-ui/ng-templates` — o padrão Protheus para páginas de busca com pesquisa rápida, pesquisa avançada e tags de filtros ativos (disclaimers). Navega para uma página de edição separada.
 
-> **When to use vs `page-list`:**
-> Use `page-dynamic-search` when the entity needs **advanced search with multiple fields**. Use `page-list` for simpler lists with only quick search.
+> **Quando usar vs `page-list`:**
+> Use `page-dynamic-search` quando a entidade precisar de **busca avançada com múltiplos campos**. Use `page-list` para listas mais simples com apenas pesquisa rápida.
 
 ## {{kebab-name}}.component.ts
 
@@ -60,10 +60,10 @@ export class {{ComponentClass}} implements OnInit {
   private readonly pageSize = 10;
   private activeFilters = '';
 
-  // TODO: define columns; use type:'label' + labels:[{value,color,label}] for status fields
+  // TODO: defina as colunas; use type:'label' + labels:[{value,color,label}] para campos de status
   readonly columns: PoTableColumn[] = [];
 
-  // TODO: define advanced search filters (sidebar panel); gridColumns 1-12
+  // TODO: defina os filtros de busca avançada (painel lateral); gridColumns 1-12
   readonly advancedFilters: PoPageDynamicSearchFilters[] = [
     // { property: 'codigo',    label: 'Código',     gridColumns: 6 },
     // { property: 'descricao', label: 'Descrição',  gridColumns: 6 },
@@ -212,5 +212,5 @@ export class {{ComponentClass}} implements OnInit {
 ## {{kebab-name}}.component.scss
 
 ```scss
-// Add component-specific styles here
+// Adicione estilos específicos do componente aqui
 ```

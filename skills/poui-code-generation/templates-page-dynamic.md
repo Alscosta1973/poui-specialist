@@ -1,14 +1,14 @@
 # Template: page-dynamic
 
-Generates a zero-boilerplate CRUD list screen using `PoPageDynamicTableComponent` from
-`@po-ui/ng-templates` — the fastest path to a working list page when the Protheus
-REST API follows the plugin's standard contract.
+Gera uma tela de lista CRUD sem boilerplate usando `PoPageDynamicTableComponent` de
+`@po-ui/ng-templates` — o caminho mais rápido para uma página de lista funcional quando a
+API REST do Protheus segue o contrato padrão do plugin.
 
-> **When to use vs `page-list`:**
-> - `page-dynamic` → API follows the standard contract, no custom loading logic needed.
->   Automatic pagination, search, advanced filters, disclaimers, and delete.
-> - `page-list` → Custom business logic in the component, computed columns, or API that
->   deviates from the standard contract.
+> **Quando usar vs `page-list`:**
+> - `page-dynamic` → API segue o contrato padrão, sem necessidade de lógica de carregamento customizada.
+>   Paginação, busca, filtros avançados, disclaimers e exclusão automáticos.
+> - `page-list` → Lógica de negócio customizada no componente, colunas computadas ou API que
+>   diverge do contrato padrão.
 
 > **Prerequisite:** `npm install @po-ui/ng-templates`
 
@@ -43,7 +43,7 @@ export class {{ComponentClass}} {
     ],
   };
 
-  // TODO: define columns and search filters matching {{ModelInterface}} fields.
+  // TODO: defina as colunas e filtros de busca correspondentes aos campos de {{ModelInterface}}.
   //
   // key: true       → campo que compõe a chave para rotas de detalhe/edição
   // filter: true    → aparece no formulário de busca avançada
@@ -63,7 +63,7 @@ export class {{ComponentClass}} {
       duplicate: true,
       filter:    true,
     },
-    // Example: status field with colored labels
+    // Exemplo: campo de status com labels coloridos
     // {
     //   property: 'ativo',
     //   label:    'Status',
@@ -75,7 +75,7 @@ export class {{ComponentClass}} {
     //   ],
     // },
 
-    // Example: date column with advanced search
+    // Exemplo: coluna de data com busca avançada
     // {
     //   property:    'dataEmissao',
     //   label:       'Emissão',
@@ -86,7 +86,7 @@ export class {{ComponentClass}} {
     //   gridColumns: 4,              // width in advanced search form (1-12)
     // },
 
-    // Example: currency column
+    // Exemplo: coluna de moeda
     // {
     //   property: 'valorTotal',
     //   label:    'Valor Total',
@@ -94,7 +94,7 @@ export class {{ComponentClass}} {
     //   width:    '12%',
     // },
 
-    // Example: composite key — loja hidden in table but part of route
+    // Exemplo: chave composta — loja oculta na tabela mas faz parte da rota
     // { property: 'loja', label: 'Loja', key: true, visible: false },
   ];
 
@@ -123,13 +123,13 @@ export class {{ComponentClass}} {
 ## {{kebab-name}}.component.scss
 
 ```scss
-// Add component-specific styles here
+// Adicione estilos específicos do componente aqui
 ```
 
-## Route configuration
+## Configuração de rota
 
 ```typescript
-// In your feature routes file (e.g., pedidos.routes.ts)
+// No arquivo de rotas da sua feature (ex: pedidos.routes.ts)
 import { Routes } from '@angular/router';
 
 export const {{moduleName}}Routes: Routes = [
@@ -162,7 +162,7 @@ export const {{moduleName}}Routes: Routes = [
 
 ## API contract required
 
-`PoPageDynamicTableComponent` calls the API automatically — no service code needed in the component:
+`PoPageDynamicTableComponent` chama a API automaticamente — nenhum código de service é necessário no componente:
 
 ```
 GET  {{apiPath}}?page=1&pageSize=10&search=termo&fields=codigo,nome
@@ -172,13 +172,13 @@ DELETE {{apiPath}}/{key}
      Response 204: No Content
 ```
 
-Both endpoints follow the plugin's standard Protheus REST contract.
-See `templates-tlpp-contract.md` for the ADVPL/TLPP backend skeleton.
+Ambos os endpoints seguem o contrato REST Protheus padrão do plugin.
+Consulte `templates-tlpp-contract.md` para o esqueleto do backend ADVPL/TLPP.
 
-## Companion: edit page with PoPageDynamicEdit
+## Complemento: página de edição com PoPageDynamicEdit
 
-Pair this template with `PoPageDynamicEditComponent` for a fully automatic CRUD with
-zero boilerplate in both list and edit:
+Combine este template com `PoPageDynamicEditComponent` para um CRUD completamente automático com
+zero boilerplate tanto na lista quanto na edição:
 
 ```typescript
 // {{kebab-name-edit}}.component.ts
@@ -208,7 +208,7 @@ export class {{ComponentClassEdit}} {
     ],
   };
 
-  // TODO: define fields — for complete reference see dynamic-form-fields.md
+  // TODO: defina os campos — para referência completa consulte dynamic-form-fields.md
   readonly fields: PoDynamicFormField[] = [
     { property: 'codigo', label: 'Código', required: true, maxLength: 6, gridColumns: 4, key: true },
     { property: 'nome',   label: 'Nome',   required: true, maxLength: 40, gridColumns: 8 },
@@ -216,10 +216,10 @@ export class {{ComponentClassEdit}} {
 }
 ```
 
-## Composite key (código + loja)
+## Chave composta (código + loja)
 
-For Protheus entities with composite keys, mark both fields with `key: true`.
-The component builds routes as `:codigo/:loja/editar` automatically:
+Para entidades Protheus com chaves compostas, marque ambos os campos com `key: true`.
+O componente constrói as rotas como `:codigo/:loja/editar` automaticamente:
 
 ```typescript
 readonly fields: PoPageDynamicTableField[] = [
@@ -236,7 +236,7 @@ readonly actions: PoPageDynamicTableActions = {
 };
 ```
 
-The backend DELETE endpoint must accept both key segments:
+O endpoint DELETE do backend deve aceitar ambos os segmentos da chave:
 ```
 DELETE {{apiPath}}/{codigo}/{loja}   → 204 No Content
 ```
