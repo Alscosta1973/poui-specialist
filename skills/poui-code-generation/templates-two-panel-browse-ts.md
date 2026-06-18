@@ -1,7 +1,7 @@
 # Template: two-panel-browse — TypeScript component
 
-> Sub-file of `templates-two-panel-browse.md`. Load this file when generating `.component.ts`.
-> Load `templates-two-panel-browse-html.md` for `.component.html` and `.component.scss`.
+> Sub-arquivo de `templates-two-panel-browse.md`. Use este arquivo ao gerar `.component.ts`.
+> Use `templates-two-panel-browse-html.md` para `.component.html` e `.component.scss`.
 
 ---
 
@@ -50,39 +50,39 @@ export class {{ComponentClass}} implements OnInit, AfterViewInit {
   private readonly destroyRef   = inject(DestroyRef);
   private readonly cdr          = inject(ChangeDetectorRef);
 
-  // ── Filter fields (adjust to your domain)
+  // ── Campos de filtro (ajuste ao seu domínio)
   filtro1 = '';
   filtro2 = '';
   filtro3 = '';
 
-  // ── State
+  // ── Estado
   readonly loading      = signal(false);
   readonly leftItems    = signal<{{LeftModel}}[]>([]);
   readonly rightItems   = signal<{{RightModel}}[]>([]);
   readonly selectedLeft = signal<{{LeftModel}} | null>(null);
   readonly selectedRight= signal<{{RightModel}} | null>(null);
 
-  // ── Keyboard navigation
+  // ── Navegação por teclado
   readonly cursorLeft   = signal<number>(-1);
   readonly cursorRight  = signal<number>(-1);
   readonly activeBrowse = signal<'left' | 'right'>('left');
 
-  // ── Dynamic height (no page scroll)
-  // OFFSET = sum of all fixed-height elements outside the browse:
-  //   PO shell (~232px) + header (~90px) + browse-title (~30px) + footer (~50px) = ~402px
-  // Add ~36px when a contextual status bar is visible.
+  // ── Altura dinâmica (sem scroll na página)
+  // OFFSET = soma de todos os elementos de altura fixa fora do browse:
+  //   PO shell (~232px) + cabeçalho (~90px) + título do browse (~30px) + rodapé (~50px) = ~402px
+  // Adicione ~36px quando a barra de status contextual estiver visível.
   private readonly _winH = signal(window.innerHeight);
   readonly browseHeight = computed(() =>
     Math.max(180, this._winH() - (this.selectedLeft() ? 438 : 402))
   );
 
-  // ── Column definitions
-  // IMPORTANT: sum of all p-width values + 41px (checkbox) must equal panel width.
-  // Panel width = (viewport - sidebar - page-padding - gap) / 2
-  // For 1366px viewport: (1366 - 280 - 32 - 4) / 2 = 525px → panel ≈ 520px
-  // Data columns budget: 520 - 41 = 479px
+  // ── Definição de colunas
+  // IMPORTANTE: a soma de todos os p-width + 41px (checkbox) deve ser igual à largura do painel.
+  // Largura do painel = (viewport - sidebar - padding-da-página - gap) / 2
+  // Para viewport 1366px: (1366 - 280 - 32 - 4) / 2 = 525px → painel ≈ 520px
+  // Orçamento de colunas de dados: 520 - 41 = 479px
   readonly colunasLeft: PoTableColumn[] = [
-    // TODO: adjust widths so they sum to (panel_width - 41)
+    // TODO: ajuste as larguras para que a soma seja (largura_painel - 41)
     { property: 'status',   label: 'St.',    width: '28px', type: 'columnTemplate' },
     { property: 'data',     label: 'Data',   width: '84px', type: 'date', format: 'dd/MM/yyyy' },
     { property: 'titulo',   label: 'Título', width: '60px' },
@@ -95,7 +95,7 @@ export class {{ComponentClass}} implements OnInit, AfterViewInit {
   ];
 
   readonly colunasRight: PoTableColumn[] = [
-    // TODO: adjust widths so they sum to (panel_width - 41)
+    // TODO: ajuste as larguras para que a soma seja (largura_painel - 41)
     { property: 'status',   label: 'St.',    width: '28px', type: 'columnTemplate' },
     { property: 'pedido',   label: 'Pedido', width: '70px' },
     { property: 'emissao',  label: 'Emissão',width: '84px', type: 'date', format: 'dd/MM/yyyy' },
@@ -174,9 +174,9 @@ export class {{ComponentClass}} implements OnInit, AfterViewInit {
     this._scrollRowIntoView(row);
   }
 
-  // Walks up from the row to find the real scrollable ancestor.
-  // Callers MUST use setTimeout(..., 50) — NOT 0ms — so PO-UI's change detection
-  // has completed and getBoundingClientRect() returns correct values.
+  // Sobe na árvore DOM a partir da linha para encontrar o ancestral rolável real.
+  // Quem chamar DEVE usar setTimeout(..., 50) — NÃO 0ms — para que a detecção de mudanças
+  // do PO-UI tenha concluído e getBoundingClientRect() retorne valores corretos.
   private _scrollRowIntoView(row: HTMLElement): void {
     let container: HTMLElement | null = row.parentElement;
     while (container && container !== document.documentElement) {
@@ -234,7 +234,7 @@ export class {{ComponentClass}} implements OnInit, AfterViewInit {
       .subscribe({
         next: () => {
           this.notification.success('Operação confirmada com sucesso.');
-          // Mark both rows as processed in place (status '2' = done, adjust per domain)
+          // Marca as duas linhas como processadas no lugar (status '2' = concluído, ajuste ao domínio)
           this.leftItems.update(rows =>
             rows.map(r => r['id'] === left['id']  ? { ...r, status: '2', $selected: false } : r)
           );
@@ -260,7 +260,7 @@ export class {{ComponentClass}} implements OnInit, AfterViewInit {
     this.cdr.markForCheck();
   }
 
-  // ── Left browse: single-select, only status '1' selectable
+  // ── Browse esquerdo: seleção única, apenas status '1' é selecionável
   onSelectLeft(item: {{LeftModel}}): void {
     if (item['status'] !== '1') {
       this.notification.warning('Apenas registros não processados podem ser selecionados.');
@@ -273,7 +273,7 @@ export class {{ComponentClass}} implements OnInit, AfterViewInit {
       this.leftItems.update(rows => rows.map(r => r['id'] === prev['id'] ? { ...r, $selected: false } : r));
     }
     this.selectedLeft.set(item);
-    // Clear right selection when left changes
+    // Limpa a seleção direita quando a esquerda muda
     this.selectedRight.set(null);
     this.rightItems.update(rows => rows.map(r => ({ ...r, $selected: false })));
     this.cdr.markForCheck();
@@ -294,7 +294,7 @@ export class {{ComponentClass}} implements OnInit, AfterViewInit {
     this.cdr.markForCheck();
   }
 
-  // ── Right browse: requires left to be selected first
+  // ── Browse direito: exige que o esquerdo seja selecionado primeiro
   onSelectRight(item: {{RightModel}}): void {
     if (!this.selectedLeft()) {
       this.notification.warning('Selecione primeiro um registro no painel esquerdo.');
@@ -329,7 +329,7 @@ export class {{ComponentClass}} implements OnInit, AfterViewInit {
   }
 
   statusLabel(status: string): string {
-    // TODO: adjust labels to your domain
+    // TODO: ajuste os rótulos ao seu domínio
     const map: Record<string, string> = {
       '1': 'Não Processado',
       '2': 'Processado',

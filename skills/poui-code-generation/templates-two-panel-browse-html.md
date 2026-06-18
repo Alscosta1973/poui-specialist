@@ -1,7 +1,7 @@
 # Template: two-panel-browse — HTML, SCSS, model
 
-> Sub-file of `templates-two-panel-browse.md`. Load this file when generating `.component.html`, `.component.scss`, or model interfaces.
-> Load `templates-two-panel-browse-ts.md` for `.component.ts`.
+> Sub-arquivo de `templates-two-panel-browse.md`. Use este arquivo ao gerar `.component.html`, `.component.scss` ou interfaces de modelo.
+> Use `templates-two-panel-browse-ts.md` para `.component.ts`.
 
 ---
 
@@ -10,10 +10,10 @@
 ```html
 <po-page-default p-title="{{PageTitle}}">
 
-  <!-- Header: filter inputs + action buttons -->
-  <!-- ALIGNMENT NOTE: po-input reserves 8px below the field for error messages.
-       .header-botoes needs margin-bottom:8px so buttons align with the input field,
-       not the invisible error-space below it. See SCSS. -->
+  <!-- Cabeçalho: campos de filtro + botões de ação -->
+  <!-- NOTA DE ALINHAMENTO: po-input reserva 8px abaixo do campo para mensagens de erro.
+       .header-botoes precisa de margin-bottom:8px para que os botões alinhem com o campo,
+       e não com o espaço invisível abaixo dele. Veja o SCSS. -->
   <div class="div-header">
     <div class="header-filtros">
       <po-input
@@ -54,7 +54,7 @@
     </div>
   </div>
 
-  <!-- Contextual status bar — appears only when left row is selected -->
+  <!-- Barra de status contextual — aparece apenas quando uma linha esquerda está selecionada -->
   <div class="div-status-sel" *ngIf="selectedLeft()">
     <span class="sel-info">
       Selecionado: <strong>{{ selectedLeft()!['id'] }}</strong>
@@ -63,10 +63,10 @@
     <span class="sel-seta" *ngIf="selectedRight()">✓ Pronto — clique em Confirmar</span>
   </div>
 
-  <!-- Two browse panels side by side -->
+  <!-- Dois painéis de browse lado a lado -->
   <div class="div-browses">
 
-    <!-- Left browse -->
+    <!-- Browse esquerdo -->
     <div class="browse-panel browse-panel-left" (click)="onPanelLeftClick()">
       <div class="browse-titulo" [class.browse-titulo-ativo]="activeBrowse() === 'left'">
         <span class="browse-nome">{{LeftPanelTitle}}</span>
@@ -101,7 +101,7 @@
       </po-table>
     </div>
 
-    <!-- Right browse -->
+    <!-- Browse direito -->
     <div class="browse-panel browse-panel-right" (click)="onPanelRightClick()">
       <div class="browse-titulo" [class.browse-titulo-ativo]="activeBrowse() === 'right'">
         <span class="browse-nome">{{RightPanelTitle}}</span>
@@ -138,7 +138,7 @@
 
   </div>
 
-  <!-- Status legend -->
+  <!-- Legenda de status -->
   <div class="div-legenda">
     <!-- TODO: adjust to your domain status codes -->
     <span class="legenda-item"><span class="status-dot status-dot-1"></span> Não Processado</span>
@@ -146,7 +146,7 @@
     <span class="legenda-item"><span class="status-dot status-dot-3"></span> Com Erro</span>
   </div>
 
-  <!-- Footer totals -->
+  <!-- Totais do rodapé -->
   <div class="div-totais">
     <div class="total-item">
       <span class="total-label">Total:</span>
@@ -167,7 +167,7 @@
   font-size: 12px;
 }
 
-// ── Header: filter inputs + action buttons
+// ── Cabeçalho: campos de filtro + botões de ação
 .div-header {
   display: flex;
   flex-wrap: wrap;
@@ -186,9 +186,9 @@
     .input-f1 { width: 100px; }
     .input-f2 { width: 100px; }
 
-    // po-button inside a flex container with align-items:flex-end needs margin-bottom:8px
-    // because po-input reserves 8px below the visible field for error messages.
-    // Without this, the button sits 8px lower than the input field.
+    // po-button dentro de flex container com align-items:flex-end precisa de margin-bottom:8px
+    // pois po-input reserva 8px abaixo do campo visível para mensagens de erro.
+    // Sem isso, o botão fica 8px mais baixo que o campo.
     po-button { margin-bottom: 8px; }
   }
 
@@ -197,12 +197,12 @@
     align-items: center;
     gap: 6px;
     margin-left: auto;
-    // Same 8px offset correction for the right-side buttons
+    // Mesma correção de 8px para os botões do lado direito
     margin-bottom: 8px;
   }
 }
 
-// ── Contextual status bar (visible when left row is selected)
+// ── Barra de status contextual (visível quando linha esquerda está selecionada)
 .div-status-sel {
   display: flex;
   align-items: center;
@@ -221,8 +221,8 @@
   }
 }
 
-// ── Two browse panels side by side
-// gap: 4px (not 8px) to maximize panel width and avoid horizontal scroll
+// ── Dois painéis de browse lado a lado
+// gap: 4px (não 8px) para maximizar a largura do painel e evitar scroll horizontal
 .div-browses {
   display: flex;
   gap: 4px;
@@ -235,20 +235,20 @@
   display: flex;
   flex-direction: column;
 
-  // Hide the column-manager gear (controlled via a dedicated button if needed)
+  // Oculta o ícone de gerenciar colunas (controlado por botão dedicado se necessário)
   ::ng-deep .po-table-actions-column-manager {
     display: none;
   }
 
-  // Reduce internal checkbox column from 56px to ~41px
-  // po-table-column-selectable is PO-UI's internal selectable column; not controllable via p-width
+  // Reduz coluna de checkbox interna de 56px para ~41px
+  // po-table-column-selectable é a coluna interna do PO-UI; não controlável via p-width
   ::ng-deep .po-table-column-selectable {
     width: 41px !important;
     min-width: 41px !important;
     max-width: 41px !important;
   }
 
-  // Compact rows
+  // Linhas compactas
   ::ng-deep tbody td {
     padding-top: 3px !important;
     padding-bottom: 3px !important;
@@ -259,11 +259,11 @@
     font-size: 11px;
   }
 
-  // Row highlight from keyboard navigation (set via classList in component)
+  // Destaque de linha na navegação por teclado (definido via classList no componente)
   ::ng-deep .row-ativa td { background-color: #dbeafe !important; }
 
-  // Suppress ALL browser focus rings — prevents the blue outline artifact that
-  // appears on the po-table-container-overflow element when clicking or scrolling.
+  // Remove todos os rings de foco do browser — evita o artefato de contorno azul que
+  // aparece no po-table-container-overflow ao clicar ou rolar a tabela.
   ::ng-deep *:focus,
   ::ng-deep *:focus-visible {
     outline:    none !important;
@@ -281,8 +281,8 @@
   border-bottom: none;
   border-top-left-radius: 4px;
   border-top-right-radius: 4px;
-  // Active-panel indicator: 2px top border changes color (same pattern as stacked-browse).
-  // Using border-top-color avoids the scroll artifact caused by outline on the table container.
+  // Indicador de painel ativo: borda superior de 2px muda de cor (mesmo padrão do stacked-browse).
+  // Usar border-top-color evita o artefato de scroll causado por outline no container da tabela.
   border-top: 2px solid var(--color-neutral-light-10, #e0e0e0);
   transition: border-top-color 0.1s;
 
@@ -294,7 +294,7 @@
   border-top-color: var(--color-action-default, #0079c3) !important;
 }
 
-// ── Status dot (colored circle in St. column)
+// ── Ponto de status (círculo colorido na coluna St.)
 .status-dot {
   display: inline-block;
   width: 10px;
@@ -304,16 +304,16 @@
   flex-shrink: 0;
 }
 
-// TODO: adjust colors to your domain status codes
+// TODO: ajuste as cores conforme os códigos de status do seu domínio
 .status-dot-1 { background-color: #1565c0; }  // Não Processado — azul
 .status-dot-2 { background-color: #2e7d32; }  // Processado — verde
 .status-dot-3 { background-color: #c62828; }  // Com Erro — vermelho
 
-// ── Monetary values (right-aligned, colored)
+// ── Valores monetários (alinhados à direita, coloridos)
 .valor-num  { display: block; text-align: right; font-size: 11px; font-weight: 600; color: #1565c0; }
 .valor-taxa { color: #d32f2f; }
 
-// ── Status legend
+// ── Legenda de status
 .div-legenda {
   display: flex;
   align-items: center;
@@ -335,7 +335,7 @@
   }
 }
 
-// ── Footer totals
+// ── Totais do rodapé
 .div-totais {
   display: flex;
   align-items: center;
@@ -352,29 +352,29 @@
 
 ---
 
-## Horizontal scroll prevention — column width calculation
+## Prevenção de scroll horizontal — cálculo de largura de colunas
 
-> **This is the most common mistake when building two-panel browses.**
-> Each browse panel must have `tableWidth === panelWidth`. If `tableWidth > panelWidth`, po-table adds a horizontal scrollbar.
+> **Este é o erro mais comum ao construir telas de dois painéis.**
+> Cada painel de browse precisa ter `tableWidth === panelWidth`. Se `tableWidth > panelWidth`, o po-table exibe uma barra de rolagem horizontal.
 
-### Formula
+### Fórmula
 
 ```
-panel_width = (viewport_width - sidebar_width - page_padding - inter_panel_gap) / 2
-checkbox_width = 41px  (after ::ng-deep override; po-table default is 56px)
-data_columns_budget = panel_width - checkbox_width
+largura_painel = (viewport_width - largura_sidebar - padding_pagina - gap_entre_paineis) / 2
+largura_checkbox = 41px  (após override com ::ng-deep; padrão po-table é 56px)
+orçamento_colunas_dados = largura_painel - largura_checkbox
 ```
 
-Typical values at 1366px viewport:
+Valores típicos com viewport de 1366px:
 - Sidebar: 280px
-- po-page-default content padding: 32px (16px each side)
-- Inter-panel gap: 4px (use gap:4px in .div-browses, not 8px)
-- Per panel: (1366 - 280 - 32 - 4) / 2 = **525px** (actual rendered ~520px — measure with Playwright)
+- Padding do conteúdo po-page-default: 32px (16px de cada lado)
+- Gap entre painéis: 4px (use gap:4px em .div-browses, não 8px)
+- Por painel: (1366 - 280 - 32 - 4) / 2 = **525px** (renderizado real ~520px — meça com Playwright)
 
-### Verification with Playwright
+### Verificação com Playwright
 
 ```javascript
-// Run after page loads to verify overflow
+// Execute após o carregamento da página para verificar overflow
 const r = await page.evaluate(() =>
   Array.from(document.querySelectorAll('.browse-panel')).map(p => {
     const pr = p.getBoundingClientRect();
@@ -382,21 +382,21 @@ const r = await page.evaluate(() =>
     return { panelW: Math.round(pr.width), tableW: Math.round(tr?.width ?? 0), overflow: Math.round((tr?.width ?? 0) - pr.width) };
   })
 );
-// overflow must be 0 on both panels
+// overflow deve ser 0 nos dois painéis
 ```
 
-### Column width sizing reference
+### Referência de dimensionamento de colunas
 
-At **11px font** with **8px horizontal cell padding** (16px total per cell), minimum visible text area = `column_width - 16px`.
+Com **fonte 11px** e **8px de padding horizontal por célula** (16px no total por célula), área mínima visível = `largura_coluna - 16px`.
 
-| Content type | Typical content | Min column |
+| Tipo de conteúdo | Conteúdo típico | Col. mín. |
 |---|---|---|
-| Date `dd/MM/yyyy` | "10/01/2025" (65px text) | 84px |
-| Currency | "3.200,00" (48px text) | 68px |
-| Short code | "NF001" (30px text) | 50px |
-| Medium code | "PED001" (36px text) | 58px |
-| Status dot | 10px dot | 28px |
-| Parcel "001" | 18px text | 36px |
+| Data `dd/MM/yyyy` | "10/01/2025" (65px texto) | 84px |
+| Monetário | "3.200,00" (48px texto) | 68px |
+| Código curto | "NF001" (30px texto) | 50px |
+| Código médio | "PED001" (36px texto) | 58px |
+| Ponto de status | círculo 10px | 28px |
+| Parcela "001" | 18px texto | 36px |
 
 ---
 
@@ -405,8 +405,8 @@ At **11px font** with **8px horizontal cell padding** (16px total per cell), min
 ```typescript
 export interface {{LeftModel}} {
   id: string;
-  status: string;    // '1' = not processed, '2' = processed, '3' = error
-  data: string;      // ISO date yyyy-MM-dd
+  status: string;    // '1' = não processado, '2' = processado, '3' = com erro
+  data: string;      // data ISO yyyy-MM-dd
   titulo: string;
   pedido: string;
   parcela: string;
@@ -419,7 +419,7 @@ export interface {{RightModel}} {
   id: string;
   status: string;
   pedido: string;
-  emissao: string;   // ISO date yyyy-MM-dd
+  emissao: string;   // data ISO yyyy-MM-dd
   titulo: string;
   parcela: string;
   valor: number;
