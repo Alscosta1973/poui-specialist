@@ -1,7 +1,7 @@
 # Template: stacked-browse — HTML, SCSS, model
 
-> Sub-file of `templates-stacked-browse.md`. Load this file when generating `.component.html`, `.component.scss`, or the model interface.
-> Load `templates-stacked-browse-ts.md` for `.component.ts`.
+> Sub-arquivo de `templates-stacked-browse.md`. Use este arquivo ao gerar `.component.html`, `.component.scss` ou a interface de modelo.
+> Use `templates-stacked-browse-ts.md` para `.component.ts`.
 
 ---
 
@@ -129,7 +129,7 @@
 
   /*
     --font-size: 12px cascateia para TODOS os filhos PO-UI via var(--font-size):
-    labels, inputs, datepickers e buttons encolhem uniformemente.
+    labels, inputs, datepickers e botões encolhem uniformemente.
     O min-height e o padding forçados abaixo compactam ainda mais os inputs.
   */
   --font-size: 12px;
@@ -143,16 +143,16 @@
 /*
   po-datepicker tem 44px de padding à direita para o ícone do calendário.
   Em fonte 12px, 170px comporta "dd/MM/yyyy" (10 chars × ~8px + 44px ícone + 6px padding).
-  NÃO reduza abaixo de 170px — o último dígito do ano será cortado.
+  NÃO reduza abaixo de 170px — o último dígito do ano ficará cortado.
 */
 .filtro-data { width: 170px; }
 
-/* Alinha a baseline do botão com o campo input (po-input tem 8px de espaço invisível de erro abaixo) */
+/* Alinha a baseline do botão com o campo input (po-input tem 8px de espaço de erro invisível abaixo) */
 .btn-buscar  { margin-bottom: 4px; }
 
 /* ── Browse headers ──────────────────────────────────────────────────────── */
 /*
-  O estado ativo usa border-top-color — NÃO outline no container do po-table.
+  O estado ativo usa border-top-color — NUNCA outline no container do po-table.
   Motivo: outline: 2px solid no .po-table-container desenha nos 4 lados; quando
   o usuário rola o browse, a borda inferior do outline fica visível como
   uma linha flutuante, criando um artefato visual abaixo da tabela.
@@ -191,7 +191,7 @@
 }
 
 /*
-  "✕ Remover Filtro" é sempre vermelho — o estado desabilitado muda apenas o cursor
+  "✕ Remover Filtro" é sempre vermelho — o estado inativo muda apenas o cursor
   e remove o sublinhado no hover. Isso evita inconsistência visual quando o
   estado do filtro muda.
 */
@@ -223,8 +223,8 @@
 
   /*
     Suprime TODOS os focos visuais do browser dentro do browse.
-    Sem isso, clicar em uma linha ou rolar causa o aparecimento de um contorno azul
-    no elemento po-table-container-overflow — visível como borda ao redor
+    Sem isso, clicar numa linha ou rolar causa um contorno azul no
+    elemento po-table-container-overflow — visível como borda ao redor
     da área de scroll e como linha flutuante na borda inferior durante o scroll.
   */
   ::ng-deep *:focus,
@@ -234,7 +234,7 @@
   }
 }
 
-/* Master: oculta a coluna de checkbox nativa do PO-UI (navegação por linha única via p-selectable-entire-line) */
+/* Master: oculta a coluna de checkbox nativa do PO-UI (seleção por linha inteira via p-selectable-entire-line) */
 .master-browse {
   ::ng-deep thead th:first-child,
   ::ng-deep tbody td:first-child {
@@ -244,7 +244,7 @@
   }
 }
 
-/* Detail: linhas não selecionadas devem permanecer transparentes — apenas row-ativa mostra destaque */
+/* Detail: linhas não selecionadas permanecem transparentes — somente row-ativa exibe destaque */
 .detail-browse {
   ::ng-deep tbody tr:not(.row-ativa) td {
     background-color: transparent !important;
@@ -273,7 +273,7 @@
 export interface {{MasterModel}} {
   {{masterKey}}: string;
   descricao:    string;
-  dataEmissao:  string;   // ISO 8601 'YYYY-MM-DD' — use _toISO() in component for filter comparison
+  dataEmissao:  string;   // ISO 8601 'YYYY-MM-DD' — use _toISO() no componente para comparação no filtro
   valor:        number;
   status:       'A' | 'F' | 'C';
 }
@@ -293,14 +293,14 @@ export interface {{DetailModel}} {
 
 Os computeds `masterHeight` e `detailHeight` usam um offset de 320px. Ajuste se você adicionar/remover elementos fixos:
 
-| Element | Approximate height |
+| Elemento | Altura aprox. |
 |---|---|
 | PO shell navbar | ~60px |
-| po-page-default title + padding | ~80px |
-| `.filtros-bar` (compact, 12px font) | ~50px |
+| Título do po-page-default + padding | ~80px |
+| `.filtros-bar` (compacta, fonte 12px) | ~50px |
 | `.browse-cabecalho` × 2 | ~30px |
 | `.rodape-bar` | ~45px |
-| Extra padding/margin | ~55px |
+| Padding/margem extras | ~55px |
 | **Total** | **~320px** |
 
 Distribuição 47% master / 40% detail deixa ~13% como espaço natural de respiro. Aumente o offset em 10-20px se adicionar uma barra de status ou breadcrumb.
@@ -309,7 +309,7 @@ Distribuição 47% master / 40% detail deixa ~13% como espaço natural de respir
 
 ## Referência de placeholders deste template
 
-| Placeholder | Example |
+| Placeholder | Exemplo |
 |---|---|
 | `{{MasterModel}}` | `PedidoSC5` |
 | `{{DetailModel}}` | `ItemSC6` |

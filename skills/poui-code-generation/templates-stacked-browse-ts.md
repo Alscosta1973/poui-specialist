@@ -1,7 +1,7 @@
 # Template: stacked-browse — TypeScript component
 
-> Sub-file of `templates-stacked-browse.md`. Load this file when generating `.component.ts`.
-> Load `templates-stacked-browse-html.md` for `.component.html` and `.component.scss`.
+> Sub-arquivo de `templates-stacked-browse.md`. Use este arquivo ao gerar `.component.ts`.
+> Use `templates-stacked-browse-html.md` para `.component.html` e `.component.scss`.
 
 ---
 
@@ -40,9 +40,9 @@ import {
 import { {{ServiceClass}} } from '../{{serviceFile}}';
 import { {{MasterModel}}, {{DetailModel}} } from '../models/{{modelFile}}.model';
 
-// Demo data — remove when wiring the real service
+// Dados de demonstração — remova ao conectar o service real
 const DEMO_MASTER: {{MasterModel}}[] = [
-  // TODO: populate with realistic sample records
+  // TODO: preencha com registros de exemplo realistas
   { {{masterKey}}: '000001', descricao: 'Exemplo 1', status: 'A', dataEmissao: '2026-06-01', valor: 1000 } as any,
   { {{masterKey}}: '000002', descricao: 'Exemplo 2', status: 'A', dataEmissao: '2026-06-02', valor: 2000 } as any,
   { {{masterKey}}: '000003', descricao: 'Exemplo 3', status: 'F', dataEmissao: '2026-06-03', valor: 3000 } as any,
@@ -85,17 +85,17 @@ export class {{ComponentClass}} implements OnInit {
   readonly activeBrowse = signal<'master' | 'detail'>('master');
   readonly isFiltrado   = signal(false);
 
-  // ── Responsive heights — no page scroll
-  // Offset 320px = PO shell navbar + page title + filtros-bar + browse headers + rodapé
-  // Adjust if you add/remove fixed elements.
+  // ── Alturas responsivas — sem scroll na página
+  // Offset 320px = PO shell navbar + título da página + filtros-bar + cabeçalhos dos browses + rodapé
+  // Ajuste se adicionar/remover elementos fixos.
   private readonly _winH = signal(window.innerHeight);
   readonly masterHeight  = computed(() => Math.max(160, Math.floor((this._winH() - 320) * 0.47)));
   readonly detailHeight  = computed(() => Math.max(140, Math.floor((this._winH() - 320) * 0.40)));
 
-  // ── Filter fields (plain object — simpler than signals for a group of form fields)
+  // ── Campos de filtro (objeto simples — mais direto que signals para um grupo de campos de formulário)
   filtros = { campo1: '', campo2: '', dataDE: '', dataATE: '' };
 
-  // ── Column definitions — TODO: replace with your domain fields
+  // ── Definição de colunas — TODO: substitua pelos campos do seu domínio
   readonly colunasMaster: PoTableColumn[] = [
     { property: '{{masterKey}}', label: 'Código',   width: '100px' },
     { property: 'descricao',     label: 'Descrição' },
@@ -210,11 +210,11 @@ export class {{ComponentClass}} implements OnInit {
     this._scrollRowIntoView(row);
   }
 
-  // Walks up from the row to find the real scrollable ancestor.
-  // Callers MUST use setTimeout(..., 50) — NOT 0ms — so PO-UI's change detection
-  // has completed and getBoundingClientRect() returns correct values.
-  // Never use scrollIntoView({ block:'nearest' }): it ignores the sticky thead and
-  // hides row 0 behind the fixed header.
+  // Sobe o DOM a partir da linha para encontrar o ancestral scrollável real.
+  // Chamadores DEVEM usar setTimeout(..., 50) — NÃO 0ms — para que a detecção de mudanças
+  // do PO-UI tenha concluído e getBoundingClientRect() retorne valores corretos.
+  // Nunca use scrollIntoView({ block:'nearest' }): ignora o thead fixo e
+  // esconde a linha 0 atrás do cabeçalho fixo.
   private _scrollRowIntoView(row: HTMLElement): void {
     let container: HTMLElement | null = row.parentElement;
     while (container && container !== document.documentElement) {
@@ -248,7 +248,7 @@ export class {{ComponentClass}} implements OnInit {
   }
 
   onMasterDeselecionado(_item: {{MasterModel}}): void {
-    // single-select: master stays selected even on p-unselected
+    // seleção única: master permanece selecionado mesmo no p-unselected
   }
 
   onMasterClick(): void { this.activeBrowse.set('master'); }
@@ -291,7 +291,7 @@ export class {{ComponentClass}} implements OnInit {
     const de  = this._toISO(dataDE);
     const ate = this._toISO(dataATE);
 
-    // TODO: replace DEMO_MASTER with real service call:
+    // TODO: substitua DEMO_MASTER pela chamada real ao service:
     // this.service.buscar(this.filtros).subscribe({ next: r => { ... } });
     const resultado = DEMO_MASTER.filter(r => {
       const m = r as any;
@@ -334,7 +334,7 @@ export class {{ComponentClass}} implements OnInit {
   }
 
   confirmar(): void {
-    // TODO: implement confirmation action (generate NF, process records, etc.)
+    // TODO: implemente a ação de confirmação (gerar NF, processar registros, etc.)
     this.notification.success('Ação executada com sucesso.');
   }
 
@@ -343,7 +343,7 @@ export class {{ComponentClass}} implements OnInit {
   }
 
   private _carregarItens(key: string): void {
-    // TODO: replace with real service call:
+    // TODO: substitua pela chamada real ao service:
     // this.service.getItens(key).subscribe({ next: itens => { ... } });
     const itens = DEMO_DETAIL[key] ?? [];
     this.detailItems.set(itens.map(i => ({ ...i })));
