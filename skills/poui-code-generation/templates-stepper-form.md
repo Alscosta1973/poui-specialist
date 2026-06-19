@@ -1,11 +1,10 @@
 # Template: stepper-form
 
-Gera um formulário multi-etapas standalone usando `po-stepper` — o padrão PO-UI para wizards e
-fluxos de cadastro complexos com 3 ou mais seções logicamente distintas.
+Formulário multi-etapas standalone com `po-stepper` — wizard com 3+ seções logicamente distintas.
 
 > **Quando usar vs alternativas:**
-> - `stepper-form` → 3 ou mais etapas com validação distinta por etapa, UX estilo wizard
-> - `page-edit` com `divider` → mesmo formulário, página única, entidade mais simples
+> - `stepper-form` → 3+ etapas com validação distinta por etapa, UX estilo wizard
+> - `page-edit` com `divider` → mesmo formulário, página única, entidade simples
 > - `modal-crud` → lista+formulário integrados para entidades simples (até ~10 campos)
 
 ## {{kebab-name}}.component.ts
@@ -272,45 +271,8 @@ export class {{ComponentClass}} {
 // Adicione estilos específicos do componente aqui
 ```
 
-## Configuração de rota
+## Notas sobre po-stepper
 
-```typescript
-// No arquivo de rotas da sua feature
-{
-  path: 'novo',
-  loadComponent: () =>
-    import('./{{kebab-name}}/{{kebab-name}}.component')
-      .then(m => m.{{ComponentClass}}),
-},
-```
-
-## Notas sobre o comportamento do po-stepper
-
-- `[p-current-active-step]` é baseado em 1 (etapa 1 = primeiro item)
-- Por padrão, o usuário pode clicar em qualquer etapa diretamente — proteja a navegação com `onStepChange()` se precisar de validação antes de avançar
-- Para marcar etapas como concluídas/com erro programaticamente, use `PoStepperItem.status: 'done' | 'error'` e atualize o signal do array `steps`
-
-## Variante: validação passo a passo antes de avançar
-
-```typescript
-// Substitua next() por uma versão com validação:
-next(): void {
-  if (this.isLastStep()) return;
-  const isValid = this.validateCurrentStep();
-  if (!isValid) {
-    this.notification.warning('Preencha os campos obrigatórios antes de continuar.');
-    return;
-  }
-  this.currentStep.update(s => s + 1);
-}
-
-private validateCurrentStep(): boolean {
-  // Inspect stepData() for required fields of the current step
-  const data = this.stepData();
-  switch (this.currentStep()) {
-    case 1: return !!(data['codigo'] && data['nome']);
-    case 2: return true;  // contato é opcional
-    default: return true;
-  }
-}
-```
+- `[p-current-active-step]` é 1-based
+- Por padrão o usuário pode clicar em qualquer etapa diretamente — use `onStepChange()` para validar antes de avançar
+- Para marcar etapas como concluídas/com erro use `PoStepperItem.status: 'done' | 'error'` e atualize o signal `steps`

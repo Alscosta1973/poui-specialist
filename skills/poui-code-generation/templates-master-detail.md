@@ -1,13 +1,11 @@
 # Template: master-detail
 
-Gera um `po-page-list` + `po-table` com linhas de detalhe expansíveis — o padrão ERP
-para registros pai que incorporam listas filhas inline (pedidos com itens, notas com linhas,
-movimentos de estoque com entradas).
+`po-page-list` + `po-table` com linhas de detalhe expansíveis — pai com lista filha inline (pedidos/itens, notas/linhas).
 
 > **Quando usar vs alternativas:**
-> - `master-detail` → registros filhos são itens inline somente para exibição (sem CRUD próprio para os itens)
-> - `page-list` + `page-edit` com `FormArray` → itens precisam de UX própria de inclusão/edição/exclusão
-> - `modal-crud` → filho tem até ~10 campos e justifica um modal dedicado
+> - `master-detail` → filhos inline somente para exibição (sem CRUD próprio)
+> - `page-list` + `page-edit` com `FormArray` → itens precisam de UX de inclusão/edição/exclusão
+> - `modal-crud` → filho tem até ~10 campos e justifica modal dedicado
 
 ## {{kebab-name}}.component.ts
 
@@ -243,87 +241,10 @@ export class {{ComponentClass}} implements OnInit {
 // Adicione estilos específicos do componente aqui
 ```
 
-## models/{{modelFile}}.model.ts
+## Service — cancel
 
 ```typescript
-export interface {{DetailInterface}} {
-  sequencia:   number;
-  produto:     string;
-  descricao:   string;
-  unidade:     string;      // 'UN', 'KG', 'CX', etc.
-  quantidade:  number;
-  valorUnit:   number;
-  valorTotal:  number;
-}
-
-export interface {{ModelInterface}} {
-  numero:      string;
-  dataEmissao: string;                  // ISO 8601 ('YYYY-MM-DD')
-  parceiro:    string;
-  valorTotal:  number;
-  status:      'A' | 'F' | 'C';
-  itens:       {{DetailInterface}}[];   // array embutido — retornado pelo GET lista
-}
-```
-
-## PoTableDetail — todos os campos
-
-```typescript
-interface PoTableDetail {
-  columns:     PoTableColumn[];   // mesmos tipos suportados pelo master
-  typeHeader?: 'inline' | 'top' | 'none';
-  //   'inline' (default) → cabeçalho dentro das células de cada linha expandida
-  //   'top'              → cabeçalho fixo acima de todos os detalhes
-  //   'none'             → sem cabeçalho (quando as colunas são auto-explicativas)
-}
-```
-
-## API contract — response do GET lista
-
-O endpoint deve embutir o array de itens dentro de cada objeto master:
-
-```json
-{
-  "items": [
-    {
-      "numero":      "000001",
-      "dataEmissao": "2026-06-03",
-      "parceiro":    "Fornecedor ABC Ltda",
-      "valorTotal":  1500.00,
-      "status":      "A",
-      "itens": [
-        {
-          "sequencia":  1,
-          "produto":    "PROD001",
-          "descricao":  "Produto A",
-          "unidade":    "UN",
-          "quantidade": 10,
-          "valorUnit":  100.00,
-          "valorTotal": 1000.00
-        },
-        {
-          "sequencia":  2,
-          "produto":    "PROD002",
-          "descricao":  "Produto B",
-          "unidade":    "KG",
-          "quantidade": 5,
-          "valorUnit":  100.00,
-          "valorTotal": 500.00
-        }
-      ]
-    }
-  ],
-  "hasNext": false
-}
-```
-
-O `po-table` lê automaticamente a propriedade `itens` da coluna `type: 'detail'`
-e exibe as linhas expansíveis ao clicar no ícone de expandir.
-
-## Service — método cancel adicional
-
-```typescript
-// Em {{serviceFile}}.ts — além dos métodos CRUD padrão
+// Em {{serviceFile}}.ts
 cancel(numero: string): Observable<void> {
   return this.http.patch<void>(`${this.baseUrl}/${numero}/cancelar`, {});
 }
