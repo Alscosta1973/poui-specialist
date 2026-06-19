@@ -1,0 +1,99 @@
+---
+name: poui-generate-batch
+description: Use to generate multiple PO-UI components in one command — parses a structured manifest and dispatches one isolated subagent per component, keeping token cost fixed regardless of session length | © Andre Costa — uso restrito · https://github.com/Alscosta1973/poui-specialist
+---
+
+# PO-UI Generate Batch — Orquestrador de Geração em Lote
+
+Gera múltiplos componentes Angular/PO-UI a partir de um manifesto estruturado, despachando um subagente isolado por componente para manter custo fixo de tokens independentemente do tamanho da sessão.
+
+## Formato do Manifesto
+
+```
+MODULO: <pasta-feature/sub-pasta>
+API_BASE: /rest/api/custom/v1
+PASTA_DESTINO: src/app/<modulo>
+
+COMPONENTES:
+| tipo              | classe                  | endpoint        | campos                              |
+|-------------------|-------------------------|-----------------|-------------------------------------|
+| page-list         | {{Classe}}ListComponent | /recurso        | campo1, campo2, campo3              |
+| page-edit         | {{Classe}}EditComponent | /recurso/{id}   | campo1(req), campo2(req), campo3    |
+| service           | {{Classe}}Service       | /recurso        | -                                   |
+
+REGRAS:
+- <regra de negócio 1>
+- <regra de negócio 2>
+```
+
+## Convenções
+
+| Elemento | Significado |
+|---|---|
+| `(req)` após campo | Campo obrigatório no formulário |
+| `-` em campos | Sem campos específicos — usar padrão do template |
+| `REGRAS:` | Apenas regras que afetam código gerado (status, formatação, validações) |
+
+## Tipos Válidos
+
+`page-list` · `page-edit` · `page-detail` · `page-dynamic-search` · `page-dynamic` · `modal-crud` · `stepper-form` · `master-detail` · `stacked-browse` · `two-panel-browse` · `service` · `dashboard`
+
+## Processo
+
+### Passo 1 — Validar manifesto
+
+Antes de despachar qualquer subagente, verificar:
+1. `PASTA_DESTINO` existe no sistema de arquivos
+2. Todos os `tipo` na tabela são valores da lista de Tipos Válidos acima
+3. Todos os `endpoint` começam com `/`
+
+Se qualquer validação falhar, reportar o erro e encerrar sem gerar código.
+
+### Passo 2 — Despachar subagente por componente
+
+Para cada linha da tabela `COMPONENTES`, montar o prompt do subagente:
+
+```
+Gere um componente PO-UI Angular 17+ com as seguintes especificações:
+
+Tipo: <tipo>
+Classe: <classe>
+Endpoint: <API_BASE><endpoint>
+Módulo: <MODULO>
+Pasta destino: <PASTA_DESTINO>
+Campos: <campos>
+  - Campos marcados com (req) são obrigatórios no formulário
+
+Regras de negócio:
+<REGRAS>
+
+Salve todos os arquivos gerados em PASTA_DESTINO.
+```
+
+Despachar como subagente `poui-specialist:code-generator`.
+
+**Importante:** Despachar UM subagente por vez, aguardar conclusão antes de despachar o próximo. Não despachar em paralelo — cada componente pode depender do service gerado anteriormente.
+
+### Passo 3 — Registrar resultado de cada componente
+
+Para cada componente, registrar:
+- ✅ Sucesso: listar arquivos gerados com caminho completo
+- ⚠️ Aviso: subagente concluiu mas reportou problema (falha de lint, arquivo existente sobrescrito etc.)
+- ❌ Falha: subagente falhou — registrar erro e continuar com o próximo componente
+
+### Passo 4 — Relatório final
+
+Após concluir todos os componentes, exibir:
+
+```
+## Relatório de Geração em Lote
+
+Módulo: <MODULO>
+Pasta: <PASTA_DESTINO>
+
+| Componente           | Status | Arquivos gerados                      |
+|----------------------|--------|---------------------------------------|
+| <classe>             | ✅     | <lista de arquivos com caminho>       |
+
+Total: X gerados · Y com aviso · Z com falha
+```
