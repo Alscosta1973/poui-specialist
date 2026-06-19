@@ -1,6 +1,6 @@
 ---
 description: Generate PO-UI Angular 17+ components, services and modules for Protheus REST integration
-allowed-tools: Read, Write, Glob, Grep, Skill, Agent
+allowed-tools: Read, Write, Glob, Grep, Skill, Agent, Bash, mcp__plugin_playwright_playwright__browser_navigate, mcp__plugin_playwright_playwright__browser_take_screenshot, mcp__plugin_playwright_playwright__browser_wait_for
 argument-hint: "<type> <Name> [--module <module>]"
 ---
 
@@ -66,3 +66,33 @@ Generates standalone Angular 17+ artifacts using PO-UI components, integrated wi
 1. **Parse arguments** — identify `<type>`, `<Name>`, and optional `--module`
 2. **Delegate to `code-generator` agent** — full planning, validation, and generation workflow
 3. **Confirm output** — list created files with their absolute paths and suggested route addition
+4. **Preview no browser** — após confirmar os arquivos gerados, perguntar:
+
+   > "Deseja visualizar a tela no browser? [S/n]"
+
+   - Se **sim**: invocar a skill `poui-specialist:poui-preview` passando `<module>`, `<kebab-name>` e `<ComponentClass>` gerados no Passo 2.
+   - Se **não**: encerrar normalmente.
+
+## Geração em Lote
+
+Para gerar múltiplos componentes com custo fixo por componente (sem acúmulo de contexto por sessão), use o comando `/poui-specialist:generate-batch` com o formato manifesto.
+
+Exemplo:
+```
+/poui-specialist:generate-batch
+
+MODULO: financeiro/titulos
+API_BASE: /rest/api/custom/v1
+PASTA_DESTINO: src/app/financeiro/titulos
+
+COMPONENTES:
+| tipo      | classe               | endpoint      | campos                        |
+|-----------|----------------------|---------------|-------------------------------|
+| page-list | TitulosListComponent | /titulos      | codTit, nomCli, valor, status |
+| service   | TitulosService       | /titulos      | -                             |
+
+REGRAS:
+- Status: A=Aberto B=Baixado
+```
+
+Consulte a [documentação de Otimização de Tokens](https://alscosta1973.github.io/poui-specialist-docs/docs/otimizacao-tokens) para o formato completo.
