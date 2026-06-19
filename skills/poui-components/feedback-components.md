@@ -2,7 +2,7 @@
 
 ## po-tag
 
-Etiqueta visual para status, categorias e indicadores coloridos. Alternativa ao `type: 'label'` do `po-table` quando o tag precisa aparecer fora da tabela.
+Visual para status/categorias; usar quando o tag precisa aparecer fora da `po-table` (alternativa ao `type: 'label'`).
 
 ### Key Inputs
 
@@ -14,12 +14,6 @@ Etiqueta visual para status, categorias e indicadores coloridos. Alternativa ao 
 | `p-icon` | `string` | Ícone PO (ex: `'po-icon-ok'`, `'po-icon-warning'`) |
 | `p-removable` | `boolean` | Exibe botão X para remover |
 | `p-inverse` | `boolean` | Inverte cor de fundo/texto |
-
-### Outputs
-
-| Output | Payload | Description |
-|--------|---------|-------------|
-| `(p-remove)` | `void` | Emitido ao clicar no X de remoção |
 
 ### Exemplos
 
@@ -66,7 +60,7 @@ tagLabel(ativo: string): string {
 
 ## po-info
 
-Par rótulo/valor em layout compacto — alternativa leve ao `po-dynamic-view` quando os campos são fixos em tempo de compilação.
+Par rótulo/valor compacto. Usar para campos fixos em compilação; `po-dynamic-view` para campos configurados em runtime.
 
 ### Key Inputs
 
@@ -76,8 +70,6 @@ Par rótulo/valor em layout compacto — alternativa leve ao `po-dynamic-view` q
 | `p-value` | `string \| number` | Valor exibido |
 | `p-orientation` | `'horizontal' \| 'vertical'` | Layout rótulo/valor (default `'horizontal'`) |
 | `p-url` | `string` | Torna o valor um link clicável |
-
-### Exemplo em tela de detalhe
 
 ```html
 <div class="po-row">
@@ -95,13 +87,9 @@ import { PoInfoModule } from '@po-ui/ng-components';
 // em imports do @Component: [PoInfoModule]
 ```
 
-> **po-info vs po-dynamic-view:** Use `po-info` para campos fixos com controle total de grid; use `po-dynamic-view` para campos configurados em runtime ou reaproveitados de um `po-dynamic-form`.
-
 ---
 
 ## [p-tooltip] — Diretiva de tooltip
-
-Exibe tooltip ao hover/foco em qualquer tag HTML ou componente PO-UI.
 
 ### Key Inputs
 
@@ -111,8 +99,6 @@ Exibe tooltip ao hover/foco em qualquer tag HTML ou componente PO-UI.
 | `p-tooltip-position` | `'top' \| 'bottom' \| 'left' \| 'right' \| 'top-left' \| 'top-right' \| 'bottom-left' \| 'bottom-right'` | Posição (default `'top'`) |
 | `p-hide-arrow` | `boolean` | Oculta a seta direcional |
 | `p-inner-html` | `boolean` | Permite HTML no texto do tooltip |
-
-### Exemplos
 
 ```html
 <!-- Botão com tooltip explicativo -->
@@ -149,7 +135,7 @@ import { PoTooltipModule } from '@po-ui/ng-components';
 
 ## po-progress
 
-Barra de progresso linear ou circular para uploads, importações e indicadores de meta.
+Barra de progresso para uploads, importações e indicadores de meta.
 
 ### Key Inputs
 
@@ -161,8 +147,6 @@ Barra de progresso linear ou circular para uploads, importações e indicadores 
 | `p-status` | `'default' \| 'success' \| 'error'` | Estado de cor |
 | `p-text` | `string` | Texto abaixo da barra (só linear) |
 | `p-size` | `'medium' \| 'thin'` | Espessura da barra (só linear) |
-
-### Exemplos
 
 ```typescript
 readonly uploadProgress = signal(0);

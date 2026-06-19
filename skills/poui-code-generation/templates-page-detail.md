@@ -1,12 +1,8 @@
 # Template: page-detail
 
-Gera um componente standalone `po-page-detail` para visualização de registro somente leitura.
-Usa `po-dynamic-view` para exibição dos campos e carrega o registro pelo parâmetro de rota `:id`.
+Componente standalone `po-page-detail` para visualização somente leitura; carrega registro pelo parâmetro de rota `:id`.
 
-> **Quando usar vs alternativas:**
-> - `page-detail` → entidade tem uma rota de detalhe dedicada, página standalone somente leitura
-> - `po-dynamic-view` dentro de `po-modal` → detalhe inline dentro de uma página de lista (sem rota separada)
-> - campos `po-info` → poucos campos fixos com controle preciso de layout
+> **Quando usar:** `page-detail` para rota dedicada standalone · `po-dynamic-view` em `po-modal` para detalhe inline · `po-info` para poucos campos fixos
 
 ## {{kebab-name}}.component.ts
 
@@ -176,8 +172,6 @@ export class {{ComponentClass}} implements OnInit {
 ```
 
 ## Variante: com seções po-container
-
-Para entidades com muitos campos, organize em seções rotuladas usando `po-container`:
 
 ```html
 <po-page-detail

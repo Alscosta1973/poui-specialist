@@ -1,6 +1,6 @@
 # Template: page-edit
 
-Gera um componente standalone `po-page-edit` usando `po-dynamic-form` + `PoDynamicFormField[]` para operações de criação e edição — o padrão de formulário PO-UI/Protheus.
+Componente standalone `po-page-edit` com `po-dynamic-form` + `PoDynamicFormField[]` para criação e edição.
 
 ## {{kebab-name}}.component.ts
 

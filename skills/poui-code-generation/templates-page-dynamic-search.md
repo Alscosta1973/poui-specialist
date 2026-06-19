@@ -1,9 +1,8 @@
 # Template: page-dynamic-search
 
-Gera um componente de lista standalone usando `po-page-dynamic-search` de `@po-ui/ng-templates` — o padrão Protheus para páginas de busca com pesquisa rápida, pesquisa avançada e tags de filtros ativos (disclaimers). Navega para uma página de edição separada.
+Lista standalone com `po-page-dynamic-search` (`@po-ui/ng-templates`): pesquisa rápida, avançada e filtros ativos (disclaimers).
 
-> **Quando usar vs `page-list`:**
-> Use `page-dynamic-search` quando a entidade precisar de **busca avançada com múltiplos campos**. Use `page-list` para listas mais simples com apenas pesquisa rápida.
+> **Quando usar:** `page-dynamic-search` para busca avançada com múltiplos campos · `page-list` para pesquisa rápida simples
 
 ## {{kebab-name}}.component.ts
 

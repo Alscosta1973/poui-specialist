@@ -123,26 +123,15 @@ export class AppComponent {
 
 **Opção A — toolbar no shell** (padrão deste plugin): `<po-toolbar>` no `app.component.html`. Título fixo do app.
 
-**Opção B — toolbar por componente** (padrão CRUD_Produto): sem `<po-toolbar>` no shell; cada componente tem seu próprio `<po-toolbar p-title="...">`. Permite título dinâmico por página.
+**Opção B — toolbar por componente**: sem `<po-toolbar>` no shell; cada componente tem seu próprio `<po-toolbar p-title="...">`. Permite título dinâmico por página.
 
 ---
 
-## NgModule vs Standalone — qual usar?
+## NgModule vs Standalone
 
-Este plugin gera **Standalone Components** (padrão Angular 17+):
+Este plugin gera **Standalone Components** (padrão Angular 17+).
 
-```typescript
-@Component({
-  standalone: true,       // ← standalone
-  imports: [PoTableModule],
-  ...
-})
-```
-
-**O curso POUI usa `ng new --no-standalone`** (NgModules) por compatibilidade com
-versões de Angular anteriores ao 17. Ambos funcionam com PO-UI e Protheus.
-
-| | Standalone (este plugin) | NgModules (curso) |
+| | Standalone (este plugin) | NgModules |
 |---|---|---|
 | Angular mínimo | 14+ (estável no 17) | Todas as versões |
 | Padrão oficial | ✅ Angular 17+ recomendado | ⚠️ Legado |
@@ -150,9 +139,7 @@ versões de Angular anteriores ao 17. Ambos funcionam com PO-UI e Protheus.
 | Bootstrap | `bootstrapApplication()` | `platformBrowserDynamic().bootstrapModule()` |
 | Providers | `app.config.ts` | `app.module.ts` |
 
-**Para projetos novos: use Standalone.** Para integrar em projetos NgModule
-existentes, envolva o componente em um `NgModule` wrapper e importe nos
-módulos que precisam dele.
+Para integrar em projetos NgModule existentes, envolva o componente em um `NgModule` wrapper.
 
 ---
 
@@ -282,8 +269,6 @@ Always use `po-icon-*` names. Never use `an an-*`.
 ---
 
 ## angular.json — Required Styles
-
-The `architect.build.options.styles` array must include the PO-UI theme files or components render without styling:
 
 ```json
 "styles": [
