@@ -241,10 +241,87 @@ export class {{ComponentClass}} implements OnInit {
 // Adicione estilos específicos do componente aqui
 ```
 
-## Service — cancel
+## models/{{modelFile}}.model.ts
 
 ```typescript
-// Em {{serviceFile}}.ts
+export interface {{DetailInterface}} {
+  sequencia:   number;
+  produto:     string;
+  descricao:   string;
+  unidade:     string;      // 'UN', 'KG', 'CX', etc.
+  quantidade:  number;
+  valorUnit:   number;
+  valorTotal:  number;
+}
+
+export interface {{ModelInterface}} {
+  numero:      string;
+  dataEmissao: string;                  // ISO 8601 ('YYYY-MM-DD')
+  parceiro:    string;
+  valorTotal:  number;
+  status:      'A' | 'F' | 'C';
+  itens:       {{DetailInterface}}[];   // array embutido — retornado pelo GET lista
+}
+```
+
+## PoTableDetail — todos os campos
+
+```typescript
+interface PoTableDetail {
+  columns:     PoTableColumn[];   // mesmos tipos suportados pelo master
+  typeHeader?: 'inline' | 'top' | 'none';
+  //   'inline' (default) → cabeçalho dentro das células de cada linha expandida
+  //   'top'              → cabeçalho fixo acima de todos os detalhes
+  //   'none'             → sem cabeçalho (quando as colunas são auto-explicativas)
+}
+```
+
+## API contract — response do GET lista
+
+O endpoint deve embutir o array de itens dentro de cada objeto master:
+
+```json
+{
+  "items": [
+    {
+      "numero":      "000001",
+      "dataEmissao": "2026-06-03",
+      "parceiro":    "Fornecedor ABC Ltda",
+      "valorTotal":  1500.00,
+      "status":      "A",
+      "itens": [
+        {
+          "sequencia":  1,
+          "produto":    "PROD001",
+          "descricao":  "Produto A",
+          "unidade":    "UN",
+          "quantidade": 10,
+          "valorUnit":  100.00,
+          "valorTotal": 1000.00
+        },
+        {
+          "sequencia":  2,
+          "produto":    "PROD002",
+          "descricao":  "Produto B",
+          "unidade":    "KG",
+          "quantidade": 5,
+          "valorUnit":  100.00,
+          "valorTotal": 500.00
+        }
+      ]
+    }
+  ],
+  "hasNext": false
+}
+```
+
+O `po-table` lê automaticamente a propriedade `itens` da coluna `type: 'detail'`
+e exibe as linhas expansíveis ao clicar no ícone de expandir.
+
+## Service — método cancel adicional
+
+```typescript
+// Em {{serviceFile}}.ts — além dos métodos CRUD padrão
 cancel(numero: string): Observable<void> {
   return this.http.patch<void>(`${this.baseUrl}/${numero}/cancelar`, {});
 }

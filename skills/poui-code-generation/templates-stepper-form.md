@@ -271,8 +271,45 @@ export class {{ComponentClass}} {
 // Adicione estilos específicos do componente aqui
 ```
 
-## Notas sobre po-stepper
+## Configuração de rota
 
-- `[p-current-active-step]` é 1-based
-- Por padrão o usuário pode clicar em qualquer etapa diretamente — use `onStepChange()` para validar antes de avançar
-- Para marcar etapas como concluídas/com erro use `PoStepperItem.status: 'done' | 'error'` e atualize o signal `steps`
+```typescript
+// No arquivo de rotas da sua feature
+{
+  path: 'novo',
+  loadComponent: () =>
+    import('./{{kebab-name}}/{{kebab-name}}.component')
+      .then(m => m.{{ComponentClass}}),
+},
+```
+
+## Notas sobre o comportamento do po-stepper
+
+- `[p-current-active-step]` é baseado em 1 (etapa 1 = primeiro item)
+- Por padrão, o usuário pode clicar em qualquer etapa diretamente — proteja a navegação com `onStepChange()` se precisar de validação antes de avançar
+- Para marcar etapas como concluídas/com erro programaticamente, use `PoStepperItem.status: 'done' | 'error'` e atualize o signal do array `steps`
+
+## Variante: validação passo a passo antes de avançar
+
+```typescript
+// Substitua next() por uma versão com validação:
+next(): void {
+  if (this.isLastStep()) return;
+  const isValid = this.validateCurrentStep();
+  if (!isValid) {
+    this.notification.warning('Preencha os campos obrigatórios antes de continuar.');
+    return;
+  }
+  this.currentStep.update(s => s + 1);
+}
+
+private validateCurrentStep(): boolean {
+  // Inspect stepData() for required fields of the current step
+  const data = this.stepData();
+  switch (this.currentStep()) {
+    case 1: return !!(data['codigo'] && data['nome']);
+    case 2: return true;  // contato é opcional
+    default: return true;
+  }
+}
+```
