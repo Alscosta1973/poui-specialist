@@ -265,7 +265,6 @@ import {
   AbstractControl,
 } from '@angular/forms';
 
-// Getter tipado para acesso sem cast repetido
 get itens(): FormArray {
   return this.form.get('itens') as FormArray;
 }
@@ -274,7 +273,7 @@ readonly form: FormGroup = this.fb.group({
   numeroPedido: ['', Validators.required],
   dataEmissao:  ['', Validators.required],
   observacoes:  [''],
-  itens:        this.fb.array([]),   // começa vazio; itens adicionados via addItem()
+  itens:        this.fb.array([]),
 });
 
 addItem(): void {
@@ -282,10 +281,9 @@ addItem(): void {
     produto:    ['', Validators.required],
     quantidade: [1,  [Validators.required, Validators.min(1)]],
     valorUnit:  [0,  [Validators.required, Validators.min(0.01)]],
-    total:      [{ value: 0, disabled: true }],   // calculado automaticamente
+    total:      [{ value: 0, disabled: true }],
   });
 
-  // Recalcula total ao mudar quantidade ou valor unitário
   itemGroup.get('quantidade')!.valueChanges
     .pipe(takeUntilDestroyed(this.destroyRef))
     .subscribe(() => this.recalcItem(itemGroup));

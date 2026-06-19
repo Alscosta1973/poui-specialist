@@ -1,198 +1,97 @@
-# PO-UI Dynamic Form Fields — Interface Completa
+# PO-UI Dynamic Form Fields
 
-Referência completa de `PoDynamicFormField` (usado em `po-dynamic-form` e `PoPageDynamicEdit`)
-e `PoDynamicViewField` (usado em `po-dynamic-view` e `PoPageDynamicDetail`).
+`PoDynamicFormField` → `po-dynamic-form` / `PoPageDynamicEdit` | `PoDynamicViewField` → `po-dynamic-view` / `PoPageDynamicDetail`
 
 ```typescript
-import {
-  PoDynamicFormField,
-  PoDynamicViewField,
-} from '@po-ui/ng-components';
+import { PoDynamicFormField, PoDynamicViewField } from '@po-ui/ng-components';
 ```
 
 ---
 
-## PoDynamicFormField — todos os campos
+## PoDynamicFormField
 
 ```typescript
 interface PoDynamicFormField {
-  // ──────────── OBRIGATÓRIO ────────────
   property: string;
 
-  // ──────────── RÓTULO E LAYOUT ────────────
-  label?: string;            // rótulo do campo (default: property em Title Case)
-  divider?: string;          // texto de separador de seção acima deste campo
-  gridColumns?: number;      // largura desktop: 1-12 (padrão 6)
-  gridSmColumns?: number;    // largura mobile/small: 1-12 (padrão 12)
-  visible?: boolean;         // exibe/oculta o campo (default true)
+  // layout
+  label?: string;         // default: property em Title Case
+  divider?: string;       // separador de seção
+  gridColumns?: number;   // desktop 1-12 (padrão 6)
+  gridSmColumns?: number; // mobile 1-12 (padrão 12)
+  visible?: boolean;      // default true
 
-  // ──────────── VALIDAÇÃO ────────────
-  required?: boolean;        // campo obrigatório — exibe indicador visual *
-  optional?: boolean;        // exibe "(Opcional)" mesmo quando required é false
+  // validação
+  required?: boolean;     // exibe indicador *
+  optional?: boolean;     // exibe "(Opcional)" mesmo sem required
   disabled?: boolean;
-  minLength?: number;        // mínimo de caracteres (type: 'string')
-  maxLength?: number;        // máximo de caracteres (type: 'string')
-  min?: number;              // valor mínimo (type: 'number' | 'currency')
-  max?: number;              // valor máximo (type: 'number' | 'currency')
+  minLength?: number;
+  maxLength?: number;
+  min?: number;
+  max?: number;
   regex?: string;
-  errorMessage?: string;     // mensagem exibida quando regex ou validação falha
+  errorMessage?: string;
 
-  // ──────────── TIPO ────────────
-  // default: 'string' → po-input
-  type?: 'boolean'           // po-switch (true/false ou S/N via booleanTrue/booleanFalse)
-       | 'currency'          // po-decimal formatado como moeda (R$)
-       | 'date'              // po-datepicker
-       | 'dateRange'         // po-datepicker com seleção de intervalo
-       | 'dateTime'          // po-datepicker com campo de hora
-       | 'number'            // po-number (inteiro sem decimais)
-       | 'string'            // po-input de texto (padrão)
-       | 'time'              // campo de hora (HH:MM)
-       | 'cpf'               // po-input com máscara e validação de CPF automática
-       | 'cnpj'              // po-input com máscara e validação de CNPJ automática
-       | 'password'          // po-password (caracteres ocultos com toggle)
-       | 'email'             // po-input type email + validação de formato
-       | 'tel';              // po-input type tel
+  // tipo — default: 'string' → po-input
+  type?: 'boolean'  // po-switch (S/N via booleanTrue/booleanFalse)
+       | 'currency' // po-decimal (R$)
+       | 'date' | 'dateRange' | 'dateTime'
+       | 'number'   // po-number (inteiro)
+       | 'string' | 'time' | 'password' | 'email' | 'tel'
+       | 'cpf' | 'cnpj'; // máscara + validação automática
 
-  // ──────────── OPÇÕES (select / combo / radio / checkbox-group) ────────────
+  // options → po-select (array) | po-checkbox-group (optionsMulti) | po-combo (URL)
   options?: Array<{ label: string; value: any }> | string;
-  //   Array estático  → po-select (optionsMulti: false) ou po-checkbox-group (optionsMulti: true)
-  //   String (URL)    → po-combo com carregamento assíncrono via GET
-  fieldLabel?: string;       // propriedade do label nas options (default: 'label')
-  fieldValue?: string;       // propriedade do value nas options (default: 'value')
-  optionsMulti?: boolean;    // true → po-checkbox-group (seleção múltipla)
-  optionsService?: string;   // URL para carregar options via GET → resulta em po-combo
-  sort?: boolean;            // ordena as options alfabeticamente por label
+  fieldLabel?: string;    // default: 'label'
+  fieldValue?: string;    // default: 'value'
+  optionsMulti?: boolean; // true → po-checkbox-group
+  optionsService?: string; // URL GET → po-combo
+  sort?: boolean;
 
-  // ──────────── LOOKUP (po-lookup) ────────────
-  // Quando searchService está definido, o campo torna-se po-lookup automaticamente
-  searchService?: string | PoLookupFilter;  // serviço ou URL de busca
-  columns?: PoLookupColumn[];               // colunas do modal de busca
-  // Ver form-fields.md para implementação completa do PoLookupFilterService
+  // lookup — searchService definido → po-lookup automático
+  searchService?: string | PoLookupFilter;
+  columns?: PoLookupColumn[];
+  // Ver form-fields.md para PoLookupFilterService
 
-  // ──────────── MÁSCARA ────────────
-  mask?: string;             // padrão de máscara (ex: '(99) 99999-9999', '99999-999')
-  //   9 → dígito obrigatório
-  //   0 → dígito opcional
-  //   L → letra obrigatória
-  //   * → letra ou dígito obrigatório
-  maskFormatModel?: boolean; // true → o ngModel armazena apenas os chars digitados (sem máscara)
+  // máscara: 9=dígito obrig, 0=opc, L=letra, *=letra ou dígito
+  mask?: string;          // ex: '(99) 99999-9999'
+  maskFormatModel?: boolean; // true → ngModel sem chars de máscara
 
-  // ──────────── NÚMERO E MOEDA ────────────
-  decimalsLength?: number;   // casas decimais (default: 2 para currency)
-  thousandMaxlength?: number;// máximo de dígitos antes da vírgula decimal
+  decimalsLength?: number; // padrão 2 para currency
+  thousandMaxlength?: number;
 
-  // ──────────── BOOLEAN ────────────
-  booleanTrue?: string;      // label/valor do estado verdadeiro (ex: 'Sim', 'S', 'Ativo')
-  booleanFalse?: string;     // label/valor do estado falso (ex: 'Não', 'N', 'Inativo')
-
-  // ──────────── DATA ────────────
-  dateFormat?: string;       // formato de exibição (ex: 'dd/MM/yyyy')
-
-  // ──────────── TEXTAREA ────────────
-  rows?: number;             // número de linhas → ativa modo textarea automaticamente
-
-  // ──────────── CHAVE (PoPageDynamicEdit) ────────────
-  key?: boolean;             // marca o campo como chave primária (usado pelo PoPageDynamic*)
+  booleanTrue?: string;   // ex: 'S', 'Sim', 'Ativo'
+  booleanFalse?: string;  // ex: 'N', 'Não', 'Inativo'
+  dateFormat?: string;    // ex: 'dd/MM/yyyy'
+  rows?: number;          // > 0 → textarea
+  key?: boolean;          // chave primária (PoPageDynamicEdit)
 }
 ```
 
 ---
 
-## Exemplos práticos por tipo
+## Exemplos
 
 ```typescript
 readonly fields: PoDynamicFormField[] = [
+  { property: 'codigo',   label: 'Código',           divider: 'Identificação', required: true, maxLength: 6,  gridColumns: 4, key: true },
+  { property: 'nome',     label: 'Nome / Razão Social',                         required: true, minLength: 3, maxLength: 40,  gridColumns: 8 },
 
-  // ── Seção: Identificação ──
-  {
-    property:   'codigo',
-    label:      'Código',
-    divider:    'Identificação',
-    required:   true,
-    maxLength:  6,
-    gridColumns: 4,
-    key:        true,              // chave para PoPageDynamicEdit
-  },
-  {
-    property:   'nome',
-    label:      'Nome / Razão Social',
-    required:   true,
-    minLength:  3,
-    maxLength:  40,
-    gridColumns: 8,
-  },
+  // máscara nativa → type 'cnpj'/'cpf' aplica máscara e validação automáticas
+  { property: 'cnpj',     label: 'CNPJ',     type: 'cnpj', required: true, gridColumns: 5 },
+  { property: 'cpf',      label: 'CPF',      type: 'cpf',                  gridColumns: 4 },
+  { property: 'telefone', label: 'Telefone', mask: '(99) 99999-9999',       gridColumns: 4 },
+  { property: 'cep',      label: 'CEP',      mask: '99999-999',             gridColumns: 3 },
 
-  // ── Campos com máscara nativa (validação automática) ──
-  {
-    property: 'cnpj',
-    label:    'CNPJ',
-    type:     'cnpj',
-    required: true,
-    gridColumns: 5,
-  },
-  {
-    property: 'cpf',
-    label:    'CPF',
-    type:     'cpf',
-    gridColumns: 4,
-  },
-  {
-    property: 'telefone',
-    label:    'Telefone',
-    mask:     '(99) 99999-9999',
-    gridColumns: 4,
-  },
-  {
-    property: 'cep',
-    label:    'CEP',
-    mask:     '99999-999',
-    gridColumns: 3,
-  },
+  { property: 'email', label: 'E-mail', regex: '^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$', errorMessage: 'Informe um e-mail válido', optional: true, gridColumns: 8 },
 
-  // ── E-mail com regex ──
-  {
-    property:     'email',
-    label:        'E-mail',
-    regex:        '^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$',
-    errorMessage: 'Informe um e-mail válido',
-    optional:     true,
-    gridColumns:  8,
-  },
+  { property: 'quantidade',    label: 'Quantidade',    type: 'number',   min: 0, max: 9999, gridColumns: 3 },
+  { property: 'valorUnitario', label: 'Valor Unitário', type: 'currency', decimalsLength: 2, min: 0, gridColumns: 4 },
+  { property: 'dataEmissao',   label: 'Data de Emissão', type: 'date',   required: true, dateFormat: 'dd/MM/yyyy', gridColumns: 4 },
 
-  // ── Número e moeda ──
+  // po-select estático
   {
-    property:    'quantidade',
-    label:       'Quantidade',
-    type:        'number',
-    min:         0,
-    max:         9999,
-    gridColumns: 3,
-  },
-  {
-    property:       'valorUnitario',
-    label:          'Valor Unitário',
-    type:           'currency',
-    decimalsLength: 2,
-    min:            0,
-    gridColumns:    4,
-  },
-
-  // ── Data ──
-  {
-    property:    'dataEmissao',
-    label:       'Data de Emissão',
-    type:        'date',
-    required:    true,
-    dateFormat:  'dd/MM/yyyy',
-    gridColumns: 4,
-  },
-
-  // ── Seção: Status ──
-  // Select estático (po-select)
-  {
-    property: 'situacao',
-    label:    'Situação',
-    divider:  'Status',
+    property: 'situacao', label: 'Situação', divider: 'Status',
     options: [
       { label: 'Ativo',    value: 'S' },
       { label: 'Inativo',  value: 'N' },
@@ -201,116 +100,70 @@ readonly fields: PoDynamicFormField[] = [
     gridColumns: 4,
   },
 
-  // Select múltiplo (po-checkbox-group)
+  // po-checkbox-group (optionsMulti: true)
   {
-    property:     'permissoes',
-    label:        'Permissões',
+    property: 'permissoes', label: 'Permissões',
     options: [
       { label: 'Incluir',   value: 'I' },
       { label: 'Alterar',   value: 'A' },
       { label: 'Excluir',   value: 'E' },
       { label: 'Consultar', value: 'C' },
     ],
-    optionsMulti: true,
-    gridColumns:  12,
+    optionsMulti: true, gridColumns: 12,
   },
 
-  // Combo com URL assíncrona (po-combo com filtro)
-  {
-    property:       'filial',
-    label:          'Filial',
-    optionsService: '/rest/api/custom/v1/filiais',
-    fieldLabel:     'descricao',
-    fieldValue:     'codigo',
-    gridColumns:    6,
-  },
+  // po-combo via URL
+  { property: 'filial', label: 'Filial', optionsService: '/rest/api/custom/v1/filiais', fieldLabel: 'descricao', fieldValue: 'codigo', gridColumns: 6 },
 
-  // Boolean — padrão Protheus S/N (po-switch)
-  {
-    property:     'ativo',
-    label:        'Ativo',
-    type:         'boolean',
-    booleanTrue:  'S',            // valor armazenado quando ligado
-    booleanFalse: 'N',            // valor armazenado quando desligado
-    gridColumns:  3,
-  },
+  // po-switch — padrão Protheus S/N
+  { property: 'ativo', label: 'Ativo', type: 'boolean', booleanTrue: 'S', booleanFalse: 'N', gridColumns: 3 },
 
-  // ── Seção: Complemento ──
-  // Textarea
-  {
-    property:    'observacoes',
-    label:       'Observações',
-    divider:     'Complemento',
-    rows:        4,
-    maxLength:   500,
-    optional:    true,
-    gridColumns: 12,
-  },
+  { property: 'observacoes', label: 'Observações', divider: 'Complemento', rows: 4, maxLength: 500, optional: true, gridColumns: 12 },
 ];
 ```
 
 ---
 
-## PoDynamicViewField — todos os campos
+## PoDynamicViewField
 
 ```typescript
 interface PoDynamicViewField {
-  // ──────────── OBRIGATÓRIO ────────────
   property: string;
+  label?: string;            // default: property em Title Case
+  gridColumns?: number;      // 1-12 (padrão 6)
 
-  // ──────────── RÓTULO E LAYOUT ────────────
-  label?: string;            // rótulo exibido (default: property em Title Case)
-  gridColumns?: number;      // largura: 1-12 (padrão 6)
-
-  // ──────────── TIPO ────────────
   // default: 'string'
-  type?: 'string'
-       | 'number'
-       | 'currency'          // formata como moeda (R$)
-       | 'date'
-       | 'dateTime'          // formata como data + hora
-       | 'boolean'           // exibe booleanTrue/booleanFalse como texto
-       | 'link'              // renderiza como <a href> (value = URL)
-       | 'subtitle';         // texto menor / secundário
+  type?: 'string' | 'number'
+       | 'currency'          // R$
+       | 'date' | 'dateTime'
+       | 'boolean'           // exibe booleanTrue/booleanFalse
+       | 'link'              // <a href> (value = URL)
+       | 'subtitle';
 
-  // ──────────── FORMATAÇÃO ────────────
-  format?: string;           // ex: 'dd/MM/yyyy' para date | 'dd/MM/yyyy HH:mm' para dateTime
-  concatLinesLimit?: number; // limita o número de linhas (para arrays de string)
+  format?: string;           // ex: 'dd/MM/yyyy' | 'dd/MM/yyyy HH:mm'
+  concatLinesLimit?: number;
   tag?: boolean;
-  color?: string;            // token de cor PO-UI (ex: 'color-10', 'color-07')
-
-  // ──────────── BOOLEAN ────────────
-  booleanTrue?: string;      // texto exibido quando true/truthy (ex: 'Ativo', 'Sim')
-  booleanFalse?: string;     // texto exibido quando false/falsy (ex: 'Inativo', 'Não')
+  color?: string;            // token PO-UI (ex: 'color-10', 'color-07')
+  booleanTrue?: string;      // ex: 'Ativo', 'Sim'
+  booleanFalse?: string;     // ex: 'Inativo', 'Não'
 }
 ```
 
-### Exemplo de viewFields para tela de detalhe
-
 ```typescript
 readonly viewFields: PoDynamicViewField[] = [
-  { property: 'codigo',       label: 'Código',       gridColumns: 3 },
-  { property: 'nome',         label: 'Nome',         gridColumns: 9 },
-  { property: 'cnpj',         label: 'CNPJ',         gridColumns: 4 },
-  { property: 'email',        label: 'E-mail',       gridColumns: 5, type: 'link' },
-  { property: 'dataEmissao',  label: 'Emissão',      type: 'date', format: 'dd/MM/yyyy', gridColumns: 3 },
-  { property: 'valorTotal',   label: 'Valor Total',  type: 'currency', gridColumns: 3 },
-  {
-    property:     'ativo',
-    label:        'Status',
-    type:         'boolean',
-    booleanTrue:  'Ativo',
-    booleanFalse: 'Inativo',
-    tag:          true,
-    color:        'color-11',      // verde para ativo
-    gridColumns:  3,
-  },
+  { property: 'codigo',      label: 'Código',      gridColumns: 3 },
+  { property: 'nome',        label: 'Nome',         gridColumns: 9 },
+  { property: 'cnpj',        label: 'CNPJ',         gridColumns: 4 },
+  { property: 'email',       label: 'E-mail',       gridColumns: 5, type: 'link' },
+  { property: 'dataEmissao', label: 'Emissão',      type: 'date', format: 'dd/MM/yyyy', gridColumns: 3 },
+  { property: 'valorTotal',  label: 'Valor Total',  type: 'currency', gridColumns: 3 },
+  { property: 'ativo', label: 'Status', type: 'boolean', booleanTrue: 'Ativo', booleanFalse: 'Inativo', tag: true, color: 'color-11', gridColumns: 3 },
 ];
 ```
 
 ---
 
-## Mapeamento: tipo do campo → componente PO-UI renderizado
+## Mapeamento type → componente
 
 | `type` | `options?` | `optionsMulti?` | `searchService?` | `rows?` | Componente |
 |--------|-----------|----------------|-----------------|---------|-----------|
