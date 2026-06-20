@@ -96,3 +96,5 @@ REGRAS:
 ```
 
 Consulte a [documentação de Otimização de Tokens](https://alscosta1973.github.io/poui-specialist-docs/docs/otimizacao-tokens) para o formato completo.
+
+Para descobrir os campos automaticamente a partir de um endpoint, use primeiro `/poui-specialist:discover /api/custom/v1/<entidade>` — o plugin chama o endpoint, inspeciona os campos e gera o manifesto pronto para revisão e geração.
