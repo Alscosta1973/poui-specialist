@@ -49,10 +49,15 @@ Ler `src/app/app.routes.ts` e extrair todos os valores de `path:`:
 
 ```powershell
 $routesFile = Join-Path $angularRoot "src/app/app.routes.ts"
-$routesContent = Get-Content $routesFile -Raw
-$routes = [regex]::Matches($routesContent, "path:\s*'([^']+)'") |
-    ForEach-Object { $_.Groups[1].Value } |
-    Where-Object { $_ -ne '' }
+if (-not (Test-Path $routesFile)) {
+    Write-Host "⚠ app.routes.ts não encontrado — rotas não detectadas."
+    $routes = @()
+} else {
+    $routesContent = Get-Content $routesFile -Raw
+    $routes = [regex]::Matches($routesContent, "path:\s*'([^']+)'") |
+        ForEach-Object { $_.Groups[1].Value } |
+        Where-Object { $_ -ne '' }
+}
 ```
 
 **Fonte 2 — Serviços gerados pelo plugin:**

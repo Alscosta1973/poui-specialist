@@ -72,11 +72,13 @@ Campos: <campos>
 Regras de negócio:
 <REGRAS>
 
-Contexto do projeto (se presente no manifesto):
-<CONTEXTO_PROJETO se fornecido, caso contrário omitir este campo>
+Contexto do projeto (incluir somente se CONTEXTO_PROJETO estiver presente no manifesto):
+<CONTEXTO_PROJETO>
 
 Salve todos os arquivos gerados em PASTA_DESTINO.
 ```
+
+> **Para o orquestrador:** substituir `<CONTEXTO_PROJETO>` pelo bloco real do manifesto antes de despachar o subagente. Se não houver `CONTEXTO_PROJETO:` no manifesto, remover as duas linhas "Contexto do projeto" e `<CONTEXTO_PROJETO>` do prompt.
 
 Despachar como subagente `poui-specialist:code-generator`.
 
