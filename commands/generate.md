@@ -76,6 +76,8 @@ Generates standalone Angular 17+ artifacts using PO-UI components, integrated wi
    - Se **sim**: invocar a skill `poui-specialist:poui-preview` passando `<module>`, `<kebab-name>` e `<ComponentClass>` gerados no Passo 2.
    - Se **não**: encerrar normalmente.
 
+> **Auditoria periódica:** Use `/poui-specialist:quality` após gerar para verificar se os componentes atendem os 5 critérios de qualidade do plugin (OnPush, loading state, error handling, cleanup de observables, lazy loading).
+
 ## Geração em Lote
 
 Para gerar múltiplos componentes com custo fixo por componente (sem acúmulo de contexto por sessão), use o comando `/poui-specialist:generate-batch` com o formato manifesto.
