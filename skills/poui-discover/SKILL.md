@@ -40,10 +40,18 @@ Get-ChildItem -Path . -Filter proxy.conf.json -Recurse -Depth 3 | Select-Object 
 
 → `$baseUrl = "http://192.168.1.100:8084"`
 
-**Se não encontrado ou sem campo `target`:** exibir e aguardar input do usuário:
+**Se não encontrado:** exibir e aguardar input do usuário:
 
 ```
-⚠ Nenhum proxy.conf.json encontrado (ou sem "target" no formato esperado).
+⚠ Nenhum proxy.conf.json encontrado.
+Informe a URL base do AppServer Protheus (ex: http://192.168.1.100:8084):
+>
+```
+
+**Se encontrado mas sem campo `target` no formato esperado:** exibir e aguardar input do usuário:
+
+```
+⚠ proxy.conf.json encontrado mas não contém "target" no formato esperado.
 Informe a URL base do AppServer Protheus (ex: http://192.168.1.100:8084):
 >
 ```
