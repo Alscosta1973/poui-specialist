@@ -13,13 +13,21 @@ Compila o projeto Angular após geração de componentes, detecta erros TypeScri
 
 ## Passo 1 — Localizar raiz do projeto Angular
 
-Buscar `angular.json` subindo até 3 níveis a partir do diretório atual:
+Verificar o diretório atual e subir até 3 níveis procurando `angular.json`:
 
 ```powershell
-Get-ChildItem -Path . -Filter angular.json -Recurse -Depth 3 | Select-Object -First 1 FullName
+$angularRoot = $null
+$dir = (Get-Location).Path
+for ($i = 0; $i -lt 4; $i++) {
+    if (Test-Path (Join-Path $dir "angular.json")) {
+        $angularRoot = $dir
+        break
+    }
+    $dir = Split-Path $dir -Parent
+}
 ```
 
-**Se não encontrado:** exibir e encerrar:
+**Se não encontrado (`$angularRoot` for nulo):** exibir e encerrar:
 
 ```
 ⚠ Nenhum projeto Angular encontrado — build verification ignorada.
@@ -30,14 +38,14 @@ Os arquivos foram gerados mas não foram compilados.
 
 ## Passo 2 — Compilar o projeto
 
-Na raiz do projeto Angular, rodar:
+Mudar para a raiz do projeto Angular encontrada no Passo 1, depois executar o build com timeout de **120 segundos**:
 
 ```powershell
-$buildOutput = & ng build --configuration development 2>&1
-$buildSuccess = $LASTEXITCODE -eq 0
+Set-Location $angularRoot
+ng build --configuration development 2>&1
 ```
 
-Timeout: 120 segundos. Se timeout estourar, exibir:
+> **Importante:** usar `timeout: 120000` no parâmetro da ferramenta ao executar este comando. Se a ferramenta retornar erro de timeout, exibir e encerrar:
 
 ```
 ⚠ Build demorou mais de 120s — verifique se o projeto tem erros de dependência.
@@ -93,6 +101,7 @@ Repetir até build passar ou 3 tentativas esgotadas:
 | `Expected N arguments, but got M` | Ajustar a chamada para o número correto de argumentos |
 | `Object is possibly 'undefined'` | Adicionar optional chaining `?.` ou verificação de nulidade |
 | `Property 'x' has no initializer and is not definitely assigned` | Adicionar `!` ou inicializador ao campo |
+| `Property 'p-xxx' does not exist` em templates HTML | Verificar nome correto do input PO-UI em `agents/code-generator.md` — seção "Critical Rules" |
 
 **Não corrigir:**
 - Arquivos sem header `@generated  poui-specialist`
