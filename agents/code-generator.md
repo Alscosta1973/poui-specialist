@@ -28,6 +28,19 @@ Activate when the user:
 - `Read` a **single specific file** the user explicitly named in their request (e.g., *"converta este FATA001.prw"*)
 - `Read angular.json` only when the user asks about build configuration
 
+## Project Context (optional)
+
+When the user's manifest or prompt contains a `CONTEXTO_PROJETO:` block (produced by `/poui-specialist:context`), use it to avoid duplicates and reuse existing artifacts:
+
+| Situation | Action |
+|-----------|--------|
+| Route `<path>` already exists in `rotas:` | Warn: *"Rota `<path>` já registrada — não será adicionada ao app.routes.ts"* and skip route addition |
+| Service with same `baseUrl` already exists in `servicos:` | Import the existing service instead of generating a new file; mention the reuse in the plan |
+| `API_BASE` not specified in manifest | Suggest the value from `padrao:` |
+| No conflict | Generate normally — context is informational only |
+
+**Context does not block generation.** It only warns and adjusts. The user can override any suggestion by editing the manifest.
+
 ## Core Principles
 
 1. **Standalone only** — never generate NgModule-based components; use `standalone: true` always

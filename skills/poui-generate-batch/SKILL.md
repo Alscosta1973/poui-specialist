@@ -14,6 +14,11 @@ MODULO: <pasta-feature/sub-pasta>
 API_BASE: /rest/api/custom/v1
 PASTA_DESTINO: src/app/<modulo>
 
+CONTEXTO_PROJETO: (opcional — gerado por /poui-specialist:context)
+  rotas: [rota-existente-1, rota-existente-2]
+  servicos: [NomeService → /api/modulo/entidade]
+  padrao: src/app/<modulo>/<entidade>/
+
 COMPONENTES:
 | tipo              | classe                  | endpoint        | campos                              |
 |-------------------|-------------------------|-----------------|-------------------------------------|
@@ -66,6 +71,9 @@ Campos: <campos>
 
 Regras de negócio:
 <REGRAS>
+
+Contexto do projeto (se presente no manifesto):
+<CONTEXTO_PROJETO se fornecido, caso contrário omitir este campo>
 
 Salve todos os arquivos gerados em PASTA_DESTINO.
 ```
