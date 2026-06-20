@@ -64,6 +64,8 @@ Generates standalone Angular 17+ artifacts using PO-UI components, integrated wi
 ## Process
 
 > **Pré-passo opcional:** Se o projeto Angular já tem serviços e rotas cadastradas, execute `/poui-specialist:context` antes para gerar um snapshot de contexto e evitar duplicatas.
+> 
+> **Geração a partir de imagem:** Se tiver um screenshot ou wireframe da tela, use `/poui-specialist:screenshot <caminho-ou-url>` para gerar o manifesto automaticamente por visão, sem precisar escrever o manifesto à mão.
 
 1. **Parse arguments** — identify `<type>`, `<Name>`, and optional `--module`
 2. **Delegate to `code-generator` agent** — full planning, validation, and generation workflow
