@@ -66,7 +66,8 @@ Generates standalone Angular 17+ artifacts using PO-UI components, integrated wi
 1. **Parse arguments** — identify `<type>`, `<Name>`, and optional `--module`
 2. **Delegate to `code-generator` agent** — full planning, validation, and generation workflow
 3. **Confirm output** — list created files with their absolute paths and suggested route addition
-4. **Preview no browser** — após confirmar os arquivos gerados, perguntar:
+4. **Build verification** — após confirmar os arquivos, invocar automaticamente a skill `poui-specialist:build-fix`. Não perguntar ao usuário — executar direto e exibir o relatório de build.
+5. **Preview no browser** — após a verificação de build, perguntar:
 
    > "Deseja visualizar a tela no browser? [S/n]"
 

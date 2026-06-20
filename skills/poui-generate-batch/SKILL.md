@@ -96,4 +96,8 @@ Pasta: <PASTA_DESTINO>
 | <classe>             | ✅     | <lista de arquivos com caminho>       |
 
 Total: X gerados · Y com aviso · Z com falha
+
+### Passo 5 — Verificação de build
+
+Após o relatório de geração em lote, invocar automaticamente a skill `/poui-specialist:build-fix` para compilar todos os componentes gerados e corrigir erros TypeScript/template. Não perguntar ao usuário.
 ```
