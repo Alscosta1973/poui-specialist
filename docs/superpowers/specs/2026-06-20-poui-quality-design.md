@@ -80,9 +80,9 @@ Para cada componente em `$components`, ler o conteúdo e aplicar:
 | 2 | Loading state | `finalize\(` | Atenção |
 | 3 | Error handling | `notification\.error\(|catchError\(` | Atenção |
 | 4 | Cleanup observables | `takeUntilDestroyed` | Atenção |
-| 5 | Lazy loading (rotas) | `loadComponent` em vez de `component:` para cada rota do plugin em `app.routes.ts` | Atenção |
+| 5 | Lazy loading (rotas) | Todas as entradas em `app.routes.ts` usam `loadComponent:` em vez de `component:` | Atenção |
 
-**Regra 5 — detalhe:** Para cada componente auditado, inferir o path de rota esperado a partir do caminho do arquivo (`src/app/<módulo>/<entidade>/`) e verificar se no `app.routes.ts` a entrada correspondente usa `loadComponent:` (lazy) ou `component:` (import direto).
+**Regra 5 — detalhe:** Varre `app.routes.ts` e lista TODAS as entradas com `path:`. Para cada uma, verifica se usa `loadComponent:` (lazy — aprovado) ou `component:` (import direto — reprovado). Reportado como seção separada no relatório, sem correlacionar com componentes individuais (a rota real pode não bater com a estrutura de pastas).
 
 ### Passo 4 — Montar e exibir relatório
 
@@ -109,7 +109,7 @@ src/app/<módulo>/<entidade>/<arquivo>.component.ts — X/5 critérios
 | Loading state         | ✅/❌  | Adicionar finalize(() => this.loading.set(false)) nas chamadas HTTP |
 | Error handling        | ✅/❌  | Adicionar this.notification.error(...) ou catchError(...)   |
 | Cleanup observables   | ✅/❌  | Adicionar .pipe(takeUntilDestroyed()) nos observables       |
-| Lazy loading          | ✅/❌  | Substituir component: por loadComponent: () => import(...) em app.routes.ts |
+| Lazy loading (rota)   | ✅/❌  | ver seção "Rotas auditadas" abaixo |
 
 ### 🔴 Críticos (Z)
 <mesmo formato, destacar OnPush como bloqueante>
