@@ -87,8 +87,8 @@ Para cada componente em `$components`, ler o conteúdo e aplicar:
 ### Passo 4 — Montar e exibir relatório
 
 **Agrupamento:**
-- **Aprovado:** 5/5 critérios verdes
-- **Atenção necessária:** 1–4 critérios verdes (qualquer critério de Atenção falhou, nenhum Crítico)
+- **Aprovado:** critérios 1–4 todos verdes
+- **Atenção necessária:** qualquer critério 2, 3 ou 4 vermelho (critério 1 verde)
 - **Crítico:** critério OnPush ausente (independente dos demais)
 
 **Formato do relatório:**
@@ -98,10 +98,10 @@ Para cada componente em `$components`, ler o conteúdo e aplicar:
 Auditado em: <data> | Componentes: N | Rotas auditadas: M
 
 ### ✅ Aprovados (X)
-- src/app/<módulo>/<entidade>/<arquivo>.component.ts — 5/5 critérios
+- src/app/<módulo>/<entidade>/<arquivo>.component.ts — 4/4 critérios
 
 ### ⚠️ Atenção necessária (Y)
-src/app/<módulo>/<entidade>/<arquivo>.component.ts — X/5 critérios
+src/app/<módulo>/<entidade>/<arquivo>.component.ts — X/4 critérios
 
 | Critério              | Status | Ação sugerida                                               |
 |-----------------------|--------|-------------------------------------------------------------|
@@ -109,7 +109,8 @@ src/app/<módulo>/<entidade>/<arquivo>.component.ts — X/5 critérios
 | Loading state         | ✅/❌  | Adicionar finalize(() => this.loading.set(false)) nas chamadas HTTP |
 | Error handling        | ✅/❌  | Adicionar this.notification.error(...) ou catchError(...)   |
 | Cleanup observables   | ✅/❌  | Adicionar .pipe(takeUntilDestroyed()) nos observables       |
-| Lazy loading (rota)   | ✅/❌  | ver seção "Rotas auditadas" abaixo |
+
+> Critério 5 (Lazy loading) é auditado como seção separada "Rotas auditadas" — não por componente individual.
 
 ### 🔴 Críticos (Z)
 <mesmo formato, destacar OnPush como bloqueante>

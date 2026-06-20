@@ -93,7 +93,7 @@ Para cada entrada com `path:` em `$routesContent`, verificar se a mesma entrada 
 
 ```
 ## Relatório de Qualidade PO-UI
-Auditado em: <data> | Componentes: N
+Auditado em: <data> | Componentes: N | Rotas auditadas: M
 
 ### ✅ Aprovados (X)
 - src/app/<módulo>/<entidade>/<arquivo>.component.ts — 4/4 critérios
