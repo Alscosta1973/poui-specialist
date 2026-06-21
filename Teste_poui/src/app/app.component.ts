@@ -20,6 +20,12 @@ export class AppComponent {
 
   readonly menus: PoMenuItem[] = [
     {
+      label: 'Parceiros',
+      shortLabel: 'Parceiros',
+      icon: 'po-icon-users',
+      link: '/faturamento/parceiros',
+    },
+    {
       label: 'Gerar NF Pedidos',
       shortLabel: 'Gerar NF',
       icon: 'po-icon-document',

@@ -96,6 +96,12 @@ export const routes: Routes = [
         .then(m => m.ImportacaoFinanceiraComponent),
   },
   {
+    path: 'faturamento/parceiros',
+    loadComponent: () =>
+      import('./faturamento/parceiros/parceiros.component')
+        .then(m => m.ParceirosComponent),
+  },
+  {
     path: 'ecommerce/ws-pedidos-log',
     loadComponent: () =>
       import('./ecommerce/ws-pedidos-log/ws-pedidos-log.component')

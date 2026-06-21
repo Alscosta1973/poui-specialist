@@ -1,0 +1,45 @@
+<!-- parceiros.component.html — gerado por poui-specialist v1.3 -->
+<po-page-dynamic-search
+  p-title="Parceiros"
+  [p-actions]="pageActions"
+  [p-filters]="filters"
+  [p-disclaimer-group]="disclaimerGroup()"
+  (p-quick-search)="onQuickSearch($event)"
+  (p-advanced-search)="onAdvancedSearch($event)"
+  (p-change-disclaimers)="onDisclaimersChange($event)"
+>
+
+  <!-- Barra de paginação (anterior / próxima) -->
+  <div class="po-row po-mb-2" style="display:flex; align-items:center; gap:8px;">
+    <po-button
+      p-label="Anterior"
+      p-icon="ph ph-caret-left"
+      p-kind="secondary"
+      [p-disabled]="currentPage() <= 1 || isLoading()"
+      (p-click)="onPreviousPage()">
+    </po-button>
+
+    <span class="po-font-text-small">Página {{ currentPage() }}</span>
+
+    <po-button
+      p-label="Próxima"
+      p-icon="ph ph-caret-right"
+      p-icon-right="true"
+      p-kind="secondary"
+      [p-disabled]="!hasNext() || isLoading()"
+      (p-click)="onNextPage()">
+    </po-button>
+  </div>
+
+  <!-- Tabela de resultados -->
+  <po-table
+    p-sort="true"
+    p-striped="true"
+    [p-loading]="isLoading()"
+    [p-columns]="columns"
+    [p-items]="items()"
+    [p-actions]="tableActions"
+    [p-selectable]="false">
+  </po-table>
+
+</po-page-dynamic-search>
