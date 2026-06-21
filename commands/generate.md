@@ -21,6 +21,7 @@ Generates standalone Angular 17+ artifacts using PO-UI components, integrated wi
 | `master-detail` | `*.component.ts/html/scss` + model | Yes | List with expandable child rows (pedido/itens, NF/itens) |
 | `stacked-browse` | `*.component.ts/html/scss` | Yes | Dois po-table empilhados (master/detail) com navegação por teclado ArrowUp/Down e Tab para alternar |
 | `two-panel-browse` | `*.component.ts/html/scss` | Yes | Dois po-table lado a lado para conciliação/matching (seleciona um de cada e confirma) |
+| `action-list` | `*.component.ts/html/scss` + model | Yes | Lista com N ações procedurais Protheus — cada ação tem modal de confirmação com interpolação de campos, loading isolado por botão, resposta estruturada por linha com modal de resultados para sucesso parcial |
 
 ### Edit / Detail pages
 | Type | Generated Files | `--module` required? | When to use |

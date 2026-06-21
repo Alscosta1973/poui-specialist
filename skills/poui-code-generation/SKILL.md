@@ -1,6 +1,6 @@
 ---
 name: poui-code-generation
-description: Use when generating PO-UI Angular code — complete ready-to-adapt templates for page-list, page-dynamic-search, page-edit, page-detail, modal-crud, stepper-form, page-dynamic, master-detail, stacked-browse, two-panel-browse, service, module, and dashboard artifacts for Protheus integration | © Andre Costa — uso restrito · https://github.com/Alscosta1973/poui-specialist
+description: Use when generating PO-UI Angular code — complete ready-to-adapt templates for page-list, page-dynamic-search, page-edit, page-detail, modal-crud, stepper-form, page-dynamic, master-detail, stacked-browse, two-panel-browse, action-list, service, module, and dashboard artifacts for Protheus integration | © Andre Costa — uso restrito · https://github.com/Alscosta1973/poui-specialist
 ---
 
 # PO-UI Code Generation Templates
@@ -19,6 +19,7 @@ Use this numbered algorithm to choose the right template before loading any file
    - If the screen has 3+ distinct sections or wizard steps, choose `stepper-form`.
    - If the screen has 1-10 editable fields, no dedicated route, and no multi-step flow, choose `modal-crud`; otherwise choose `page-edit`.
 4. If the request is for a list screen:
+   - If the screen is a **list where users select records and trigger a Protheus procedural operation** (baixar título, processar NF, confirmar pedido) that requires explicit confirmation, returns a per-row result, and may have partial success, choose `action-list`.
    - If the screen shows **two browse panels side by side** where the user selects one row from each panel and confirms a pairing/matching action (reconciliation, matching, conciliation), choose `two-panel-browse`.
    - If the screen has **two vertically stacked browses** where the top browse (master) drives what appears in the bottom browse (detail), with independent ArrowKey navigation, Tab to switch, a compact filter bar with "Remover Filtro", and a confirmation footer (e.g. SC5 orders → SC6 items, generate NF, process records), choose `stacked-browse`.
    - If it requires inline child rows or master-detail item lines, choose `master-detail`.
@@ -70,6 +71,7 @@ All templates use these substitution placeholders:
 
 | Template | File | When to use |
 |----------|------|-------------|
+| **action-list** | `templates-action-list.md` | List with multiple independent Protheus procedural actions; each action has a confirmation modal with field interpolation, per-action loading spinner, and structured per-row response with partial-success results modal. |
 | **page-list** | `templates-page-list.md` | Simple list with only quick search |
 | **page-dynamic-search** | `templates-page-dynamic-search.md` | List with quick search + advanced search + disclaimers (standard Protheus pattern) |
 | **page-dynamic** | `templates-page-dynamic.md` | Zero-boilerplate list using PoPageDynamicTableComponent (API must follow plugin contract) |

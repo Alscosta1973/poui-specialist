@@ -41,7 +41,34 @@ REGRAS:
 
 ## Tipos Válidos
 
-`page-list` · `page-edit` · `page-detail` · `page-dynamic-search` · `page-dynamic` · `modal-crud` · `stepper-form` · `master-detail` · `stacked-browse` · `two-panel-browse` · `service` · `dashboard`
+`page-list` · `page-edit` · `page-detail` · `page-dynamic-search` · `page-dynamic` · `modal-crud` · `stepper-form` · `master-detail` · `stacked-browse` · `two-panel-browse` · `action-list` · `service` · `dashboard`
+
+## Seção ACOES: (obrigatória para `action-list`)
+
+Quando o manifesto contém um componente do tipo `action-list`, a seção `ACOES:` define cada ação procedural:
+
+```
+ACOES:
+- id: <id-unico> | label: <Rótulo> | icon: <po-icon-*> | mode: <single|multi> | campoChave: <campo>
+  endpoint: <endpoint-relativo>
+  modal_title: <Título do Modal>
+  modal_message: <Mensagem com {{campo}} ou {{_count}}>
+  danger: <true|false>
+```
+
+| Campo | Descrição |
+|---|---|
+| `id` | Chave única da ação (usada no `actionLoading` map) |
+| `label` | Rótulo do botão |
+| `icon` | Ícone PO-UI (`po-icon-*`) |
+| `mode` | `single` = opera na linha clicada (vira `PoTableAction`); `multi` = opera na seleção (vira `PoPageAction`) |
+| `campoChave` | Campo primário do modelo para montar o payload do POST |
+| `endpoint` | Endpoint relativo ao `API_BASE` para o POST |
+| `modal_title` | Título do `po-modal` de confirmação |
+| `modal_message` | Mensagem com interpolação: `{{campo}}` = valor da linha; `{{_count}}` = número de linhas selecionadas (somente `multi`) |
+| `danger` | `true` aplica `type: 'danger'` no botão |
+
+A seção `ACOES:` é passada integralmente no bloco `Regras de negócio:` do prompt do subagente.
 
 ## Processo
 
