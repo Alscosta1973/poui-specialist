@@ -5,6 +5,8 @@ Gera um componente standalone `po-page-list` com `po-table`, múltiplas ações 
 > **Regra de ícones:** Sempre use nomes `po-icon-*`. Nunca `an an-*` ou `ph ph-*`.
 >
 > **Quando usar:** Tela de lista onde o usuário seleciona registros e dispara operações de negócio no Protheus que exigem confirmação e retornam resultado por linha (baixar título, processar NF, confirmar pedido). Para CRUD simples sem ação procedural, use `page-list`.
+>
+> **Nota:** `type: 'danger'` em `PoPageAction` (ações `multi`) só é renderizado visualmente a partir da 3ª ação quando há 4 ou mais page actions na página — comportamento nativo do PO-UI.
 
 ---
 
@@ -35,7 +37,7 @@ import {
   PoTableColumn,
   PoTableModule,
 } from '@po-ui/ng-components';
-import { {{ServiceClass}} } from '../{{serviceFile}}.service';
+import { {{ServiceClass}} } from '../{{serviceFile}}';
 import {
   {{ModelInterface}},
   ActionConfig,
@@ -261,9 +263,10 @@ export class {{ComponentClass}} implements OnInit {
     const { config, rows } = draft;
     this.actionLoading.update(m => ({ ...m, [config.id]: true }));
 
+    const chave = (config.campoChave || String(this.chaveUnica)) as keyof {{ModelInterface}};
     const payload = config.mode === 'single'
-      ? { id: String(rows[0][this.chaveUnica]) }
-      : { ids: rows.map(r => String(r[this.chaveUnica])) };
+      ? { id: String(rows[0][chave]) }
+      : { ids: rows.map(r => String(r[chave])) };
 
     this.service.executarAcao(config.endpoint, payload)
       .pipe(
@@ -446,7 +449,8 @@ executarAcao(
   endpoint: string,
   payload: { id: string } | { ids: string[] },
 ): Observable<ActionResponse> {
-  return this.http.post<ActionResponse>(`${this.apiUrl}${endpoint}`, payload);
+  // endpoint é relativo ao API_BASE (ex: '/financeiro/titulos/baixar'), não à apiUrl da entidade
+  return this.http.post<ActionResponse>(`/rest/api/custom/v1${endpoint}`, payload);
 }
 ```
 

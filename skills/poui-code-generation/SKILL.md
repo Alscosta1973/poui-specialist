@@ -52,6 +52,7 @@ All templates use these substitution placeholders:
 | `{{apiPath}}` | Protheus REST path | `/rest/api/custom/v1/pedidos` |
 | `{{moduleName}}` | Feature folder name | `financeiro` |
 | `{{ModuleName}}` | PascalCase module label | `Financeiro` |
+| `{{campoChave}}` | Primary key field name of the model | `numero` |
 
 ## Templates
 

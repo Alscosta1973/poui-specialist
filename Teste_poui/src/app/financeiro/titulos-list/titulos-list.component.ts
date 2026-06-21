@@ -247,9 +247,10 @@ export class TitulosListComponent implements OnInit {
     const { config, rows } = draft;
     this.actionLoading.update(m => ({ ...m, [config.id]: true }));
 
+    const chave = (config.campoChave || String(this.chaveUnica)) as keyof Titulo;
     const payload = config.mode === 'single'
-      ? { id: String(rows[0][this.chaveUnica]) }
-      : { ids: rows.map(r => String(r[this.chaveUnica])) };
+      ? { id: String(rows[0][chave]) }
+      : { ids: rows.map(r => String(r[chave])) };
 
     this.service.executarAcao(config.endpoint, payload)
       .pipe(
