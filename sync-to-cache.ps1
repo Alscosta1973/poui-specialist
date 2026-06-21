@@ -2,17 +2,23 @@
 # Execute sempre apos alterar skills, commands ou agents
 
 $source = "C:\TOTVS\Projetos\Claude\poui-specialist"
-$dest   = "C:\Users\andre\.claude\plugins\cache\poui-specialist-marketplace\poui-specialist\1.0.0"
+$dests  = @(
+    "C:\Users\andre\.claude\plugins\cache\poui-specialist-marketplace\poui-specialist\1.0.0",
+    "C:\Users\andre\.claude\plugins\cache\poui-specialist-marketplace\poui-specialist\1.3.0"
+)
 
 $dirs = @(".claude-plugin", "commands", "skills", "agents")
 
-foreach ($dir in $dirs) {
-    $src = Join-Path $source $dir
-    $dst = Join-Path $dest $dir
-    if (Test-Path $src) {
-        robocopy $src $dst /MIR /NFL /NDL /NJH /NJS | Out-Null
-        Write-Host "OK  $dir"
+foreach ($dest in $dests) {
+    Write-Host "`n-> $dest"
+    foreach ($dir in $dirs) {
+        $src = Join-Path $source $dir
+        $dst = Join-Path $dest $dir
+        if (Test-Path $src) {
+            robocopy $src $dst /MIR /NFL /NDL /NJH /NJS | Out-Null
+            Write-Host "   OK  $dir"
+        }
     }
 }
 
-Write-Host "`nSincronizacao concluida -> $dest"
+Write-Host "`nSincronizacao concluida."
