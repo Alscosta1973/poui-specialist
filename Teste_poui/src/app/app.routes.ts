@@ -113,4 +113,10 @@ export const routes: Routes = [
       import('./ecommerce/ws-pedidos-parametros/ws-pedidos-parametros.component')
         .then(m => m.WsPedidosParametrosComponent),
   },
+  {
+    path: 'financeiro/titulos-list',
+    loadComponent: () =>
+      import('./financeiro/titulos-list/titulos-list.component')
+        .then(m => m.TitulosListComponent),
+  },
 ];

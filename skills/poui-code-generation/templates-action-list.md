@@ -305,7 +305,7 @@ export class {{ComponentClass}} implements OnInit {
     if (mode === 'multi') {
       return template.replace(/\{\{_count\}\}/g, String(rows.length));
     }
-    const row = rows[0] as Record<string, unknown>;
+    const row = rows[0] as unknown as Record<string, unknown>;
     return template.replace(/\{\{(\w+)\}\}/g, (_, key) => String(row[key] ?? ''));
   }
 
@@ -343,11 +343,11 @@ export class {{ComponentClass}} implements OnInit {
     [p-items]="items()"
     [p-loading]="loading()"
     [p-actions]="tableActions"
-    [p-checkbox]="true"
+    [p-selectable]="true"
     [p-show-more-disabled]="!hasNext()"
     (p-show-more)="onShowMore()"
-    (p-selected-row)="onRowSelected($event)"
-    (p-unselected-row)="onRowUnselected($event)"
+    (p-selected)="onRowSelected($event)"
+    (p-unselected)="onRowUnselected($event)"
     (p-all-selected)="onAllSelected()"
     (p-all-unselected)="onAllUnselected()">
   </po-table>

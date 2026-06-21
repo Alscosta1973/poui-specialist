@@ -93,6 +93,12 @@ export class AppComponent {
       link: '/ecommerce/ws-pedidos-parametros',
     },
     {
+      label: 'Títulos',
+      shortLabel: 'Títulos',
+      icon: 'po-icon-document',
+      link: '/financeiro/titulos-list',
+    },
+    {
       label: 'Sair',
       shortLabel: 'Sair',
       icon: 'po-icon-exit',

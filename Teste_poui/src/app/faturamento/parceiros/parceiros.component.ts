@@ -15,17 +15,19 @@ import {
 import { Router } from '@angular/router';
 
 import {
-  PoPageDynamicSearchModule,
   PoTableModule,
   PoButtonModule,
   PoNotificationService,
-  PoPageDynamicSearchFilters,
   PoTableColumn,
   PoTableAction,
   PoPageAction,
   PoDisclaimerGroup,
   PoDisclaimer,
 } from '@po-ui/ng-components';
+import {
+  PoPageDynamicSearchModule,
+  PoPageDynamicSearchFilters,
+} from '@po-ui/ng-templates';
 
 import { ParceirosService } from './parceiros.service';
 import { Parceiro, ParceiroFilter, TipoPessoa, SituacaoParceiro } from './parceiro.model';
