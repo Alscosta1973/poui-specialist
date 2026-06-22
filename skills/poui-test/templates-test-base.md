@@ -3,10 +3,14 @@
 Prefixado a todos os specs exceto `other/service` (que tem setup próprio).
 O agente insere este bloco antes dos cenários do template de família.
 
+> **IMPORTANTE — Compatibilidade PO-UI**: Componentes PO-UI registram `setTimeout` internos ao
+> renderizar. Use SEMPRE `waitForAsync` + `fixture.whenStable()`. NUNCA use `fakeAsync`/`tick()` —
+> causa o erro "N timer(s) still in the queue" com módulos PO-UI.
+
 ## Imports e setup
 
 ```typescript
-import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
@@ -18,8 +22,8 @@ describe('{{ComponentClass}}', () => {
   let fixture: ComponentFixture<{{ComponentClass}}>;
   let httpMock: HttpTestingController;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
+  beforeEach(waitForAsync(() => {
+    TestBed.configureTestingModule({
       imports: [{{ComponentClass}}],
       providers: [
         provideHttpClient(),
@@ -27,7 +31,9 @@ describe('{{ComponentClass}}', () => {
         provideRouter([]),
       ],
     }).compileComponents();
+  }));
 
+  beforeEach(() => {
     fixture = TestBed.createComponent({{ComponentClass}});
     component = fixture.componentInstance;
     httpMock = TestBed.inject(HttpTestingController);
@@ -43,6 +49,6 @@ describe('{{ComponentClass}}', () => {
 ## Notas
 
 - `OnPush`: chamar `fixture.detectChanges()` após qualquer flush HTTP
-- `fakeAsync` + `tick()` para observables RxJS e `takeUntilDestroyed`
+- `waitForAsync` + `fixture.whenStable()` para observables RxJS, `takeUntilDestroyed` e módulos PO-UI
 - `httpMock.verify()` no `afterEach` garante que nenhuma request ficou sem flush
 - Fechar o bloco `describe` com `});` na última linha do template de família
