@@ -205,18 +205,130 @@ Inserir após o bloco base. O agente seleciona as seções relevantes ao subtipo
 
 ## Cenários stacked-browse (incluir se `activeBrowse` presente)
 
+> **Stacked-browse — DEMO data**: Componentes stacked-browse frequentemente usam dados DEMO enquanto a
+> rota REST não está disponível (chamadas ao service comentadas no código). Nesse caso, **não há HTTP**
+> — remover `httpMock.expectOne/match` dos cenários e manter apenas `httpMock.verify()` no `afterEach`
+> (passará pois não há requests pendentes). Ainda incluir `provideHttpClient()` e
+> `provideHttpClientTesting()` nos providers para satisfazer o DI do service injetado.
+>
+> **setTimeout chain**: `buscar()` em stacked-browse usa `setTimeout(0, onMasterSelecionado)` →
+> `onMasterSelecionado` usa `setTimeout(50, _highlightMasterRow)`. Zone.js rastreia toda a cadeia;
+> um único `fixture.whenStable()` aguarda ambos.
+>
+> **HostListener via método direto**: `@HostListener('window:keydown')` define o método público
+> (ex: `onKeyDown`). Chamar `component.onKeyDown(new KeyboardEvent('keydown', { key: 'Tab' }))` é
+> a forma correta de testar teclas em unit tests — não é preciso disparar evento no DOM.
+
 ```typescript
-  it('should switch activeBrowse on tab', waitForAsync(() => {
+  // ── load inicial (DEMO data — sem HTTP) ──────────────────────────────────────
+  it('should load all master items from demo on init', waitForAsync(() => {
     fixture.detectChanges();
-    httpMock.match(r => r.url.includes(apiPath)).forEach(r => r.flush(mockResponse));
     return fixture.whenStable().then(() => {
       fixture.detectChanges();
+      // Agente: ajustar .length para a quantidade de itens DEMO do componente
+      expect(component.items().length).toBeGreaterThan(0);
+      expect(component.masterAtual()).not.toBeNull();
+    });
+  }));
 
-      const initialBrowse = component.activeBrowse();
-      // Agente: invocar método de troca de browse real (ex: onTabKey, switchBrowse)
-      // component.onTabKey();
+  // ── onMasterSelecionado → carrega detail ──────────────────────────────────────
+  it('should load detail items for selected master', waitForAsync(() => {
+    fixture.detectChanges();
+    return fixture.whenStable().then(() => {
       fixture.detectChanges();
-      expect(component.activeBrowse()).not.toBe(initialBrowse);
+      // Agente: substituir items()[N] pelo índice com itens conhecidos
+      component.onMasterSelecionado(component.items()[0]);
+      return fixture.whenStable();
+    }).then(() => {
+      fixture.detectChanges();
+      expect(component.detailItems().length).toBeGreaterThan(0);
+    });
+  }));
+
+  // ── seleção / desseleção de item de detalhe ───────────────────────────────────
+  it('should add and remove item from itensSelecionados', waitForAsync(() => {
+    fixture.detectChanges();
+    return fixture.whenStable().then(() => {
+      fixture.detectChanges();
+      const item = component.detailItems()[0];
+      // Agente: substituir onItemSelecionado/onItemDeselecionado pelos métodos reais
+      component.onItemSelecionado(item);
+      expect(component.itensSelecionados()).toContain(item);
+      component.onItemDeselecionado(item);
+      expect(component.itensSelecionados()).not.toContain(item);
+    });
+  }));
+
+  // ── selecionar todos / desselecionar todos ────────────────────────────────────
+  it('should select and clear all detail items', waitForAsync(() => {
+    fixture.detectChanges();
+    return fixture.whenStable().then(() => {
+      fixture.detectChanges();
+      // Agente: substituir pelos métodos reais de select-all e deselect-all
+      component.onTodosItensSelecionados();
+      expect(component.itensSelecionados().length).toBe(component.detailItems().length);
+      expect(component.podeConfirmar()).toBeTrue();
+      component.onTodosItensDeselecionados();
+      expect(component.itensSelecionados().length).toBe(0);
+    });
+  }));
+
+  // ── aprovarItens / ação principal → notification.success ─────────────────────
+  it('should call notification.success and clear selection on ação principal', waitForAsync(() => {
+    const successSpy = spyOn(TestBed.inject(PoNotificationService), 'success');
+    fixture.detectChanges();
+    return fixture.whenStable().then(() => {
+      fixture.detectChanges();
+      component.onTodosItensSelecionados();
+      // Agente: substituir aprovarItens() pelo método de confirmação real
+      component.aprovarItens();
+      return fixture.whenStable();
+    }).then(() => {
+      fixture.detectChanges();
+      expect(successSpy).toHaveBeenCalled();
+      expect(component.itensSelecionados().length).toBe(0);
+    });
+  }));
+
+  // ── filtro + removerFiltro ─────────────────────────────────────────────────────
+  it('should filter and restore items via buscar() and removerFiltro()', waitForAsync(() => {
+    fixture.detectChanges();
+    return fixture.whenStable().then(() => {
+      fixture.detectChanges();
+      const totalOriginal = component.items().length;
+      // Agente: ajustar campo e valor para o filtro real do componente
+      component.filtros.campo1 = component.items()[0].numero;
+      component.buscar();
+      return fixture.whenStable();
+    }).then(() => {
+      fixture.detectChanges();
+      expect(component.items().length).toBe(1);
+      expect(component.isFiltrado()).toBeTrue();
+      component.removerFiltro();
+      return fixture.whenStable();
+    }).then(() => {
+      fixture.detectChanges();
+      expect(component.isFiltrado()).toBeFalse();
+    });
+  }));
+
+  // ── Tab alterna activeBrowse master ↔ detail ──────────────────────────────────
+  it('should switch activeBrowse on Tab key', waitForAsync(() => {
+    fixture.detectChanges();
+    return fixture.whenStable().then(() => {
+      fixture.detectChanges();
+      expect(component.activeBrowse()).toBe('master');
+      // Agente: substituir onKeyDown pelo método HostListener real do componente
+      component.onKeyDown(new KeyboardEvent('keydown', { key: 'Tab' }));
+      return fixture.whenStable();
+    }).then(() => {
+      fixture.detectChanges();
+      expect(component.activeBrowse()).toBe('detail');
+      component.onKeyDown(new KeyboardEvent('keydown', { key: 'Tab' }));
+      return fixture.whenStable();
+    }).then(() => {
+      fixture.detectChanges();
+      expect(component.activeBrowse()).toBe('master');
     });
   }));
 ```
@@ -259,5 +371,7 @@ Fechar com:
 - O sinal de loading é `loading()` (não `isLoading()`) em componentes action-list
 - **CRÍTICO — PoModalComponent.open()**: `openAction()` chama `confirmModal.open()`, que executa `setTimeout+focus` em `nativeElement`. Em testes unitários sem DOM de produção isso gera `TypeError: Cannot read properties of undefined (reading 'nativeElement')`. Solução obrigatória: chamar `stubModals()` após o primeiro `fixture.detectChanges()` (que inicializa o `@ViewChild`) e antes de qualquer `openAction()`/`executeAction()`.
 - Para `executeAction()`: após o POST de sucesso/falha parcial, o componente chama `load()` gerando um segundo GET — sempre fazer flush desse reload com `httpMock.match(r => r.url.includes(apiPath)).forEach(r => r.flush(mockResponse))`
-- Para `notification.success`: o spy deve ser criado ANTES de `executeAction()` ser chamado
+- Para `notification.success`/`aprovarItens()`: o spy deve ser criado ANTES de executar a ação
+- **Stacked-browse sem HTTP**: se `buscar()` e `_carregarItens()` usam DEMO data (chamadas ao service comentadas), não usar `httpMock.expectOne/match` nos cenários. O `afterEach(() => httpMock.verify())` ainda deve estar presente e passará sem erros. Incluir `provideHttpClient()` e `provideHttpClientTesting()` nos providers (DI do service).
+- **`HostListener` via método direto**: `component.onKeyDown(new KeyboardEvent('keydown', { key: 'Tab' }))` — chamar o método diretamente é mais confiável que disparar evento no DOM em testes unitários
 - **NÃO usar `fakeAsync`** com componentes PO-UI — registram `setTimeout` internos que causam "N timer(s) still in the queue"
