@@ -80,6 +80,7 @@ Generates standalone Angular 17+ artifacts using PO-UI components, integrated wi
    - Se **não**: encerrar normalmente.
 
 > **Auditoria periódica:** Use `/poui-specialist:quality` após gerar para verificar se os componentes atendem os 4 critérios de qualidade do plugin (OnPush, loading state, error handling, cleanup de observables) e se as rotas usam lazy loading.
+> **Geração de testes:** Use `/poui-specialist:test <ComponentClass> --module <module>` para gerar testes unitários Karma + Jasmine completos (smoke, HTTP, router, modais) para o componente gerado.
 
 ## Geração em Lote
 
