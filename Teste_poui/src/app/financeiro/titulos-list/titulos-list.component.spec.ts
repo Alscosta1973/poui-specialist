@@ -54,7 +54,7 @@ describe('TitulosListComponent', () => {
   it('should create', waitForAsync(() => {
     fixture.detectChanges();
     httpMock.match(r => r.url.includes(apiPath)).forEach(r => r.flush(mockResponse));
-    fixture.whenStable().then(() => {
+    return fixture.whenStable().then(() => {
       fixture.detectChanges();
       expect(component).toBeTruthy();
     });
@@ -66,7 +66,7 @@ describe('TitulosListComponent', () => {
     const req = httpMock.expectOne(r => r.url.includes(apiPath));
     expect(req.request.method).toBe('GET');
     req.flush(mockResponse);
-    fixture.whenStable().then(() => {
+    return fixture.whenStable().then(() => {
       fixture.detectChanges();
       expect(component.items()).toContain(mockItem);
       expect(component.loading()).toBeFalse();
@@ -161,13 +161,14 @@ describe('TitulosListComponent', () => {
 
   // ── executar ação → POST → sucesso total → currentAction limpo ───────────
   it('should clear currentAction on full success response', waitForAsync(() => {
+    let notifSpy: jasmine.Spy;
     fixture.detectChanges();
     httpMock.expectOne(r => r.url.includes(apiPath)).flush(mockResponse);
     return fixture.whenStable().then(() => {
       fixture.detectChanges();
       stubModals();
 
-      const notifSpy = spyOn(TestBed.inject(PoNotificationService), 'success');
+      notifSpy = spyOn(TestBed.inject(PoNotificationService), 'success');
       const firstAction = component.actions[0]; // 'baixar'
       component.openAction(firstAction, [mockItem]);
       component.executeAction();
@@ -182,6 +183,7 @@ describe('TitulosListComponent', () => {
       return fixture.whenStable();
     }).then(() => {
       fixture.detectChanges();
+      expect(notifSpy).toHaveBeenCalled();
       expect(component.currentAction()).toBeNull();
     });
   }));
@@ -217,13 +219,14 @@ describe('TitulosListComponent', () => {
 
   // ── executar ação → erro HTTP → notification.error e currentAction limpo ──
   it('should call notification.error on action HTTP failure', waitForAsync(() => {
+    let notifSpy: jasmine.Spy;
     fixture.detectChanges();
     httpMock.expectOne(r => r.url.includes(apiPath)).flush(mockResponse);
     return fixture.whenStable().then(() => {
       fixture.detectChanges();
       stubModals();
 
-      const notifSpy = spyOn(TestBed.inject(PoNotificationService), 'error');
+      notifSpy = spyOn(TestBed.inject(PoNotificationService), 'error');
       const firstAction = component.actions[0]; // 'baixar'
       component.openAction(firstAction, [mockItem]);
       component.executeAction();
@@ -235,6 +238,7 @@ describe('TitulosListComponent', () => {
       return fixture.whenStable();
     }).then(() => {
       fixture.detectChanges();
+      expect(notifSpy).toHaveBeenCalled();
       expect(component.currentAction()).toBeNull();
     });
   }));

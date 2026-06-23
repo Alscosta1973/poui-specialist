@@ -11,7 +11,7 @@ Inserir após o bloco base. Fechar com `});` na última linha.
 
 ## Ajuste no bloco base para família list
 
-Substituir o `beforeEach(async () => {...})` do base por:
+> **Nota:** O bloco base gerado pelo template já usa `waitForAsync` nos `beforeEach` — nenhuma alteração necessária nesta seção. O código abaixo é apenas referência do formato esperado.
 
 ```typescript
   beforeEach(waitForAsync(() => {
@@ -32,7 +32,7 @@ Substituir o `beforeEach(async () => {...})` do base por:
   });
 ```
 
-Adicionar `waitForAsync` ao import do `@angular/core/testing`.
+Verificar que `waitForAsync` está no import do `@angular/core/testing` (já incluído no bloco base).
 
 ## Cenários
 
@@ -48,7 +48,7 @@ Adicionar `waitForAsync` ao import do `@angular/core/testing`.
   it('should create', waitForAsync(() => {
     fixture.detectChanges();
     httpMock.match(r => r.url.includes('{{apiPath}}')).forEach(r => r.flush(mockResponse));
-    fixture.whenStable().then(() => {
+    return fixture.whenStable().then(() => {
       fixture.detectChanges();
       expect(component).toBeTruthy();
     });
@@ -61,7 +61,7 @@ Adicionar `waitForAsync` ao import do `@angular/core/testing`.
     expect(req.request.method).toBe('GET');
     expect(req.request.params.get('page')).toBe('1');
     req.flush(mockResponse);
-    fixture.whenStable().then(() => {
+    return fixture.whenStable().then(() => {
       fixture.detectChanges();
       expect(component.items()).toEqual([mockItem]);
       expect(component.isLoading()).toBeFalse();

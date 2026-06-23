@@ -65,7 +65,7 @@ describe('ParceirosComponent', () => {
   it('should create', waitForAsync(() => {
     fixture.detectChanges();
     httpMock.match(r => r.url.includes(apiPath)).forEach(r => r.flush(mockResponse));
-    fixture.whenStable().then(() => {
+    return fixture.whenStable().then(() => {
       fixture.detectChanges();
       expect(component).toBeTruthy();
     });
@@ -78,7 +78,7 @@ describe('ParceirosComponent', () => {
     expect(req.request.method).toBe('GET');
     expect(req.request.params.get('page')).toBe('1');
     req.flush(mockResponse);
-    fixture.whenStable().then(() => {
+    return fixture.whenStable().then(() => {
       fixture.detectChanges();
       expect(component.items()).toEqual([mockItem]);
       expect(component.isLoading()).toBeFalse();
