@@ -2,6 +2,22 @@
 
 Todas as mudanças notáveis do plugin poui-specialist são documentadas aqui.
 
+## [1.4.0] — 2026-06-23
+
+### Added
+- Comando `/poui-specialist:test`: gerador de `*.component.spec.ts` / `*.service.spec.ts` Karma + Jasmine
+- Skill `poui-test` com 6 templates por família: `base`, `list`, `form`, `detail`, `complex`, `other`
+- Skill `poui-preview`: abre componente gerado no browser via Angular dev server + Playwright (portas 4200–4209)
+- Skill `poui-build-fix`: verificação de build automática com `ng build` após geração e correção de erros TypeScript/template
+- Skill `poui-quality`: auditoria de qualidade pós-geração (boas práticas, acessibilidade, performance)
+- Skill `poui-context`: geração codebase-aware com snapshot de projeto existente
+- Skill `poui-discover`: auto-discovery de contrato Protheus a partir de fonte `.prw`/`.tlpp`
+- Skill `poui-generate-batch`: geração em lote de múltiplos artifacts em sequência
+- Skill `poui-screenshot`: captura de screenshot do componente gerado via Playwright
+
+### Changed
+- `commands/generate.md`: adicionado Passo 4 (verificação de build automática) e Passo 5 (preview no browser)
+
 ## [1.3.0] — 2026-06-11
 
 ### Fixed
