@@ -8,6 +8,11 @@ Inserir após o bloco base. Fechar com `});` na última linha.
 > `PoStepperModule` ou outros módulos PO-UI registram `setTimeout` internos ao renderizar. Use
 > `waitForAsync` + `fixture.whenStable()` — NÃO `fakeAsync` — para evitar o erro
 > "N timer(s) still in the queue".
+>
+> **Regra obrigatória — `PoNotificationService`**: `success()`, `warning()` e `error()` registram
+> timers internos de auto-dismiss. **Sempre criar spy** em todos os métodos de notification que
+> forem chamados pelo código em teste, ANTES da ação que os dispara. Sem o spy, `fixture.whenStable()`
+> aguarda o timer e causa timeout de 5000ms.
 
 ## Cenários
 
