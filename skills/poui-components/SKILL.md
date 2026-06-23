@@ -35,7 +35,7 @@ npm install @po-ui/ng-components @po-ui/ng-templates
 - **Navigation** (po-menu, po-toolbar, PoBreadcrumb, po-tabs, po-button-group, po-dropdown, po-divider): see `navigation-components.md`
 - **Utilities** (po-loading-overlay, po-widget, po-avatar, po-badge, po-skeleton): see `utility-components.md`
 - **Table Templates** ([p-table-cell-template], [p-table-column-template], [p-table-row-template]): see `table-templates.md`
-- **UI Components** (po-rich-text, po-popover, po-statistic, po-key-value, po-code-editor, po-calendar, po-context-menu): see `ui-components.md`
+- **UI Components** (po-chart, po-rich-text, po-popover, po-statistic, po-key-value, po-code-editor, po-calendar, po-context-menu): see `ui-components.md`
 
 ## Common Imports for Standalone Components
 

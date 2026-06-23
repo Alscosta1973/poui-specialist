@@ -1,7 +1,112 @@
 # PO-UI UI Components — Referência Complementar
 
-Componentes de interface especializados disponíveis no PO-UI: exibição rica de dados,
+Componentes de interface especializados disponíveis no PO-UI: gráficos, exibição rica de dados,
 popover, estatísticas, editor de conteúdo, calendário e contexto de menu.
+
+---
+
+## po-chart
+
+Componente de gráficos vetoriais (SVG) responsivo — suporta linha, barra, coluna, pizza, donut e área.
+Usado em dashboards analíticos e painéis de KPI.
+
+### Import
+
+```typescript
+import {
+  PoChartModule,
+  PoChartOptions,
+  PoChartSerie,
+  PoChartType,
+} from '@po-ui/ng-components';
+// em imports do @Component: [PoChartModule]
+```
+
+### Key Inputs
+
+| Input | Tipo | Descrição |
+|-------|------|-----------|
+| `p-title` | `string` | Título exibido acima do gráfico |
+| `[p-type]` | `PoChartType` | Tipo do gráfico (obrigatório) |
+| `[p-series]` | `PoChartSerie[]` | Séries de dados |
+| `[p-categories]` | `string[]` | Rótulos do eixo X (linha/barra/coluna/área) |
+| `[p-options]` | `PoChartOptions` | Configurações de eixos e legenda |
+| `[p-height]` | `number` | Altura em pixels (default `400`) |
+
+### PoChartType
+
+```typescript
+enum PoChartType {
+  Area   = 'area',
+  Bar    = 'bar',     // barras horizontais
+  Column = 'column',  // barras verticais
+  Donut  = 'donut',
+  Line   = 'line',
+  Pie    = 'pie',
+}
+```
+
+### PoChartSerie
+
+```typescript
+interface PoChartSerie {
+  label:    string;       // nome da série (legenda)
+  data:     number[];     // valores — mesmo comprimento que categories[]
+  type?:    PoChartType;  // sobrescreve tipo por série (gráfico misto)
+  color?:   string;       // cor hex ou CSS
+  tooltip?: string;       // texto customizado no hover
+}
+```
+
+### PoChartOptions
+
+```typescript
+interface PoChartOptions {
+  axis?: {
+    minRange?: number;  // valor mínimo do eixo Y
+    maxRange?: number;  // valor máximo do eixo Y
+    gridLines?: number; // quantidade de linhas de grade
+  };
+}
+```
+
+### Exemplos
+
+```typescript
+readonly lineType = PoChartType.Line;
+readonly categories = signal<string[]>(['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun']);
+readonly series = signal<PoChartSerie[]>([
+  { label: 'Pedidos',    data: [120, 145, 98, 167, 201, 185] },
+  { label: 'Devoluções', data: [10,   8,  15,  6,   12,   9] },
+]);
+readonly options = signal<PoChartOptions>({
+  axis: { minRange: 0, maxRange: 250, gridLines: 5 },
+});
+```
+
+```html
+<po-chart
+  class="po-md-12"
+  p-title="Pedidos x Devoluções — 2026"
+  [p-type]="lineType"
+  [p-categories]="categories()"
+  [p-series]="series()"
+  [p-options]="options()">
+</po-chart>
+```
+
+```typescript
+// Pizza — cada série tem um único valor em data: [n], categories não é usado
+readonly pieType = PoChartType.Pie;
+readonly pieSeries = signal<PoChartSerie[]>([
+  { label: 'Eletrônicos', data: [450] },
+  { label: 'Vestuário',   data: [320] },
+  { label: 'Alimentos',   data: [210] },
+]);
+```
+
+> **Atenção:** `data[]` de cada série deve ter o mesmo comprimento que `categories[]`
+> em gráficos de eixo (linha, barra, coluna, área). Divergência causa renderização incorreta silenciosamente.
 
 ---
 
