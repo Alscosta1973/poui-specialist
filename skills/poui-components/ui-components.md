@@ -33,6 +33,13 @@ import {
 | `[p-options]` | `PoChartOptions` | Configurações de eixos e legenda |
 | `[p-height]` | `number` | Altura em pixels (default `400`) |
 
+### Key Outputs
+
+| Output | Payload | Descrição |
+|--------|---------|-----------|
+| `(p-series-click)` | `{ event: MouseEvent, serie: PoChartSerie }` | Clique em ponto/fatia da série |
+| `(p-series-hover)` | `{ event: MouseEvent, serie: PoChartSerie }` | Hover sobre ponto/fatia da série |
+
 ### PoChartType
 
 ```typescript
@@ -43,6 +50,7 @@ enum PoChartType {
   Donut  = 'donut',
   Line   = 'line',
   Pie    = 'pie',
+  Radar  = 'radar',   // radar/aranha — categories define os eixos
 }
 ```
 

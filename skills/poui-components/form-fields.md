@@ -124,6 +124,13 @@ readonly estadoOptions: PoComboOption[] = [
 </po-combo>
 ```
 
+### Key Outputs
+
+| Output | Payload | Description |
+|--------|---------|-------------|
+| `(p-change)` | `any` | Emitido ao selecionar uma opção |
+| `(p-input-change)` | `string` | Emitido a cada keystroke no campo — use para busca dinâmica server-side sem `p-filter-service` |
+
 ---
 
 ## po-lookup
@@ -233,6 +240,13 @@ readonly tagOptions: PoMultiselectOption[] = [
   [p-options]="tagOptions">
 </po-multiselect>
 ```
+
+### Key Outputs
+
+| Output | Payload | Description |
+|--------|---------|-------------|
+| `(p-change)` | `string[]` | Emitido ao selecionar/remover opções |
+| `(p-input-change)` | `string` | Emitido a cada keystroke no filtro interno da lista |
 
 ---
 

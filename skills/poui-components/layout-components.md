@@ -67,6 +67,15 @@ telas de detalhe onde o usuário precisa explorar seções sob demanda.
 |-------|------|-------------|
 | `p-label` | `string` | Rótulo do item / título da seção |
 | `p-disabled` | `boolean` | Desabilita o item (impede expansão) |
+| `p-label-tag` | `string` | Badge de texto ao lado do label (ex: `'Novo'`, `'3 erros'`) |
+| `p-type-tag` | `'success' \| 'danger' \| 'warning' \| 'info'` | Cor do badge |
+
+### po-accordion-item — Key Outputs
+
+| Output | Payload | Description |
+|--------|---------|-------------|
+| `(p-collapse)` | `void` | Emitido ao recolher o item |
+| `(p-expand)` | `void` | Emitido ao expandir o item |
 
 ### Métodos programáticos
 
