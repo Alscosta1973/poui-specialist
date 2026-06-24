@@ -134,6 +134,42 @@ readonly estadoOptions: PoComboOption[] = [
 | `(p-change)` | `any` | Emitido ao selecionar uma opção |
 | `(p-input-change)` | `string` | Emitido a cada keystroke no campo — use para busca dinâmica server-side sem `p-filter-service` |
 
+### [p-combo-option-template] — template de opção personalizado
+
+Customiza a renderização de cada opção no dropdown. Use quando a opção precisa exibir
+mais que apenas o label — avatar, status, departamento, badges, etc.
+
+```html
+<po-combo
+  p-label="Responsável"
+  [p-options]="usuarios"
+  formControlName="responsavel">
+
+  <ng-template p-combo-option-template let-option>
+    <div class="po-row po-align-items-center">
+      <po-avatar
+        class="po-mr-2"
+        [p-src]="option.avatarUrl"
+        p-size="xs">
+      </po-avatar>
+      <div>
+        <div>{{ option.label }}</div>
+        <small style="color: #888">{{ option.departamento }}</small>
+      </div>
+      <po-tag
+        class="po-ml-auto"
+        [p-value]="option.status"
+        p-color="color-07">
+      </po-tag>
+    </div>
+  </ng-template>
+
+</po-combo>
+```
+
+> **Contexto do template:** `let-option` expõe o objeto completo de `p-options` — inclua
+> propriedades extras como `avatarUrl`, `departamento`, `status` além de `label` e `value`.
+
 ---
 
 ## po-lookup
@@ -354,6 +390,30 @@ readonly tagOptions: PoMultiselectOption[] = [
 |--------|---------|-------------|
 | `(p-change)` | `string[]` | Emitido ao selecionar/remover opções |
 | `(p-input-change)` | `string` | Emitido a cada keystroke no filtro interno da lista |
+
+### [p-multiselect-option-template] — template de opção personalizado
+
+Customiza a renderização de cada opção na lista do multiselect — mesma mecânica do `p-combo-option-template`.
+
+```html
+<po-multiselect
+  p-label="Categorias"
+  [p-options]="categorias"
+  formControlName="categorias">
+
+  <ng-template p-multiselect-option-template let-option>
+    <div class="po-row po-align-items-center">
+      <span class="po-mr-2" [style.color]="option.cor">●</span>
+      <span>{{ option.label }}</span>
+      <small class="po-ml-auto" style="color: #888">{{ option.total }} itens</small>
+    </div>
+  </ng-template>
+
+</po-multiselect>
+```
+
+> **Contexto do template:** `let-option` expõe o objeto completo de `p-options` — adicione
+> propriedades como `cor`, `total`, `icone` para enriquecer a exibição.
 
 ---
 

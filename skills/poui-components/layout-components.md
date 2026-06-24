@@ -228,6 +228,57 @@ import {
 | Detalhe expandível (master-detail) | ✅ `type: 'detail'` | ✅ detail-template |
 | Mobile-friendly por padrão | ⚠️ Scroll horizontal | ✅ Cards empilham |
 
+### [p-list-view-content-template] — conteúdo customizado por card
+
+Substitui o layout padrão de cada card por um template personalizado.
+O `let-item` expõe o objeto completo do array `p-items`.
+
+```html
+<po-list-view
+  [p-items]="fornecedores"
+  p-property-title="nomeFantasia">
+
+  <ng-template p-list-view-content-template let-item>
+    <div class="po-row">
+      <po-info class="po-md-4" p-label="CNPJ"   [p-value]="item.cnpj"></po-info>
+      <po-info class="po-md-4" p-label="Cidade"  [p-value]="item.cidade"></po-info>
+      <po-info class="po-md-4" p-label="Contato" [p-value]="item.telefone"></po-info>
+    </div>
+  </ng-template>
+
+</po-list-view>
+```
+
+### [p-list-view-detail-template] — detalhe expandível por card
+
+Exibido ao clicar no botão de expandir — ideal para relações master-detail.
+Combine com `p-list-view-content-template` para cards completos com detalhe.
+
+```html
+<po-list-view
+  [p-items]="fornecedores"
+  p-property-title="nomeFantasia">
+
+  <ng-template p-list-view-content-template let-item>
+    <div class="po-row">
+      <po-info class="po-md-6" p-label="CNPJ"   [p-value]="item.cnpj"></po-info>
+      <po-info class="po-md-6" p-label="Cidade"  [p-value]="item.cidade"></po-info>
+    </div>
+  </ng-template>
+
+  <ng-template p-list-view-detail-template let-item>
+    <po-table
+      [p-items]="item.pedidos"
+      [p-columns]="colunasPedido">
+    </po-table>
+  </ng-template>
+
+</po-list-view>
+```
+
+> **Contexto compartilhado:** `let-item` acessa o mesmo objeto em ambos os templates —
+> `item.pedidos`, `item.contatos` e qualquer array de sub-itens ficam disponíveis no detail.
+
 ---
 
 ## po-disclaimer-group
