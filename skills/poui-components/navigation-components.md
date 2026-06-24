@@ -173,6 +173,28 @@ readonly menuItems: PoMenuItem[] = [
 
 > `po-menu` usa `[routerLink]` internamente — requer `provideRouter()` no `app.config.ts`.
 
+### [p-menu-header-template]
+
+Projeta conteúdo customizado na área acima dos itens do menu. Sem context variable — o template acessa o escopo do componente pai diretamente.
+
+```html
+<po-menu [p-menus]="menuItems">
+  <ng-template p-menu-header-template>
+    <div class="po-pa-md po-display-flex po-align-items-center">
+      <po-avatar [p-src]="user().foto" p-size="sm" class="po-mr-2"></po-avatar>
+      <div>
+        <strong>{{ user().nome }}</strong>
+        <div><small>{{ user().email }}</small></div>
+        <po-tag [p-value]="user().perfil" p-color="color-01"></po-tag>
+      </div>
+    </div>
+  </ng-template>
+</po-menu>
+```
+
+> Usos comuns: user card (avatar + nome + papel), logo dinâmico por filial, seletor de empresa.
+> O template re-renderiza junto com o CD do componente pai — reatividade funciona normalmente com Signals.
+
 ---
 
 ## po-menu-panel
