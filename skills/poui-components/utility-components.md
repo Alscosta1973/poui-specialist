@@ -253,3 +253,123 @@ import { PoSkeletonModule } from '@po-ui/ng-components';
 } @else {
   <po-avatar [p-src]="user().foto"></po-avatar>
 }
+
+---
+
+## PoHttpInterceptorService
+
+Intercepta todas as requisições `HttpClient` e exibe `po-loading-overlay` automaticamente. Exibe notificação de erro (via `PoNotificationService`) para respostas 5xx.
+
+**Configuração (standalone / app.config.ts):**
+
+```typescript
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { HTTP_INTERCEPTORS } from '@angular/common/http';
+import { PoHttpInterceptorService } from '@po-ui/ng-components';
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideHttpClient(withInterceptorsFromDi()),
+    { provide: HTTP_INTERCEPTORS, useClass: PoHttpInterceptorService, multi: true },
+  ],
+};
+```
+
+```typescript
+// Suprimir overlay/mensagem para uma request específica:
+const headers = new HttpHeaders().set('X-PO-No-Message', 'true');
+this.http.get('/api/silent', { headers }).subscribe(...);
+```
+
+---
+
+## PoThemeService
+
+Troca programática de tema (light / dark / custom). Usa CSS custom properties internamente.
+
+| Método | Descrição |
+|--------|-----------|
+| `changeTheme(theme: PoTheme)` | Aplica tema customizado |
+| `changeCurrentTheme(type: PoThemeTypeEnum)` | Alterna entre light/dark |
+| `getTheme(): PoTheme` | Retorna tema atual |
+
+```typescript
+import { PoThemeService, PoThemeTypeEnum } from '@po-ui/ng-components';
+
+export class AppComponent {
+  private theme = inject(PoThemeService);
+
+  setDark(): void  { this.theme.changeCurrentTheme(PoThemeTypeEnum.dark); }
+  setLight(): void { this.theme.changeCurrentTheme(PoThemeTypeEnum.light); }
+}
+```
+
+```typescript
+// Tema customizado com brand color via HSL:
+import { PoTheme } from '@po-ui/ng-components';
+
+const meuTema: PoTheme = {
+  name: 'MeuTema',
+  type: {
+    active: { color: { 'brand-01': { h: 220, s: '70%', l: '45%' } } },
+    light:  { color: { 'brand-01': { h: 220, s: '70%', l: '45%' } } },
+    dark:   { color: { 'brand-01': { h: 220, s: '70%', l: '35%' } } },
+  },
+};
+this.theme.changeTheme(meuTema);
+```
+
+---
+
+## PoI18nService
+
+Gerencia literais internacionalizadas por contexto e idioma.
+
+**Setup em app.config.ts:**
+
+```typescript
+import { providePoI18n, PoI18nConfig } from '@po-ui/ng-components';
+
+const i18nConfig: PoI18nConfig = {
+  default: { language: 'pt', context: 'geral', cache: true },
+  contexts: {
+    geral: {
+      pt: () => import('./i18n/geral.pt.json'),
+      en: () => import('./i18n/geral.en.json'),
+    },
+    pedidos: {
+      pt: () => import('./i18n/pedidos.pt.json'),
+    },
+  },
+};
+
+export const appConfig: ApplicationConfig = {
+  providers: [providePoI18n(i18nConfig)],
+};
+```
+
+**Uso no componente:**
+
+```typescript
+import { PoI18nService } from '@po-ui/ng-components';
+
+export class PedidosComponent implements OnInit {
+  private i18n = inject(PoI18nService);
+  literals = signal<Record<string, string>>({});
+
+  ngOnInit(): void {
+    this.i18n.getLiterals({ context: 'pedidos' })
+      .subscribe(lit => this.literals.set(lit));
+  }
+}
+```
+
+```html
+<po-button [p-label]="literals()['salvar']" (p-click)="save()"></po-button>
+```
+
+| Método | Retorno | Descrição |
+|--------|---------|-----------|
+| `getLiterals(opts?)` | `Observable<Record<string,string>>` | Literais do contexto/idioma |
+| `setLanguage(lang)` | `void` | Muda idioma globalmente |
+| `getShortLanguage()` | `string` | Retorna `'pt'`, `'en'`, `'es'`, `'ru'` |

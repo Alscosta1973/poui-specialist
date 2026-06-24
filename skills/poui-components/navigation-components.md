@@ -324,6 +324,39 @@ readonly breadcrumb: PoBreadcrumb = {
 
 ---
 
+## po-breadcrumb — componente visual
+
+Componente standalone que renderiza trilha de navegação. Recebe array de `PoBreadcrumbItem[]` diretamente.
+
+| Input | Type | Descrição |
+|-------|------|-----------|
+| `p-items` | `PoBreadcrumbItem[]` | Items da trilha (obrigatório) |
+| `p-params` | `any` | Parâmetros extras passados para os links |
+| `p-favorite` | `string` | URL para favoritar via PoFavoritesService |
+
+```typescript
+import { PoBreadcrumbModule, PoBreadcrumbItem } from '@po-ui/ng-components';
+
+// imports: [PoBreadcrumbModule]
+readonly breadcrumbItems: PoBreadcrumbItem[] = [
+  { label: 'Financeiro', link: '/financeiro' },
+  { label: 'Pedidos',    link: '/financeiro/pedidos' },
+  { label: 'Editar Pedido' },   // sem link → item atual, não-clicável
+];
+```
+
+```html
+<!-- Standalone -->
+<po-breadcrumb [p-items]="breadcrumbItems"></po-breadcrumb>
+
+<!-- Via p-breadcrumb no po-page-edit (gera breadcrumb automaticamente) -->
+<po-page-edit p-title="Editar Pedido" [p-breadcrumb]="{ items: breadcrumbItems }">
+  ...
+</po-page-edit>
+```
+
+---
+
 ## po-tabs
 
 Navegação em abas sem navegação de rota.

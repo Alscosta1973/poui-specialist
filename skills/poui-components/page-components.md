@@ -204,3 +204,54 @@ import { PoPageModule } from '@po-ui/ng-components';
 > com `opacity: 0` e só torna-se visível após um `setTimeout`. Em componentes `OnPush` com
 > dados síncronos, adicione `ngAfterViewInit() { setTimeout(() => this.cdr.markForCheck()); }`
 > para garantir que o conteúdo apareça (ver Quirk #1 em `po-ui-quirks.md`).
+
+---
+
+## po-page-login
+
+Template de página de login — pertence a `@po-ui/ng-templates`.
+
+| Input | Type | Descrição |
+|-------|------|-----------|
+| `p-logo` | `string` | URL do logo exibido no card |
+| `p-background` | `string` | URL da imagem de fundo |
+| `p-hide-remember-user` | `boolean` | Oculta checkbox "Lembrar usuário" |
+| `p-login-errors` | `string[]` | Mensagens de erro no campo login |
+| `p-password-errors` | `string[]` | Mensagens de erro no campo senha |
+| `p-literals` | `PoPageLoginLiterals` | Customiza labels (título, placeholder, botão) |
+| `p-recovery` | `string \| Function` | URL ou callback para "esqueci minha senha" |
+| `p-custom-field` | `PoPageLoginCustomField` | Campo extra (ex: filial/empresa) |
+| `p-loading` | `boolean` | Exibe spinner no botão Entrar |
+
+| Output | Payload | Descrição |
+|--------|---------|-----------|
+| `(p-login-submit)` | `{ login: string, password: string }` | Disparado ao clicar em Entrar |
+
+```typescript
+import { PoPageLoginModule } from '@po-ui/ng-templates';
+
+@Component({
+  imports: [PoPageLoginModule],
+  template: `
+    <po-page-login
+      p-logo="/assets/logo.png"
+      p-background="/assets/login-bg.jpg"
+      [p-loading]="loading()"
+      (p-login-submit)="onLogin($event)">
+    </po-page-login>
+  `,
+})
+export class LoginComponent {
+  loading = signal(false);
+
+  onLogin(event: { login: string; password: string }): void {
+    this.loading.set(true);
+    this.authService.login(event.login, event.password).subscribe({
+      next: () => this.router.navigate(['/home']),
+      error: () => this.loading.set(false),
+    });
+  }
+}
+```
+
+> **Integração com Protheus:** Usar `login` como `cod_usuario` e `password` como senha do Protheus. Use `p-custom-field` para selecionar a filial/empresa antes do login.

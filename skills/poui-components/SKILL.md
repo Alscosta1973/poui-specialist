@@ -24,7 +24,7 @@ npm install @po-ui/ng-components @po-ui/ng-templates
 
 ## Component Reference Files
 
-- **Page layout components** (po-page-list, po-page-edit, po-page-detail): see `page-components.md`
+- **Page layout components** (po-page-list, po-page-edit, po-page-detail, po-page-default, po-page-login): see `page-components.md`
 - **Data table** (po-table, PoTableColumn, PoTableAction): see `table-components.md`
 - **Form fields** (po-input, po-select, po-lookup, po-datepicker, po-datepicker-range, po-datetimepicker, po-timepicker, po-chips, [p-combo-option-template], [p-multiselect-option-template], etc.): see `form-fields.md`
 - **Modal, Dialog & Painéis** (po-modal, PoDialogService, po-dynamic-view, po-page-slide): see `modal-dialog.md`
@@ -32,8 +32,8 @@ npm install @po-ui/ng-components @po-ui/ng-templates
 - **Layout** (po-container, po-accordion, po-list-view, [p-list-view-content-template], [p-list-view-detail-template], po-disclaimer-group): see `layout-components.md`
 - **Dynamic Pages** (PoPageDynamic* do @po-ui/ng-templates — table, search, edit, detail): see `dynamic-pages.md`
 - **Dynamic Form & View Fields** (PoDynamicFormField completo, PoDynamicViewField, mapeamento tipo→componente): see `dynamic-form-fields.md`
-- **Navigation** (po-button, po-search, po-menu, po-menu-panel, po-toolbar, PoBreadcrumb, po-tabs, po-button-group, po-dropdown, po-divider, po-stepper, po-step, po-tree-view): see `navigation-components.md`
-- **Utilities** (po-loading-overlay, po-widget, po-avatar, po-badge, po-skeleton): see `utility-components.md`
+- **Navigation** (po-button, po-search, po-menu, po-menu-panel, po-toolbar, PoBreadcrumb, po-breadcrumb, po-tabs, po-button-group, po-dropdown, po-divider, po-stepper, po-step, po-tree-view): see `navigation-components.md`
+- **Utilities** (po-loading-overlay, po-widget, po-avatar, po-badge, po-skeleton, PoHttpInterceptorService, PoThemeService, PoI18nService): see `utility-components.md`
 - **Table Templates** ([p-table-cell-template], [p-table-column-template], [p-table-row-template]): see `table-templates.md`
 - **UI Components** (po-chart, po-rich-text, po-popover, po-statistic, po-key-value, po-code-editor, po-calendar, po-context-menu): see `ui-components.md`
 

@@ -327,6 +327,14 @@ import { PoDatetimepickerModule } from '@po-ui/ng-components';
 
 ## po-checkbox / po-checkbox-group
 
+| Input | Type | Aplica-se a | Descrição |
+|-------|------|-------------|-----------|
+| `p-label` | `string` | ambos | Label do controle |
+| `p-disabled` | `boolean` | ambos | Desabilita o campo |
+| `p-indeterminate` | `boolean` | `po-checkbox` | Estado intermediário (traço) |
+| `p-options` | `PoCheckboxGroupItem[]` | `po-checkbox-group` | Array de opções |
+| `p-checkboxes-proportion` | `1\|2\|3\|4\|6\|12` | `po-checkbox-group` | Colunas por opção (grid 12) |
+
 ```typescript
 readonly permissaoOptions = [
   { value: 'read', label: 'Leitura' },
@@ -335,14 +343,18 @@ readonly permissaoOptions = [
 ```
 
 ```html
-<!-- Single -->
+<!-- Checkbox individual — FormControl boolean -->
 <po-checkbox p-label="Aceito os termos" formControlName="aceito"></po-checkbox>
 
-<!-- Group -->
+<!-- Estado indeterminado (ex: selecionar todos) -->
+<po-checkbox p-label="Todos" [p-indeterminate]="parcial()" formControlName="todos"></po-checkbox>
+
+<!-- Grupo de checkboxes — FormControl string[] -->
 <po-checkbox-group
   p-label="Permissões"
   formControlName="permissoes"
-  [p-options]="permissaoOptions">
+  [p-options]="permissaoOptions"
+  p-checkboxes-proportion="6">
 </po-checkbox-group>
 ```
 
