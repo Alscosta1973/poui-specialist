@@ -1,5 +1,77 @@
 # PO-UI Navigation Components
 
+## po-button
+
+Botão de ação padrão do PO-UI — **componente mais usado em toda a biblioteca**.
+Suporta quatro estilos visuais, loading integrado, ícone e type HTML.
+
+### Key Inputs
+
+| Input | Type | Description |
+|-------|------|-------------|
+| `p-label` | `string` | Texto exibido no botão |
+| `p-icon` | `string` | Ícone PO (ex: `'po-icon-plus'`, `'po-icon-save'`, `'po-icon-delete'`) |
+| `p-kind` | `'primary' \| 'secondary' \| 'tertiary' \| 'link'` | Estilo visual (default `'secondary'`) |
+| `p-type` | `'button' \| 'submit' \| 'reset'` | Tipo HTML do botão (default `'button'`) |
+| `p-disabled` | `boolean` | Desabilita o botão |
+| `p-loading` | `boolean` | Exibe spinner e desabilita temporariamente |
+| `p-size` | `'medium' \| 'large'` | Tamanho do botão (default `'medium'`) |
+| `p-danger` | `boolean` | Aplica cor de perigo (vermelho) — combina com `p-kind="secondary"` |
+
+### Key Outputs
+
+| Output | Payload | Description |
+|--------|---------|-------------|
+| `(p-click)` | `void` | Emitido ao clicar no botão |
+
+### PoButtonKind — estilos visuais
+
+| Kind | Quando usar |
+|------|-------------|
+| `'primary'` | Ação principal da tela — apenas um por contexto |
+| `'secondary'` | Ações secundárias e de confirmação (default) |
+| `'tertiary'` | Ações de menor importância / destaque mínimo |
+| `'link'` | Ação com aparência de link de texto |
+
+### Exemplos
+
+```typescript
+import { PoButtonModule } from '@po-ui/ng-components';
+// em imports do @Component: [PoButtonModule]
+```
+
+```html
+<!-- Ação principal (submit do formulário) -->
+<po-button
+  p-label="Salvar"
+  p-kind="primary"
+  p-icon="po-icon-ok"
+  p-type="submit"
+  [p-loading]="saving()">
+</po-button>
+
+<!-- Ação secundária -->
+<po-button
+  p-label="Cancelar"
+  p-kind="secondary"
+  (p-click)="onCancel()">
+</po-button>
+
+<!-- Exclusão com estilo de perigo -->
+<po-button
+  p-label="Excluir"
+  p-kind="secondary"
+  p-icon="po-icon-delete"
+  [p-danger]="true"
+  (p-click)="onDelete()">
+</po-button>
+```
+
+> **Dica:** Para ações em páginas (`po-page-edit`, `po-page-detail`), use `p-actions: PoPageAction[]`
+> em vez de `po-button` manual — o PO-UI cuida do layout responsivo e do menu "Mais ações" automaticamente.
+
+---
+
 ## po-menu
 
 Menu lateral com grupos, ícones, badges e filtro. Declarado uma vez no shell — **não** em cada tela.

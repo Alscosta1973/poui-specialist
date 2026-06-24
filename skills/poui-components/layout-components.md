@@ -227,3 +227,76 @@ import {
 | Templates de célula customizados | ✅ via diretiva | ✅ via template |
 | Detalhe expandível (master-detail) | ✅ `type: 'detail'` | ✅ detail-template |
 | Mobile-friendly por padrão | ⚠️ Scroll horizontal | ✅ Cards empilham |
+
+---
+
+## po-disclaimer-group
+
+Exibe os filtros ativos de uma busca como chips removíveis — integra com `po-page-list`
+(via `p-disclaimer-group`) ou pode ser usado standalone em qualquer tela com filtros.
+
+### Key Inputs
+
+| Input | Type | Description |
+|-------|------|-------------|
+| `p-disclaimers` | `PoDisclaimer[]` | Lista de filtros ativos |
+| `p-title` | `string` | Título do grupo (default `'Filtros aplicados'`) |
+| `p-hide-remove-all` | `boolean` | Oculta o botão "Remover todos" |
+
+### Key Outputs
+
+| Output | Payload | Description |
+|--------|---------|-------------|
+| `(p-change)` | `PoDisclaimer[]` | Lista atualizada após remoção de item |
+| `(p-remove)` | `PoDisclaimer` | Item removido individualmente |
+| `(p-remove-all)` | `PoDisclaimer[]` | Todos os itens removidos de uma vez |
+
+### PoDisclaimer
+
+```typescript
+interface PoDisclaimer {
+  label:      string;   // texto exibido no chip
+  property:   string;   // chave do filtro (ex: 'status', 'dataDe')
+  value?:     any;      // valor atual do filtro
+  hideClose?: boolean;  // impede remoção individual deste chip
+}
+```
+
+### Exemplos
+
+```typescript
+import {
+  PoDisclaimerGroupModule,
+  PoDisclaimer,
+} from '@po-ui/ng-components';
+// em imports: [PoDisclaimerGroupModule]
+
+readonly filtrosAtivos = signal<PoDisclaimer[]>([]);
+
+// Ao aplicar filtros (converter objeto de filtros em chips):
+onFilter(filtros: Record<string, any>): void {
+  this.filtrosAtivos.set(
+    Object.entries(filtros)
+      .filter(([, v]) => v !== null && v !== '')
+      .map(([k, v]) => ({ property: k, value: v, label: `${k}: ${v}` }))
+  );
+  this.loadData();
+}
+
+// Ao remover chip:
+onFilterRemove(remaining: PoDisclaimer[]): void {
+  this.filtrosAtivos.set(remaining);
+  this.loadData();
+}
+```
+
+```html
+<po-disclaimer-group
+  p-title="Filtros aplicados"
+  [p-disclaimers]="filtrosAtivos()"
+  (p-change)="onFilterRemove($event)">
+</po-disclaimer-group>
+```
+
+> **Integração com po-page-list:** Use `[p-disclaimer-group]` diretamente no `po-page-list`
+> para que o PO-UI gerencie a exibição e remoção automaticamente — apenas implemente `p-filter`.
