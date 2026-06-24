@@ -3,8 +3,7 @@
 
 $source = "C:\TOTVS\Projetos\Claude\poui-specialist"
 $dests  = @(
-    "C:\Users\andre\.claude\plugins\cache\poui-specialist-marketplace\poui-specialist\1.0.0",
-    "C:\Users\andre\.claude\plugins\cache\poui-specialist-marketplace\poui-specialist\1.3.0"
+    "C:\Users\andre\.claude\plugins\cache\poui-specialist-marketplace\poui-specialist\1.0.0"
 )
 
 $dirs = @(".claude-plugin", "commands", "skills", "agents")
