@@ -194,3 +194,68 @@ readonly viewFields: PoDynamicViewField[] = [
 
 > **Dica de uso combinado:** Em modais de detalhe (sem edição), substitua o `po-dynamic-form`
 > pelo `po-dynamic-view` com os mesmos `fields` — reusa a definição de campos sem duplicar código.
+
+---
+
+## po-page-slide
+
+Painel lateral deslizante a partir da borda direita da tela — alternativa ao `po-modal` quando
+o conteúdo secundário precisa coexistir visualmente com a página principal.
+
+### Key Inputs
+
+| Input | Type | Description |
+|-------|------|-------------|
+| `p-title` | `string` | Título exibido no cabeçalho do painel |
+| `p-size` | `'sm' \| 'md' \| 'lg' \| 'xl'` | Largura do painel (default `'md'`) |
+| `p-hide-close` | `boolean` | Oculta o botão de fechar |
+| `p-click-out` | `boolean` | Fecha ao clicar fora do painel (default `false`) |
+
+### Key Outputs
+
+| Output | Payload | Description |
+|--------|---------|-------------|
+| `(p-close)` | `void` | Emitido ao fechar o painel |
+
+### Uso com @ViewChild
+
+```typescript
+import { ViewChild } from '@angular/core';
+import { PoPageSlideComponent, PoPageSlideModule } from '@po-ui/ng-components';
+// em imports: [PoPageSlideModule]
+
+@ViewChild(PoPageSlideComponent) slide!: PoPageSlideComponent;
+
+openSlide():  void { this.slide.open();  }
+closeSlide(): void { this.slide.close(); }
+```
+
+### Exemplo completo
+
+```html
+<po-button
+  p-label="Ver Detalhes"
+  p-icon="po-icon-eye"
+  p-kind="secondary"
+  (p-click)="openSlide()">
+</po-button>
+
+<po-page-slide p-title="Detalhes do Pedido" p-size="md" (p-close)="onSlideClose()">
+
+  <div class="po-row">
+    <po-info class="po-md-6" p-label="Número"     [p-value]="pedido().numero"></po-info>
+    <po-info class="po-md-6" p-label="Emissão"    [p-value]="pedido().dataEmissao"></po-info>
+    <po-info class="po-md-6" p-label="Fornecedor" [p-value]="pedido().fornecedor"></po-info>
+    <po-info class="po-md-6" p-label="Valor Total" [p-value]="pedido().valorTotal"></po-info>
+  </div>
+
+  <po-page-slide-footer>
+    <po-button p-label="Fechar" p-kind="secondary" (p-click)="closeSlide()"></po-button>
+    <po-button p-label="Editar" p-kind="primary"   p-icon="po-icon-edit" (p-click)="editarPedido()"></po-button>
+  </po-page-slide-footer>
+
+</po-page-slide>
+```
+
+> **po-page-slide vs po-modal:** Use `po-page-slide` quando o usuário precisa continuar vendo a
+> página principal enquanto visualiza o detalhe. Use `po-modal` quando a tarefa exige atenção total.

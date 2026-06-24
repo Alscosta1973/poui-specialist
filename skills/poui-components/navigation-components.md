@@ -316,6 +316,96 @@ readonly exportActions: PoDropdownItem[] = [
 
 ---
 
+## po-stepper + po-step
+
+Divide um processo em passos numerados — ideal para wizards de cadastro com múltiplas etapas
+que precisam ser completadas em sequência.
+
+### Key Inputs (po-stepper)
+
+| Input | Type | Description |
+|-------|------|-------------|
+| `p-step` | `number` | Índice do passo ativo (1-based) |
+| `p-orientation` | `'horizontal' \| 'vertical'` | Layout do stepper (default `'horizontal'`) |
+| `p-sequential` | `boolean` | Impede pular passos via clique no número (default `false`) |
+
+### Key Outputs (po-stepper)
+
+| Output | Payload | Description |
+|--------|---------|-------------|
+| `(p-change-step)` | `number` | Emitido ao navegar entre passos |
+
+### Key Inputs (po-step)
+
+| Input | Type | Description |
+|-------|------|-------------|
+| `p-label` | `string` | Rótulo do passo exibido no stepper |
+| `p-status` | `PoStepperStatus` | Estado visual do passo |
+
+### PoStepperStatus
+
+```typescript
+enum PoStepperStatus {
+  Active   = 'active',    // passo atual
+  Done     = 'done',      // passo concluído
+  Default  = 'default',   // não iniciado
+  Disabled = 'disabled',  // inacessível
+  Error    = 'error',     // contém erro de validação
+}
+```
+
+### Exemplo
+
+```typescript
+import { PoStepperModule } from '@po-ui/ng-components';
+// em imports: [PoStepperModule]
+
+readonly stepAtual = signal<number>(1);
+
+avancar(): void { this.stepAtual.update(s => Math.min(s + 1, 3)); }
+voltar():  void { this.stepAtual.update(s => Math.max(s - 1, 1)); }
+```
+
+```html
+<po-stepper [p-step]="stepAtual()">
+
+  <po-step p-label="Identificação">
+    <div class="po-row">
+      <po-input class="po-md-4" p-label="Código" formControlName="codigo" [p-required]="true"></po-input>
+      <po-input class="po-md-8" p-label="Nome"   formControlName="nome"   [p-required]="true"></po-input>
+    </div>
+    <div class="po-row po-mt-2">
+      <po-button p-label="Próximo" p-kind="primary" (p-click)="avancar()"></po-button>
+    </div>
+  </po-step>
+
+  <po-step p-label="Endereço">
+    <div class="po-row">
+      <po-input class="po-md-3" p-label="CEP"        formControlName="cep" p-mask="99999-999"></po-input>
+      <po-input class="po-md-9" p-label="Logradouro" formControlName="logradouro"></po-input>
+    </div>
+    <div class="po-row po-mt-2">
+      <po-button p-label="Anterior" p-kind="secondary" (p-click)="voltar()"></po-button>
+      <po-button p-label="Próximo"  p-kind="primary"   (p-click)="avancar()"></po-button>
+    </div>
+  </po-step>
+
+  <po-step p-label="Confirmação">
+    <po-dynamic-view [p-fields]="confirmFields" [p-value]="form.value"></po-dynamic-view>
+    <div class="po-row po-mt-2">
+      <po-button p-label="Anterior" p-kind="secondary" (p-click)="voltar()"></po-button>
+      <po-button p-label="Salvar"   p-kind="primary"   p-type="submit" [p-loading]="saving()"></po-button>
+    </div>
+  </po-step>
+
+</po-stepper>
+```
+
+> **p-sequential:** Use `[p-sequential]="true"` para bloquear o avanço por clique no número do passo —
+> o usuário só navega pelos botões Próximo/Anterior, garantindo que cada etapa seja preenchida antes de prosseguir.
+
+---
+
 ## po-divider
 
 Separador horizontal com rótulo entre seções.
