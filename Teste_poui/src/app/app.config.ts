@@ -1,6 +1,7 @@
 import { ApplicationConfig, provideZoneChangeDetection, importProvidersFrom, LOCALE_ID } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi, HTTP_INTERCEPTORS } from '@angular/common/http';
+import { FuncionariosInterceptor } from './rh/mocks/funcionarios.interceptor';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { registerLocaleData } from '@angular/common';
 import localePtBr from '@angular/common/locales/pt';
@@ -19,6 +20,7 @@ export const appConfig: ApplicationConfig = {
     provideAnimations(),
     importProvidersFrom(PoHttpRequestModule),
     importProvidersFrom(ProtheusLibCoreModule),
+    { provide: HTTP_INTERCEPTORS, useClass: FuncionariosInterceptor, multi: true },
     { provide: LOCALE_ID, useValue: 'pt-BR' },
   ],
 };
