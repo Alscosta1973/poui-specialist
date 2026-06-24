@@ -89,6 +89,54 @@ import { PoInfoModule } from '@po-ui/ng-components';
 
 ---
 
+## po-helper
+
+Exibe um ícone `?` que ao ser clicado/focado abre um popover com texto de ajuda contextual.
+Posicione ao lado de campos, labels ou seções para orientar o usuário sem poluir o layout.
+
+### Key Inputs
+
+| Input | Type | Description |
+|-------|------|-------------|
+| `p-literal` | `string` | Texto exibido no popover de ajuda |
+| `p-icon` | `string` | Ícone personalizado (default `po-icon-help`) |
+
+### Exemplos
+
+```typescript
+import { PoHelperModule } from '@po-ui/ng-components';
+// em imports: [PoHelperModule]
+```
+
+```html
+<!-- Junto a um campo de formulário -->
+<div class="po-row po-align-items-end">
+  <po-input
+    class="po-md-5"
+    p-label="Código EAN"
+    formControlName="codigoEan">
+  </po-input>
+  <po-helper
+    class="po-md-1"
+    p-literal="O Código EAN (13 dígitos) está impresso no código de barras do produto.">
+  </po-helper>
+</div>
+
+<!-- Ao lado de um label de seção -->
+<div class="po-row po-align-items-center">
+  <span>NCM</span>
+  <po-helper
+    p-literal="Nomenclatura Comum do Mercosul — 8 dígitos obrigatórios para NF-e.">
+  </po-helper>
+</div>
+```
+
+> **Alternativa simples:** Para texto de ajuda fixo abaixo do campo, use o input `p-help`
+> disponível em `po-input`, `po-select`, `po-combo` e demais campos de formulário:
+> `<po-input p-help="Texto de ajuda aqui" ...>`.
+
+---
+
 ## [p-tooltip] — Diretiva de tooltip
 
 ### Key Inputs

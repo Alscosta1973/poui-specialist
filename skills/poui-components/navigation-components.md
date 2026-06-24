@@ -72,6 +72,64 @@ import { PoButtonModule } from '@po-ui/ng-components';
 
 ---
 
+## po-search
+
+Campo de busca com autocomplete e filtragem de objetos por chave — uso standalone, fora de `po-page-list`.
+
+### Key Inputs
+
+| Input | Type | Description |
+|-------|------|-------------|
+| `p-label` | `string` | Rótulo ou placeholder do campo |
+| `p-placeholder` | `string` | Texto de ajuda (alternativa a `p-label`) |
+| `p-items` | `any[] \| string[]` | Itens para autocomplete |
+| `p-filter-keys` | `string[]` | Propriedades dos objetos usadas para filtrar |
+| `p-search-type` | `'action' \| 'input'` | `'action'` = busca ao pressionar Enter · `'input'` = busca a cada keystroke (default `'action'`) |
+| `p-disabled` | `boolean` | Desabilita o campo |
+
+### Key Outputs
+
+| Output | Payload | Description |
+|--------|---------|-------------|
+| `(p-change-model)` | `string` | Emitido ao digitar (`'input'`) ou ao submeter (`'action'`) |
+
+### Exemplos
+
+```typescript
+import { PoSearchModule } from '@po-ui/ng-components';
+// em imports: [PoSearchModule]
+
+readonly termoBusca = signal('');
+
+onSearch(termo: string): void {
+  this.termoBusca.set(termo);
+  this.carregarDados();
+}
+```
+
+```html
+<!-- Busca ao pressionar Enter (padrão) -->
+<po-search
+  p-label="Buscar Pedidos"
+  p-search-type="action"
+  (p-change-model)="onSearch($event)">
+</po-search>
+
+<!-- Busca em tempo real com autocomplete -->
+<po-search
+  p-label="Buscar Produto"
+  p-search-type="input"
+  [p-items]="produtos"
+  [p-filter-keys]="['descricao', 'codigo']"
+  (p-change-model)="onSearch($event)">
+</po-search>
+```
+
+> **po-search vs p-quick-search:** Use `p-quick-search` no `po-page-list` para filtro integrado
+> ao filtro avançado. Use `po-search` para busca standalone fora de uma `po-page-list`.
+
+---
+
 ## po-menu
 
 Menu lateral com grupos, ícones, badges e filtro. Declarado uma vez no shell — **não** em cada tela.
@@ -114,6 +172,60 @@ readonly menuItems: PoMenuItem[] = [
 ```
 
 > `po-menu` usa `[routerLink]` internamente — requer `provideRouter()` no `app.config.ts`.
+
+---
+
+## po-menu-panel
+
+Painel de navegação lateral compacto com itens que podem ser ícone-only (recolhido) ou ícone + label (expandido).
+Ideal quando o espaço horizontal é limitado ou para apps com poucos itens de menu.
+
+### Key Inputs
+
+| Input | Type | Description |
+|-------|------|-------------|
+| `p-items` | `PoMenuPanelItem[]` | Itens de navegação |
+| `p-logo` | `string` | URL do logo exibido quando expandido |
+| `p-short-logo` | `string` | URL do logo reduzido exibido quando recolhido |
+
+### PoMenuPanelItem
+
+```typescript
+interface PoMenuPanelItem {
+  label:       string;
+  icon:        string;   // po-icon-* ou URL de ícone
+  link?:       string;   // rota Angular
+  shortLabel?: string;
+  selected?:   boolean;
+}
+```
+
+### Exemplos
+
+```typescript
+import { PoMenuPanelModule, PoMenuPanelItem } from '@po-ui/ng-components';
+// em imports: [PoMenuPanelModule]
+
+readonly menuItems: PoMenuPanelItem[] = [
+  { label: 'Dashboard',    icon: 'po-icon-home',      link: '/dashboard'    },
+  { label: 'Pedidos',      icon: 'po-icon-document',  link: '/pedidos'      },
+  { label: 'Fornecedores', icon: 'po-icon-user',       link: '/fornecedores' },
+  { label: 'Relatórios',   icon: 'po-icon-chart-bar', link: '/relatorios'   },
+  { label: 'Configurações',icon: 'po-icon-settings',  link: '/config'       },
+];
+```
+
+```html
+<po-menu-panel
+  [p-items]="menuItems"
+  p-logo="assets/logo.png"
+  p-short-logo="assets/logo-icon.png">
+</po-menu-panel>
+```
+
+> **po-menu vs po-menu-panel:** `po-menu` é o menu lateral completo com grupos, sub-itens,
+> filtro e badges — adequado para apps complexos. `po-menu-panel` é navegação compacta ícone-based,
+> ideal para painéis e apps com poucos itens de menu.
 
 ---
 
