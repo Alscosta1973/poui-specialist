@@ -584,6 +584,65 @@ import { PoTimepickerModule } from '@po-ui/ng-components';
 
 ---
 
+## po-chips
+
+Campo de entrada de múltiplos valores como chips — ideal para tags, e-mails, palavras-chave e filtros.
+Cada valor digitado vira um chip removível; o formulário recebe `string[]`.
+
+### Key Inputs
+
+| Input | Type | Description |
+|-------|------|-------------|
+| `p-label` | `string` | Rótulo do campo |
+| `p-placeholder` | `string` | Texto de ajuda antes de digitar |
+| `p-separator` | `string` | Caractere que confirma um chip além do Enter (ex: `','`) |
+| `p-required` | `boolean` | Campo obrigatório |
+| `p-disabled` | `boolean` | Desabilita o campo |
+
+### Key Outputs
+
+| Output | Payload | Description |
+|--------|---------|-------------|
+| `(p-change)` | `string[]` | Emitido ao adicionar ou remover um chip |
+
+### Exemplos
+
+```typescript
+import { PoChipsModule } from '@po-ui/ng-components';
+// em imports: [PoChipsModule]
+
+readonly tecnologias = signal<string[]>([]);
+
+onTecnologiasChange(lista: string[]): void {
+  this.tecnologias.set(lista);
+}
+```
+
+```html
+<!-- Chips para tags/tecnologias -->
+<po-chips
+  class="po-md-6"
+  p-label="Tecnologias"
+  p-placeholder="Digite e pressione Enter"
+  formControlName="tecnologias"
+  (p-change)="onTecnologiasChange($event)">
+</po-chips>
+
+<!-- Chips para e-mails separados por vírgula -->
+<po-chips
+  class="po-md-6"
+  p-label="E-mails dos Aprovadores"
+  p-separator=","
+  p-placeholder="email@empresa.com"
+  formControlName="emails">
+</po-chips>
+```
+
+> **Valor no formulário:** `formControl.value` é `string[]`.
+> Para pré-popular, inicialize o controle com um array: `new FormControl(['Angular', 'TypeScript'])`.
+
+---
+
 ## PoLookupFilterService — implementação completa
 
 O `po-lookup` requer um serviço que implemente a interface `PoLookupFilter`.

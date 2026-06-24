@@ -426,3 +426,77 @@ import { PoDividerModule } from '@po-ui/ng-components';
   <po-input class="po-md-4" p-label="IE"   formControlName="ie"></po-input>
 </div>
 ```
+
+---
+
+## po-tree-view + po-tree-view-item
+
+Componente de árvore de navegação com nós expansíveis — ideal para hierarquias de categorias,
+estruturas de menu dinâmico e seleção de itens em estrutura pai/filho.
+
+### Key Inputs (po-tree-view)
+
+| Input | Type | Description |
+|-------|------|-------------|
+| `p-items` | `PoTreeViewItem[]` | Array de nós raiz da árvore |
+
+### Key Outputs (po-tree-view)
+
+| Output | Payload | Description |
+|--------|---------|-------------|
+| `(p-selected)` | `PoTreeViewItem` | Emitido ao clicar em um nó |
+| `(p-expanded)` | `PoTreeViewItem` | Emitido ao expandir um nó |
+| `(p-collapsed)` | `PoTreeViewItem` | Emitido ao recolher um nó |
+
+### PoTreeViewItem
+
+```typescript
+interface PoTreeViewItem {
+  label:     string;
+  value:     any;
+  selected?: boolean;
+  expanded?: boolean;
+  subItems?: PoTreeViewItem[];
+}
+```
+
+### Exemplos
+
+```typescript
+import { PoTreeViewModule, PoTreeViewItem } from '@po-ui/ng-components';
+// em imports: [PoTreeViewModule]
+
+readonly categorias: PoTreeViewItem[] = [
+  {
+    label: 'Eletrônicos', value: 'eletronicos', expanded: true,
+    subItems: [
+      {
+        label: 'Computadores', value: 'computadores',
+        subItems: [
+          { label: 'Notebooks', value: 'notebooks' },
+          { label: 'Desktops',  value: 'desktops'  },
+        ],
+      },
+      { label: 'Celulares', value: 'celulares' },
+    ],
+  },
+  { label: 'Vestuário',   value: 'vestuario'   },
+  { label: 'Alimentos',   value: 'alimentos'   },
+];
+
+readonly categoriaSelecionada = signal<PoTreeViewItem | null>(null);
+
+onSelect(item: PoTreeViewItem): void {
+  this.categoriaSelecionada.set(item);
+}
+```
+
+```html
+<po-tree-view
+  [p-items]="categorias"
+  (p-selected)="onSelect($event)">
+</po-tree-view>
+```
+
+> **Seleção e expansão:** `p-selected` e `p-expanded` nos itens do array controlam o estado inicial.
+> Para seleção programática, atualize o array com `signal()` e re-renderize — não existe método `select()`.

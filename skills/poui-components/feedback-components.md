@@ -188,3 +188,70 @@ get progressStatus(): 'default' | 'success' | 'error' {
 import { PoProgressModule } from '@po-ui/ng-components';
 // em imports do @Component: [PoProgressModule]
 ```
+
+---
+
+## PoNotificationService — toast completo
+
+Serviço para exibir mensagens toast no canto superior direito da tela — 4 tipos visuais distintos.
+Não requer componente no template: injete o serviço e chame o método desejado.
+
+### Métodos
+
+| Método | Cor | Ícone | Quando usar |
+|--------|-----|-------|-------------|
+| `.success(msg)` | Verde | ✓ | Operação concluída com êxito |
+| `.error(msg)` | Vermelho | ✕ | Falha irrecuperável ou erro de servidor |
+| `.warning(msg)` | Amarelo | ⚠ | Ação concluída com ressalvas |
+| `.information(msg)` | Azul | ℹ | Mensagem neutra ou lembrete |
+
+### Assinatura com action (ação na notificação)
+
+```typescript
+notification.information(
+  '3 pedidos aguardam aprovação.',
+  'Ver lista',          // actionLabel — botão de ação opcional
+  () => this.abrirLista()  // callback ao clicar na ação
+);
+```
+
+### PoNotification (sobrecarga com objeto)
+
+```typescript
+interface PoNotification {
+  message:      string;
+  actionLabel?: string;     // texto do botão de ação
+  action?:      () => void; // callback ao clicar no botão
+  duration?:    number;     // ms antes de fechar automaticamente (default 3500)
+}
+```
+
+### Exemplos
+
+```typescript
+import { PoNotificationService } from '@po-ui/ng-components';
+
+private readonly notification = inject(PoNotificationService);
+
+// Forma direta (mais comum)
+this.notification.success('Pedido PC-0042 aprovado com sucesso.');
+this.notification.error('Falha ao comunicar com o servidor. Tente novamente.');
+this.notification.warning('Estoque abaixo do mínimo para o item selecionado.');
+this.notification.information('Existem 3 pedidos aguardando sua aprovação.');
+
+// Com ação (notification com botão)
+this.notification.information(
+  'Registro salvo. Deseja revisar antes de enviar?',
+  'Revisar',
+  () => this.openRevisaoModal()
+);
+
+// Via objeto PoNotification (controle fino de duração)
+this.notification.success({
+  message:  'Importação concluída — 1.248 registros processados.',
+  duration: 6000,
+});
+```
+
+> **Sem declaração em template:** `PoNotificationService` é `providedIn: 'root'`.
+> Injete diretamente com `inject()` — não precisa de `<po-toaster>` ou declaração em providers.
