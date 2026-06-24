@@ -157,7 +157,7 @@ export class FuncionariosListComponent implements OnInit {
     this.currentFilters = {
       nome:        filters['nome']         ?? undefined,
       situacao:    filters['situacao']     ?? undefined,
-      filial:      filters['filial']       ?? undefined,
+      departamento: filters['departamento'] ?? undefined,
       admissaoDe:  filters['admissaoDe']   ?? undefined,
       admissaoAte: filters['admissaoAte']  ?? undefined,
     } as FuncionariosParams;
@@ -199,7 +199,10 @@ export class FuncionariosListComponent implements OnInit {
     this.loading.set(true);
     this.service
       .remove(row.matricula)
-      .pipe(finalize(() => this.loading.set(false)))
+      .pipe(
+        finalize(() => this.loading.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe({
         next: () => {
           this.notification.success(`Funcionário ${row.nome} excluído com sucesso.`);
