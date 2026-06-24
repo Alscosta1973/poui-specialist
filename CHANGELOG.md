@@ -2,6 +2,48 @@
 
 Todas as mudanças notáveis do plugin poui-specialist são documentadas aqui.
 
+## [1.5.0] — 2026-06-24
+
+### Added — Expansão de referência de componentes (Waves 4–10)
+
+**Wave 4 — Campos de data/hora**
+- `po-datepicker-range`: seleção de período com `p-start-date` / `p-end-date`
+- `po-datetimepicker`: campo data + hora combinados
+- `po-timepicker`: seletor de hora com painel flutuante de colunas
+
+**Wave 5 — Chips, Árvore e Notificações**
+- `po-chips`: campo de tags com `p-separator` e `(p-change): string[]`
+- `po-tree-view` + `PoTreeViewItem`: navegação hierárquica com subItems e eventos de expansão
+- `PoNotificationService`: 4 métodos (success/error/warning/information), interface `PoNotification`, action e duration
+
+**Wave 6 — Busca, Menu Panel e Helper**
+- `po-search`: busca com `p-search-type` (action/input), `p-filter-keys`, `(p-change-model)`
+- `po-menu-panel`: navegação ícone-based compacta; comparação vs `po-menu`
+- `po-helper`: ícone `?` com popover de ajuda contextual; alternativa via `p-help` no po-input
+
+**Wave 7 — Template directives**
+- `[p-combo-option-template]`: dropdown rico com avatar + nome + departamento + status tag
+- `[p-multiselect-option-template]`: opções customizadas com cor + label + contagem
+- `[p-list-view-content-template]`: card completamente personalizado com `po-info` em grid
+- `[p-list-view-detail-template]`: detalhe master-detail expansível (ex: tabela de pedidos aninhada)
+
+**Wave 8 — Serviços**
+- `PoHttpInterceptorService`: loading overlay automático para HttpClient, suprimir por request via header
+- `PoThemeService`: `changeCurrentTheme(light/dark)`, tema customizado com tokens HSL
+- `PoI18nService`: `providePoI18n()` com contextos lazy-loaded, `getLiterals()` reativo por contexto
+
+**Wave 9 — Componentes restantes**
+- `po-breadcrumb`: componente visual standalone com `[p-items]`, integração via `[p-breadcrumb]` em page-edit
+- `po-checkbox`: tabela de inputs enriquecida com `p-indeterminate` e `p-checkboxes-proportion`
+- `po-page-login`: template de autenticação com `p-loading`, `p-custom-field`, integração Protheus
+
+**Wave 10 — Template de cabeçalho do menu**
+- `[p-menu-header-template]`: user card (avatar + nome + e-mail + papel) no cabeçalho do `po-menu`
+
+### Changed
+- `SKILL.md`: índices de Page, Navigation e Utilities atualizados com todos os novos componentes
+- Repositório tornado **público** no GitHub — instalação sem necessidade de chave SSH ou conta
+
 ## [1.4.0] — 2026-06-23
 
 ### Added
