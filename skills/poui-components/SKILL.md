@@ -26,7 +26,7 @@ npm install @po-ui/ng-components @po-ui/ng-templates
 
 - **Page layout components** (po-page-list, po-page-edit, po-page-detail): see `page-components.md`
 - **Data table** (po-table, PoTableColumn, PoTableAction): see `table-components.md`
-- **Form fields** (po-input, po-select, po-lookup, po-datepicker, etc.): see `form-fields.md`
+- **Form fields** (po-input, po-select, po-lookup, po-datepicker, po-datepicker-range, po-datetimepicker, po-timepicker, etc.): see `form-fields.md`
 - **Modal, Dialog & Painéis** (po-modal, PoDialogService, po-dynamic-view, po-page-slide): see `modal-dialog.md`
 - **Feedback & Status** (po-tag, po-info, [p-tooltip], po-progress): see `feedback-components.md`
 - **Layout** (po-container, po-accordion, po-list-view, po-disclaimer-group): see `layout-components.md`

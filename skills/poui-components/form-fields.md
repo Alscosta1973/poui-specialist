@@ -13,6 +13,9 @@ Todos os campos abaixo funcionam com Angular Reactive Forms (`formControlName`) 
 | `po-combo` | `p-label`, `p-options`, `p-filter-service` | Use filter service for server-side search |
 | `po-lookup` | `p-label`, `p-filter-service`, `p-columns`, `p-field-value`, `p-field-label` | Requires `PoLookupFilterService` implementation |
 | `po-datepicker` | `p-label`, `p-min-date`, `p-max-date`, `p-format` | Default format `dd/MM/yyyy` |
+| `po-datepicker-range` | `p-label`, `p-min-date`, `p-max-date` | Retorna `PoDatepickerRange` — `{ start, end }` |
+| `po-datetimepicker` | `p-label`, `p-min-date`, `p-no-seconds` | Data + hora combinados em um campo |
+| `po-timepicker` | `p-label`, `p-no-seconds`, `p-min-time` | Nova API de hora com painel flutuante — prefira a `po-time` |
 | `po-switch` | `p-label`, `p-true-value`, `p-false-value` | Boolean by default |
 | `po-checkbox-group` | `p-label`, `p-checkboxes` | Options: `PoCheckboxGroupItem[]` |
 | `po-radio-group` | `p-label`, `p-options` | Options: `PoRadioGroupOption[]` |
@@ -166,6 +169,110 @@ readonly pedidoColumns: PoLookupColumn[] = [
   [p-max-date]="maxDate">
 </po-datepicker>
 ```
+
+---
+
+## po-datepicker-range
+
+Campo para seleção de um período entre duas datas — início e fim em um único campo.
+Ideal para filtros de relatório, parametrização de períodos ou intervalo de datas em formulários.
+
+### Key Inputs
+
+| Input | Type | Description |
+|-------|------|-------------|
+| `p-label` | `string` | Rótulo do campo |
+| `p-min-date` | `Date \| string` | Data mínima permitida |
+| `p-max-date` | `Date \| string` | Data máxima permitida |
+| `p-required` | `boolean` | Campo obrigatório |
+| `p-disabled` | `boolean` | Desabilita o campo |
+| `p-clean` | `boolean` | Exibe botão para limpar o valor (default `true`) |
+
+### Key Outputs
+
+| Output | Payload | Description |
+|--------|---------|-------------|
+| `(p-change)` | `PoDatepickerRange` | Emitido ao selecionar o intervalo |
+
+### PoDatepickerRange
+
+```typescript
+interface PoDatepickerRange {
+  start: Date | string;
+  end:   Date | string;
+}
+```
+
+### Exemplos
+
+```typescript
+import { PoDatepickerRangeModule, PoDatepickerRange } from '@po-ui/ng-components';
+// em imports: [PoDatepickerRangeModule]
+
+readonly periodo = signal<PoDatepickerRange | null>(null);
+
+onPeriodoChange(range: PoDatepickerRange): void {
+  this.periodo.set(range);
+}
+```
+
+```html
+<po-datepicker-range
+  class="po-md-6"
+  p-label="Período de Emissão"
+  formControlName="periodo"
+  [p-required]="true"
+  (p-change)="onPeriodoChange($event)">
+</po-datepicker-range>
+```
+
+> **Reactive Forms:** O valor do `formControl` é `PoDatepickerRange` — ao submeter, acesse
+> `form.value.periodo.start` e `form.value.periodo.end`.
+
+---
+
+## po-datetimepicker
+
+Campo que combina data e hora em um único input — substitui o uso de `po-datepicker` + `po-time` juntos.
+Útil para agendamentos e registros de eventos com hora exata.
+
+### Key Inputs
+
+| Input | Type | Description |
+|-------|------|-------------|
+| `p-label` | `string` | Rótulo do campo |
+| `p-min-date` | `string` | Data/hora mínima (formato ISO `yyyy-MM-ddTHH:mm:ss`) |
+| `p-max-date` | `string` | Data/hora máxima |
+| `p-no-seconds` | `boolean` | Oculta os segundos no campo de hora (default `false`) |
+| `p-required` | `boolean` | Campo obrigatório |
+| `p-disabled` | `boolean` | Desabilita o campo |
+
+### Key Outputs
+
+| Output | Payload | Description |
+|--------|---------|-------------|
+| `(p-change)` | `string` | Data/hora selecionada em formato ISO |
+
+### Exemplos
+
+```typescript
+import { PoDatetimepickerModule } from '@po-ui/ng-components';
+// em imports: [PoDatetimepickerModule]
+```
+
+```html
+<!-- Agendamento com data e hora — sem segundos -->
+<po-datetimepicker
+  class="po-md-6"
+  p-label="Data e Hora do Agendamento"
+  [p-no-seconds]="true"
+  [p-required]="true"
+  formControlName="dataHoraAgendamento">
+</po-datetimepicker>
+```
+
+> **Substitui po-datepicker + po-time:** Use `po-datetimepicker` sempre que precisar de
+> data e hora no mesmo campo — evita sincronizar dois campos separados no formulário.
 
 ---
 
@@ -428,6 +535,52 @@ import { PoTimeModule } from '@po-ui/ng-components';
   formControlName="horaAgendamento">
 </po-time>
 ```
+
+---
+
+## po-timepicker
+
+Componente de hora com painel flutuante de seleção — API mais recente que `po-time`.
+Prefira `po-timepicker` em novos componentes; `po-time` segue suportado mas não evolui.
+
+### Key Inputs
+
+| Input | Type | Description |
+|-------|------|-------------|
+| `p-label` | `string` | Rótulo do campo |
+| `p-no-seconds` | `boolean` | Oculta os segundos — usa formato HH:MM (default `false`) |
+| `p-min-time` | `string` | Hora mínima permitida (formato `HH:MM` ou `HH:MM:SS`) |
+| `p-max-time` | `string` | Hora máxima permitida |
+| `p-required` | `boolean` | Campo obrigatório |
+| `p-disabled` | `boolean` | Desabilita o campo |
+
+### Key Outputs
+
+| Output | Payload | Description |
+|--------|---------|-------------|
+| `(p-change)` | `string` | Hora selecionada em formato `HH:MM:SS` ou `HH:MM` |
+
+### Exemplos
+
+```typescript
+import { PoTimepickerModule } from '@po-ui/ng-components';
+// em imports: [PoTimepickerModule]
+```
+
+```html
+<!-- Hora sem segundos com janela comercial -->
+<po-timepicker
+  class="po-md-3"
+  p-label="Hora de Início"
+  [p-no-seconds]="true"
+  p-min-time="08:00"
+  p-max-time="18:00"
+  formControlName="horaInicio">
+</po-timepicker>
+```
+
+> **po-time vs po-timepicker:** Ambos funcionam, mas `po-timepicker` é a API mais recente
+> com painel flutuante de seleção. Use `po-timepicker` em novos componentes.
 
 ---
 
