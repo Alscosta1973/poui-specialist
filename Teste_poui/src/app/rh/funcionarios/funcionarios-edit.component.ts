@@ -20,7 +20,6 @@ import {
   PoDividerModule,
   PoFieldModule,
   PoNotificationService,
-  PoPageAction,
   PoPageModule,
   PoBreadcrumb,
   PoSelectOption,
@@ -71,23 +70,6 @@ export class FuncionariosEditComponent implements OnInit {
         { label: this.isEdit() ? 'Editar' : 'Novo' },
       ],
     };
-  }
-
-  // ---------------------------------------------------------------------------
-  // Ações da página
-  // ---------------------------------------------------------------------------
-  get pageActions(): PoPageAction[] {
-    return [
-      {
-        label: 'Salvar',
-        action: () => this.save(),
-        loading: this.isLoading(),
-      },
-      {
-        label: 'Cancelar',
-        action: () => this.goBack(),
-      },
-    ];
   }
 
   // ---------------------------------------------------------------------------

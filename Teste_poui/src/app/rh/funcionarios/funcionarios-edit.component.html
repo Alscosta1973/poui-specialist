@@ -1,7 +1,9 @@
 <po-page-edit
   [p-title]="isEdit() ? 'Editar Funcionário' : 'Novo Funcionário'"
   [p-breadcrumb]="breadcrumb"
-  [p-actions]="pageActions">
+  [p-disable-submit]="isLoading()"
+  (p-save)="save()"
+  (p-cancel)="goBack()">
 
   <form [formGroup]="form">
 

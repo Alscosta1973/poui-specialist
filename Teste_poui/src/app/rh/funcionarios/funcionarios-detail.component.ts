@@ -18,7 +18,6 @@ import {
   PoInfoModule,
   PoDividerModule,
   PoNotificationService,
-  PoPageAction,
   PoPageModule,
   PoBreadcrumb,
   PoLoadingModule,
@@ -66,23 +65,6 @@ export class FuncionariosDetailComponent implements OnInit {
       { label: 'Detalhe' },
     ],
   };
-
-  // ---------------------------------------------------------------------------
-  // Ações da página
-  // ---------------------------------------------------------------------------
-  get pageActions(): PoPageAction[] {
-    return [
-      {
-        label: 'Editar',
-        icon: 'po-icon-edit',
-        action: () => this.navigateToEdit(),
-      },
-      {
-        label: 'Voltar',
-        action: () => this.goBack(),
-      },
-    ];
-  }
 
   // ---------------------------------------------------------------------------
   // Helpers de exibição

@@ -1,7 +1,8 @@
 <po-page-detail
-  name="Detalhe do Funcionário"
+  p-title="Detalhe do Funcionário"
   [p-breadcrumb]="breadcrumb"
-  [p-actions]="pageActions"
+  (p-edit)="navigateToEdit()"
+  (p-back)="goBack()"
 >
 
   <!-- Loading overlay -->
