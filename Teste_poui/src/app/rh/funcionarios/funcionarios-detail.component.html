@@ -1,0 +1,185 @@
+<po-page-detail
+  name="Detalhe do Funcionário"
+  [p-breadcrumb]="breadcrumb"
+  [p-actions]="pageActions"
+>
+
+  <!-- Loading overlay -->
+  @if (isLoading()) {
+    <po-loading-overlay
+      [p-screen-lock]="true"
+      p-text="Carregando..."
+    ></po-loading-overlay>
+  }
+
+  @if (funcionario(); as f) {
+
+    <!-- ================================================================== -->
+    <!-- Seção 1 — Dados Pessoais                                           -->
+    <!-- ================================================================== -->
+    <po-divider p-label="Dados Pessoais"></po-divider>
+
+    <div class="po-row">
+      <po-info
+        class="po-md-2"
+        p-label="Matrícula"
+        [p-value]="text(f.matricula)"
+      ></po-info>
+
+      <po-info
+        class="po-md-6"
+        p-label="Nome"
+        [p-value]="text(f.nome)"
+      ></po-info>
+
+      <po-info
+        class="po-md-4"
+        p-label="CPF"
+        [p-value]="text(f.cpf)"
+      ></po-info>
+    </div>
+
+    <div class="po-row">
+      <po-info
+        class="po-md-3"
+        p-label="Data de Nascimento"
+        [p-value]="text(f.dataNascimento)"
+      ></po-info>
+
+      <po-info
+        class="po-md-4"
+        p-label="Escolaridade"
+        [p-value]="label(f.escolaridade, escolaridadeMap)"
+      ></po-info>
+
+      <po-info
+        class="po-md-5"
+        p-label="Deficiência"
+        [p-value]="label(f.deficiencia, deficienciaMap)"
+      ></po-info>
+    </div>
+
+    <!-- ================================================================== -->
+    <!-- Seção 2 — Dados Profissionais                                      -->
+    <!-- ================================================================== -->
+    <po-divider p-label="Dados Profissionais"></po-divider>
+
+    <div class="po-row">
+      <po-info
+        class="po-md-4"
+        p-label="Cargo"
+        [p-value]="text(f.cargo)"
+      ></po-info>
+
+      <po-info
+        class="po-md-4"
+        p-label="Departamento"
+        [p-value]="text(f.departamento)"
+      ></po-info>
+
+      <po-info
+        class="po-md-4"
+        p-label="Centro de Custo"
+        [p-value]="text(f.centroCusto)"
+      ></po-info>
+    </div>
+
+    <div class="po-row">
+      <po-info
+        class="po-md-3"
+        p-label="Data de Admissão"
+        [p-value]="text(f.dataAdmissao)"
+      ></po-info>
+
+      <po-info
+        class="po-md-2"
+        p-label="Situação"
+        [p-value]="label(f.situacao, situacaoMap)"
+      ></po-info>
+
+      <po-info
+        class="po-md-3"
+        p-label="Tipo de Contrato"
+        [p-value]="label(f.tipoContrato, tipoContratoMap)"
+      ></po-info>
+
+      <po-info
+        class="po-md-2"
+        p-label="Turno"
+        [p-value]="text(f.turno)"
+      ></po-info>
+
+      <po-info
+        class="po-md-2"
+        p-label="Salário"
+        [p-value]="currency(f.salario)"
+      ></po-info>
+    </div>
+
+    <!-- ================================================================== -->
+    <!-- Seção 3 — Endereço                                                 -->
+    <!-- ================================================================== -->
+    <po-divider p-label="Endereço"></po-divider>
+
+    <div class="po-row">
+      <po-info
+        class="po-md-6"
+        p-label="Endereço"
+        [p-value]="text(f.endereco)"
+      ></po-info>
+
+      <po-info
+        class="po-md-3"
+        p-label="Bairro"
+        [p-value]="text(f.bairro)"
+      ></po-info>
+
+      <po-info
+        class="po-md-3"
+        p-label="CEP"
+        [p-value]="text(f.cep)"
+      ></po-info>
+    </div>
+
+    <div class="po-row">
+      <po-info
+        class="po-md-4"
+        p-label="Município"
+        [p-value]="text(f.municipio)"
+      ></po-info>
+
+      <po-info
+        class="po-md-2"
+        p-label="Estado"
+        [p-value]="text(f.estado)"
+      ></po-info>
+    </div>
+
+    <!-- ================================================================== -->
+    <!-- Seção 4 — Dados Bancários                                          -->
+    <!-- ================================================================== -->
+    <po-divider p-label="Dados Bancários"></po-divider>
+
+    <div class="po-row">
+      <po-info
+        class="po-md-2"
+        p-label="Banco"
+        [p-value]="text(f.banco)"
+      ></po-info>
+
+      <po-info
+        class="po-md-3"
+        p-label="Agência"
+        [p-value]="text(f.agencia)"
+      ></po-info>
+
+      <po-info
+        class="po-md-4"
+        p-label="Conta Corrente"
+        [p-value]="text(f.conta)"
+      ></po-info>
+    </div>
+
+  }<!-- /@if funcionario -->
+
+</po-page-detail>
