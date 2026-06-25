@@ -119,4 +119,31 @@ export const routes: Routes = [
       import('./financeiro/titulos-list/titulos-list.component')
         .then(m => m.TitulosListComponent),
   },
+  // ------------------------------------------------------------------
+  // RH — Funcionários (Wave 1 — teste plugin poui-specialist)
+  // ------------------------------------------------------------------
+  {
+    path: 'rh/funcionarios',
+    loadComponent: () =>
+      import('./rh/funcionarios/funcionarios-list.component')
+        .then(m => m.FuncionariosListComponent),
+  },
+  {
+    path: 'rh/funcionarios/novo',
+    loadComponent: () =>
+      import('./rh/funcionarios/funcionarios-edit.component')
+        .then(m => m.FuncionariosEditComponent),
+  },
+  {
+    path: 'rh/funcionarios/:mat',
+    loadComponent: () =>
+      import('./rh/funcionarios/funcionarios-detail.component')
+        .then(m => m.FuncionariosDetailComponent),
+  },
+  {
+    path: 'rh/funcionarios/:mat/editar',
+    loadComponent: () =>
+      import('./rh/funcionarios/funcionarios-edit.component')
+        .then(m => m.FuncionariosEditComponent),
+  },
 ];
