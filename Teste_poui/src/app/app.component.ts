@@ -99,6 +99,17 @@ export class AppComponent {
       link: '/financeiro/titulos-list',
     },
     {
+      label: 'RH',
+      shortLabel: 'RH',
+      icon: 'po-icon-user',
+      subItems: [
+        {
+          label: 'Funcionários',
+          link: '/rh/funcionarios',
+        },
+      ],
+    },
+    {
       label: 'Sair',
       shortLabel: 'Sair',
       icon: 'po-icon-exit',
