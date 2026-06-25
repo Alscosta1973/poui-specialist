@@ -6,6 +6,7 @@
  */
 import {
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   DestroyRef,
   OnInit,
@@ -53,6 +54,7 @@ export class FuncionariosEditComponent implements OnInit {
   private readonly service = inject(FuncionariosService);
   private readonly notification = inject(PoNotificationService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   // ---------------------------------------------------------------------------
   // Estado
@@ -174,6 +176,10 @@ export class FuncionariosEditComponent implements OnInit {
       this.isEdit.set(true);
       this.form.get('matricula')?.disable();
       this.loadFuncionario(mat);
+    } else {
+      // OnPush: sem signal mudando no modo "novo", po-page-edit precisa
+      // de um ciclo de CD extra para projetar o ng-content.
+      this.cdr.markForCheck();
     }
   }
 
