@@ -202,6 +202,18 @@ describe('FuncionariosEditComponent', () => {
         'Funcionário atualizado com sucesso.',
       );
       expect(routerSpy).toHaveBeenCalledWith(['/rh/funcionarios']);
+      expect(component.isLoading()).toBeFalse();
+    }));
+
+    it('deve exibir erro quando update falha', fakeAsync(() => {
+      setup('000001');
+      service.update.and.returnValue(throwError(() => new Error('fail')));
+      tick(); // aguarda loadFuncionario
+      component.form.patchValue({ nome: 'João Editado', dataAdmissao: '2020-01-15' });
+      component.save();
+      tick();
+      expect(notificationSpy.error).toHaveBeenCalledWith('Erro ao atualizar funcionário.');
+      expect(component.isLoading()).toBeFalse();
     }));
   });
 

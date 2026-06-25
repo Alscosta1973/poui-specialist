@@ -13,6 +13,7 @@ import {
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { finalize } from 'rxjs/operators';
 import { Router, ActivatedRoute } from '@angular/router';
 import {
   PoInfoModule,
@@ -139,15 +140,16 @@ export class FuncionariosDetailComponent implements OnInit {
 
     this.service
       .getById(mat)
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(
+        finalize(() => this.isLoading.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe({
         next: (funcionario) => {
           this.funcionario.set(funcionario);
-          this.isLoading.set(false);
         },
         error: () => {
           this.notification.error('Erro ao carregar dados do funcionário.');
-          this.isLoading.set(false);
           this.goBack();
         },
       });
