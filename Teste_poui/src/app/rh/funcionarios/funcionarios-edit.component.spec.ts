@@ -39,6 +39,7 @@ describe('FuncionariosEditComponent', () => {
   let component: FuncionariosEditComponent;
   let fixture: ComponentFixture<FuncionariosEditComponent>;
   let service: jasmine.SpyObj<FuncionariosService>;
+  let notificationSpy: jasmine.SpyObj<PoNotificationService>;
 
   function setup(
     mat: string | null = null,
@@ -49,12 +50,17 @@ describe('FuncionariosEditComponent', () => {
     ]);
     service.getById.and.returnValue(getByIdResult);
 
+    notificationSpy = jasmine.createSpyObj('PoNotificationService', [
+      'success', 'warning', 'error',
+    ]);
+
     TestBed.configureTestingModule({
       imports: [FuncionariosEditComponent, ReactiveFormsModule],
       providers: [
         provideRouter([]),
         { provide: FuncionariosService,   useValue: service },
         { provide: ActivatedRoute,        useValue: makeRoute(mat) },
+        { provide: PoNotificationService, useValue: notificationSpy },
       ],
       schemas: [NO_ERRORS_SCHEMA],
     });
@@ -125,10 +131,9 @@ describe('FuncionariosEditComponent', () => {
 
     it('deve exibir notificação de erro', fakeAsync(() => {
       tick();
-      const notification = TestBed.inject(PoNotificationService);
-      spyOn(notification, 'error');
-      // error already called in ngOnInit; verify isLoading was reset
-      expect(component.isLoading()).toBeFalse();
+      expect(notificationSpy.error).toHaveBeenCalledWith(
+        'Erro ao carregar dados do funcionário.',
+      );
     }));
 
     it('isLoading deve ser false após o erro', fakeAsync(() => {
@@ -144,18 +149,14 @@ describe('FuncionariosEditComponent', () => {
   describe('save()', () => {
     it('deve exibir warning quando o form é inválido', () => {
       setup(null);
-      const notification = TestBed.inject(PoNotificationService);
-      const warnSpy = spyOn(notification, 'warning');
       component.save();
-      expect(warnSpy).toHaveBeenCalledWith(
+      expect(notificationSpy.warning).toHaveBeenCalledWith(
         'Preencha todos os campos obrigatórios.',
       );
     });
 
     it('deve chamar service.create e notificar sucesso em modo criar', fakeAsync(() => {
       setup(null);
-      const notification = TestBed.inject(PoNotificationService);
-      const successSpy = spyOn(notification, 'success');
       const routerSpy = spyOn(TestBed.inject(Router), 'navigate').and.returnValue(Promise.resolve(true));
       service.create.and.returnValue(of(mockFuncionario));
       component.form.patchValue({
@@ -166,7 +167,7 @@ describe('FuncionariosEditComponent', () => {
       component.save();
       tick();
       expect(service.create).toHaveBeenCalled();
-      expect(successSpy).toHaveBeenCalledWith(
+      expect(notificationSpy.success).toHaveBeenCalledWith(
         'Funcionário criado com sucesso.',
       );
       expect(routerSpy).toHaveBeenCalledWith(['/rh/funcionarios']);
@@ -174,8 +175,6 @@ describe('FuncionariosEditComponent', () => {
 
     it('deve exibir erro quando create falha', fakeAsync(() => {
       setup(null);
-      const notification = TestBed.inject(PoNotificationService);
-      const errorSpy = spyOn(notification, 'error');
       service.create.and.returnValue(throwError(() => new Error('fail')));
       component.form.patchValue({
         matricula: '000002',
@@ -184,13 +183,11 @@ describe('FuncionariosEditComponent', () => {
       });
       component.save();
       tick();
-      expect(errorSpy).toHaveBeenCalledWith('Erro ao criar funcionário.');
+      expect(notificationSpy.error).toHaveBeenCalledWith('Erro ao criar funcionário.');
     }));
 
     it('deve chamar service.update e notificar sucesso em modo editar', fakeAsync(() => {
       setup('000001');
-      const notification = TestBed.inject(PoNotificationService);
-      const successSpy = spyOn(notification, 'success');
       const routerSpy = spyOn(TestBed.inject(Router), 'navigate').and.returnValue(Promise.resolve(true));
       service.update.and.returnValue(of(mockFuncionario));
       tick(); // aguarda loadFuncionario
@@ -201,7 +198,7 @@ describe('FuncionariosEditComponent', () => {
         '000001',
         jasmine.objectContaining({ nome: 'João Editado' }),
       );
-      expect(successSpy).toHaveBeenCalledWith(
+      expect(notificationSpy.success).toHaveBeenCalledWith(
         'Funcionário atualizado com sucesso.',
       );
       expect(routerSpy).toHaveBeenCalledWith(['/rh/funcionarios']);
