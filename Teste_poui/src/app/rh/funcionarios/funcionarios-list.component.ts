@@ -213,16 +213,27 @@ export class FuncionariosListComponent implements OnInit {
       });
   }
 
-  private parseProtheusError(err: any): string {
+  private parseProtheusError(err: unknown): string {
+    const decode = (s: string): string => {
+      try {
+        return new TextDecoder('iso-8859-1').decode(
+          Uint8Array.from(s, (c) => c.charCodeAt(0)),
+        );
+      } catch {
+        return s;
+      }
+    };
     try {
-      const errObj = JSON.parse(err.error?.errorMessage ?? '{}');
-      const msg    = decodeURIComponent(escape(errObj.message ?? ''));
+      const e = (err as { error?: { errorMessage?: string; message?: string } }).error;
+      const errObj = JSON.parse(e?.errorMessage ?? '{}');
+      const msg    = decode(errObj.message ?? '');
       const detail = errObj.detailedMessage
-        ? ` — ${decodeURIComponent(escape(errObj.detailedMessage))}`
+        ? ` — ${decode(errObj.detailedMessage)}`
         : '';
       return `Erro ${errObj.code}: ${msg}${detail}`;
     } catch {
-      return err.error?.message ?? 'Erro ao processar a requisição.';
+      return (err as { error?: { message?: string } }).error?.message
+        ?? 'Erro ao processar a requisição.';
     }
   }
 }
