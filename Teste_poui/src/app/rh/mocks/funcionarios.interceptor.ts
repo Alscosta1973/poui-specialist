@@ -104,7 +104,7 @@ export class FuncionariosInterceptor implements HttpInterceptor {
     if (req.method === 'GET' && !mat) {
       const page     = Number(new URL(req.url, 'http://x').searchParams.get('page') ?? 1);
       const pageSize = Number(new URL(req.url, 'http://x').searchParams.get('pageSize') ?? 20);
-      const q        = new URL(req.url, 'http://x').searchParams.get('q') ?? '';
+      const q        = new URL(req.url, 'http://x').searchParams.get('nome') ?? '';
       const filtered = q
         ? MOCK_FUNCIONARIOS.filter(f =>
             f.nome.toLowerCase().includes(q.toLowerCase()) ||

@@ -160,7 +160,7 @@ export class FuncionariosListComponent implements OnInit {
       departamento: filters['departamento'] ?? undefined,
       admissaoDe:  filters['admissaoDe']   ?? undefined,
       admissaoAte: filters['admissaoAte']  ?? undefined,
-    } as FuncionariosParams;
+    };
     this.load(this.currentFilters);
   }
 

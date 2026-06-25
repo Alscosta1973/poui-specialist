@@ -128,4 +128,10 @@ export interface FuncionariosParams {
   nome?: string;
   /** Filtro por situação */
   situacao?: 'A' | 'I' | 'F';
+  /** Filtro por departamento */
+  departamento?: string;
+  /** Filtro por data de admissão — início (dd/MM/yyyy) */
+  admissaoDe?: string;
+  /** Filtro por data de admissão — fim (dd/MM/yyyy) */
+  admissaoAte?: string;
 }
