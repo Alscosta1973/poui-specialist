@@ -1,6 +1,6 @@
 <po-page-edit
   [p-title]="isEdit() ? 'Editar Funcionário' : 'Novo Funcionário'"
-  [p-breadcrumb]="breadcrumb"
+  [p-breadcrumb]="breadcrumb()"
   [p-disable-submit]="isLoading()"
   (p-save)="save()"
   (p-cancel)="goBack()">

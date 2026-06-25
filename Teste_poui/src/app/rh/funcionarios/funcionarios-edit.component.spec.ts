@@ -91,7 +91,7 @@ describe('FuncionariosEditComponent', () => {
     });
 
     it('breadcrumb deve conter "Novo" no último item', () => {
-      expect(component.breadcrumb.items.at(-1)?.label).toBe('Novo');
+      expect(component.breadcrumb().items.at(-1)?.label).toBe('Novo');
     });
   });
 
@@ -116,7 +116,7 @@ describe('FuncionariosEditComponent', () => {
     }));
 
     it('breadcrumb deve conter "Editar" no último item', () => {
-      expect(component.breadcrumb.items.at(-1)?.label).toBe('Editar');
+      expect(component.breadcrumb().items.at(-1)?.label).toBe('Editar');
     });
   });
 

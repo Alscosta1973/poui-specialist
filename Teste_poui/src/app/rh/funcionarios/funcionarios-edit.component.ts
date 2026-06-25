@@ -9,10 +9,12 @@ import {
   Component,
   DestroyRef,
   OnInit,
+  computed,
   inject,
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { finalize } from 'rxjs/operators';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import {
@@ -62,15 +64,13 @@ export class FuncionariosEditComponent implements OnInit {
   // ---------------------------------------------------------------------------
   // Breadcrumb
   // ---------------------------------------------------------------------------
-  get breadcrumb(): PoBreadcrumb {
-    return {
-      items: [
-        { label: 'RH' },
-        { label: 'Funcionários', link: '/rh/funcionarios' },
-        { label: this.isEdit() ? 'Editar' : 'Novo' },
-      ],
-    };
-  }
+  readonly breadcrumb = computed<PoBreadcrumb>(() => ({
+    items: [
+      { label: 'RH' },
+      { label: 'Funcionários', link: '/rh/funcionarios' },
+      { label: this.isEdit() ? 'Editar' : 'Novo' },
+    ],
+  }));
 
   // ---------------------------------------------------------------------------
   // Formulário
@@ -184,7 +184,10 @@ export class FuncionariosEditComponent implements OnInit {
     this.isLoading.set(true);
 
     this.service.getById(mat)
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(
+        finalize(() => this.isLoading.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe({
         next: (funcionario) => {
           this.form.patchValue({
@@ -210,11 +213,9 @@ export class FuncionariosEditComponent implements OnInit {
             agencia:        funcionario.agencia ?? '',
             conta:          funcionario.conta ?? '',
           });
-          this.isLoading.set(false);
         },
         error: () => {
           this.notification.error('Erro ao carregar dados do funcionário.');
-          this.isLoading.set(false);
         },
       });
   }
