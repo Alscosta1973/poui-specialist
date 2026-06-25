@@ -6,8 +6,10 @@ Gera uma página de dashboard analítico standalone com `po-widget` (cartões KP
 
 ```typescript
 import {
-  Component,
+  AfterViewInit,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
   DestroyRef,
   OnInit,
   inject,
@@ -40,8 +42,9 @@ import {
   styleUrl: './{{kebab-name}}.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class {{ComponentClass}} implements OnInit {
+export class {{ComponentClass}} implements OnInit, AfterViewInit {
   private readonly destroyRef = inject(DestroyRef);
+  private readonly cdr        = inject(ChangeDetectorRef);
 
   readonly loading = signal(true);
 
@@ -79,6 +82,10 @@ export class {{ComponentClass}} implements OnInit {
     //     this.chartSeries.set(res.series);
     //   });
     this.loading.set(false);
+  }
+
+  ngAfterViewInit(): void {
+    setTimeout(() => this.cdr.detectChanges());
   }
 }
 ```

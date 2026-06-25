@@ -16,8 +16,11 @@ API REST do Protheus segue o contrato padrão do plugin.
 
 ```typescript
 import {
-  Component,
+  AfterViewInit,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  inject,
 } from '@angular/core';
 import { PoBreadcrumb } from '@po-ui/ng-components';
 import {
@@ -33,7 +36,9 @@ import {
   templateUrl: './{{kebab-name}}.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class {{ComponentClass}} {
+export class {{ComponentClass}} implements AfterViewInit {
+  private readonly cdr = inject(ChangeDetectorRef);
+
   readonly serviceApi = '{{apiPath}}';
 
   readonly breadcrumb: PoBreadcrumb = {
@@ -104,6 +109,10 @@ export class {{ComponentClass}} {
     detail: ':id/detalhe',
     remove: true,
   };
+
+  ngAfterViewInit(): void {
+    setTimeout(() => this.cdr.detectChanges());
+  }
 }
 ```
 

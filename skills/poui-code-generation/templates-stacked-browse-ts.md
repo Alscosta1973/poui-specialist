@@ -15,6 +15,7 @@
  * @see        https://github.com/Alscosta1973/poui-specialist
  */
 import {
+  AfterViewInit,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
@@ -67,7 +68,7 @@ const DEMO_DETAIL: Record<string, {{DetailModel}}[]> = {
   styleUrl: './{{kebab-name}}.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class {{ComponentClass}} implements OnInit {
+export class {{ComponentClass}} implements OnInit, AfterViewInit {
   private readonly service      = inject({{ServiceClass}});
   private readonly notification = inject(PoNotificationService);
   private readonly destroyRef   = inject(DestroyRef);
@@ -134,6 +135,10 @@ export class {{ComponentClass}} implements OnInit {
 
   ngOnInit(): void {
     this.buscar();
+  }
+
+  ngAfterViewInit(): void {
+    setTimeout(() => this.cdr.detectChanges());
   }
 
   @HostListener('window:resize')

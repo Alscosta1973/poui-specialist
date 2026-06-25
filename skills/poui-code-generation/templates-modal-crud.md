@@ -6,9 +6,10 @@ Lista + modal de inclusão/edição em um único componente para entidades simpl
 
 ```typescript
 import {
-  Component,
+  AfterViewInit,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
+  Component,
   DestroyRef,
   OnInit,
   ViewChild,
@@ -53,7 +54,7 @@ import { {{ModelInterface}} } from '../models/{{modelFile}}.model';
   styleUrl: './{{kebab-name}}.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class {{ComponentClass}} implements OnInit {
+export class {{ComponentClass}} implements OnInit, AfterViewInit {
   @ViewChild(PoModalComponent)       private poModal!: PoModalComponent;
   @ViewChild(PoDynamicFormComponent) private dynamicForm!: PoDynamicFormComponent;
 
@@ -130,6 +131,10 @@ export class {{ComponentClass}} implements OnInit {
 
   ngOnInit(): void {
     this.load();
+  }
+
+  ngAfterViewInit(): void {
+    setTimeout(() => this.cdr.detectChanges());
   }
 
   onQuickSearch(term: string): void {
@@ -240,16 +245,17 @@ export class {{ComponentClass}} implements OnInit {
       });
   }
 
-  private parseProtheusError(err: any): string {
+  private parseProtheusError(err: unknown): string {
     try {
-      const errObj = JSON.parse(err.error?.errorMessage ?? '{}');
-      const msg    = decodeURIComponent(escape(errObj.message ?? ''));
-      const detail = errObj.detailedMessage
-        ? ` — ${decodeURIComponent(escape(errObj.detailedMessage))}`
-        : '';
+      const errObj = JSON.parse((err as any).error?.errorMessage ?? '{}');
+      const decode = (s: string) => new TextDecoder('iso-8859-1').decode(
+        Uint8Array.from(s, c => c.charCodeAt(0))
+      );
+      const msg    = decode(errObj.message ?? '');
+      const detail = errObj.detailedMessage ? ` — ${decode(errObj.detailedMessage)}` : '';
       return `Erro ${errObj.code}: ${msg}${detail}`;
     } catch {
-      return err.error?.message ?? 'Erro ao processar a requisição.';
+      return (err as any).error?.message ?? 'Erro ao processar a requisição.';
     }
   }
 }

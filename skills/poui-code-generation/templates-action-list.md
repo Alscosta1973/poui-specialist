@@ -14,7 +14,9 @@ Gera um componente standalone `po-page-list` com `po-table`, múltiplas ações 
 
 ```typescript
 import {
+  AfterViewInit,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   DestroyRef,
   OnInit,
@@ -54,13 +56,14 @@ import {
   templateUrl: './{{kebab-name}}.component.html',
   styleUrl: './{{kebab-name}}.component.scss',
 })
-export class {{ComponentClass}} implements OnInit {
+export class {{ComponentClass}} implements OnInit, AfterViewInit {
   @ViewChild('confirmModal') private confirmModal!: PoModalComponent;
   @ViewChild('resultsModal') private resultsModal!: PoModalComponent;
 
   private readonly service      = inject({{ServiceClass}});
   private readonly notification = inject(PoNotificationService);
   private readonly destroyRef   = inject(DestroyRef);
+  private readonly cdr          = inject(ChangeDetectorRef);
 
   // chave primária do modelo — substitua pelo primeiro campo do manifesto
   private readonly chaveUnica = '{{campoChave}}' as keyof {{ModelInterface}};
@@ -193,6 +196,10 @@ export class {{ComponentClass}} implements OnInit {
     this.load();
   }
 
+  ngAfterViewInit(): void {
+    setTimeout(() => this.cdr.detectChanges());
+  }
+
   // ── list methods ──────────────────────────────────────────────────────────
   onQuickSearch(q: string): void {
     this.currentPage = 1;
@@ -314,18 +321,15 @@ export class {{ComponentClass}} implements OnInit {
 
   private parseProtheusError(err: unknown): string {
     try {
-      const e      = err as { error?: { errorMessage?: string; message?: string } };
-      const errObj = JSON.parse(e.error?.errorMessage ?? '{}') as {
-        code?: number; message?: string; detailedMessage?: string;
-      };
-      const msg    = decodeURIComponent(escape(errObj.message ?? ''));
-      const detail = errObj.detailedMessage
-        ? ` — ${decodeURIComponent(escape(errObj.detailedMessage))}`
-        : '';
+      const errObj = JSON.parse((err as any).error?.errorMessage ?? '{}');
+      const decode = (s: string) => new TextDecoder('iso-8859-1').decode(
+        Uint8Array.from(s, c => c.charCodeAt(0))
+      );
+      const msg    = decode(errObj.message ?? '');
+      const detail = errObj.detailedMessage ? ` — ${decode(errObj.detailedMessage)}` : '';
       return `Erro ${errObj.code}: ${msg}${detail}`;
     } catch {
-      return (err as { error?: { message?: string } }).error?.message
-        ?? 'Erro ao processar a requisição.';
+      return (err as any).error?.message ?? 'Erro ao processar a requisição.';
     }
   }
 }

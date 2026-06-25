@@ -11,8 +11,10 @@ Formulário multi-etapas standalone com `po-stepper` — wizard com 3+ seções 
 
 ```typescript
 import {
-  Component,
+  AfterViewInit,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
   DestroyRef,
   inject,
   signal,
@@ -49,12 +51,13 @@ import { {{ModelInterface}} } from '../models/{{modelFile}}.model';
   styleUrl: './{{kebab-name}}.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class {{ComponentClass}} {
+export class {{ComponentClass}} implements AfterViewInit {
   private readonly service      = inject({{ServiceClass}});
   private readonly router       = inject(Router);
   private readonly route        = inject(ActivatedRoute);
   private readonly notification = inject(PoNotificationService);
   private readonly destroyRef   = inject(DestroyRef);
+  private readonly cdr          = inject(ChangeDetectorRef);
 
   readonly loading     = signal(false);
   readonly currentStep = signal(1);           // 1-based; po-stepper uses 1-based index
@@ -135,6 +138,10 @@ export class {{ComponentClass}} {
   readonly isLastStep    = computed(() => this.currentStep() === this.steps.length);
   readonly isConfirmStep = computed(() => this.currentStep() === this.steps.length);
 
+  ngAfterViewInit(): void {
+    setTimeout(() => this.cdr.detectChanges());
+  }
+
   onStepChange(step: number): void {
     this.currentStep.set(step);
   }
@@ -176,16 +183,17 @@ export class {{ComponentClass}} {
     this.router.navigate(['../'], { relativeTo: this.route });
   }
 
-  private parseProtheusError(err: any): string {
+  private parseProtheusError(err: unknown): string {
     try {
-      const obj    = JSON.parse(err.error?.errorMessage ?? '{}');
-      const msg    = decodeURIComponent(escape(obj.message ?? ''));
-      const detail = obj.detailedMessage
-        ? ` — ${decodeURIComponent(escape(obj.detailedMessage))}`
-        : '';
-      return `Erro ${obj.code}: ${msg}${detail}`;
+      const errObj = JSON.parse((err as any).error?.errorMessage ?? '{}');
+      const decode = (s: string) => new TextDecoder('iso-8859-1').decode(
+        Uint8Array.from(s, c => c.charCodeAt(0))
+      );
+      const msg    = decode(errObj.message ?? '');
+      const detail = errObj.detailedMessage ? ` — ${decode(errObj.detailedMessage)}` : '';
+      return `Erro ${errObj.code}: ${msg}${detail}`;
     } catch {
-      return err.error?.message ?? 'Erro ao processar a requisição.';
+      return (err as any).error?.message ?? 'Erro ao processar a requisição.';
     }
   }
 }

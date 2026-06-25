@@ -6,8 +6,10 @@ Componente standalone `po-page-edit` com `po-dynamic-form` + `PoDynamicFormField
 
 ```typescript
 import {
-  Component,
+  AfterViewInit,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
   DestroyRef,
   OnInit,
   inject,
@@ -33,12 +35,13 @@ import { {{ModelInterface}} } from '../models/{{modelFile}}.model';
   styleUrl: './{{kebab-name}}.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class {{ComponentClass}} implements OnInit {
+export class {{ComponentClass}} implements OnInit, AfterViewInit {
   private readonly service = inject({{ServiceClass}});
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly notification = inject(PoNotificationService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   readonly isEdit = signal(false);
   readonly loading = signal(false);
@@ -105,6 +108,10 @@ export class {{ComponentClass}} implements OnInit {
     }
   }
 
+  ngAfterViewInit(): void {
+    setTimeout(() => this.cdr.detectChanges());
+  }
+
   save(): void {
     this.loading.set(true);
     const request$ = this.isEdit()
@@ -152,16 +159,17 @@ export class {{ComponentClass}} implements OnInit {
   }
 
   // Decodifica o formato de erro REST do Protheus: { errorMessage: JSON.stringify({code, message, detailedMessage}) }
-  private parseError(err: any): string {
+  private parseError(err: unknown): string {
     try {
-      const errObj = JSON.parse(err.error?.errorMessage ?? '{}');
-      const msg = decodeURIComponent(escape(errObj.message ?? ''));
-      const detail = errObj.detailedMessage
-        ? ` — ${decodeURIComponent(escape(errObj.detailedMessage))}`
-        : '';
+      const errObj = JSON.parse((err as any).error?.errorMessage ?? '{}');
+      const decode = (s: string) => new TextDecoder('iso-8859-1').decode(
+        Uint8Array.from(s, c => c.charCodeAt(0))
+      );
+      const msg    = decode(errObj.message ?? '');
+      const detail = errObj.detailedMessage ? ` — ${decode(errObj.detailedMessage)}` : '';
       return `Erro ${errObj.code}: ${msg}${detail}`;
     } catch {
-      return err.error?.message ?? 'Erro ao processar a requisição.';
+      return (err as any).error?.message ?? 'Erro ao processar a requisição.';
     }
   }
 }

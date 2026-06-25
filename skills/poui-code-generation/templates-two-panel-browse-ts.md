@@ -113,6 +113,7 @@ export class {{ComponentClass}} implements OnInit, AfterViewInit {
 
   ngAfterViewInit(): void {
     this._winH.set(window.innerHeight);
+    setTimeout(() => this.cdr.detectChanges());
   }
 
   @HostListener('window:resize')
