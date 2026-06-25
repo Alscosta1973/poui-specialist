@@ -5,6 +5,7 @@
  * @see        https://github.com/Alscosta1973/poui-specialist
  */
 import {
+  AfterViewInit,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
@@ -44,7 +45,7 @@ import { FuncionarioForm } from '../models/funcionario.model';
   templateUrl: './funcionarios-edit.component.html',
   styleUrls: ['./funcionarios-edit.component.scss'],
 })
-export class FuncionariosEditComponent implements OnInit {
+export class FuncionariosEditComponent implements OnInit, AfterViewInit {
   // ---------------------------------------------------------------------------
   // Injeções
   // ---------------------------------------------------------------------------
@@ -176,10 +177,15 @@ export class FuncionariosEditComponent implements OnInit {
       this.isEdit.set(true);
       this.form.get('matricula')?.disable();
       this.loadFuncionario(mat);
-    } else {
-      // OnPush: sem signal mudando no modo "novo", po-page-edit precisa
-      // de um ciclo de CD extra para projetar o ng-content.
-      this.cdr.markForCheck();
+    }
+  }
+
+  // OnPush: em modo "novo" nenhum signal muda no ngOnInit, então o po-page-edit
+  // não recebe um ciclo de CD pós-init para renderizar o ng-content projetado.
+  // setTimeout garante execução após todos os lifecycle hooks do po-page-edit.
+  ngAfterViewInit(): void {
+    if (!this.matParam) {
+      setTimeout(() => this.cdr.detectChanges());
     }
   }
 
