@@ -10,10 +10,12 @@ import {
   FuncionariosParams,
   FuncionariosResponse,
 } from '../models/funcionario.model';
+import { TENANT_ID } from '../rh.tokens';
 
 @Injectable({ providedIn: 'root' })
 export class FuncionariosService {
   private readonly http = inject(HttpClient);
+  private readonly tenantId = inject(TENANT_ID);
   private readonly baseUrl = '/rh/funcionarios';
 
   // ---------------------------------------------------------------------------
@@ -22,12 +24,12 @@ export class FuncionariosService {
 
   /**
    * Monta o HttpHeaders com o tenant obrigatório.
-   * O valor de X-Tenant-Id pode vir de um token/store; aqui usa env ou padrão '01'.
+   * O valor de X-Tenant-Id vem do token TENANT_ID injetado.
    */
-  private headers(tenantId = '01'): HttpHeaders {
+  private headers(): HttpHeaders {
     return new HttpHeaders({
       'Content-Type': 'application/json',
-      'X-Tenant-Id': tenantId,
+      'X-Tenant-Id': this.tenantId,
     });
   }
 

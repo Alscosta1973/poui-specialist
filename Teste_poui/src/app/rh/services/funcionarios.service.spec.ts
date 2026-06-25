@@ -8,6 +8,7 @@ import {
 } from '@angular/common/http/testing';
 
 import { FuncionariosService } from './funcionarios.service';
+import { TENANT_ID } from '../rh.tokens';
 import {
   Funcionario,
   FuncionarioForm,
@@ -55,7 +56,10 @@ describe('FuncionariosService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
-      providers: [FuncionariosService],
+      providers: [
+        FuncionariosService,
+        { provide: TENANT_ID, useValue: '01' },
+      ],
     });
 
     service = TestBed.inject(FuncionariosService);
