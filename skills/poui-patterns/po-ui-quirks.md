@@ -4,11 +4,12 @@ Documented behavior differences, internal implementation details, and CSS overri
 discovered through production use of PO-UI with Protheus. Apply these fixes proactively
 when generating or reviewing code.
 
-## Quick Reference — 13 Known Quirks
+## Quick Reference — 14 Known Quirks
 
 | # | Component / API | Symptom | Fix |
 |---|---|---|---|
-| 1 | po-page-content | **Content invisible on load in OnPush + sync data** | `ngAfterViewInit() { setTimeout(() => this.cdr.markForCheck()); }` |
+| 1 | po-page-content | **Content invisible on load in OnPush + sync data** | `ngAfterViewInit() { setTimeout(() => this.cdr.detectChanges()); }` |
+| 14 | po-page-\* / any PO-UI @Input | **Signal value not reflected — template shows `[object Object]`** | PO-UI @Inputs are NOT signal-aware: use `breadcrumb()` not `breadcrumb` |
 | 2 | po-input | Buttons 8px below field edge | `margin-bottom: 8px` on the button container |
 | 3 | po-table | Horizontal scroll in side-by-side panels | Override checkbox col to 41px via `::ng-deep`; recalculate `p-width` sum |
 | 4 | po-input | `NG8002` on `p-max-length` | Use `p-maxlength` (no hyphen between `max` and `length`) |
@@ -24,25 +25,40 @@ when generating or reviewing code.
 
 ---
 
-## 1. po-page-content blank on load (opacity timing) — UPDATED
+## 1. po-page-* content blank on load (OnPush + ng-content) — UPDATED 2026-06-25
 
-**Symptom:** Page renders the title/header but ALL content below it is invisible on first
-load (filter bar, tables, buttons — everything inside `ng-content`).
+**Symptom:** Navigating via menu click renders the page shell (title, breadcrumb, action
+buttons) but ALL projected content is invisible — fields, table, filters. Clicking anywhere
+inside the page makes everything appear instantly.
 
-**Root cause (confirmed by PO-UI source):**
-`PoPageContentComponent` sets `contentOpacity = 0` on creation and calls
-`recalculateHeaderSize()` in `ngAfterViewInit`, which uses `setTimeout` to set
-`contentOpacity = 1`. In **OnPush** components without an async data load (e.g., using
-synchronous demo data), the component is already "clean" when that `setTimeout` fires —
-Angular skips the entire subtree during CD and `contentOpacity = 1` is never reflected
-in the DOM. Components that make HTTP requests are "accidentally" safe because the HTTP
-response triggers a `markForCheck()` after the `setTimeout` has already run.
+**Root cause (two layers):**
 
-**Affects:** Every OnPush component that uses `po-page-default`, `po-page-list`,
-`po-page-edit`, or `po-page-detail` AND loads data synchronously (demo constants, signals
-initialized at declaration, etc.).
+1. `PoPageContentComponent` sets `contentOpacity = 0` on creation and restores it to `1`
+   inside a `setTimeout` in its own `ngAfterViewInit`. With **OnPush**, if no CD cycle runs
+   after that setTimeout fires, the opacity change is never applied to the DOM.
 
-**Fix — mandatory for every OnPush component using `po-page-*`:**
+2. Broader: `po-page-edit`, `po-page-detail`, and `po-page-list` project content via
+   `ng-content`. Their child PO-UI field components (`po-input`, `po-select`, etc.) also
+   use OnPush internally. Without a post-init CD cycle, these children never render their
+   visual content (labels, borders, options).
+
+**Why `markForCheck()` in `ngOnInit` is NOT enough:** `markForCheck()` schedules a check
+for the _next_ CD cycle triggered by Angular's zone. In a route-activated component where
+no zone event fires after init (no HTTP call, no timer, no user interaction), that cycle
+never arrives. The fields are in the DOM but visually blank until a click event.
+
+**Why `detectChanges()` in `ngAfterViewInit` works:** `detectChanges()` is synchronous and
+runs immediately, forcing a full re-render of the component subtree right after all child
+lifecycle hooks have completed (including `po-page-content`'s own `ngAfterViewInit`).
+Wrapping it in `setTimeout` pushes it to the next macro-task, after `po-page-content`'s
+own `setTimeout(opacity=1)` has already queued — ensuring correct ordering.
+
+**Affects:** Every OnPush component using `po-page-list`, `po-page-edit`, `po-page-detail`,
+`po-page-dynamic-search`, or `po-page-default`. Components making HTTP calls are
+"accidentally" safe _only when the response arrives before the user first sees blank_,
+which is not guaranteed on slow connections.
+
+**Fix — mandatory for every OnPush component using `po-page-*` (already in all plugin templates):**
 
 ```typescript
 import { AfterViewInit, ChangeDetectorRef, inject } from '@angular/core';
@@ -50,33 +66,24 @@ import { AfterViewInit, ChangeDetectorRef, inject } from '@angular/core';
 export class MyComponent implements OnInit, AfterViewInit {
   private readonly cdr = inject(ChangeDetectorRef);
 
-  ngOnInit(): void {
-    // synchronous data load is fine
-    this.items.set(DEMO_DATA);
-  }
-
-  // po-page-content fires its setTimeout in its own ngAfterViewInit (child first).
-  // Our setTimeout is queued after, so by the time it runs contentOpacity is already 1.
-  // markForCheck() forces Angular to re-check this component and render the content.
   ngAfterViewInit(): void {
-    setTimeout(() => this.cdr.markForCheck());
+    // detectChanges() forces synchronous re-render after all child lifecycle hooks.
+    // setTimeout() ensures ordering after po-page-content's own setTimeout(opacity=1).
+    setTimeout(() => this.cdr.detectChanges());
   }
 }
 ```
 
-**Alternative (when HTTP is used):** the HTTP response auto-triggers `markForCheck()` via
-signal update, so no explicit `ngAfterViewInit` is needed. But adding it anyway is safe
-and makes the component resilient to future refactors.
-
 ```typescript
-// ✗ Pattern that breaks (sync data, no ngAfterViewInit fix)
+// ✗ Breaks in "novo" mode (no HTTP call, no signal change → no CD cycle)
 ngOnInit(): void {
-  this.items.set(DEMO_DATA); // synchronous — component never re-checks after setTimeout
+  if (mat) { this.isEdit.set(true); this.loadData(mat); }
+  // else: nothing happens → blank page until click
 }
 
-// ✓ Pattern that works (sync data WITH ngAfterViewInit fix)
+// ✓ Works universally
 ngAfterViewInit(): void {
-  setTimeout(() => this.cdr.markForCheck()); // queued after po-page-content's setTimeout
+  setTimeout(() => this.cdr.detectChanges()); // safe even when HTTP is also in flight
 }
 ```
 
@@ -749,3 +756,38 @@ export class MyComponent implements OnDestroy {
 - The `NgForm` instance is emitted inside a `setTimeout` in PO-UI's source, so `onFormInit`
   will always be called asynchronously, after the first CD cycle completes.
 ```
+
+---
+
+## 14. PO-UI @Input() does not auto-unwrap Angular signals (discovered 2026-06-25)
+
+**Symptom:** Binding a `computed<T>()` signal directly to a PO-UI `@Input()` causes the
+component to render `[object Object]` or crash with `Cannot read properties of undefined`.
+
+```html
+<!-- ✗ WRONG — passes the Signal function object, not its value -->
+<po-page-edit [p-breadcrumb]="breadcrumb">
+```
+
+**Root cause:** Angular's signal auto-unwrapping only works in **Angular-owned template
+contexts** (built-in directives, Angular's own components with the same signal runtime).
+PO-UI components read `@Input()` values imperatively via `this.breadcrumb.items` inside
+their own lifecycle hooks — they receive whatever value was passed in, including the Signal
+function object itself if `()` was omitted.
+
+**Fix:** Always call signals explicitly when binding to PO-UI `@Input()`:
+
+```html
+<!-- ✓ CORRECT — passes the resolved PoBreadcrumb value -->
+<po-page-edit [p-breadcrumb]="breadcrumb()">
+<po-page-list [p-actions]="pageActions()">
+<po-table    [p-items]="items()">
+```
+
+**Applies to:** ALL PO-UI component `@Input()` bindings when the source value is a
+`signal<T>()` or `computed<T>()`. Angular built-in bindings (`*ngIf`, `[class]`, `@for`,
+etc.) do auto-unwrap and do NOT need the `()`.
+
+**Plugin rule (already enforced in all templates):** Every template binding to a PO-UI
+component must use `signal()` with explicit `()`. Reviewer must flag any `[p-X]="signalProp"`
+without `()` as a Critical finding.

@@ -2,6 +2,14 @@
 
 Todas as mudanças notáveis do plugin poui-specialist são documentadas aqui.
 
+## [1.5.1] — 2026-06-25
+
+### Fixed
+
+- **OnPush + po-page-\* blank on navigation** — Todos os 12 templates de componente agora incluem `ngAfterViewInit() { setTimeout(() => this.cdr.detectChanges()); }`. Sem esse padrão, navegar pelo menu deixava a tela em branco até o usuário clicar. `markForCheck()` em `ngOnInit` era insuficiente porque não dispara um ciclo de CD automaticamente quando nenhum zone-event ocorre após o init. (`templates-page-list`, `page-dynamic-search`, `page-edit`, `page-detail`, `modal-crud`, `master-detail`, `stacked-browse`, `two-panel-browse`, `stepper-form`, `dashboard`, `action-list`, `page-dynamic`)
+- **`escape()`/`unescape()` deprecated** — `parseProtheusError` substituído por `TextDecoder('iso-8859-1')` em 8 templates para decodificação correta de strings Latin-1 do Protheus sem uso de funções removidas do padrão ECMAScript. (`page-list`, `page-dynamic-search`, `page-edit`, `page-detail`, `modal-crud`, `master-detail`, `stepper-form`, `action-list`)
+- **`po-ui-quirks.md` Quirk #1** — Corrigido `markForCheck()` → `detectChanges()` com root cause ampliado (opacity timing + ng-content projection). Adicionado Quirk #14: PO-UI @Input() não faz auto-unwrap de signals Angular — sempre usar `signal()` com `()` explícito no template.
+
 ## [1.5.0] — 2026-06-24
 
 ### Added — Expansão de referência de componentes (Waves 4–10)
