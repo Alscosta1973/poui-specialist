@@ -6,3 +6,9 @@ body {
   margin: 0;
   font-family: 'Open Sans', Arial, sans-serif;
 }
+
+/* po-decimal e po-number: alinhamento à direita para campos numéricos/moeda */
+po-decimal input,
+po-number input {
+  text-align: right;
+}

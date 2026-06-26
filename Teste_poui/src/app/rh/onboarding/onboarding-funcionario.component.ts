@@ -10,11 +10,13 @@ import {
   ChangeDetectorRef,
   Component,
   DestroyRef,
+  OnDestroy,
   computed,
   inject,
   signal,
 } from '@angular/core';
 import { Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize } from 'rxjs/operators';
 import {
@@ -45,7 +47,7 @@ import { FuncionarioForm } from '../models/funcionario.model';
   styleUrls: ['./onboarding-funcionario.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class OnboardingFuncionarioComponent implements AfterViewInit {
+export class OnboardingFuncionarioComponent implements AfterViewInit, OnDestroy {
 
   // ---------------------------------------------------------------------------
   // Injeções
@@ -62,10 +64,11 @@ export class OnboardingFuncionarioComponent implements AfterViewInit {
   readonly isLoading   = signal(false);
   readonly currentStep = signal(1);   // 1-based — po-stepper usa base 1
 
-  // Propriedade simples (não signal) para [(p-value)] do po-dynamic-form.
-  // Acumula todos os steps via two-way binding — evita reinicialização do
-  // form causada por signal re-render a cada keystroke (Quirk #15).
+  // Propriedade simples — NÃO usar signal (causaria re-init do form a cada keystroke, Quirk #15).
+  // Atualizado via (p-form) + valueChanges (Quirk #13: (p-value-change) não existe em PO-UI).
   formData: Partial<FuncionarioForm> = {};
+
+  private formSub: Subscription | null = null;
 
   // ---------------------------------------------------------------------------
   // Breadcrumb
@@ -307,6 +310,20 @@ export class OnboardingFuncionarioComponent implements AfterViewInit {
   // ng-content.
   ngAfterViewInit(): void {
     setTimeout(() => this.cdr.detectChanges());
+  }
+
+  ngOnDestroy(): void {
+    this.formSub?.unsubscribe();
+  }
+
+  // (p-form) dispara uma vez após o NgForm ser criado — ocorre novamente quando os
+  // campos mudam (mudança de step). Unsubscribe da assinatura anterior evita duplicatas.
+  onFormInit(form: any): void {
+    if (!form?.valueChanges) return;
+    this.formSub?.unsubscribe();
+    this.formSub = form.valueChanges.subscribe((vals: Partial<FuncionarioForm>) => {
+      this.onFormChange(vals);
+    });
   }
 
   // ---------------------------------------------------------------------------

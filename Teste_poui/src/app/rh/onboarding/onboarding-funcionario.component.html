@@ -14,7 +14,7 @@
   <po-dynamic-form
     [p-fields]="currentFields()"
     [p-value]="formData"
-    (p-value-change)="onFormChange($event)">
+    (p-form)="onFormInit($event)">
   </po-dynamic-form>
 
   <div class="po-row po-mt-3">
