@@ -4,12 +4,14 @@ Documented behavior differences, internal implementation details, and CSS overri
 discovered through production use of PO-UI with Protheus. Apply these fixes proactively
 when generating or reviewing code.
 
-## Quick Reference — 14 Known Quirks
+## Quick Reference — 16 Known Quirks
 
 | # | Component / API | Symptom | Fix |
 |---|---|---|---|
 | 1 | po-page-content | **Content invisible on load in OnPush + sync data** | `ngAfterViewInit() { setTimeout(() => this.cdr.detectChanges()); }` |
 | 14 | po-page-\* / any PO-UI @Input | **Signal value not reflected — template shows `[object Object]`** | PO-UI @Inputs are NOT signal-aware: use `breadcrumb()` not `breadcrumb` |
+| 15 | po-stepper | **`[p-current-active-step]` / `(p-current-active-step)` não existem (NG8002). `back()` não limpa estado 'done' dos steps posteriores** | Input correto: `[p-step]`. Output correto: `(p-change-step)`. Usar `steps` como `signal<PoStepperItem[]>` com status por item e `goToStep()` para gerenciar status explicitamente |
+| 16 | po-table | **Colunas numéricas/monetárias alinhadas à esquerda** | Sempre usar `type: 'number'` ou `type: 'currency'` em colunas numéricas — esses tipos alinham automaticamente à direita |
 | 2 | po-input | Buttons 8px below field edge | `margin-bottom: 8px` on the button container |
 | 3 | po-table | Horizontal scroll in side-by-side panels | Override checkbox col to 41px via `::ng-deep`; recalculate `p-width` sum |
 | 4 | po-input | `NG8002` on `p-max-length` | Use `p-maxlength` (no hyphen between `max` and `length`) |
@@ -756,6 +758,105 @@ export class MyComponent implements OnDestroy {
 - The `NgForm` instance is emitted inside a `setTimeout` in PO-UI's source, so `onFormInit`
   will always be called asynchronously, after the first CD cycle completes.
 ```
+
+---
+
+## 15. po-stepper: API incorreta + back() não reseta estado 'done' (descoberto 2026-06-26)
+
+**Symptom 1 — NG8002 em `[p-current-active-step]`:**
+```
+ERROR NG8002: Can't bind to 'p-current-active-step' since it isn't a known property of 'po-stepper'.
+```
+
+**Symptom 2 — Após clicar "Anterior", step visitado permanece marcado como concluído (círculo cheio).**
+
+**Root cause:**
+- `[p-current-active-step]` e `(p-current-active-step)` **não existem** em `po-stepper`.
+- O input real é `[p-step]` e o output real é `(p-change-step)`.
+- Mesmo usando `[p-step]`, o `po-stepper` avança marcando steps como 'done' mas **não reseta** o estado ao receber um valor menor (ao voltar). O componente não recalcula os status de steps posteriores ao alvo.
+
+**Fix:**
+
+```typescript
+// ✗ ERRADO — [p-current-active-step] não existe; back() não limpa 'done'
+readonly steps: PoStepperItem[] = [
+  { label: 'Step 1' }, { label: 'Step 2' }, { label: 'Step 3' },
+];
+next(): void { this.currentStep.update(s => s + 1); }
+back(): void { this.currentStep.update(s => s - 1); }
+
+// ✓ CORRETO — steps como signal com status explícito; goToStep() gerencia tudo
+readonly steps = signal<PoStepperItem[]>([
+  { label: 'Step 1', status: 'active'  as PoStepperItem['status'] },
+  { label: 'Step 2', status: 'default' as PoStepperItem['status'] },
+  { label: 'Step 3', status: 'default' as PoStepperItem['status'] },
+]);
+
+private goToStep(target: number): void {
+  type S = PoStepperItem['status'];
+  this.steps.update(items =>
+    items.map((item, i) => ({
+      ...item,
+      status: (i + 1 < target ? 'done' : i + 1 === target ? 'active' : 'default') as S,
+    }))
+  );
+  this.currentStep.set(target);
+}
+
+onStepChange(step: number): void { this.goToStep(step); }
+next(): void { if (!this.isLastStep()) this.goToStep(this.currentStep() + 1); }
+back(): void { if (!this.isFirstStep()) this.goToStep(this.currentStep() - 1); }
+```
+
+```html
+<!-- ✗ ERRADO -->
+<po-stepper [p-steps]="steps" [p-current-active-step]="currentStep()" (p-current-active-step)="onChange($event)">
+
+<!-- ✓ CORRETO — sem [p-step]; o status de cada item já controla o visual -->
+<po-stepper [p-steps]="steps()" (p-change-step)="onStepChange($event)">
+```
+
+**Note:** `PoStepperStatus` não está exportado no public_api do PO-UI. Use `PoStepperItem['status']` como tipo para o cast.
+
+---
+
+## 16. po-table: colunas numéricas/monetárias devem usar type correto para alinhar à direita (descoberto 2026-06-26)
+
+**Symptom:** Valores numéricos (quantidade, valor, saldo, percentual) aparecem alinhados à esquerda na tabela, sem formatação de milhar ou casas decimais.
+
+**Root cause:** Colunas sem `type` específico são renderizadas como `string` pelo po-table — não há alinhamento automático à direita nem formatação numérica.
+
+**Fix:** Sempre definir `type: 'number'` ou `type: 'currency'` em colunas numéricas.
+
+```typescript
+// ✗ ERRADO — alinha à esquerda, sem formatação
+readonly columns: PoTableColumn[] = [
+  { property: 'valorTotal', label: 'Valor Total' },
+  { property: 'quantidade', label: 'Qtde' },
+];
+
+// ✓ CORRETO — alinha à direita e formata automaticamente
+readonly columns: PoTableColumn[] = [
+  { property: 'valorTotal', label: 'Valor Total', type: 'currency', format: 'BRL' },
+  { property: 'quantidade', label: 'Qtde',        type: 'number',   format: '1.0-2' },
+  { property: 'percentual', label: '%',            type: 'number',   format: '1.2-2' },
+];
+```
+
+**Regras:**
+- `type: 'currency'` → sempre com `format: 'BRL'` para Real Brasileiro
+- `type: 'number'` com inteiros → `format: '1.0-0'`; com 2 casas → `format: '1.2-2'`; com 4 casas → `format: '1.4-4'`
+- Campos de código alfanumérico (ex: `'001'`, `'NF001'`) → **não** usar `type: 'number'` — manter como `string` ou omitir `type`
+- Datas → `type: 'date'` com `format: 'dd/MM/yyyy'`
+
+**Plugin rule (aplica a todo tipo que gera po-table):** Ao deduzir tipos de coluna a partir de nomes de campo, aplicar:
+
+| Padrão de nome | type | format |
+|---|---|---|
+| `valor*`, `preco*`, `total*`, `saldo*`, `desconto*`, `taxa*` | `currency` | `'BRL'` |
+| `qtd*`, `quantidade*`, `qtde*` | `number` | `'1.0-2'` |
+| `perc*`, `percent*`, `porcent*` | `number` | `'1.2-2'` |
+| `data*`, `dt*` | `date` | `'dd/MM/yyyy'` |
 
 ---
 

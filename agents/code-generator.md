@@ -70,6 +70,13 @@ When the user's manifest or prompt contains a `CONTEXTO_PROJETO:` block (produce
 - For `type: 'currency'`, always set `format: 'BRL'` (not `'pt-BR'`, not omitted)
 - For `type: 'date'`, always set `format: 'dd/MM/yyyy'` (capital MM = months, lowercase mm = minutes)
 - For `type: 'number'` with decimals, set `format: '1.4-4'`
+- **Numeric right-alignment (MANDATORY):** `type: 'number'` and `type: 'currency'` auto-align right in po-table. **Always** use the correct type for numeric columns — never use `type: 'string'` or omit `type` for monetary/quantity/percentage fields. Deduce type from field name: `valor*/preco*/total*/saldo*` → `currency`; `qtd*/quantidade*` → `number '1.0-2'`; `perc*/percent*` → `number '1.2-2'`; `data*/dt*` → `date`
+
+### po-stepper API (MANDATORY — NG8002 if wrong)
+- **Input:** `[p-step]="N"` (1-based integer) — controls the active step
+- **Output:** `(p-change-step)="handler($event)"` — fires on step change
+- `[p-current-active-step]` and `(p-current-active-step)` **do not exist** → NG8002 build error
+- **`steps` must be `signal<PoStepperItem[]>`** — do NOT use a plain array. `back()` via `[p-step]` alone does NOT reset 'done' status on later steps; must manage `status` per item and use `goToStep()` pattern. Always load `templates-stepper-form.md` for the complete `goToStep()` implementation.
 
 ### po-table selection
 - `p-selected-rows` **does not exist** — never use it

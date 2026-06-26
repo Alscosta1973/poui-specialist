@@ -60,15 +60,20 @@ export class {{ComponentClass}} implements AfterViewInit {
   private readonly cdr          = inject(ChangeDetectorRef);
 
   readonly loading     = signal(false);
-  readonly currentStep = signal(1);           // 1-based; po-stepper uses 1-based index
-  readonly stepData    = signal<Partial<{{ModelInterface}}>>({});
+  readonly currentStep = signal(1);  // 1-based — po-stepper usa base 1
 
-  readonly steps: PoStepperItem[] = [
-    { label: 'Identificação' },
-    { label: 'Contato' },
-    { label: 'Complemento' },
-    { label: 'Confirmação' },
-  ];
+  // Plain property (não signal) — evita re-init do po-dynamic-form a cada keystroke.
+  // Sinal causaria re-render a cada update, destruindo o estado interno do form (Quirk #15).
+  formData: Partial<{{ModelInterface}}> = {};
+
+  // Signal com status explícito por item — necessário para que back() limpe
+  // o estado 'done' dos steps posteriores ao alvo (po-stepper não faz isso sozinho).
+  readonly steps = signal<PoStepperItem[]>([
+    { label: 'Identificação', status: 'active'  as PoStepperItem['status'] },
+    { label: 'Contato',      status: 'default' as PoStepperItem['status'] },
+    { label: 'Complemento',  status: 'default' as PoStepperItem['status'] },
+    { label: 'Confirmação',  status: 'default' as PoStepperItem['status'] },
+  ]);
 
   // TODO: defina um array de campos por etapa correspondendo às propriedades de {{ModelInterface}}
   readonly step1Fields: PoDynamicFormField[] = [
@@ -135,36 +140,55 @@ export class {{ComponentClass}} implements AfterViewInit {
   });
 
   readonly isFirstStep   = computed(() => this.currentStep() === 1);
-  readonly isLastStep    = computed(() => this.currentStep() === this.steps.length);
-  readonly isConfirmStep = computed(() => this.currentStep() === this.steps.length);
+  readonly isLastStep    = computed(() => this.currentStep() === this.steps().length);
+  readonly isConfirmStep = computed(() => this.currentStep() === this.steps().length);
 
   ngAfterViewInit(): void {
     setTimeout(() => this.cdr.detectChanges());
   }
 
+  // Atualiza status visual: steps antes do alvo → 'done', alvo → 'active', após → 'default'.
+  // Garante que back() limpe o estado 'done' — po-stepper não faz isso via [p-step].
+  private goToStep(target: number): void {
+    type S = PoStepperItem['status'];
+    this.steps.update(items =>
+      items.map((item, i) => ({
+        ...item,
+        status: (i + 1 < target ? 'done' : i + 1 === target ? 'active' : 'default') as S,
+      }))
+    );
+    this.currentStep.set(target);
+  }
+
   onStepChange(step: number): void {
-    this.currentStep.set(step);
+    this.goToStep(step);
   }
 
   next(): void {
     if (!this.isLastStep()) {
-      this.currentStep.update(s => s + 1);
+      this.goToStep(this.currentStep() + 1);
     }
   }
 
   back(): void {
     if (!this.isFirstStep()) {
-      this.currentStep.update(s => s - 1);
+      this.goToStep(this.currentStep() - 1);
     }
   }
 
   onFormChange(values: Partial<{{ModelInterface}}>): void {
-    this.stepData.update(prev => ({ ...prev, ...values }));
+    // Merge somente valores definidos — preserva dados dos steps anteriores
+    this.formData = {
+      ...this.formData,
+      ...Object.fromEntries(
+        Object.entries(values).filter(([, v]) => v !== null && v !== undefined),
+      ) as Partial<{{ModelInterface}}>,
+    };
   }
 
   submit(): void {
     this.loading.set(true);
-    const payload = this.stepData() as {{ModelInterface}};
+    const payload = this.formData as {{ModelInterface}};
     this.service.create(payload)
       .pipe(
         finalize(() => this.loading.set(false)),
@@ -209,15 +233,14 @@ export class {{ComponentClass}} implements AfterViewInit {
   }
 
   <po-stepper
-    [p-steps]="steps"
-    [p-current-active-step]="currentStep()"
-    (p-current-active-step)="onStepChange($event)">
+    [p-steps]="steps()"
+    (p-change-step)="onStepChange($event)">
   </po-stepper>
 
   @if (!isConfirmStep()) {
     <po-dynamic-form
       [p-fields]="currentFields()"
-      [p-value]="stepData()"
+      [p-value]="formData"
       (p-value-change)="onFormChange($event)">
     </po-dynamic-form>
   }
@@ -226,7 +249,7 @@ export class {{ComponentClass}} implements AfterViewInit {
     <p class="po-font-text-large po-mt-3 po-mb-1">Revise os dados antes de confirmar:</p>
     <po-dynamic-view
       [p-fields]="confirmFields"
-      [p-value]="stepData()">
+      [p-value]="formData">
     </po-dynamic-view>
   }
 
@@ -293,9 +316,10 @@ export class {{ComponentClass}} implements AfterViewInit {
 
 ## Notas sobre o comportamento do po-stepper
 
-- `[p-current-active-step]` é baseado em 1 (etapa 1 = primeiro item)
-- Por padrão, o usuário pode clicar em qualquer etapa diretamente — proteja a navegação com `onStepChange()` se precisar de validação antes de avançar
-- Para marcar etapas como concluídas/com erro programaticamente, use `PoStepperItem.status: 'done' | 'error'` e atualize o signal do array `steps`
+- **Input para step ativo:** `[p-step]="N"` (1-based) — `[p-current-active-step]` NÃO existe (NG8002)
+- **Output de mudança:** `(p-change-step)` — `(p-current-active-step)` NÃO existe
+- **`steps` como signal obrigatório:** `back()` não redefine o status 'done' via `[p-step]` — é necessário gerenciar o `status` de cada item explicitamente no signal. O método `goToStep()` já faz isso.
+- Por padrão, o usuário pode clicar em qualquer etapa diretamente — proteja a navegação com validação em `onStepChange()` se necessário
 
 ## Variante: validação passo a passo antes de avançar
 
