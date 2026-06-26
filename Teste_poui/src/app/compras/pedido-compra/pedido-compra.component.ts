@@ -5,8 +5,10 @@
  * @see        https://github.com/Alscosta1973/poui-specialist
  */
 import {
-  Component,
+  AfterViewInit,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
   DestroyRef,
   OnInit,
   inject,
@@ -74,13 +76,14 @@ const DEMO_PEDIDOS: PedidoCompra[] = [
   styleUrl: './pedido-compra.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PedidoCompraComponent implements OnInit {
+export class PedidoCompraComponent implements OnInit, AfterViewInit {
   private readonly service      = inject(PedidoCompraService);
   private readonly router       = inject(Router);
   private readonly route        = inject(ActivatedRoute);
   private readonly notification = inject(PoNotificationService);
   private readonly dialog       = inject(PoDialogService);
   private readonly destroyRef   = inject(DestroyRef);
+  private readonly cdr          = inject(ChangeDetectorRef);
 
   readonly items   = signal<PedidoCompra[]>([]);
   readonly loading = signal(false);
@@ -149,6 +152,10 @@ export class PedidoCompraComponent implements OnInit {
 
   ngOnInit(): void {
     this.load();
+  }
+
+  ngAfterViewInit(): void {
+    setTimeout(() => this.cdr.detectChanges());
   }
 
   onSearch(q: string): void {
@@ -229,16 +236,17 @@ export class PedidoCompraComponent implements OnInit {
     };
   }
 
-  private parseProtheusError(err: any): string {
+  private parseProtheusError(err: unknown): string {
     try {
-      const obj    = JSON.parse(err.error?.errorMessage ?? '{}');
-      const msg    = decodeURIComponent(escape(obj.message ?? ''));
-      const detail = obj.detailedMessage
-        ? ` — ${decodeURIComponent(escape(obj.detailedMessage))}`
-        : '';
-      return `Erro ${obj.code}: ${msg}${detail}`;
+      const errObj = JSON.parse((err as any).error?.errorMessage ?? '{}');
+      const decode = (s: string) => new TextDecoder('iso-8859-1').decode(
+        Uint8Array.from(s, c => c.charCodeAt(0))
+      );
+      const msg    = decode(errObj.message ?? '');
+      const detail = errObj.detailedMessage ? ` — ${decode(errObj.detailedMessage)}` : '';
+      return `Erro ${errObj.code}: ${msg}${detail}`;
     } catch {
-      return err.error?.message ?? 'Erro ao processar a requisição.';
+      return (err as any).error?.message ?? 'Erro ao processar a requisição.';
     }
   }
 }
