@@ -78,14 +78,15 @@ export class OnboardingFuncionarioComponent implements AfterViewInit {
   };
 
   // ---------------------------------------------------------------------------
-  // Stepper
+  // Stepper — status gerenciado explicitamente para que "Anterior" limpe
+  // o estado "done" dos steps à frente (po-stepper não faz isso via [p-step])
   // ---------------------------------------------------------------------------
-  readonly steps: PoStepperItem[] = [
-    { label: 'Dados Pessoais' },
-    { label: 'Dados Profissionais' },
-    { label: 'Endereço' },
-    { label: 'Dados Bancários' },
-  ];
+  readonly steps = signal<PoStepperItem[]>([
+    { label: 'Dados Pessoais',      status: 'active'  as PoStepperItem['status'] },
+    { label: 'Dados Profissionais', status: 'default' as PoStepperItem['status'] },
+    { label: 'Endereço',           status: 'default' as PoStepperItem['status'] },
+    { label: 'Dados Bancários',    status: 'default' as PoStepperItem['status'] },
+  ]);
 
   // ---------------------------------------------------------------------------
   // Step 1 — Dados Pessoais
@@ -295,7 +296,7 @@ export class OnboardingFuncionarioComponent implements AfterViewInit {
   });
 
   readonly isFirstStep = computed(() => this.currentStep() === 1);
-  readonly isLastStep  = computed(() => this.currentStep() === this.steps.length);
+  readonly isLastStep  = computed(() => this.currentStep() === this.steps().length);
 
   // ---------------------------------------------------------------------------
   // Lifecycle
@@ -311,8 +312,22 @@ export class OnboardingFuncionarioComponent implements AfterViewInit {
   // ---------------------------------------------------------------------------
   // Ações do stepper
   // ---------------------------------------------------------------------------
+
+  // Atualiza status visual de cada step: steps antes do alvo → 'done',
+  // alvo → 'active', steps após → 'default' (garante limpeza ao voltar)
+  private goToStep(target: number): void {
+    type S = PoStepperItem['status'];
+    this.steps.update(items =>
+      items.map((item, i) => ({
+        ...item,
+        status: (i + 1 < target ? 'done' : i + 1 === target ? 'active' : 'default') as S,
+      }))
+    );
+    this.currentStep.set(target);
+  }
+
   onStepChange(step: number): void {
-    this.currentStep.set(step);
+    this.goToStep(step);
   }
 
   onFormChange(values: Partial<FuncionarioForm>): void {
@@ -327,13 +342,13 @@ export class OnboardingFuncionarioComponent implements AfterViewInit {
 
   next(): void {
     if (!this.isLastStep()) {
-      this.currentStep.update(s => s + 1);
+      this.goToStep(this.currentStep() + 1);
     }
   }
 
   back(): void {
     if (!this.isFirstStep()) {
-      this.currentStep.update(s => s - 1);
+      this.goToStep(this.currentStep() - 1);
     }
   }
 

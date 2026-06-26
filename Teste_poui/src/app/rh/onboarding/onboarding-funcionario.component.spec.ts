@@ -75,7 +75,7 @@ describe('OnboardingFuncionarioComponent', () => {
     fixture.detectChanges();
     return fixture.whenStable().then(() => {
       expect(component.currentStep()).toBe(1);
-      expect(component.steps.length).toBe(4);
+      expect(component.steps().length).toBe(4);
     });
   }));
 
@@ -132,6 +132,19 @@ describe('OnboardingFuncionarioComponent', () => {
       fixture.detectChanges();
       expect(component.currentStep()).toBe(1);
       expect(component.isFirstStep()).toBeTrue();
+    });
+  }));
+
+  it('should reset done status on back — step 2 returns to default after back', waitForAsync(() => {
+    fixture.detectChanges();
+    return fixture.whenStable().then(() => {
+      component.next(); // step 1→2
+      component.back(); // step 2→1
+      fixture.detectChanges();
+      const step2Status = component.steps()[1].status;
+      expect(step2Status).toBe('default');
+      const step1Status = component.steps()[0].status;
+      expect(step1Status).toBe('active');
     });
   }));
 

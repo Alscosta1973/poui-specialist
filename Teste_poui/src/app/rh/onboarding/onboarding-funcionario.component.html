@@ -7,8 +7,7 @@
   }
 
   <po-stepper
-    [p-steps]="steps"
-    [p-step]="currentStep()"
+    [p-steps]="steps()"
     (p-change-step)="onStepChange($event)">
   </po-stepper>
 
