@@ -1,0 +1,292 @@
+# /poui-specialist:connect
+
+Conecta um componente Angular (gerado pelo plugin) aos dados reais do Protheus, substituindo mocks
+por chamadas HTTP reais, atualizando o proxy, e gerando o contrato TLPP quando o endpoint ainda
+não existe no backend.
+
+## Uso
+
+```bash
+/poui-specialist:connect <ComponentClass> --module <module>
+```
+
+**Exemplos:**
+```bash
+/poui-specialist:connect DivergenciasCartaoComponent --module financeiro/divergencias-cartao
+/poui-specialist:connect TitulosListComponent --module financeiro/titulos-list
+/poui-specialist:connect ParceirosComponent --module faturamento/parceiros
+```
+
+---
+
+## Passo 1 — Parse de argumentos
+
+Extrair `ComponentClass` e `--module`.
+
+Derivar:
+- `kebab-name` → PascalCase para kebab (`DivergenciasCartaoComponent` → `divergencias-cartao`)
+- `componentPath` → `src/app/<module>/<kebab-name>.component.ts`
+- `servicePath` → `src/app/<module>/<kebab-name>.service.ts` ou `src/app/<module>/<kebab>.service.ts`
+- `specPath` → `src/app/<module>/<kebab-name>.component.spec.ts`
+
+Se o arquivo não existir:
+```
+⚠ Componente não encontrado: <componentPath>
+  Verifique ComponentClass e --module.
+```
+Encerrar.
+
+---
+
+## Passo 2 — Diagnóstico: identificar padrões mock
+
+Ler `componentPath` e `servicePath`. Identificar e listar:
+
+### 2a — Mocks no service (`servicePath`)
+
+| Padrão encontrado | Significa |
+|-------------------|-----------|
+| `of(MOCK_*)` ou `of([...])` | retorno hardcoded — precisa virar `this.http.get(...)` |
+| `delay(N)` | simulação de latência — remover |
+| `import ... from '../mocks/...'` | arquivo mock separado |
+| `const DEMO_* = [...]` no topo do arquivo | fallback demo — decidir se mantém |
+
+### 2b — Interceptors de mock
+
+Localizar em `src/app/core/interceptors/` ou `src/app/core/` arquivos que:
+- Implementam `HttpInterceptor` ou `HttpInterceptorFn`
+- Têm `intercept(req...)` com `req.url.includes('<kebab-name>')`
+
+Listar todos encontrados.
+
+### 2c — proxy.conf.json
+
+Verificar se existe na raiz do projeto Angular. Listar targets configurados.
+
+### 2d — Relatório de diagnóstico
+
+Exibir ao usuário:
+
+```
+📋 Diagnóstico — <ComponentClass>
+
+Service: <servicePath>
+  Mocks detectados:
+  - of(MOCK_DIVERGENCIAS) em getDivergencias()
+  - delay(700) simulando latência
+
+Interceptors encontrados:
+  - src/app/core/interceptors/mock-divergencias.interceptor.ts
+    → intercepts: GET /financeiro/divergencias-cartao
+
+proxy.conf.json: não encontrado (será criado)
+
+Próximo passo: informe os dados de conexão com o Protheus.
+Use o guia em skills/poui-connect/protheus-connect-guide.md
+ou responda às perguntas abaixo:
+```
+
+---
+
+## Passo 3 — Coletar dados de conexão
+
+Se o usuário não forneceu as informações no pedido inicial, perguntar:
+
+```
+Para conectar <ComponentClass> ao Protheus, preciso de:
+
+1. URL base do Protheus REST (ex: http://192.168.1.10:8086)
+2. Prefixo da API (ex: /rest/api/custom/v1)
+3. O endpoint GET já existe? Se sim, qual a URL completa?
+   Se não, descreva os filtros e regras de negócio para gerar o TLPP.
+4. Autenticação: sem auth / Basic (usuário+senha) / Bearer token
+5. Há ações além do GET? (POST confirmar, DELETE, etc.)
+```
+
+Aguardar resposta do usuário antes de prosseguir.
+
+---
+
+## Passo 4 — Atualizar proxy.conf.json
+
+Localizar `proxy.conf.json` ou `proxy.conf.js` na raiz do projeto Angular.
+
+**Se não existir:** criar em `<angularRoot>/proxy.conf.json`:
+
+```json
+{
+  "/rest": {
+    "target": "<protheusUrl>",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "info"
+  }
+}
+```
+
+**Se existir:** adicionar a entrada `/rest` se não estiver presente.
+
+Verificar se `angular.json` referencia o proxy:
+```json
+"serve": {
+  "options": {
+    "proxyConfig": "proxy.conf.json"
+  }
+}
+```
+Se não, adicionar.
+
+**Auth Basic** — adicionar header no proxy:
+```json
+{
+  "/rest": {
+    "target": "<protheusUrl>",
+    "secure": false,
+    "changeOrigin": true,
+    "headers": {
+      "Authorization": "Basic <base64(user:senha)>"
+    }
+  }
+}
+```
+
+> **Nota de segurança:** credenciais no `proxy.conf.json` são apenas para desenvolvimento local.
+> Adicionar `proxy.conf.json` ao `.gitignore` se contiver senhas.
+
+---
+
+## Passo 5 — Atualizar o service
+
+Ler `servicePath`. Para cada método com mock identificado no Passo 2:
+
+### Substituição padrão
+
+**Antes (mock):**
+```typescript
+getAll(params: GetAllParams): Observable<ListResponse<Divergencia>> {
+  return of(MOCK_DIVERGENCIAS).pipe(delay(700));
+}
+```
+
+**Depois (HTTP real):**
+```typescript
+getAll(params: GetAllParams): Observable<ListResponse<Divergencia>> {
+  const p = new HttpParams()
+    .set('page',     String(params.page     ?? 1))
+    .set('pageSize', String(params.pageSize ?? 10));
+  if (params.q)      p = p.set('q',      params.q);
+  if (params.filial) p = p.set('filial',  params.filial);
+  return this.http.get<ListResponse<Divergencia>>(this.apiUrl, { params: p });
+}
+```
+
+Remover:
+- Import `of` do rxjs (se não usado em outro lugar)
+- Import `delay` do rxjs/operators (se não usado)
+- Constantes `MOCK_*` e `DEMO_*` no topo do arquivo (ou mover para arquivo de testes)
+
+Manter `readonly apiUrl` já existente no service ou adicionar se faltar.
+
+---
+
+## Passo 6 — Desativar interceptors de mock
+
+Para cada interceptor de mock encontrado no Passo 2:
+
+**Opção A — Remover do `app.config.ts`:**
+Ler `src/app/app.config.ts`. Remover a linha com `withInterceptors([mockDivergenciasInterceptor])`.
+
+**Opção B — Deixar o arquivo mas desativar (seguro para rollback):**
+Adicionar comentário no topo do interceptor:
+```typescript
+// DESATIVADO — conectado ao Protheus real em <data>
+// Para reativar: registrar em app.config.ts > withInterceptors([...])
+```
+
+Recomendar a Opção A para produção, Opção B se o usuário quiser rollback fácil.
+Perguntar qual prefere antes de executar.
+
+---
+
+## Passo 7 — Gerar contrato TLPP (se endpoint não existe)
+
+Se o usuário informou que o endpoint ainda não existe no Protheus:
+
+Invocar `skills/poui-code-generation/templates-tlpp-contract.md` com os parâmetros coletados
+(tabelas, campos, filtros, regras de negócio) para gerar o skeleton `.tlpp`.
+
+Exibir o arquivo gerado e orientar:
+```
+📄 Contrato TLPP gerado: <kebab-name>.tlpp
+
+Próximos passos no Protheus:
+1. Copiar o arquivo para o RPO source do ambiente
+2. Implementar a lógica de negócio nos métodos gerados
+3. Compilar com o IDE Protheus (F9) e verificar no Smart Client
+4. Testar o endpoint diretamente: curl <protheusUrl>/rest/api/custom/v1/<rota>
+```
+
+---
+
+## Passo 8 — Atualizar o spec
+
+Ler `specPath`. Identificar:
+
+- Mocks fixos sendo passados diretamente no `beforeEach` sem `httpMock`
+- Service spies com `of(data)` retornando dados hardcoded
+- Ausência de `provideHttpClient()` + `provideHttpClientTesting()`
+
+Se o spec usa service spy em vez de `HttpTestingController`:
+
+Converter para o padrão com `httpMock.expectOne(...)`, pois agora o service faz HTTP real.
+
+Rodar o spec após as alterações:
+```powershell
+ng test --include="<specPath>" --watch=false
+```
+
+Se falhar: diagnosticar e corrigir (até 3 tentativas, igual ao poui-build-fix).
+
+---
+
+## Passo 9 — Build e relatório final
+
+```powershell
+ng build --configuration development
+```
+
+Exibir relatório:
+
+```
+✅ Conexão concluída — <ComponentClass>
+
+Arquivos atualizados:
+  - <servicePath>: of(MOCK) → http.get()
+  - proxy.conf.json: target http://<ip>:<porta> configurado
+  - <interceptorPath>: desativado
+  - <specPath>: convertido para HttpTestingController
+
+Build: ✅ sem erros
+Specs:  ✅ N/N passando
+
+Próximos passos:
+  1. Iniciar o Protheus REST no ambiente de desenvolvimento
+  2. Rodar: ng serve --proxy-config proxy.conf.json
+  3. Navegar para /<module>/<kebab-name> e verificar os dados reais
+```
+
+Se o endpoint TLPP foi gerado:
+```
+⚠ Endpoint TLPP ainda não implementado no backend.
+  O componente vai exibir erro HTTP até que o TLPP seja compilado no Protheus.
+  Arquivo gerado: <kebab-name>.tlpp
+```
+
+---
+
+## Referência rápida
+
+- Guia de pedido: `skills/poui-connect/protheus-connect-guide.md`
+- Padrões REST Protheus: `skills/poui-patterns/protheus-rest.md`
+- Template TLPP: `skills/poui-code-generation/templates-tlpp-contract.md`
+- Deploy Protheus: `skills/poui-patterns/deploy-protheus.md`
