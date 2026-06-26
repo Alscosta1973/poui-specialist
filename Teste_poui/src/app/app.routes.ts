@@ -129,6 +129,15 @@ export const routes: Routes = [
         .then(m => m.AprovacaoPedidoComponent),
   },
   // ------------------------------------------------------------------
+  // RH — Processamento de Folha (Wave 9 — action-list)
+  // ------------------------------------------------------------------
+  {
+    path: 'rh/processamento-folha',
+    loadComponent: () =>
+      import('./rh/processamento-folha/processamento-folha.component')
+        .then(m => m.ProcessamentoFolhaComponent),
+  },
+  // ------------------------------------------------------------------
   // RH — Indicadores (Wave 8 — dashboard)
   // ------------------------------------------------------------------
   {

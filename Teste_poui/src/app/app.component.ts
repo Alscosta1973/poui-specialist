@@ -105,6 +105,12 @@ export class AppComponent {
       link: '/financeiro/titulos-list',
     },
     {
+      label: 'Dashboard RH',
+      shortLabel: 'Dash RH',
+      icon: 'po-icon-chart-pie',
+      link: '/rh/indicadores-rh',
+    },
+    {
       label: 'RH',
       shortLabel: 'RH',
       icon: 'po-icon-user',
@@ -112,6 +118,10 @@ export class AppComponent {
         {
           label: 'Indicadores',
           link: '/rh/indicadores-rh',
+        },
+        {
+          label: 'Processamento Folha',
+          link: '/rh/processamento-folha',
         },
         {
           label: 'Funcionários',
