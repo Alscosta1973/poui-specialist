@@ -16,11 +16,13 @@ import {
   ChangeDetectorRef,
   Component,
   DestroyRef,
+  OnDestroy,
   inject,
   signal,
   computed,
 } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize } from 'rxjs/operators';
 import {
@@ -51,7 +53,7 @@ import { {{ModelInterface}} } from '../models/{{modelFile}}.model';
   styleUrl: './{{kebab-name}}.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class {{ComponentClass}} implements AfterViewInit {
+export class {{ComponentClass}} implements AfterViewInit, OnDestroy {
   private readonly service      = inject({{ServiceClass}});
   private readonly router       = inject(Router);
   private readonly route        = inject(ActivatedRoute);
@@ -62,9 +64,11 @@ export class {{ComponentClass}} implements AfterViewInit {
   readonly loading     = signal(false);
   readonly currentStep = signal(1);  // 1-based — po-stepper usa base 1
 
-  // Plain property (não signal) — evita re-init do po-dynamic-form a cada keystroke.
-  // Sinal causaria re-render a cada update, destruindo o estado interno do form (Quirk #15).
+  // Plain property — NÃO usar signal (Quirk #15: re-init do form a cada keystroke).
+  // Atualizado via (p-form)+valueChanges (Quirk #13: (p-value-change) não existe em PO-UI).
   formData: Partial<{{ModelInterface}}> = {};
+
+  private formSub: Subscription | null = null;
 
   // Signal com status explícito por item — necessário para que back() limpe
   // o estado 'done' dos steps posteriores ao alvo (po-stepper não faz isso sozinho).
@@ -147,6 +151,10 @@ export class {{ComponentClass}} implements AfterViewInit {
     setTimeout(() => this.cdr.detectChanges());
   }
 
+  ngOnDestroy(): void {
+    this.formSub?.unsubscribe();
+  }
+
   // Atualiza status visual: steps antes do alvo → 'done', alvo → 'active', após → 'default'.
   // Garante que back() limpe o estado 'done' — po-stepper não faz isso via [p-step].
   private goToStep(target: number): void {
@@ -176,8 +184,17 @@ export class {{ComponentClass}} implements AfterViewInit {
     }
   }
 
+  // (p-form) dispara após NgForm criado e novamente a cada mudança de fields (novo step).
+  // Quirk #13: (p-value-change) NÃO existe em PO-UI → usar (p-form) + valueChanges.
+  onFormInit(form: any): void {
+    if (!form?.valueChanges) return;
+    this.formSub?.unsubscribe();
+    this.formSub = form.valueChanges.subscribe((vals: Partial<{{ModelInterface}}>) => {
+      this.onFormChange(vals);
+    });
+  }
+
   onFormChange(values: Partial<{{ModelInterface}}>): void {
-    // Merge somente valores definidos — preserva dados dos steps anteriores
     this.formData = {
       ...this.formData,
       ...Object.fromEntries(
@@ -241,7 +258,7 @@ export class {{ComponentClass}} implements AfterViewInit {
     <po-dynamic-form
       [p-fields]="currentFields()"
       [p-value]="formData"
-      (p-value-change)="onFormChange($event)">
+      (p-form)="onFormInit($event)">
     </po-dynamic-form>
   }
 

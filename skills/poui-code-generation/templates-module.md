@@ -254,3 +254,24 @@ Edite o arquivo `tsconfig.json` na raiz do projeto e altere `"strict": true` par
 `"strict": false` e `"noPropertyAccessFromIndexSignature": true` para `false`.
 As demais flags (`noImplicitOverride`, `noImplicitReturns`, `noFallthroughCasesInSwitch`)
 podem ser mantidas pois não causam incompatibilidades.
+
+---
+
+## src/styles.scss — estilos globais obrigatórios
+
+```scss
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap');
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: 'Open Sans', Arial, sans-serif;
+}
+
+/* Quirk #17 — po-decimal e po-number não alinham à direita por padrão (PO-UI v17) */
+po-decimal input,
+po-number input {
+  text-align: right;
+}
+```

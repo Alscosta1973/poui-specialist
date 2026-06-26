@@ -11,13 +11,14 @@ import {
   ChangeDetectorRef,
   Component,
   DestroyRef,
+  OnDestroy,
   OnInit,
   inject,
   signal,
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Subscription, catchError, EMPTY } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { catchError, EMPTY } from 'rxjs';
 import {
   PoDynamicFormField,
   PoDynamicModule,
@@ -35,7 +36,7 @@ import { {{ModelInterface}} } from '../models/{{modelFile}}.model';
   styleUrl: './{{kebab-name}}.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class {{ComponentClass}} implements OnInit, AfterViewInit {
+export class {{ComponentClass}} implements OnInit, AfterViewInit, OnDestroy {
   private readonly service = inject({{ServiceClass}});
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
@@ -47,9 +48,11 @@ export class {{ComponentClass}} implements OnInit, AfterViewInit {
   readonly loading = signal(false);
   private recordId = '';
 
-  // Propriedade simples populada no load (edição) e atualizada via (p-value-change).
-  // NÃO usar signal aqui — causaria re-init do po-dynamic-form a cada keystroke (Quirk #15).
+  // Propriedade simples — NÃO usar signal (Quirk #15: re-init do form a cada keystroke).
+  // Atualizado via (p-form)+valueChanges (Quirk #13: (p-value-change) não existe em PO-UI).
   values: Partial<{{ModelInterface}}> = {};
+
+  private formSub: Subscription | null = null;
 
   // TODO: defina os campos correspondentes às propriedades de {{ModelInterface}}.
   // `divider` cria um cabeçalho de seção acima do campo; `gridColumns` (1-12) controla a largura.
@@ -155,8 +158,16 @@ export class {{ComponentClass}} implements OnInit, AfterViewInit {
       });
   }
 
-  onValuesChange(vals: Partial<{{ModelInterface}}>): void {
-    this.values = { ...this.values, ...vals };
+  onFormInit(form: any): void {
+    if (!form?.valueChanges) return;
+    this.formSub?.unsubscribe();
+    this.formSub = form.valueChanges.subscribe((vals: Partial<{{ModelInterface}}>) => {
+      this.values = { ...this.values, ...vals };
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.formSub?.unsubscribe();
   }
 
   private goBack(): void {
@@ -192,7 +203,7 @@ export class {{ComponentClass}} implements OnInit, AfterViewInit {
   <po-dynamic-form
     [p-fields]="fields"
     [p-value]="values"
-    (p-value-change)="onValuesChange($event)">
+    (p-form)="onFormInit($event)">
   </po-dynamic-form>
 
 </po-page-edit>

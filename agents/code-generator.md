@@ -72,6 +72,20 @@ When the user's manifest or prompt contains a `CONTEXTO_PROJETO:` block (produce
 - For `type: 'number'` with decimals, set `format: '1.4-4'`
 - **Numeric right-alignment (MANDATORY):** `type: 'number'` and `type: 'currency'` auto-align right in po-table. **Always** use the correct type for numeric columns — never use `type: 'string'` or omit `type` for monetary/quantity/percentage fields. Deduce type from field name: `valor*/preco*/total*/saldo*` → `currency`; `qtd*/quantidade*` → `number '1.0-2'`; `perc*/percent*` → `number '1.2-2'`; `data*/dt*` → `date`
 
+### po-dynamic-form: capturar valores com `(p-form)` + valueChanges (MANDATORY)
+- **`(p-value-change)` NÃO existe** em PO-UI 17.26.28 → Angular ignora silenciosamente, handler nunca chamado (Quirk #13)
+- Padrão correto: `(p-form)="onFormInit($event)"` + `form.valueChanges.subscribe(...)` com `formSub` para unsubscribe
+- `save()` / `submit()` lê `this.values` ou `this.formData` que é atualizado pelo subscriber
+- Para `modal-crud`: usar `@ViewChild(PoDynamicFormComponent) dynamicForm` e ler `this.dynamicForm.value` diretamente no save — evita gerenciar subscription no modal
+
+### po-decimal / po-number: alinhamento à direita (MANDATORY — Quirk #17)
+- `po-decimal` e `po-number` não alinham o texto à direita por padrão em PO-UI v17
+- **Ao gerar um projeto novo (`module` type):** incluir em `styles.scss`:
+  ```scss
+  po-decimal input, po-number input { text-align: right; }
+  ```
+- **Ao gerar em projeto existente:** verificar se `styles.scss` já contém esse seletor; se não, adicionar
+
 ### PoDynamicFormField — propriedades que NÃO existem (TS2353 se usar)
 - **`dateFormat`** não existe → usar **`format`** (ex: `format: 'dd/MM/yyyy'`)
 - **`min`** e **`max`** não existem → remover; use `minLength`/`maxLength` para texto

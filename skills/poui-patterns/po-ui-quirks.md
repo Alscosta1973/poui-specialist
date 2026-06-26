@@ -4,14 +4,16 @@ Documented behavior differences, internal implementation details, and CSS overri
 discovered through production use of PO-UI with Protheus. Apply these fixes proactively
 when generating or reviewing code.
 
-## Quick Reference — 16 Known Quirks
+## Quick Reference — 17 Known Quirks
 
 | # | Component / API | Symptom | Fix |
 |---|---|---|---|
 | 1 | po-page-content | **Content invisible on load in OnPush + sync data** | `ngAfterViewInit() { setTimeout(() => this.cdr.detectChanges()); }` |
+| 13 | po-dynamic-form | **`(p-value-change)` NÃO existe em PO-UI (confirmado v17.26.28) — handler nunca chamado** | Usar `(p-form)="onFormInit($event)"` + `form.valueChanges.subscribe(...)` |
 | 14 | po-page-\* / any PO-UI @Input | **Signal value not reflected — template shows `[object Object]`** | PO-UI @Inputs are NOT signal-aware: use `breadcrumb()` not `breadcrumb` |
 | 15 | po-stepper | **`[p-current-active-step]` / `(p-current-active-step)` não existem (NG8002). `back()` não limpa estado 'done' dos steps posteriores** | Input correto: `[p-step]`. Output correto: `(p-change-step)`. Usar `steps` como `signal<PoStepperItem[]>` com status por item e `goToStep()` para gerenciar status explicitamente |
 | 16 | po-table | **Colunas numéricas/monetárias alinhadas à esquerda** | Sempre usar `type: 'number'` ou `type: 'currency'` em colunas numéricas — esses tipos alinham automaticamente à direita |
+| 17 | po-decimal / po-number | **Input numérico/moeda alinhado à esquerda no formulário** | Adicionar CSS global em `styles.scss`: `po-decimal input, po-number input { text-align: right; }` |
 | 2 | po-input | Buttons 8px below field edge | `margin-bottom: 8px` on the button container |
 | 3 | po-table | Horizontal scroll in side-by-side panels | Override checkbox col to 41px via `::ng-deep`; recalculate `p-width` sum |
 | 4 | po-input | `NG8002` on `p-max-length` | Use `p-maxlength` (no hyphen between `max` and `length`) |
@@ -691,12 +693,12 @@ have `[p-height]` set. No exceptions. A table inside an `@if` block is especiall
 
 ---
 
-## 13. po-dynamic-form: `(p-value-change)` does not exist
+## 13. po-dynamic-form: `(p-value-change)` NÃO existe (confirmado PO-UI v17.26.28)
 
 **Symptom:** Binding `(p-value-change)="myHandler($event)"` on `po-dynamic-form` compiles
 without errors but the handler is never called, regardless of what the user types.
 
-**Root cause (verified against PO-UI source):**
+**Root cause (verified against PO-UI 17.26.28 source):**
 
 `PoDynamicFormBaseComponent` declares only one `@Output`:
 ```typescript
@@ -892,3 +894,32 @@ etc.) do auto-unwrap and do NOT need the `()`.
 **Plugin rule (already enforced in all templates):** Every template binding to a PO-UI
 component must use `signal()` with explicit `()`. Reviewer must flag any `[p-X]="signalProp"`
 without `()` as a Critical finding.
+
+---
+
+## 17. po-decimal / po-number: texto alinhado à esquerda em formulários (descoberto 2026-06-26)
+
+**Symptom:** Campos com `type: 'currency'` ou `type: 'number'` em `po-dynamic-form` renderizam
+o input numérico (po-decimal / po-number) com texto alinhado à **esquerda**, mesmo com valores
+monetários — comportamento oposto ao padrão ERP / Protheus.
+
+**Root cause:** O componente `po-decimal` não aplica `text-align: right` via CSS interno na
+versão testada (v17.26.28). O alinhamento deve ser forçado via CSS global.
+
+**Fix — adicionar em `src/styles.scss` (uma vez por projeto):**
+
+```scss
+po-decimal input,
+po-number input {
+  text-align: right;
+}
+```
+
+**Não use `::ng-deep`:** esses seletores funcionam sem encapsulamento porque `styles.scss`
+é global. `::ng-deep` é deprecated e não é necessário aqui.
+
+**Afeta:** qualquer `po-dynamic-form` ou `po-dynamic-search` que contenha campos com
+`type: 'currency'` ou `type: 'number'`. Não afeta `po-table` (que já alinha via `type` correto).
+
+**Plugin rule (já nos templates):** `styles.scss` gerado pelo plugin inclui essa regra.
+Ao revisar um projeto, verificar se `styles.scss` contém o seletor `po-decimal input`.
