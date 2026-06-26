@@ -120,6 +120,15 @@ export const routes: Routes = [
         .then(m => m.TitulosListComponent),
   },
   // ------------------------------------------------------------------
+  // Compras — Aprovação de Pedidos (Wave 6 — stacked-browse)
+  // ------------------------------------------------------------------
+  {
+    path: 'compras/aprovacao-pedido',
+    loadComponent: () =>
+      import('./compras/aprovacao-pedido/aprovacao-pedido.component')
+        .then(m => m.AprovacaoPedidoComponent),
+  },
+  // ------------------------------------------------------------------
   // RH — Funcionários (Wave 1 — teste plugin poui-specialist)
   // ------------------------------------------------------------------
   {

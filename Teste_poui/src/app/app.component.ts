@@ -75,6 +75,12 @@ export class AppComponent {
       link: '/compras/pedido-compra-crud',
     },
     {
+      label: 'Aprovação Pedido',
+      shortLabel: 'Aprov. PC',
+      icon: 'po-icon-ok',
+      link: '/compras/aprovacao-pedido',
+    },
+    {
       label: 'Importação Financeira',
       shortLabel: 'Imp. Fin.',
       icon: 'po-icon-upload',
