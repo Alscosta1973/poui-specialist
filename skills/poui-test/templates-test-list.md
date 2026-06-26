@@ -185,3 +185,5 @@ Verificar que `waitForAsync` está no import do `@angular/core/testing` (já inc
 - Para `page-dynamic` (PoPageDynamicTableComponent), verificar se o componente gerencia `items` via signal próprio ou delega ao PoPageDynamicTable — adaptar cenários conforme
 - Preencher `mockItem` com campos realistas baseados nos `labels` de `columns: PoTableColumn[]`
 - **NÃO usar `fakeAsync`** com componentes PO-UI — registram `setTimeout` internos que causam "N timer(s) still in the queue"
+- **`PoDialogService` spy**: `TestBed.inject(PoDialogService)` pode retornar instância diferente da capturada pelo componente via `inject()`. Usar sempre `spyOn((component as any).dialog, 'confirm')` e `spyOn((component as any).dialog, 'alert')` para garantir que o spy intercepta a chamada real do componente.
+- **Notification success/warning cria timer de toast**: ao testar ações que chamam `notification.success()` ou `notification.warning()` após flush HTTP, suprimir com `spyOn((component as any).notification, 'success')` ANTES de desencadear a ação. Sem isso, `whenStable()` nunca resolve (timeout 5s).
