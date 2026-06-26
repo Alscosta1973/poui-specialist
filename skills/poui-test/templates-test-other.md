@@ -124,4 +124,5 @@ describe('{{ServiceClass}}', () => {
 - **Para service**: substituir `{{ServiceClass}}` e `{{serviceFile}}` pelos valores reais lidos do `.service.ts`.
 - **Para dashboard**: substituir `{{apiPath}}` pelo valor de `apiUrl` encontrado no `.component.ts` ou no `.service.ts` injetado.
 - **`executarAcao`**: quando presente, verificar POST com payload `{ id }` (ação single) e `{ ids }` (ação batch); o endpoint é composto dinamicamente como `/rest/api/custom/v1${endpoint}`.
+- **`PoChartSerie.data` é `number | number[]`**: ao acessar `.length` ou índices do array `data` em specs de dashboard, usar cast explícito: `(component.barSeries()[0].data as number[]).length` — sem o cast, TypeScript gera `error TS2339: Property 'length' does not exist on type 'number | number[]'`.
 - Fechar o bloco `describe` com `});` na última linha gerada.

@@ -1,0 +1,49 @@
+<po-page-default p-title="Indicadores de RH">
+
+  <po-loading-overlay *ngIf="loading()" p-text="Carregando indicadores..."></po-loading-overlay>
+
+  <!-- Cartões KPI ──────────────────────────────────────────────────────────── -->
+  <div class="po-row">
+    <po-widget class="po-md-12 po-lg-3 po-mt-2" p-title="Total de Ativos">
+      <div class="kpi-value">{{ totalAtivos() }}</div>
+      <div class="kpi-desc">funcionários ativos</div>
+    </po-widget>
+
+    <po-widget class="po-md-12 po-lg-3 po-mt-2" p-title="Admissões no Mês">
+      <div class="kpi-value kpi-value--positivo">{{ admissoesMes() }}</div>
+      <div class="kpi-desc">novas admissões</div>
+    </po-widget>
+
+    <po-widget class="po-md-12 po-lg-3 po-mt-2" p-title="Desligamentos no Mês">
+      <div class="kpi-value kpi-value--negativo">{{ desligamentosMes() }}</div>
+      <div class="kpi-desc">desligamentos</div>
+    </po-widget>
+
+    <po-widget class="po-md-12 po-lg-3 po-mt-2" p-title="Salário Médio">
+      <div class="kpi-value">R$&nbsp;{{ fmtSal() }}</div>
+      <div class="kpi-desc">média salarial</div>
+    </po-widget>
+  </div>
+
+  <!-- Gráficos ─────────────────────────────────────────────────────────────── -->
+  <div class="po-row">
+    <po-chart
+      class="po-md-12 po-lg-7 po-mt-4"
+      p-title="Distribuição por Departamento"
+      [p-type]="barChartType"
+      [p-options]="chartOptions()"
+      [p-categories]="barCategories()"
+      [p-series]="barSeries()">
+    </po-chart>
+
+    <po-chart
+      class="po-md-12 po-lg-5 po-mt-4"
+      p-title="Evolução de Headcount (6 meses)"
+      [p-type]="lineChartType"
+      [p-options]="chartOptions()"
+      [p-categories]="lineCategories()"
+      [p-series]="lineSeries()">
+    </po-chart>
+  </div>
+
+</po-page-default>

@@ -129,6 +129,15 @@ export const routes: Routes = [
         .then(m => m.AprovacaoPedidoComponent),
   },
   // ------------------------------------------------------------------
+  // RH — Indicadores (Wave 8 — dashboard)
+  // ------------------------------------------------------------------
+  {
+    path: 'rh/indicadores-rh',
+    loadComponent: () =>
+      import('./rh/indicadores-rh/indicadores-rh.component')
+        .then(m => m.IndicadoresRhComponent),
+  },
+  // ------------------------------------------------------------------
   // RH — Funcionários (Wave 1 — teste plugin poui-specialist)
   // ------------------------------------------------------------------
   {

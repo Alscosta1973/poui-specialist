@@ -110,6 +110,10 @@ export class AppComponent {
       icon: 'po-icon-user',
       subItems: [
         {
+          label: 'Indicadores',
+          link: '/rh/indicadores-rh',
+        },
+        {
           label: 'Funcionários',
           link: '/rh/funcionarios',
         },
