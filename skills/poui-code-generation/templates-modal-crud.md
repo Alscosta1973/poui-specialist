@@ -75,7 +75,9 @@ export class {{ComponentClass}} implements OnInit, AfterViewInit {
   private isEdit = false;
   private editId = '';
 
-  // Bound to po-dynamic-form via [(p-value)]
+  // Pré-popula o po-dynamic-form ao abrir modal de edição.
+  // NÃO usar signal — causaria re-init do form a cada keystroke (Quirk #15).
+  // Save lê this.dynamicForm.value (via @ViewChild), não this.formValues.
   formValues: Partial<{{ModelInterface}}> = {};
 
   // TODO: defina as colunas correspondentes aos campos de {{ModelInterface}}

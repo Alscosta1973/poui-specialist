@@ -27,8 +27,7 @@ interface PoDynamicFormField {
   disabled?: boolean;
   minLength?: number;
   maxLength?: number;
-  min?: number;
-  max?: number;
+  // ATENÇÃO: min/max NÃO existem em PoDynamicFormField — causam TS2353. Não usar.
   regex?: string;
   errorMessage?: string;
 
@@ -62,7 +61,7 @@ interface PoDynamicFormField {
 
   booleanTrue?: string;   // ex: 'S', 'Sim', 'Ativo'
   booleanFalse?: string;  // ex: 'N', 'Não', 'Inativo'
-  dateFormat?: string;    // ex: 'dd/MM/yyyy'
+  format?: string;        // ex: 'dd/MM/yyyy' — CORRETO; 'dateFormat' NÃO existe (TS2353)
   rows?: number;          // > 0 → textarea
   key?: boolean;          // chave primária (PoPageDynamicEdit)
 }
@@ -85,9 +84,9 @@ readonly fields: PoDynamicFormField[] = [
 
   { property: 'email', label: 'E-mail', regex: '^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$', errorMessage: 'Informe um e-mail válido', optional: true, gridColumns: 8 },
 
-  { property: 'quantidade',    label: 'Quantidade',    type: 'number',   min: 0, max: 9999, gridColumns: 3 },
-  { property: 'valorUnitario', label: 'Valor Unitário', type: 'currency', decimalsLength: 2, min: 0, gridColumns: 4 },
-  { property: 'dataEmissao',   label: 'Data de Emissão', type: 'date',   required: true, dateFormat: 'dd/MM/yyyy', gridColumns: 4 },
+  { property: 'quantidade',    label: 'Quantidade',    type: 'number',   gridColumns: 3 },
+  { property: 'valorUnitario', label: 'Valor Unitário', type: 'currency', decimalsLength: 2, gridColumns: 4 },
+  { property: 'dataEmissao',   label: 'Data de Emissão', type: 'date',   required: true, format: 'dd/MM/yyyy', gridColumns: 4 },
 
   // po-select estático
   {

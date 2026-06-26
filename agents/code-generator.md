@@ -72,6 +72,12 @@ When the user's manifest or prompt contains a `CONTEXTO_PROJETO:` block (produce
 - For `type: 'number'` with decimals, set `format: '1.4-4'`
 - **Numeric right-alignment (MANDATORY):** `type: 'number'` and `type: 'currency'` auto-align right in po-table. **Always** use the correct type for numeric columns — never use `type: 'string'` or omit `type` for monetary/quantity/percentage fields. Deduce type from field name: `valor*/preco*/total*/saldo*` → `currency`; `qtd*/quantidade*` → `number '1.0-2'`; `perc*/percent*` → `number '1.2-2'`; `data*/dt*` → `date`
 
+### PoDynamicFormField — propriedades que NÃO existem (TS2353 se usar)
+- **`dateFormat`** não existe → usar **`format`** (ex: `format: 'dd/MM/yyyy'`)
+- **`min`** e **`max`** não existem → remover; use `minLength`/`maxLength` para texto
+- **`type: 'label'` com boolean value** não funciona → usar **`type: 'boolean'`** com `booleanTrue`/`booleanFalse`
+- Para `type: 'currency'` com casas decimais: usar `decimalsLength: 2` (não `min`)
+
 ### po-stepper API (MANDATORY — NG8002 if wrong)
 - **Input:** `[p-step]="N"` (1-based integer) — controls the active step
 - **Output:** `(p-change-step)="handler($event)"` — fires on step change

@@ -47,7 +47,8 @@ export class {{ComponentClass}} implements OnInit, AfterViewInit {
   readonly loading = signal(false);
   private recordId = '';
 
-  // Binding bidirecional com po-dynamic-form; populado ao carregar para edição
+  // Propriedade simples populada no load (edição) e atualizada via (p-value-change).
+  // NÃO usar signal aqui — causaria re-init do po-dynamic-form a cada keystroke (Quirk #15).
   values: Partial<{{ModelInterface}}> = {};
 
   // TODO: defina os campos correspondentes às propriedades de {{ModelInterface}}.
@@ -82,7 +83,7 @@ export class {{ComponentClass}} implements OnInit, AfterViewInit {
       label: 'Valor',
       type: 'currency',
       required: true,
-      min: 0,
+      decimalsLength: 2,
       gridColumns: 6,
     },
     // { property: 'cnpj',        label: 'CNPJ',             type: 'cnpj',   required: true,  gridColumns: 6 },
@@ -91,8 +92,8 @@ export class {{ComponentClass}} implements OnInit, AfterViewInit {
     // { property: 'telefone',    label: 'Telefone',         mask: '(99) 99999-9999',          gridColumns: 4 },
     // { property: 'situacao',    label: 'Situação',         divider: 'Status',
     //   options: [{ label: 'Ativo', value: '1' }, { label: 'Inativo', value: '2' }],         gridColumns: 6 },
-    // { property: 'dataEmissao', label: 'Data de Emissão',  type: 'date',   required: true,  gridColumns: 4 },
-    // { property: 'quantidade',  label: 'Quantidade',       type: 'number', min: 0, max: 9999, gridColumns: 4 },
+    // { property: 'dataEmissao', label: 'Data de Emissão',  type: 'date',   required: true, format: 'dd/MM/yyyy', gridColumns: 4 },
+    // { property: 'quantidade',  label: 'Quantidade',       type: 'number', gridColumns: 4 },
   ];
 
   get pageTitle(): string {
@@ -154,6 +155,10 @@ export class {{ComponentClass}} implements OnInit, AfterViewInit {
       });
   }
 
+  onValuesChange(vals: Partial<{{ModelInterface}}>): void {
+    this.values = { ...this.values, ...vals };
+  }
+
   private goBack(): void {
     this.router.navigate(['..'], { relativeTo: this.route });
   }
@@ -186,7 +191,8 @@ export class {{ComponentClass}} implements OnInit, AfterViewInit {
 
   <po-dynamic-form
     [p-fields]="fields"
-    [(p-value)]="values">
+    [p-value]="values"
+    (p-value-change)="onValuesChange($event)">
   </po-dynamic-form>
 
 </po-page-edit>
