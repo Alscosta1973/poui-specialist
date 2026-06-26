@@ -107,6 +107,10 @@ export class AppComponent {
           label: 'Funcionários',
           link: '/rh/funcionarios',
         },
+        {
+          label: 'Departamentos',
+          link: '/rh/departamentos',
+        },
       ],
     },
     {

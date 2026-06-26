@@ -146,4 +146,13 @@ export const routes: Routes = [
       import('./rh/funcionarios/funcionarios-edit.component')
         .then(m => m.FuncionariosEditComponent),
   },
+  // ------------------------------------------------------------------
+  // RH — Departamentos (Wave 3 — modal-crud)
+  // ------------------------------------------------------------------
+  {
+    path: 'rh/departamentos',
+    loadComponent: () =>
+      import('./rh/departamentos/departamentos-list.component')
+        .then(m => m.DepartamentosListComponent),
+  },
 ];
