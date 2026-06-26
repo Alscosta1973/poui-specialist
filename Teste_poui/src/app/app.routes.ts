@@ -155,4 +155,13 @@ export const routes: Routes = [
       import('./rh/departamentos/departamentos-list.component')
         .then(m => m.DepartamentosListComponent),
   },
+  // ------------------------------------------------------------------
+  // RH — Onboarding (Wave 4 — stepper-form)
+  // ------------------------------------------------------------------
+  {
+    path: 'rh/onboarding',
+    loadComponent: () =>
+      import('./rh/onboarding/onboarding-funcionario.component')
+        .then(m => m.OnboardingFuncionarioComponent),
+  },
 ];

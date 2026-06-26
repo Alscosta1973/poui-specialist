@@ -1,0 +1,61 @@
+<po-page-default
+  p-title="Onboarding de Funcionário"
+  [p-breadcrumb]="breadcrumb">
+
+  @if (isLoading()) {
+    <po-loading-overlay p-text="Salvando..."></po-loading-overlay>
+  }
+
+  <po-stepper
+    [p-steps]="steps"
+    [p-step]="currentStep()"
+    (p-change-step)="onStepChange($event)">
+  </po-stepper>
+
+  <po-dynamic-form
+    [p-fields]="currentFields()"
+    [p-value]="formData"
+    (p-value-change)="onFormChange($event)">
+  </po-dynamic-form>
+
+  <div class="po-row po-mt-3">
+    <div class="po-md-12">
+
+      <po-button
+        p-label="Cancelar"
+        p-kind="secondary"
+        (p-click)="cancel()">
+      </po-button>
+
+      @if (!isFirstStep()) {
+        <po-button
+          p-label="Anterior"
+          p-kind="secondary"
+          (p-click)="back()"
+          class="po-ml-1">
+        </po-button>
+      }
+
+      @if (!isLastStep()) {
+        <po-button
+          p-label="Próximo"
+          p-kind="primary"
+          (p-click)="next()"
+          class="po-ml-1">
+        </po-button>
+      }
+
+      @if (isLastStep()) {
+        <po-button
+          p-label="Salvar"
+          p-kind="primary"
+          [p-loading]="isLoading()"
+          (p-click)="save()"
+          class="po-ml-1">
+        </po-button>
+      }
+
+    </div>
+  </div>
+
+</po-page-default>

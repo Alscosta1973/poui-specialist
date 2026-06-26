@@ -111,6 +111,10 @@ export class AppComponent {
           label: 'Departamentos',
           link: '/rh/departamentos',
         },
+        {
+          label: 'Onboarding',
+          link: '/rh/onboarding',
+        },
       ],
     },
     {
