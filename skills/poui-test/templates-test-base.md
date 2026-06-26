@@ -52,3 +52,4 @@ describe('{{ComponentClass}}', () => {
 - `waitForAsync` + `fixture.whenStable()` para observables RxJS, `takeUntilDestroyed` e módulos PO-UI
 - `httpMock.verify()` no `afterEach` garante que nenhuma request ficou sem flush
 - Fechar o bloco `describe` com `});` na última linha do template de família
+- **`provideHttpClient()` sempre obrigatório**: módulos PO-UI requerem `HttpClient` internamente (ícones, recursos). Mesmo que o service do componente use `of(...)` sem HTTP, omitir `provideHttpClient()` gera `NullInjectorError: No provider for HttpClient!`. Sempre incluir ambos: `provideHttpClient()` + `provideHttpClientTesting()`.
