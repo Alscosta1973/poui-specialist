@@ -18,9 +18,12 @@ curl -s --max-time 5 "https://gist.githubusercontent.com/Alscosta1973/ace66c8661
 ```
 
 - Se curl falhar (timeout, sem internet): prosseguir com base apenas no Passo 1 (check local válido → ok)
+- Se a resposta **não contiver** o campo `"plugin": "poui-specialist"`: ignorar a resposta e prosseguir só com check local (resposta suspeita — pode ser outro JSON)
 - Se `"active": false` na resposta: exibir mensagem e retornar `status: revogado`
 - Se campo `expires` na resposta for anterior à data atual: exibir mensagem e retornar `status: expirado`
-- Se resposta OK e licença válida: retornar `status: ok` e prosseguir
+- Se resposta OK e todos os campos validados: retornar `status: ok` e prosseguir
+
+> A verificação do campo `"plugin"` impede que um JSON externo forje uma licença válida apontando para a URL do gist.
 
 ## Mensagem de expiração / revogação
 

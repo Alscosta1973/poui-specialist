@@ -147,6 +147,18 @@ Repetir até build passar ou 3 tentativas esgotadas:
    → <dica de diagnóstico>
 ```
 
+**Guia de escalação — quando 3 tentativas não bastam:**
+
+| Categoria | Próximo passo |
+|---|---|
+| Import circular | Reorganizar imports; verificar se dois componentes se referenciam mutuamente |
+| Tipo incompatível em input PO-UI | Consultar `/poui-specialist:docs <componente>` para ver os tipos exatos aceitos |
+| `NG0XXX` — erro de runtime Angular | Verificar `app.config.ts` — pode faltar `provideRouter()`, `provideHttpClient()` ou `importProvidersFrom()` |
+| Erros em `angular.json` / `tsconfig.json` | Fora do escopo do plugin — revisar a configuração do projeto Angular |
+| Erros simultâneos em múltiplos arquivos | Executar `/poui-specialist:review` no diretório gerado para diagnóstico completo |
+| 10+ erros no mesmo arquivo | Regenar com `/poui-specialist:generate --dry-run` e comparar o plano com o arquivo atual; considerar regeração completa |
+| Erros persistentes após regeração | Abrir issue em https://github.com/Alscosta1973/poui-specialist com o output do build |
+
 **Erros em arquivos pré-existentes (se houver):**
 
 ```

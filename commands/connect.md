@@ -26,6 +26,36 @@ por chamadas HTTP reais, configurando o proxy e gerando o contrato TLPP quando n
 /poui-specialist:connect ParceirosComponent --module faturamento/parceiros
 ```
 
+## Pré-passo — Backup preventivo
+
+Antes de invocar a skill, verificar os arquivos que serão modificados e criar backups `.bak`:
+
+```powershell
+# Service do componente (sempre modificado)
+$svcPath = "src/app/<module>/<kebab-name>.service.ts"
+if (Test-Path $svcPath) { Copy-Item $svcPath "$svcPath.bak" }
+
+# Mock interceptor (se existir — será desativado/removido)
+# Substitua pelo caminho real do interceptor se aplicável
+# Copy-Item "<interceptor-path>" "<interceptor-path>.bak"
+```
+
+Para restaurar um arquivo: `Copy-Item arquivo.ts.bak arquivo.ts`
+Para remover backups após confirmar que tudo funciona: `Get-ChildItem src/ -Filter "*.bak" -Recurse | Remove-Item`
+
+## Passo — Verificar `.gitignore`
+
+Após criar/atualizar `proxy.conf.json`, verificar se ele consta no `.gitignore` do projeto:
+
+```powershell
+if (-not (Select-String -Path ".gitignore" -Pattern "proxy\.conf\.json" -Quiet)) {
+    Add-Content ".gitignore" "`n# Proxy — pode conter endereços de servidores internos`nproxy.conf.json"
+    Write-Host "⚠ proxy.conf.json adicionado ao .gitignore — contém endereços que não devem ir ao repositório."
+}
+```
+
+> `proxy.conf.json` pode conter IPs/hostnames de servidores de produção. Confirmar que está no `.gitignore` antes de qualquer `git add`.
+
 ## Processo
 
 1. **Invocar skill `poui-specialist:poui-connect`** — executa os 9 passos:

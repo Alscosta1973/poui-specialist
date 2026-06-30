@@ -230,6 +230,14 @@ Prosseguir? (s/n)
    // ❌ PROIBIDO — eager loading
    { path: 'financeiro/pedidos', component: PedidosComponent }
    ```
+7. **Validação do diretório `--module` (MANDATORY):** antes de criar arquivos, verificar se `src/app/<module>/` existe:
+   ```powershell
+   Test-Path "src/app/<module>"
+   ```
+   - Se existir: prosseguir normalmente
+   - Se não existir: perguntar `⚠ O diretório src/app/<module>/ não existe. Deseja criá-lo? [S/n]`
+     - S: criar o diretório com `New-Item -ItemType Directory -Force` e prosseguir
+     - n: encerrar sem gerar arquivos
 
 ### Phase 3: Generation
 
