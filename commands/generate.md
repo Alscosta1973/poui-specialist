@@ -78,7 +78,15 @@ Generates standalone Angular 17+ artifacts using PO-UI components, integrated wi
 1. **Parse arguments** — identificar `<type>`, `<Name>`, `--module` e flags opcionais:
    - `--dry-run`: exibir apenas o plano (lista de arquivos e estrutura resumida) **sem escrever nada em disco**. Encerrar após o Passo 2 com: `🔍 Modo dry-run — nenhum arquivo foi gerado.`
    - `--skip-build`: pular o Passo 4. Útil em gerações em lote para rodar build uma única vez no final.
-2. **Delegate to `code-generator` agent** — full planning, validation, and generation workflow
+2. **Determine agent based on `<type>` and delegate:**
+
+   | Família | Tipos | Agente |
+   |---------|-------|--------|
+   | Lista / Browse | `page-list`, `page-dynamic-search`, `page-dynamic`, `stacked-browse`, `two-panel-browse`, `action-list`, `master-detail` | `poui-specialist:code-generator-list` |
+   | Formulários | `page-edit`, `page-detail`, `modal-crud`, `stepper-form` | `poui-specialist:code-generator-forms` |
+   | Infraestrutura | `service`, `module`, `dashboard`, `models`, `tlpp-contract`, `refactor` | `poui-specialist:code-generator-infra` |
+
+   Invoke the matching specialized agent — it handles planning, validation, and generation.
 3. **Confirm output** — list created files with their absolute paths and suggested route addition
 4. **Build verification** — Se `--skip-build` foi fornecido: exibir `⚠ Build verification ignorada (--skip-build). Execute ng build --configuration development manualmente.` e pular para o Passo 5. Caso contrário: invocar automaticamente a skill `poui-specialist:build-fix`. Não perguntar ao usuário — executar direto e exibir o relatório de build.
 5. **Preview no browser** — após a verificação de build, perguntar:

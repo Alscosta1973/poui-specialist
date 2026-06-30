@@ -81,17 +81,23 @@ jobs:
       - name: V1 — Validate bump-version.js syntax
         run: node --check scripts/bump-version.js && echo "bump-version.js OK"
 
+      # ── V2: sync-docs.js sintaxe válida ─────────────────────────────────
+      - name: V2 — Validate sync-docs.js syntax
+        run: node --check scripts/sync-docs.js && echo "sync-docs.js OK"
+
       # ── A1: Agents têm Phase 1/2/3 ──────────────────────────────────────
-      - name: A1 — code-generator has required phases
+      - name: A1 — code-generator agents have required phases
         run: |
           FAIL=0
-          for phase in "Phase 1" "Phase 2" "Phase 3"; do
-            if ! grep -q "$phase" agents/code-generator.md; then
-              echo "ERRO: agents/code-generator.md não contém '$phase'"
-              FAIL=1
-            fi
+          for agent in agents/code-generator.md agents/code-generator-list.md agents/code-generator-forms.md agents/code-generator-infra.md; do
+            for phase in "Phase 1" "Phase 2" "Phase 3"; do
+              if ! grep -q "$phase" "$agent"; then
+                echo "ERRO: $agent não contém '$phase'"
+                FAIL=1
+              fi
+            done
           done
-          if [ $FAIL -eq 0 ]; then echo "code-generator.md phases OK"; fi
+          if [ $FAIL -eq 0 ]; then echo "Todos os agentes code-generator têm Phase 1/2/3 OK"; fi
           exit $FAIL
 
       # ── S1: Skills têm frontmatter name + description ───────────────────

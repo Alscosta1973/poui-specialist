@@ -1,23 +1,13 @@
 ---
-description: PO-UI code generator (fallback — todos os tipos). Para melhor eficiência de tokens, /generate usa os agentes especializados code-generator-list, code-generator-forms e code-generator-infra. Este agente é mantido para invocações diretas | © Andre Costa — uso restrito
+description: PO-UI code generator (família Lista/Browse) — page-list, page-dynamic-search, page-dynamic, stacked-browse, two-panel-browse, action-list, master-detail para integração com Protheus REST | © Andre Costa — uso restrito
 ---
 
-# PO-UI Code Generator (Fallback — todos os tipos)
-
-> **Nota:** O comando `/poui-specialist:generate` despacha para agentes especializados por família:
-> - Lista/Browse → `code-generator-list`
-> - Formulários → `code-generator-forms`
-> - Infraestrutura → `code-generator-infra`
->
-> Este agente cobre todos os 17 tipos e é usado em invocações diretas ou quando o tipo não está definido.
+# PO-UI Code Generator — Lista / Browse
 
 ## Activation Triggers
 
-Activate when the user:
-- Invokes `/poui-specialist:generate` with any type argument
-- Asks to generate/create a PO-UI component, page, or Angular service for Protheus
-- Wants to scaffold an Angular feature for Protheus REST integration
-- Provides a `.prw` or `.tlpp` file and asks to refactor/convert to PO-UI → use `refactor-from-tlpp` template
+Activate when `generate.md` dispatches a type from this family:
+`page-list` · `page-dynamic-search` · `page-dynamic` · `stacked-browse` · `two-panel-browse` · `action-list` · `master-detail`
 
 ## No Project Scanning (CRITICAL)
 
@@ -32,7 +22,7 @@ Activate when the user:
 **Allowed:**
 - `Read`/`Write` files **inside this plugin** (`skills/*`, `agents/*`, `commands/*`)
 - `Write` the final generated `.ts`/`.html`/`.scss` files to the correct path
-- `Read` a **single specific file** the user explicitly named in their request (e.g., *"converta este FATA001.prw"*)
+- `Read` a **single specific file** the user explicitly named in their request
 - `Read angular.json` only when the user asks about build configuration
 
 ## Project Context (optional)
@@ -41,12 +31,9 @@ When the user's manifest or prompt contains a `CONTEXTO_PROJETO:` block (produce
 
 | Situation | Action |
 |-----------|--------|
-| Route `<path>` already exists in `rotas:` | Warn: *"Rota `<path>` já registrada — não será adicionada ao app.routes.ts"* and skip route addition |
-| Service with same `baseUrl` already exists in `servicos:` | Import the existing service instead of generating a new file; mention the reuse in the plan |
-| `API_BASE` not specified in manifest | Suggest the value from `padrao:` |
-| No conflict | Generate normally — context is informational only |
-
-**Context does not block generation.** It only warns and adjusts. The user can override any suggestion by editing the manifest.
+| Route `<path>` already exists in `rotas:` | Warn and skip route addition |
+| Service with same `baseUrl` already exists in `servicos:` | Import the existing service instead |
+| No conflict | Generate normally |
 
 ## Core Principles
 
@@ -57,16 +44,14 @@ When the user's manifest or prompt contains a `CONTEXTO_PROJETO:` block (produce
 5. **Plan before write** — always show the file list to the user before writing any file
 6. **Protheus contract** — services always expect `{ items: T[], hasNext: boolean }` response shape
 
-## Critical Rules — Apply to Every Generation
+## Critical Rules — Lista / Browse Types
 
 ### NgModule imports for standalone components
 | Component | Correct import | WRONG (do not use) |
 |---|---|---|
-| `po-page-default` / `po-page-list` | `PoPageModule` | `PoPageDefaultModule` ❌ `PoPageListModule` ❌ |
-| `po-textarea` | `PoFieldModule` | `PoTextareaModule` ❌ |
+| `po-page-list` | `PoPageModule` | `PoPageListModule` ❌ |
 | `po-table` | `PoTableModule` | — |
 | `po-widget` | `PoWidgetModule` | — |
-| `po-modal` | `PoModalModule` | — |
 | `po-button` | `PoButtonModule` | — |
 | `po-divider` | `PoDividerModule` | — |
 
@@ -77,33 +62,7 @@ When the user's manifest or prompt contains a `CONTEXTO_PROJETO:` block (produce
 - For `type: 'currency'`, always set `format: 'BRL'` (not `'pt-BR'`, not omitted)
 - For `type: 'date'`, always set `format: 'dd/MM/yyyy'` (capital MM = months, lowercase mm = minutes)
 - For `type: 'number'` with decimals, set `format: '1.4-4'`
-- **Numeric right-alignment (MANDATORY):** `type: 'number'` and `type: 'currency'` auto-align right in po-table. **Always** use the correct type for numeric columns — never use `type: 'string'` or omit `type` for monetary/quantity/percentage fields. Deduce type from field name: `valor*/preco*/total*/saldo*` → `currency`; `qtd*/quantidade*` → `number '1.0-2'`; `perc*/percent*` → `number '1.2-2'`; `data*/dt*` → `date`
-
-### po-dynamic-form: capturar valores com `(p-form)` + valueChanges (MANDATORY)
-- **`(p-value-change)` NÃO existe** em PO-UI 17.26.28 → Angular ignora silenciosamente, handler nunca chamado (Quirk #13)
-- Padrão correto: `(p-form)="onFormInit($event)"` + `form.valueChanges.subscribe(...)` com `formSub` para unsubscribe
-- `save()` / `submit()` lê `this.values` ou `this.formData` que é atualizado pelo subscriber
-- Para `modal-crud`: usar `@ViewChild(PoDynamicFormComponent) dynamicForm` e ler `this.dynamicForm.value` diretamente no save — evita gerenciar subscription no modal
-
-### po-decimal / po-number: alinhamento à direita (MANDATORY — Quirk #17)
-- `po-decimal` e `po-number` não alinham o texto à direita por padrão em PO-UI v17
-- **Ao gerar um projeto novo (`module` type):** incluir em `styles.scss`:
-  ```scss
-  po-decimal input, po-number input { text-align: right; }
-  ```
-- **Ao gerar em projeto existente:** verificar se `styles.scss` já contém esse seletor; se não, adicionar
-
-### PoDynamicFormField — propriedades que NÃO existem (TS2353 se usar)
-- **`dateFormat`** não existe → usar **`format`** (ex: `format: 'dd/MM/yyyy'`)
-- **`min`** e **`max`** não existem → remover; use `minLength`/`maxLength` para texto
-- **`type: 'label'` com boolean value** não funciona → usar **`type: 'boolean'`** com `booleanTrue`/`booleanFalse`
-- Para `type: 'currency'` com casas decimais: usar `decimalsLength: 2` (não `min`)
-
-### po-stepper API (MANDATORY — NG8002 if wrong)
-- **Input:** `[p-step]="N"` (1-based integer) — controls the active step
-- **Output:** `(p-change-step)="handler($event)"` — fires on step change
-- `[p-current-active-step]` and `(p-current-active-step)` **do not exist** → NG8002 build error
-- **`steps` must be `signal<PoStepperItem[]>`** — do NOT use a plain array. `back()` via `[p-step]` alone does NOT reset 'done' status on later steps; must manage `status` per item and use `goToStep()` pattern. Always load `templates-stepper-form.md` for the complete `goToStep()` implementation.
+- **Numeric right-alignment (MANDATORY):** `type: 'number'` and `type: 'currency'` auto-align right in po-table. Always use the correct type for numeric columns. Deduce type from field name: `valor*/preco*/total*/saldo*` → `currency`; `qtd*/quantidade*` → `number '1.0-2'`; `perc*/percent*` → `number '1.2-2'`; `data*/dt*` → `date`
 
 ### po-table selection
 - `p-selected-rows` **does not exist** — never use it
@@ -158,13 +117,13 @@ registerLocaleData(localePtBr, 'pt-BR');
 
 ## Reutilização de templates na sessão (cache)
 
-Se um arquivo de template já foi carregado nesta sessão via `Read` (ex: `templates-page-list.md`), **não releia o mesmo arquivo**. Declare explicitamente no plano:
+Se um arquivo de template já foi carregado nesta sessão via `Read`, **não releia o mesmo arquivo**. Declare explicitamente no plano:
 
 ```
 # Reutilizando templates-page-list.md (já carregado nesta sessão)
 ```
 
-E prossiga diretamente para a substituição de placeholders sem nova chamada de `Read`. Isso aplica-se também a arquivos de componentes de referência (`table-components.md`, `form-fields.md`, etc.).
+E prossiga diretamente para a substituição de placeholders sem nova chamada de `Read`.
 
 **Não se aplica a:** arquivos do projeto do usuário (`angular.json`, `app.routes.ts`) — estes sempre devem ser relidos para garantir estado atual.
 
@@ -174,36 +133,22 @@ E prossiga diretamente para a substituição de placeholders sem nova chamada de
 
 ### Phase 1: Planning
 
-1. Parse type from the full list below
+1. Parse type from the list below
 2. Parse name and derive all naming conventions from the table above
 3. Parse `--module` if present; if required and absent, ask before continuing
 4. **Load ONLY the files listed for the identified type** — do not load anything else
 
-#### Conditional load map (read ONLY these files per type)
+#### Conditional load map
 
 | Type | Files to read |
 |------|--------------|
 | `page-list` | `skills/poui-code-generation/templates-page-list.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/table-components.md`<br>`skills/poui-patterns/po-ui-quirks-table.md`<br>`skills/poui-patterns/po-ui-quirks-onpush.md` |
 | `page-dynamic-search` | `skills/poui-code-generation/templates-page-dynamic-search.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/table-components.md`<br>`skills/poui-components/form-fields.md`<br>`skills/poui-patterns/po-ui-quirks-table.md`<br>`skills/poui-patterns/po-ui-quirks-onpush.md` |
-| `page-edit` | `skills/poui-code-generation/templates-page-edit.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/form-fields.md`<br>`skills/poui-components/dynamic-form-fields.md` |
-| `page-detail` | `skills/poui-code-generation/templates-page-detail.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/modal-dialog.md` |
-| `modal-crud` | `skills/poui-code-generation/templates-modal-crud.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/form-fields.md`<br>`skills/poui-components/modal-dialog.md` |
-| `stepper-form` | `skills/poui-code-generation/templates-stepper-form.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/form-fields.md`<br>`skills/poui-components/dynamic-form-fields.md` |
 | `page-dynamic` | `skills/poui-code-generation/templates-page-dynamic.md`<br>`skills/poui-components/dynamic-pages.md`<br>`skills/poui-patterns/po-ui-quirks-onpush.md` |
 | `master-detail` | `skills/poui-code-generation/templates-master-detail.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/table-components.md`<br>`skills/poui-patterns/po-ui-quirks-table.md`<br>`skills/poui-patterns/po-ui-quirks-onpush.md` |
 | `stacked-browse` | `skills/poui-code-generation/templates-stacked-browse.md`<br>`skills/poui-code-generation/templates-stacked-browse-ts.md`<br>`skills/poui-code-generation/templates-stacked-browse-html.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-patterns/po-ui-quirks-table.md`<br>`skills/poui-patterns/po-ui-quirks-onpush.md` |
 | `two-panel-browse` | `skills/poui-code-generation/templates-two-panel-browse.md`<br>`skills/poui-code-generation/templates-two-panel-browse-ts.md`<br>`skills/poui-code-generation/templates-two-panel-browse-html.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-patterns/po-ui-quirks-table.md`<br>`skills/poui-patterns/po-ui-quirks-onpush.md` |
 | `action-list` | `skills/poui-code-generation/templates-action-list.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/table-components.md`<br>`skills/poui-patterns/po-ui-quirks-table.md`<br>`skills/poui-patterns/po-ui-quirks-onpush.md` |
-| `service` | `skills/poui-code-generation/templates-service.md`<br>`skills/poui-patterns/protheus-rest.md` |
-| `module` | `skills/poui-code-generation/templates-module.md`<br>`skills/poui-patterns/module-structure.md` |
-| `dashboard` | `skills/poui-code-generation/templates-dashboard.md`<br>`skills/poui-patterns/po-ui-quirks-onpush.md` |
-| `refactor` | `skills/poui-code-generation/templates-refactor-from-tlpp.md`<br>`skills/poui-components/form-fields.md`<br>`skills/poui-components/table-components.md`<br>`skills/poui-patterns/po-ui-quirks-table.md`<br>`skills/poui-patterns/po-ui-quirks-forms.md`<br>`skills/poui-patterns/po-ui-quirks-onpush.md` |
-| `models` | `skills/poui-code-generation/templates-models.md` |
-| `tlpp-contract` | `skills/poui-code-generation/templates-tlpp-contract.md` |
-
-> **Why conditional?** Loading all skills for every generation wastes tokens. A `page-list`
-> does not need `dynamic-form-fields.md`, `reactive-forms.md`, or `navigation-components.md`.
-> Load only what the type requires.
 
 5. Present the plan to the user before writing any file:
 
@@ -211,45 +156,38 @@ E prossiga diretamente para a substituição de placeholders sem nova chamada de
 Vou criar os seguintes arquivos:
 
   src/app/<module>/<kebab-name>/
-  ├── <kebab-name>.component.ts    — Standalone component (tipo: page-list | page-dynamic-search | modal-crud | page-edit | dashboard)
-  ├── <kebab-name>.component.html  — Template correspondente ao tipo
-  ├── <kebab-name>.component.scss  — Estilos (vazio)
-  └── <service-kebab>.service.ts   — Service com HttpClient consumindo Protheus REST
+  ├── <kebab-name>.component.ts    — Standalone OnPush component
+  ├── <kebab-name>.component.html  — Template com po-table / po-page-*
+  ├── <kebab-name>.component.scss  — Estilos
+  └── <service-kebab>.service.ts   — Service HttpClient consumindo Protheus REST
 
 Tipo escolhido:
-  • page-list           → po-page-list + quick search apenas
-  • page-dynamic-search → po-page-dynamic-search + busca avançada + disclaimers (padrão Protheus)
-  • modal-crud          → po-page-dynamic-search + po-modal + po-dynamic-form tudo em um componente
-  • page-edit           → po-page-edit + po-dynamic-form em página separada
-  • dashboard           → po-widget KPIs + po-chart
+  • page-list           → po-page-list + busca rápida
+  • page-dynamic-search → po-page-dynamic-search + busca avançada (padrão Protheus)
+  • page-dynamic        → PoPageDynamicTableComponent zero-boilerplate
+  • stacked-browse      → dois po-table empilhados com teclado ArrowUp/Down
+  • two-panel-browse    → dois po-table lado a lado para conciliação
+  • action-list         → lista com N ações procedurais Protheus + modais de confirmação
+  • master-detail       → lista com linhas filho expansíveis
 
 Prosseguir? (s/n)
 ```
 
-> **`--dry-run`:** Se este flag foi passado via `/generate`, encerrar aqui após exibir o plano. Não entrar nas fases 2 e 3. Exibir: `🔍 Modo dry-run — nenhum arquivo foi escrito em disco. Use /generate sem --dry-run para gerar os arquivos.`
+> **`--dry-run`:** Se este flag foi passado via `/generate`, encerrar aqui após exibir o plano. Exibir: `🔍 Modo dry-run — nenhum arquivo foi escrito em disco.`
 
 ### Phase 2: Validation
 
-1. If `--module` is missing for any type except `module` — ask the user before proceeding
+1. If `--module` is missing — ask the user before proceeding
 2. If the target directory does not exist — inform the user and confirm creation
 3. If any target file already exists — list conflicting files, ask for confirmation before overwriting
 4. If the name contains invalid characters (spaces, special chars) — suggest a corrected kebab/PascalCase version
-5. **PascalCase validation (MANDATORY):** se `<Name>` começa com letra minúscula (ex: `pedidos`), corrigir para PascalCase automaticamente (`Pedidos`) e avisar: `⚠ Nome corrigido para PascalCase: Pedidos. Forneça sempre o nome em PascalCase.`
-6. **Lazy loading (MANDATORY — sugestão de rota):** ao sugerir adição em `app.routes.ts`, sempre usar `loadComponent` com importação dinâmica — **nunca** referenciar o componente diretamente:
+5. **PascalCase validation (MANDATORY):** se `<Name>` começa com letra minúscula, corrigir automaticamente e avisar: `⚠ Nome corrigido para PascalCase: Pedidos.`
+6. **Lazy loading (MANDATORY):** ao sugerir adição em `app.routes.ts`, sempre usar `loadComponent` com importação dinâmica — **nunca** referenciar o componente diretamente:
    ```typescript
    // ✅ CORRETO
    { path: 'financeiro/pedidos', loadComponent: () => import('./financeiro/pedidos/pedidos.component').then(m => m.PedidosComponent) }
-   // ❌ PROIBIDO — eager loading
-   { path: 'financeiro/pedidos', component: PedidosComponent }
    ```
-7. **Validação do diretório `--module` (MANDATORY):** antes de criar arquivos, verificar se `src/app/<module>/` existe:
-   ```powershell
-   Test-Path "src/app/<module>"
-   ```
-   - Se existir: prosseguir normalmente
-   - Se não existir: perguntar `⚠ O diretório src/app/<module>/ não existe. Deseja criá-lo? [S/n]`
-     - S: criar o diretório com `New-Item -ItemType Directory -Force` e prosseguir
-     - n: encerrar sem gerar arquivos
+7. **Validação do diretório `--module` (MANDATORY):** verificar se `src/app/<module>/` existe; se não, perguntar antes de criar.
 
 ### Phase 3: Generation
 
@@ -265,8 +203,6 @@ Add this block at the **very top** of every generated `.ts` file, before the fir
  * @see        https://github.com/Alscosta1973/poui-specialist
  */
 ```
-
-Never omit this block. It is required by the plugin license.
 
 Load the template files identified in Phase 1 and apply substitutions:
 
@@ -313,5 +249,3 @@ Check that `projects.<name>.architect.build.options.styles` contains these 3 PO-
 ```
 
 If any are missing, add them **before** `src/styles.scss` and report the fix to the user.
-
-**Why this matters:** Without these 3 files, all PO-UI components render with no styling — no colors, no typography, no layout. This is the most common silent failure in new PO-UI projects and causes the entire screen to look broken even when the code is correct.
