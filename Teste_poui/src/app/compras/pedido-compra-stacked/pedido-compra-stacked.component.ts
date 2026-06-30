@@ -5,6 +5,7 @@
  * @see        https://github.com/Alscosta1973/poui-specialist
  */
 import {
+  AfterViewInit,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
@@ -88,7 +89,7 @@ const DEMO_DETAIL: Record<string, ItemCompra[]> = {
   styleUrl: './pedido-compra-stacked.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PedidoCompraStackedComponent implements OnInit {
+export class PedidoCompraStackedComponent implements OnInit, AfterViewInit {
   private readonly service      = inject(PedidoCompraStackedService);
   private readonly notification = inject(PoNotificationService);
   private readonly destroyRef   = inject(DestroyRef);
@@ -158,6 +159,13 @@ export class PedidoCompraStackedComponent implements OnInit {
 
   ngOnInit(): void {
     this.buscar();
+  }
+
+  // Quirk #1: po-page-default define contentOpacity=0 e usa setTimeout para setar 1.
+  // Com OnPush + dados síncronos, o componente já está "limpo" quando esse setTimeout
+  // dispara — Angular pula o subtree e a opacidade nunca é aplicada.
+  ngAfterViewInit(): void {
+    setTimeout(() => this.cdr.markForCheck());
   }
 
   @HostListener('window:resize')

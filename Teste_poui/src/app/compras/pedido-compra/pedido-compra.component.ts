@@ -10,6 +10,7 @@ import {
   ChangeDetectorRef,
   Component,
   DestroyRef,
+  HostListener,
   OnInit,
   inject,
   signal,
@@ -149,6 +150,14 @@ export class PedidoCompraComponent implements OnInit, AfterViewInit {
     placeholder: 'Buscar por número ou fornecedor...',
     action:      (q: string) => this.onSearch(q),
   };
+
+  // OnPush quirk: po-table expand (detail/itens) fires internally sem marcar este
+  // componente como dirty. Qualquer click no host dispara detectChanges para forçar
+  // a renderização do detalhe.
+  @HostListener('click')
+  onHostClick(): void {
+    this.cdr.detectChanges();
+  }
 
   ngOnInit(): void {
     this.load();
