@@ -1,0 +1,112 @@
+name: Plugin Lint
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+jobs:
+  lint:
+    name: Validate plugin structure
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # ── J1: JSON válido e versões consistentes ───────────────────────────
+      - name: J1 — Validate plugin.json
+        run: node -e "JSON.parse(require('fs').readFileSync('.claude-plugin/plugin.json','utf8')); console.log('plugin.json OK')"
+
+      - name: J2 — Validate marketplace.json
+        run: node -e "JSON.parse(require('fs').readFileSync('.claude-plugin/marketplace.json','utf8')); console.log('marketplace.json OK')"
+
+      - name: J3 — Version consistency (plugin.json == marketplace.json)
+        run: |
+          node -e "
+            const p = JSON.parse(require('fs').readFileSync('.claude-plugin/plugin.json','utf8'));
+            const m = JSON.parse(require('fs').readFileSync('.claude-plugin/marketplace.json','utf8'));
+            const pv = p.version;
+            const mv = m.plugins[0].version;
+            if (pv !== mv) {
+              console.error('ERRO: versões divergentes — plugin.json=' + pv + ' marketplace.json=' + mv);
+              process.exit(1);
+            }
+            console.log('Versões consistentes: ' + pv);
+          "
+
+      # ── L1: Command files referenciam poui-license-check ────────────────
+      - name: L1 — Commands must reference poui-license-check skill
+        run: |
+          FAIL=0
+          for f in commands/*.md; do
+            if ! grep -q "poui-license-check" "$f"; then
+              echo "ERRO: $f não referencia poui-license-check"
+              FAIL=1
+            else
+              echo "OK: $f"
+            fi
+          done
+          exit $FAIL
+
+      # ── L2: Nenhum command tem o bloco inline antigo ────────────────────
+      - name: L2 — Commands must NOT contain inline license block
+        run: |
+          FAIL=0
+          for f in commands/*.md; do
+            if grep -q "Licença Beta" "$f"; then
+              echo "ERRO: $f ainda contém o bloco 'Licença Beta' inline (deve referenciar a skill)"
+              FAIL=1
+            else
+              echo "OK: $f"
+            fi
+          done
+          exit $FAIL
+
+      # ── T1: Audit de templates ───────────────────────────────────────────
+      - name: T1 — Audit template files
+        run: node scripts/audit-templates.js
+
+      # ── T2: Audit de templates em modo strict (falha em avisos) ─────────
+      - name: T2 — Audit templates (strict — warnings become errors)
+        run: node scripts/audit-templates.js --strict
+        continue-on-error: true  # strict é informativo; não bloqueia o merge
+
+      # ── V1: bump-version.js é executável ────────────────────────────────
+      - name: V1 — Validate bump-version.js syntax
+        run: node --check scripts/bump-version.js && echo "bump-version.js OK"
+
+      # ── A1: Agents têm Phase 1/2/3 ──────────────────────────────────────
+      - name: A1 — code-generator has required phases
+        run: |
+          FAIL=0
+          for phase in "Phase 1" "Phase 2" "Phase 3"; do
+            if ! grep -q "$phase" agents/code-generator.md; then
+              echo "ERRO: agents/code-generator.md não contém '$phase'"
+              FAIL=1
+            fi
+          done
+          if [ $FAIL -eq 0 ]; then echo "code-generator.md phases OK"; fi
+          exit $FAIL
+
+      # ── S1: Skills têm frontmatter name + description ───────────────────
+      - name: S1 — Skills must have frontmatter name and description
+        run: |
+          FAIL=0
+          for f in skills/*/SKILL.md; do
+            if ! grep -q "^name:" "$f"; then
+              echo "ERRO: $f sem frontmatter 'name:'"
+              FAIL=1
+            fi
+            if ! grep -q "^description:" "$f"; then
+              echo "ERRO: $f sem frontmatter 'description:'"
+              FAIL=1
+            fi
+          done
+          if [ $FAIL -eq 0 ]; then echo "Todos os SKILL.md têm frontmatter OK"; fi
+          exit $FAIL
