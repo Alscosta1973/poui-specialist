@@ -176,18 +176,23 @@ E prossiga diretamente para a substituição de placeholders sem nova chamada de
 
 | Type | Files to read |
 |------|--------------|
-| `page-list` | `skills/poui-code-generation/templates-page-list.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/table-components.md` |
-| `page-dynamic-search` | `skills/poui-code-generation/templates-page-dynamic-search.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/table-components.md`<br>`skills/poui-components/form-fields.md` |
+| `page-list` | `skills/poui-code-generation/templates-page-list.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/table-components.md`<br>`skills/poui-patterns/po-ui-quirks-table.md`<br>`skills/poui-patterns/po-ui-quirks-onpush.md` |
+| `page-dynamic-search` | `skills/poui-code-generation/templates-page-dynamic-search.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/table-components.md`<br>`skills/poui-components/form-fields.md`<br>`skills/poui-patterns/po-ui-quirks-table.md`<br>`skills/poui-patterns/po-ui-quirks-onpush.md` |
 | `page-edit` | `skills/poui-code-generation/templates-page-edit.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/form-fields.md`<br>`skills/poui-components/dynamic-form-fields.md` |
 | `page-detail` | `skills/poui-code-generation/templates-page-detail.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/modal-dialog.md` |
 | `modal-crud` | `skills/poui-code-generation/templates-modal-crud.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/form-fields.md`<br>`skills/poui-components/modal-dialog.md` |
 | `stepper-form` | `skills/poui-code-generation/templates-stepper-form.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/form-fields.md`<br>`skills/poui-components/dynamic-form-fields.md` |
-| `page-dynamic` | `skills/poui-code-generation/templates-page-dynamic.md`<br>`skills/poui-components/dynamic-pages.md` |
-| `master-detail` | `skills/poui-code-generation/templates-master-detail.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/table-components.md` |
+| `page-dynamic` | `skills/poui-code-generation/templates-page-dynamic.md`<br>`skills/poui-components/dynamic-pages.md`<br>`skills/poui-patterns/po-ui-quirks-onpush.md` |
+| `master-detail` | `skills/poui-code-generation/templates-master-detail.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/table-components.md`<br>`skills/poui-patterns/po-ui-quirks-table.md`<br>`skills/poui-patterns/po-ui-quirks-onpush.md` |
+| `stacked-browse` | `skills/poui-code-generation/templates-stacked-browse.md`<br>`skills/poui-code-generation/templates-stacked-browse-ts.md`<br>`skills/poui-code-generation/templates-stacked-browse-html.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-patterns/po-ui-quirks-table.md`<br>`skills/poui-patterns/po-ui-quirks-onpush.md` |
+| `two-panel-browse` | `skills/poui-code-generation/templates-two-panel-browse.md`<br>`skills/poui-code-generation/templates-two-panel-browse-ts.md`<br>`skills/poui-code-generation/templates-two-panel-browse-html.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-patterns/po-ui-quirks-table.md`<br>`skills/poui-patterns/po-ui-quirks-onpush.md` |
+| `action-list` | `skills/poui-code-generation/templates-action-list.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/table-components.md`<br>`skills/poui-patterns/po-ui-quirks-table.md`<br>`skills/poui-patterns/po-ui-quirks-onpush.md` |
 | `service` | `skills/poui-code-generation/templates-service.md`<br>`skills/poui-patterns/protheus-rest.md` |
 | `module` | `skills/poui-code-generation/templates-module.md`<br>`skills/poui-patterns/module-structure.md` |
-| `dashboard` | `skills/poui-code-generation/templates-dashboard.md` |
-| `refactor` | `skills/poui-code-generation/templates-refactor-from-tlpp.md`<br>`skills/poui-components/form-fields.md`<br>`skills/poui-components/table-components.md` |
+| `dashboard` | `skills/poui-code-generation/templates-dashboard.md`<br>`skills/poui-patterns/po-ui-quirks-onpush.md` |
+| `refactor` | `skills/poui-code-generation/templates-refactor-from-tlpp.md`<br>`skills/poui-components/form-fields.md`<br>`skills/poui-components/table-components.md`<br>`skills/poui-patterns/po-ui-quirks-table.md`<br>`skills/poui-patterns/po-ui-quirks-forms.md`<br>`skills/poui-patterns/po-ui-quirks-onpush.md` |
+| `models` | `skills/poui-code-generation/templates-models.md` |
+| `tlpp-contract` | `skills/poui-code-generation/templates-tlpp-contract.md` |
 
 > **Why conditional?** Loading all skills for every generation wastes tokens. A `page-list`
 > does not need `dynamic-form-fields.md`, `reactive-forms.md`, or `navigation-components.md`.
