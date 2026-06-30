@@ -31,38 +31,38 @@ curl -s "https://gist.githubusercontent.com/Alscosta1973/ace66c8661a912f3877c47c
 
 Generates standalone Angular 17+ artifacts using PO-UI components, integrated with TOTVS Protheus REST API.
 
-## Valid Types
+## Tipos válidos
 
-### List pages
-| Type | Generated Files | `--module` required? | When to use |
+### Páginas de lista
+| Tipo | Arquivos gerados | `--module` obrigatório? | Quando usar |
 |------|----------------|----------------------|-------------|
-| `page-list` | `*.component.ts/html/scss` | Yes | Simple list with quick search only |
-| `page-dynamic-search` | `*.component.ts/html/scss` | Yes | List + advanced search + disclaimers — **padrão Protheus** |
-| `page-dynamic` | `*.component.ts/html` | Yes | Zero-boilerplate via PoPageDynamicTableComponent — API must follow plugin contract |
-| `master-detail` | `*.component.ts/html/scss` + model | Yes | List with expandable child rows (pedido/itens, NF/itens) |
-| `stacked-browse` | `*.component.ts/html/scss` | Yes | Dois po-table empilhados (master/detail) com navegação por teclado ArrowUp/Down e Tab para alternar |
-| `two-panel-browse` | `*.component.ts/html/scss` | Yes | Dois po-table lado a lado para conciliação/matching (seleciona um de cada e confirma) |
-| `action-list` | `*.component.ts/html/scss` + model | Yes | Lista com N ações procedurais Protheus — cada ação tem modal de confirmação com interpolação de campos, loading isolado por botão, resposta estruturada por linha com modal de resultados para sucesso parcial |
+| `page-list` | `*.component.ts/html/scss` | Sim | Lista simples com busca rápida apenas |
+| `page-dynamic-search` | `*.component.ts/html/scss` | Sim | Lista + busca avançada + disclaimers — **padrão Protheus** |
+| `page-dynamic` | `*.component.ts/html` | Sim | Zero-boilerplate via PoPageDynamicTableComponent — API deve seguir contrato do plugin |
+| `master-detail` | `*.component.ts/html/scss` + model | Sim | Lista com linhas filho expansíveis (pedido/itens, NF/itens) |
+| `stacked-browse` | `*.component.ts/html/scss` | Sim | Dois po-table empilhados (master/detail) com navegação por teclado ArrowUp/Down e Tab para alternar |
+| `two-panel-browse` | `*.component.ts/html/scss` | Sim | Dois po-table lado a lado para conciliação/matching (seleciona um de cada e confirma) |
+| `action-list` | `*.component.ts/html/scss` + model | Sim | Lista com N ações procedurais Protheus — cada ação tem modal de confirmação com interpolação de campos, loading isolado por botão, resposta estruturada por linha com modal de resultados para sucesso parcial |
 
-### Edit / Detail pages
-| Type | Generated Files | `--module` required? | When to use |
+### Edição e detalhe
+| Tipo | Arquivos gerados | `--module` obrigatório? | Quando usar |
 |------|----------------|----------------------|-------------|
-| `page-edit` | `*.component.ts/html/scss` | Yes | Form with many fields, navigates via route |
-| `page-detail` | `*.component.ts/html/scss` | Yes | Read-only detail view, route `:id/detalhe` |
-| `modal-crud` | `*.component.ts/html/scss` | Yes | All-in-one list + modal add/edit (up to ~10 fields) |
-| `stepper-form` | `*.component.ts/html/scss` | Yes | Multi-step wizard with po-stepper (3+ distinct sections) |
+| `page-edit` | `*.component.ts/html/scss` | Sim | Formulário com muitos campos, navega via rota |
+| `page-detail` | `*.component.ts/html/scss` | Sim | Detalhe somente leitura, rota `:id/detalhe` |
+| `modal-crud` | `*.component.ts/html/scss` | Sim | Lista + modal add/edit num único componente (até ~10 campos) |
+| `stepper-form` | `*.component.ts/html/scss` | Sim | Wizard multi-etapas com po-stepper (3+ seções distintas) |
 
-### Other
-| Type | Generated Files | `--module` required? | When to use |
+### Utilitários
+| Tipo | Arquivos gerados | `--module` obrigatório? | Quando usar |
 |------|----------------|----------------------|-------------|
-| `service` | `*.service.ts` | Yes | Angular service consuming Protheus REST |
-| `module` | `app.routes.ts`, `app.config.ts`, `app.component.ts`, `package.json`, `proxy.conf.json`, `index.html` | No | Full application scaffold |
-| `dashboard` | `*.component.ts/html/scss` | Yes | Analytics page with po-widget + po-chart |
-| `refactor` | `*.component.ts/html/scss` + service + model | Yes | Convert existing `.prw`/`.tlpp` to PO-UI (provide source file) |
-| `models` | `<entity>.model.ts` | Yes | TypeScript interfaces: simple, composite key, flat relational (padrão Protheus) |
-| `tlpp-contract` | skeleton WsRestFul `.tlpp` | Yes | Contrato REST backend para implementar com `/advpl-specialist:generate rest` |
+| `service` | `*.service.ts` | Sim | Angular service consumindo REST Protheus |
+| `module` | `app.routes.ts`, `app.config.ts`, `app.component.ts`, `package.json`, `proxy.conf.json`, `index.html` | Não | Scaffold completo de aplicação |
+| `dashboard` | `*.component.ts/html/scss` | Sim | Página analítica com po-widget + po-chart |
+| `refactor` | `*.component.ts/html/scss` + service + model | Sim | Converte `.prw`/`.tlpp` existente para PO-UI (fornecer o arquivo fonte) |
+| `models` | `<entidade>.model.ts` | Sim | Interfaces TypeScript: simples, chave composta, flat relational (padrão Protheus) |
+| `tlpp-contract` | skeleton WsRestFul `.tlpp` | Sim | Contrato REST backend para implementar com `/advpl-specialist:generate rest` |
 
-## Examples
+## Exemplos
 
 ```bash
 /poui-specialist:generate page-dynamic-search Pedidos --module financeiro
@@ -83,7 +83,7 @@ Generates standalone Angular 17+ artifacts using PO-UI components, integrated wi
 /poui-specialist:generate tlpp-contract Pedido --module compras
 ```
 
-## Process
+## Processo
 
 > **Pré-passo opcional:** Se o projeto Angular já tem serviços e rotas cadastradas, execute `/poui-specialist:context` antes para gerar um snapshot de contexto e evitar duplicatas.
 > 

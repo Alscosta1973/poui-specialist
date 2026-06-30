@@ -140,6 +140,26 @@ Verifique se há erros de compilação no terminal e tente novamente.
 
 ---
 
+## Passo 4.5 — Verificar disponibilidade do Playwright
+
+Antes de tentar abrir o browser, verificar se as ferramentas Playwright estão disponíveis nesta sessão.
+
+Tentar uma operação mínima de verificação. Se as ferramentas `browser_navigate` / `browser_take_screenshot` **não estiverem disponíveis** (erro de ferramenta não encontrada ou MCP não conectado), exibir e encerrar:
+
+```
+⚠ Playwright não disponível nesta sessão.
+
+O servidor Angular foi iniciado com sucesso — acesse manualmente:
+  http://localhost:<portaLivre>/<module>/<kebab-name>
+
+Para habilitar o preview automático no browser, ative o MCP do Playwright:
+  /plugin marketplace add playwright-mcp
+```
+
+Se as ferramentas estiverem disponíveis, continuar para o Passo 5.
+
+---
+
 ## Passo 5 — Abrir no browser com Playwright
 
 Aguardar 2 segundos extras após o servidor responder (PO-UI precisa do tempo de hidratação):
@@ -188,6 +208,9 @@ Detectar porta livre (4200-4209)
 ng serve --port <porta> (background)
       ↓
 Aguardar servidor responder (timeout 120s)
+      ↓
+Verificar Playwright disponível
+  └─ Não disponível → exibir URL manual e encerrar
       ↓
 browser_navigate → localhost:<porta>/<module>/<kebab-name>
       ↓

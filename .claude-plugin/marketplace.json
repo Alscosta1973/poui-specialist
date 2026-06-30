@@ -20,6 +20,10 @@
       "license": "MIT",
       "copyright": "© 2025–2026 Andre Costa. Todos os direitos reservados.",
       "contact": "andre.andrelscosta@gmail.com",
+      "usage": {
+        "fair-use": "Uso pessoal e em projetos do licenciado. Redistribuição ou revenda proibidas sem autorização escrita.",
+        "audit": "O autor pode revogar o acesso a qualquer momento via poui-license.json. Ao usar o plugin você aceita esta condição."
+      },
       "keywords": ["poui", "portinari", "angular", "protheus", "totvs", "po-ui", "frontend", "claude-code-plugin"]
     }
   ]

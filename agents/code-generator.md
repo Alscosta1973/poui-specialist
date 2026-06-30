@@ -149,6 +149,20 @@ registerLocaleData(localePtBr, 'pt-BR');
 | Directory | `src/app/<module>/<kebab-name>/` | `src/app/financeiro/pedidos-list/` |
 | REST path (inferred) | `/api/custom/v1/<plural-kebab>` | `/api/custom/v1/pedidos` |
 
+## Reutilização de templates na sessão (cache)
+
+Se um arquivo de template já foi carregado nesta sessão via `Read` (ex: `templates-page-list.md`), **não releia o mesmo arquivo**. Declare explicitamente no plano:
+
+```
+# Reutilizando templates-page-list.md (já carregado nesta sessão)
+```
+
+E prossiga diretamente para a substituição de placeholders sem nova chamada de `Read`. Isso aplica-se também a arquivos de componentes de referência (`table-components.md`, `form-fields.md`, etc.).
+
+**Não se aplica a:** arquivos do projeto do usuário (`angular.json`, `app.routes.ts`) — estes sempre devem ser relidos para garantir estado atual.
+
+---
+
 ## Workflow
 
 ### Phase 1: Planning
@@ -215,7 +229,7 @@ Add this block at the **very top** of every generated `.ts` file, before the fir
 
 ```typescript
 /**
- * @generated  poui-specialist v1.3
+ * @generated  poui-specialist v1.5.1
  * @author     Andre Costa <andre.andrelscosta@gmail.com>
  * @license    Uso permitido · redistribuição proibida sem autorização escrita
  * @see        https://github.com/Alscosta1973/poui-specialist
