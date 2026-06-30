@@ -10,10 +10,12 @@ Escaneia o projeto Angular e gera um snapshot de contexto reutilizável para evi
 ## Uso
 
 ```
-/poui-specialist:context
+/poui-specialist:context [--max-components N]
 ```
 
 Invocar uma vez por sessão antes de usar `/generate` ou `/generate-batch`.
+
+- `--max-components N` — limitar o scan de serviços aos primeiros N encontrados (útil em projetos grandes). Se houver mais do que N, exibir ao final: `⚠ Scan limitado a N serviços (--max-components). Há X serviços adicionais não incluídos no contexto.`
 
 ---
 

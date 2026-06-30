@@ -121,6 +121,41 @@ em caso de erro (4xx/5xx).**
 
 ---
 
+## Segurança — Padrões obrigatórios
+
+Ao implementar os endpoints com `/advpl-specialist:generate rest`, incluir **obrigatoriamente** os controles abaixo:
+
+```advpl
+// Autenticação: validar usuário/senha do header Authorization ou sessão REST
+If !FWUserLogged()
+    Self:SetResponse('{"errorMessage":"Não autenticado"}')
+    Self:SetHTTPStatus(401, "Unauthorized")
+    Return .F.
+EndIf
+
+// Autorização: verificar permissão de rotina
+If !FWValidUserLog(cAlias, "LI") // LI=Listar  IN=Incluir  EX=Excluir  AT=Alterar
+    Self:SetResponse('{"errorMessage":"Acesso negado"}')
+    Self:SetHTTPStatus(403, "Forbidden")
+    Return .F.
+EndIf
+
+// SQL sanitization: NUNCA concatenar input do usuário em SQL diretamente
+// CORRETO — usar BeginSQL com macros:
+BeginSQL Alias cAlias
+    SELECT %Exp:cCampos% FROM %Table:cTabela% WHERE %NotDel%
+    AND %xFilial:cTabela%
+    AND UPPER(CAMPO_BUSCA) LIKE UPPER('%' + %Exp:cBusca% + '%')
+EndSQL
+
+// ERRADO — vulnerável a SQL injection:
+// cSql := "SELECT * FROM " + cTabela + " WHERE CAMPO = '" + cInput + "'"
+```
+
+> **Auditoria:** campos `X_*` customizados devem ter existência validada com `ExistField(cAlias, cCampo)` antes de referenciar. Campos do sistema (SX3) são garantidos pelo dicionário.
+
+---
+
 ## Skeleton WsRestFul ADVPL
 
 Estrutura mínima da classe REST no lado Protheus. Use como ponto de partida

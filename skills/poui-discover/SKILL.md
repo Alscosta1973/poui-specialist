@@ -186,3 +186,27 @@ Dica: teste no Postman ou curl antes de usar o /discover.
 
 Verifique se o AppServer está ativo na URL configurada em proxy.conf.json.
 ```
+
+**Modo offline — entrada manual de campos:**
+
+Ao invés de encerrar, perguntar:
+
+```
+Deseja informar os campos manualmente para gerar o manifesto sem conexão? [S/n]
+```
+
+**Se S:** solicitar ao usuário:
+
+```
+Informe os campos da entidade separados por vírgula:
+Exemplo: codigo, nome, status, dataCriacao, valorTotal
+>
+```
+
+Com os campos informados:
+- Montar `$item` como objeto com as chaves fornecidas e valores `null`
+- Prosseguir para o **Passo 3** (inspeção de campos) e **Passo 4** (manifesto) normalmente
+- Adicionar em REGRAS: `⚠ Campos informados manualmente — validar tipos e obrigatoriedade antes de gerar`
+- Marcar no manifesto a nota: `# origem: entrada manual (Protheus offline)`
+
+**Se n:** encerrar com a mensagem de falha de conexão acima.

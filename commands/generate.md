@@ -1,29 +1,15 @@
 ---
 description: Generate PO-UI Angular 17+ components, services and modules for Protheus REST integration
 allowed-tools: Read, Write, Glob, Grep, Skill, Agent, Bash, mcp__plugin_playwright_playwright__browser_navigate, mcp__plugin_playwright_playwright__browser_take_screenshot, mcp__plugin_playwright_playwright__browser_wait_for
-argument-hint: "<type> <Name> [--module <module>]"
+argument-hint: "<type> <Name> [--module <module>] [--dry-run] [--skip-build]"
 ---
 
 **IMPORTANT:** Always respond in the same language the user is writing in. If the user writes in Portuguese, respond in Portuguese.
 
-## ⚠️ Licença Beta — Passo 0 obrigatório antes de qualquer ação
+## Passo 0 — Verificação de licença
 
-**0a — Check local:** A data de expiração é `2026-07-23`. Verifique `currentDate` no contexto do sistema. Se hoje for posterior a `2026-07-23`, exibir a mensagem de expiração abaixo e **encerrar imediatamente**.
-
-**0b — Check remoto:**
-```bash
-curl -s "https://gist.githubusercontent.com/Alscosta1973/ace66c8661a912f3877c47ca8e7259be/raw/poui-license.json"
-```
-- Se `"active": false` na resposta: exibir mensagem e encerrar.
-- Se `expires` na resposta for anterior à data atual: exibir mensagem e encerrar.
-- Se o curl falhar (sem internet): prosseguir com base apenas no check local (0a).
-
-**Mensagem de expiração:**
-```
-⛔ Licença de teste do poui-specialist expirada ou revogada.
-   Período de acesso: até 23/07/2026.
-   Contato: andre.andrelscosta@gmail.com
-```
+Invocar a skill `poui-specialist:poui-license-check` antes de qualquer outra ação.
+Se a skill retornar `status: expirado` ou `status: revogado`, encerrar imediatamente.
 
 ---
 
@@ -89,10 +75,12 @@ Generates standalone Angular 17+ artifacts using PO-UI components, integrated wi
 > 
 > **Geração a partir de imagem:** Se tiver um screenshot ou wireframe da tela, use `/poui-specialist:screenshot <caminho-ou-url>` para gerar o manifesto automaticamente por visão, sem precisar escrever o manifesto à mão.
 
-1. **Parse arguments** — identify `<type>`, `<Name>`, and optional `--module`
+1. **Parse arguments** — identificar `<type>`, `<Name>`, `--module` e flags opcionais:
+   - `--dry-run`: exibir apenas o plano (lista de arquivos e estrutura resumida) **sem escrever nada em disco**. Encerrar após o Passo 2 com: `🔍 Modo dry-run — nenhum arquivo foi gerado.`
+   - `--skip-build`: pular o Passo 4. Útil em gerações em lote para rodar build uma única vez no final.
 2. **Delegate to `code-generator` agent** — full planning, validation, and generation workflow
 3. **Confirm output** — list created files with their absolute paths and suggested route addition
-4. **Build verification** — após confirmar os arquivos, invocar automaticamente a skill `poui-specialist:build-fix`. Não perguntar ao usuário — executar direto e exibir o relatório de build.
+4. **Build verification** — Se `--skip-build` foi fornecido: exibir `⚠ Build verification ignorada (--skip-build). Execute ng build --configuration development manualmente.` e pular para o Passo 5. Caso contrário: invocar automaticamente a skill `poui-specialist:build-fix`. Não perguntar ao usuário — executar direto e exibir o relatório de build.
 5. **Preview no browser** — após a verificação de build, perguntar:
 
    > "Deseja visualizar a tela no browser? [S/n]"

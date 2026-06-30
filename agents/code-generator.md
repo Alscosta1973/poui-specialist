@@ -214,12 +214,22 @@ Tipo escolhido:
 Prosseguir? (s/n)
 ```
 
+> **`--dry-run`:** Se este flag foi passado via `/generate`, encerrar aqui após exibir o plano. Não entrar nas fases 2 e 3. Exibir: `🔍 Modo dry-run — nenhum arquivo foi escrito em disco. Use /generate sem --dry-run para gerar os arquivos.`
+
 ### Phase 2: Validation
 
 1. If `--module` is missing for any type except `module` — ask the user before proceeding
 2. If the target directory does not exist — inform the user and confirm creation
 3. If any target file already exists — list conflicting files, ask for confirmation before overwriting
 4. If the name contains invalid characters (spaces, special chars) — suggest a corrected kebab/PascalCase version
+5. **PascalCase validation (MANDATORY):** se `<Name>` começa com letra minúscula (ex: `pedidos`), corrigir para PascalCase automaticamente (`Pedidos`) e avisar: `⚠ Nome corrigido para PascalCase: Pedidos. Forneça sempre o nome em PascalCase.`
+6. **Lazy loading (MANDATORY — sugestão de rota):** ao sugerir adição em `app.routes.ts`, sempre usar `loadComponent` com importação dinâmica — **nunca** referenciar o componente diretamente:
+   ```typescript
+   // ✅ CORRETO
+   { path: 'financeiro/pedidos', loadComponent: () => import('./financeiro/pedidos/pedidos.component').then(m => m.PedidosComponent) }
+   // ❌ PROIBIDO — eager loading
+   { path: 'financeiro/pedidos', component: PedidosComponent }
+   ```
 
 ### Phase 3: Generation
 

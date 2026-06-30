@@ -91,7 +91,7 @@ Repetir até build passar ou 3 tentativas esgotadas:
 
 2. Rodar o build novamente (Passo 2)
 
-**Tipos de erro e correção:**
+**Tipos de erro e correção — TypeScript genérico:**
 
 | Erro | Correção |
 |------|----------|
@@ -102,6 +102,17 @@ Repetir até build passar ou 3 tentativas esgotadas:
 | `Object is possibly 'undefined'` | Adicionar optional chaining `?.` ou verificação de nulidade |
 | `Property 'x' has no initializer and is not definitely assigned` | Adicionar `!` ou inicializador ao campo |
 | `Property 'p-xxx' does not exist` em templates HTML | Verificar nome correto do input PO-UI em `agents/code-generator.md` — seção "Critical Rules" |
+
+**Padrões de erro específicos PO-UI — verificar antes de tentar correção genérica:**
+
+| Padrão no output | Quirk associado | Correção automática |
+|---|---|---|
+| `p-maxlength is not assignable` | Quirk #6 — `p-maxlength` não existe; PO-UI usa `maxlength` nativo | Substituir `[p-maxlength]="N"` por `maxlength="N"` no template |
+| `p-selected-rows is not assignable` | Quirk #18 — `p-selected` em po-table requer getter/setter por CD | Adicionar `get selectedRows()` e `set selectedRows()` com `markForCheck()` |
+| `PoChartSerie` / `data` property missing | Quirk #20 — `PoChartSerie.data` tipado como `number[]` não `PoChartSerieLine[]` | Tipar como `PoChartSerie[]` e ajustar o shape de dados |
+| `provideHttpClient` not found | Quirk #19 — `HttpClient` standalone requer `provideHttpClient()` no `providers` | Adicionar `provideHttpClient()` em `app.config.ts` ou `TestBed.configureTestingModule` |
+| `ChangeDetectorRef` not injected / `markForCheck` undefined | Quirk #1 — OnPush requer injeção de `ChangeDetectorRef` | Injetar `private cd = inject(ChangeDetectorRef)` e chamar `this.cd.markForCheck()` após dados assíncronos |
+| `po-table [p-columns]` não atualiza / tabela vazia | Quirk #1 — detecção de mudança em OnPush não dispara para mutações de array | Reassignar com `this.items = [...this.items]` em vez de `.push()` |
 
 **Não corrigir:**
 - Arquivos sem header `@generated  poui-specialist`
