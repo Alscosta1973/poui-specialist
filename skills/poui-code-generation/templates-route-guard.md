@@ -24,7 +24,7 @@ Se não estiver, redireciona para a rota raiz com mensagem de erro.
 
 ```typescript
 /**
- * @generated  poui-specialist v1.9.0
+ * @generated  poui-specialist v1.9.1
  * @author     Andre Costa <andre.andrelscosta@gmail.com>
  * @license    Uso permitido · redistribuição proibida sem autorização escrita
  * @see        https://github.com/Alscosta1973/poui-specialist
@@ -72,7 +72,7 @@ Impede navegação acidental quando há alterações não salvas em um formulár
 
 ```typescript
 /**
- * @generated  poui-specialist v1.9.0
+ * @generated  poui-specialist v1.9.1
  * @author     Andre Costa <andre.andrelscosta@gmail.com>
  * @license    Uso permitido · redistribuição proibida sem autorização escrita
  * @see        https://github.com/Alscosta1973/poui-specialist
@@ -129,7 +129,7 @@ Verifica nível de acesso do usuário a partir do `ProAppConfigService`.
 
 ```typescript
 /**
- * @generated  poui-specialist v1.9.0
+ * @generated  poui-specialist v1.9.1
  * @author     Andre Costa <andre.andrelscosta@gmail.com>
  * @license    Uso permitido · redistribuição proibida sem autorização escrita
  * @see        https://github.com/Alscosta1973/poui-specialist
