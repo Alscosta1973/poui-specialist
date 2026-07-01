@@ -15,13 +15,18 @@ Common scenarios: inject auth token, translate Protheus error messages, add load
 
 ---
 
-## Template A — Auth token interceptor (Protheus JWT / token)
+## Template A — App context interceptor (Protheus headers)
+
+> **Nota:** A autenticação Bearer é tratada internamente por `ProAuthInteceptor` da lib
+> `@totvs/protheus-lib-core` — não existe `getTokenAuthorizationBearer` em `ProAppConfigService`.
+> Este template adiciona headers de contexto de aplicação (app name, versão) que alguns
+> backends Protheus utilizam para logging e auditoria.
 
 **File:** `src/app/{{moduleName}}/{{kebab-name}}.ts`
 
 ```typescript
 /**
- * @generated  poui-specialist v1.6.0
+ * @generated  poui-specialist v1.7.0
  * @author     Andre Costa <andre.andrelscosta@gmail.com>
  * @license    Uso permitido · redistribuição proibida sem autorização escrita
  * @see        https://github.com/Alscosta1973/poui-specialist
@@ -31,7 +36,9 @@ import { inject } from '@angular/core';
 import { ProAppConfigService } from '@totvs/protheus-lib-core';
 
 /**
- * Injeta o token Protheus no header Authorization de toda requisição HTTP.
+ * Injeta headers de contexto Protheus em toda requisição HTTP.
+ * X-App-Name: identifica o módulo chamador nos logs do backend.
+ * Nota: a autenticação Bearer é tratada pela ProAuthInteceptor da lib.
  * Registrar em app.config.ts: provideHttpClient(withInterceptors([{{InterceptorName}}]))
  */
 export const {{InterceptorName}}: HttpInterceptorFn = (req, next) => {
@@ -41,13 +48,13 @@ export const {{InterceptorName}}: HttpInterceptorFn = (req, next) => {
     return next(req);
   }
 
-  const token = proConfig.getTokenAuthorizationBearer?.() ?? '';
+  const appName = proConfig.nameApp || 'poui-app';
 
-  const authReq = token
-    ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } })
-    : req;
+  const enrichedReq = req.clone({
+    setHeaders: { 'X-App-Name': appName },
+  });
 
-  return next(authReq);
+  return next(enrichedReq);
 };
 ```
 
@@ -176,7 +183,11 @@ export class LoadingService {
 
 | Cenário | Template |
 |---------|---------|
-| App Protheus com JWT / token | A — Auth token |
+| Headers de contexto (app name, auditoria) | A — App context |
 | Tradução de erros Protheus (Latin-1) | B — Error translation |
 | Loading global sem signal por componente | C — Loading overlay |
-| Múltiplos interceptors | Combinar A + B em array: `withInterceptors([authInterceptor, errorInterceptor])` |
+| Múltiplos interceptors | Combinar em array: `withInterceptors([appContextInterceptor, errorInterceptor])` |
+
+> **Auth Bearer:** não implementar manualmente — a lib `@totvs/protheus-lib-core` injeta o
+> token automaticamente via `ProAuthInteceptor`. Registre apenas `ProtheusLibCoreModule` em
+> `app.config.ts` e o token será adicionado a todas as requisições dentro do Protheus.
