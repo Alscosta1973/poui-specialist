@@ -101,6 +101,7 @@ All templates use these substitution placeholders:
 | **route-guard** | `templates-route-guard.md` | Angular 17–21+ functional guards: CanActivate (Protheus auth/permission), CanDeactivate (unsaved changes) |
 | **standalone-migrate** | `templates-standalone-migrate.md` | Migration guide: convert NgModule component to Angular 17–21+ standalone + OnPush + signals |
 | **exemplo-e2e** | `templates-exemplo-e2e.md` | Referência completa ponta-a-ponta: Angular component + service + TLPP backend + proxy + CORS para entidade Pedidos |
+| **auth-login** | `templates-auth-login.md` | Autenticação: po-page-login + AuthService + authGuard + tokenInterceptor + endpoint TLPP de login |
 
 ---
 

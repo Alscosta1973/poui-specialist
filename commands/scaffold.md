@@ -46,6 +46,8 @@ Cria um projeto Angular 17–21+ com PO-UI e integração Protheus **do zero**, 
 | `--protheus <url>` | `protheusUrl` | `http://localhost:8086` |
 | `--demo` | `createDemo = true` | `false` |
 | `--skip-install` | `skipInstall = true` | `false` |
+| `--with-dark-mode` | `withDarkMode = true` | `false` |
+| `--with-i18n` | `withI18n = true` | `false` |
 
 Se `projectName` não for fornecido: perguntar antes de prosseguir.
 
@@ -429,6 +431,111 @@ Deseja iniciar o servidor de desenvolvimento agora?
 ```
 
 Se **S**: executar `npm start` em background e exibir a URL.
+
+---
+
+## Passo 9.5 — Dark Mode (flag --with-dark-mode)
+
+Se `--with-dark-mode` foi fornecido, criar `src/app/shared/theme.service.ts`:
+
+```typescript
+import { inject, Injectable, signal } from '@angular/core';
+import { PoThemeService, PoThemeTypeEnum } from '@po-ui/ng-components';
+
+@Injectable({ providedIn: 'root' })
+export class ThemeService {
+  private readonly po = inject(PoThemeService);
+  private readonly KEY = 'po_theme';
+
+  readonly theme = signal<'light' | 'dark'>(
+    (localStorage.getItem(this.KEY) as 'light' | 'dark') ?? this.systemDefault()
+  );
+
+  constructor() {
+    this.apply(this.theme());
+    window.matchMedia('(prefers-color-scheme: dark)')
+      .addEventListener('change', e => {
+        if (!localStorage.getItem(this.KEY)) this.apply(e.matches ? 'dark' : 'light');
+      });
+  }
+
+  toggle(): void {
+    this.apply(this.theme() === 'light' ? 'dark' : 'light');
+    localStorage.setItem(this.KEY, this.theme());
+  }
+
+  private apply(t: 'light' | 'dark'): void {
+    this.po.changeCurrentTheme(t === 'dark' ? PoThemeTypeEnum.dark : PoThemeTypeEnum.default);
+    this.theme.set(t);
+  }
+
+  private systemDefault(): 'light' | 'dark' {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+}
+```
+
+Adicionar em `styles.scss`:
+```scss
+/* Dark mode — variáveis CSS adaptam automaticamente os componentes PO-UI */
+[theme="default-dark"] {
+  --background: #1a1a1a;
+  --text:       #f0f0f0;
+}
+```
+
+Informar: `ThemeService` injetado globalmente. Use `themeService.toggle()` para alternar.
+
+---
+
+## Passo 9.6 — Internacionalização (flag --with-i18n)
+
+Se `--with-i18n` foi fornecido, criar estrutura i18n:
+
+**`src/i18n/geral.pt.json`:**
+```json
+{
+  "app": {
+    "titulo": "{{projectName}}",
+    "sair": "Sair",
+    "salvar": "Salvar",
+    "cancelar": "Cancelar",
+    "confirmar": "Confirmar"
+  }
+}
+```
+
+**`src/i18n/geral.en.json`:**
+```json
+{
+  "app": {
+    "titulo": "{{projectName}}",
+    "sair": "Exit",
+    "salvar": "Save",
+    "cancelar": "Cancel",
+    "confirmar": "Confirm"
+  }
+}
+```
+
+Adicionar `providePoI18n` em `app.config.ts`:
+```typescript
+import { importProvidersFrom } from '@angular/core';
+import { PoI18nConfig, PoI18nModule } from '@po-ui/ng-components';
+
+const i18nConfig: PoI18nConfig = {
+  default: { language: 'pt', context: 'geral', cache: true },
+  contexts: {
+    geral: { url: '/assets/i18n/geral.' },
+  },
+};
+
+// providers:
+importProvidersFrom(PoI18nModule.config(i18nConfig))
+```
+
+Copiar os arquivos `.json` para `src/assets/i18n/`.
+Informar: adicione contextos por módulo conforme necessário.
 
 ---
 

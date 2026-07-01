@@ -8,7 +8,8 @@
     "release:minor": "commit-and-tag-version --release-as minor",
     "release:patch": "commit-and-tag-version --release-as patch",
     "release:major": "commit-and-tag-version --release-as major",
-    "bump": "node scripts/bump-version.js"
+    "bump": "node scripts/bump-version.js",
+    "test": "node scripts/test-plugin.js"
   },
   "devDependencies": {
     "commit-and-tag-version": "^12.0.0"

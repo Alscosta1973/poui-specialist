@@ -176,7 +176,7 @@ import { ChangeDetectorRef, HostListener, inject } from '@angular/core';
 export class MasterDetailComponent {
   private readonly cdr = inject(ChangeDetectorRef);
 
-  // Quirk #21: po-table expand fires internally without marking this OnPush
+  // Quirk #18: po-table expand fires internally without marking this OnPush
   // component dirty. Any click on the host forces re-render of the detail rows.
   @HostListener('click')
   onHostClick(): void {

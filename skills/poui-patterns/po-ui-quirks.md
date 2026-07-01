@@ -36,7 +36,7 @@ Carregar apenas a família relevante para o tipo de componente que está gerando
 | 15 | po-stepper | `[p-current-active-step]` não existe (NG8002); `back()` não limpa 'done' | forms |
 | 16 | po-table | Colunas numéricas sem `type` alinhadas à esquerda | table |
 | 17 | po-decimal / po-number | Input numérico alinhado à esquerda em formulários | forms |
-| 21 | po-table (detail) | Linhas de detalhe expandidas invisíveis em OnPush | onpush |
+| 18 | po-table (detail) | Linhas de detalhe expandidas invisíveis em OnPush | onpush |
 
 ---
 
