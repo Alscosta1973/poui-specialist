@@ -147,6 +147,24 @@ export const routes: Routes = [
         .then(m => m.IndicadoresRhComponent),
   },
   // ------------------------------------------------------------------
+  // Financeiro — Títulos Legacy (Wave 12 — standalone-migrate)
+  // ------------------------------------------------------------------
+  {
+    path: 'financeiro/titulos-legacy',
+    loadComponent: () =>
+      import('./financeiro/titulos-legacy/titulos-legacy.component')
+        .then(m => m.TitulosLegacyComponent),
+  },
+  // ------------------------------------------------------------------
+  // Compras — Fornecedores (Wave 13 — refactor from FORN001.prw)
+  // ------------------------------------------------------------------
+  {
+    path: 'compras/fornecedores',
+    loadComponent: () =>
+      import('./compras/fornecedores/fornecedores.component')
+        .then(m => m.FornecedoresComponent),
+  },
+  // ------------------------------------------------------------------
   // RH — Funcionários (Wave 1 — teste plugin poui-specialist)
   // ------------------------------------------------------------------
   {
