@@ -4,6 +4,12 @@ Define o contrato de API REST que o frontend Angular gerado pelo plugin espera.
 Use este documento como especificação para criar o backend no Protheus via
 `/advpl-specialist:generate rest`.
 
+> **Cobertura de testes:** o artefato gerado por este tipo é um arquivo `.tlpp` (backend
+> Protheus), não um componente Angular. Por isso **não existe spec Karma** para este tipo —
+> a validação é feita via `/advpl-specialist:generate rest` + testes REST no Postman/Insomnia
+> ou via `ProAuthInteceptor` + servidor Protheus de desenvolvimento.
+> O comando `/poui-specialist:test` não se aplica a `tlpp-contract`.
+
 ---
 
 ## Endpoints por operação CRUD
