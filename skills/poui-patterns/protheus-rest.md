@@ -182,6 +182,166 @@ save(): void {
 
 ---
 
+## Estratégias de Paginação
+
+### Offset Pagination (padrão atual — page/pageSize)
+
+```
+GET /rest/api/custom/v1/pedidos?page=2&pageSize=10
+```
+
+| Vantagem | Desvantagem |
+|----------|-------------|
+| Simples — TOTVS REST Framework suporta nativamente | Dados dinâmicos: insert no meio desloca itens entre páginas |
+| `page` intuitivo para o usuário | Ineficiente em tabelas grandes (SQL usa OFFSET que varre todas as linhas anteriores) |
+| Compatível com po-table `show-more` padrão | Duplicatas ou itens pulados quando dados mudam entre requests |
+
+**Quando usar:** a maioria dos cenários ERP — listas de pedidos, clientes, produtos. Dados estáticos ou com baixa taxa de inserção simultânea.
+
+---
+
+### Cursor Pagination (keyset — para grandes datasets)
+
+O servidor retorna um `cursor` opaco na resposta. O cliente envia `cursor=<token>` em vez de `page=N` nas requisições seguintes.
+
+**Contrato esperado do backend Protheus:**
+
+```json
+// GET /rest/api/custom/v1/logs?pageSize=50
+{
+  "items": [ ... ],
+  "hasNext": true,
+  "cursor": "eyJpZCI6MTAwMH0="
+}
+
+// Próxima página — sem page=2, com cursor
+// GET /rest/api/custom/v1/logs?pageSize=50&cursor=eyJpZCI6MTAwMH0=
+{
+  "items": [ ... ],
+  "hasNext": false,
+  "cursor": null
+}
+```
+
+O cursor é gerado pelo backend — pode ser um ID codificado em Base64, timestamp, ou hash. O frontend trata como string opaca.
+
+**Interface TypeScript:**
+
+```typescript
+export interface ProtheusListResponse<T> {
+  items: T[];
+  hasNext: boolean;
+  cursor?: string | null;   // presente em cursor pagination
+  po_sync_date?: string;
+}
+```
+
+**Service com suporte a ambos os modos:**
+
+```typescript
+export interface GetAllParams {
+  // Offset mode
+  page?: number;
+  pageSize?: number;
+  // Cursor mode (mutuamente exclusivo com page)
+  cursor?: string;
+  // Compartilhados
+  q?: string;
+  order?: string;
+  [key: string]: unknown;
+}
+
+@Injectable({ providedIn: 'root' })
+export class LogsService {
+  private readonly http = inject(HttpClient);
+  private readonly baseUrl = '/rest/api/custom/v1/logs';
+
+  getAll(params: GetAllParams = {}): Observable<ProtheusListResponse<Log>> {
+    // Se cursor fornecido, omitir page (mutuamente exclusivos)
+    const cleanedParams = { ...params };
+    if (cleanedParams.cursor) {
+      delete cleanedParams.page;
+    }
+    const httpParams = new HttpParams({ fromObject: this.cleanParams(cleanedParams) });
+    return this.http.get<ProtheusListResponse<Log>>(this.baseUrl, { params: httpParams });
+  }
+
+  private cleanParams(params: GetAllParams): Record<string, string> {
+    return Object.fromEntries(
+      Object.entries(params)
+        .filter(([, v]) => v !== null && v !== undefined && v !== '')
+        .map(([k, v]) => [k, String(v)])
+    );
+  }
+}
+```
+
+**Componente com cursor pagination:**
+
+```typescript
+@Component({ standalone: true, changeDetection: ChangeDetectionStrategy.OnPush })
+export class LogsComponent implements OnInit, AfterViewInit {
+  private readonly service  = inject(LogsService);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly cdr = inject(ChangeDetectorRef);
+
+  readonly items   = signal<Log[]>([]);
+  readonly loading = signal(false);
+  readonly hasNext = signal(false);
+
+  private currentCursor: string | null = null;
+  private lastSearch = '';
+
+  ngOnInit(): void { this.load(); }
+  ngAfterViewInit(): void { setTimeout(() => this.cdr.detectChanges()); }
+
+  onShowMore(): void {
+    if (!this.currentCursor) return;
+    this.loading.set(true);
+    this.service
+      .getAll({ cursor: this.currentCursor, pageSize: 50, q: this.lastSearch })
+      .pipe(finalize(() => this.loading.set(false)), takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: res => {
+          this.items.update(prev => [...prev, ...res.items]);
+          this.hasNext.set(res.hasNext);
+          this.currentCursor = res.cursor ?? null;
+        },
+        error: () => this.notification.error('Erro ao carregar mais registros.'),
+      });
+  }
+
+  private load(q = ''): void {
+    this.lastSearch = q;
+    this.currentCursor = null;   // reset cursor ao recarregar
+    this.loading.set(true);
+    this.service
+      .getAll({ pageSize: 50, q })
+      .pipe(finalize(() => this.loading.set(false)), takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: res => {
+          this.items.set(res.items);
+          this.hasNext.set(res.hasNext);
+          this.currentCursor = res.cursor ?? null;
+        },
+        error: () => this.notification.error('Erro ao carregar registros.'),
+      });
+  }
+}
+```
+
+| Vantagem | Desvantagem |
+|----------|-------------|
+| Estável com dados dinâmicos — insert não desloca itens | Requer implementação adicional no backend ADVPL |
+| Eficiente em tabelas grandes (usa índice, sem OFFSET) | Não permite saltar para página arbitrária (ex: ir direto p/ pág 5) |
+| Sem duplicatas entre páginas | Cursor expira se sessão REST reinicia no Protheus |
+
+**Quando usar:** logs de auditoria, tabelas com milhões de linhas, dados com alta taxa de inserção (filas, eventos), `po-infinite-scroll` custom.
+
+**Como negociar com o backend:** pedir ao desenvolvedor ADVPL que adicione campo `cursor` na resposta (Base64 do último ID ou timestamp retornado). No frontend, basta passar `cursor=<token>` em vez de `page=N`.
+
+---
+
 ## Proxy Configuration (proxy.conf.json)
 
 For local development, proxy `/rest` to the Protheus AppServer so CORS is avoided:
