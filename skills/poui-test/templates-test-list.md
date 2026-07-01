@@ -175,6 +175,12 @@ Verificar que `waitForAsync` está no import do `@angular/core/testing` (já inc
 });
 ```
 
+## Cenários avançados
+
+Para erros HTTP específicos (401/403/404), edge cases de paginação (último item, última página)
+e busca sem resultados, carregar `skills/poui-test/templates-test-advanced.md` e selecionar os
+blocos **HTTP — Erros de status específicos** e **Edge Cases — Lista e Paginação**.
+
 ## Nota para o agente
 
 - O signal de loading pode ser `isLoading` ou `loading` — verificar no `.component.ts` e ajustar todos os `component.isLoading()` no spec

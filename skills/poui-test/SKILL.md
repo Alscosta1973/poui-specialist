@@ -78,6 +78,11 @@ Ler o arquivo `.component.ts` (ou `.service.ts`). Ler também o `.service.ts` as
 Ler em sequência:
 1. `skills/poui-test/templates-test-base.md` — exceto se família `other/service` (tem setup próprio)
 2. `skills/poui-test/templates-test-<família>.md`
+3. `skills/poui-test/templates-test-advanced.md` — **sempre** carregar; selecionar apenas blocos relevantes:
+   - **HTTP errors (401/403/404)**: incluir se o service pode lançar erros de autenticação/permissão
+   - **Edge cases (lista vazia, 1 item, última página)**: incluir em família `list`
+   - **po-modal open/submit/cancel**: incluir se `@ViewChild` de `PoModalComponent` presente
+   - **po-stepper**: incluir se família `form` com `currentStep` ou `PoStepperModule`
 
 ---
 

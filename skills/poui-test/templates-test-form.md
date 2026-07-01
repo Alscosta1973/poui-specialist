@@ -132,6 +132,15 @@ Inserir após o bloco base. Fechar com `});` na última linha.
 });
 ```
 
+## Cenários avançados
+
+Para testes completos de **po-modal** (open/submit/cancel) e **po-stepper** (step validation,
+avanço/retorno, submit final), carregar `skills/poui-test/templates-test-advanced.md` e
+selecionar os blocos **po-modal** e/ou **po-stepper** conforme o tipo do componente.
+
+Para erros HTTP específicos por status (401/403/404/Protheus errorMessage), carregar também o
+bloco **HTTP — Erros de status específicos** do mesmo arquivo.
+
 ## Nota para o agente
 
 - Substituir comentários `// Agente:` pelo método e signal reais do `.component.ts`
