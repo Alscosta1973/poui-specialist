@@ -106,13 +106,39 @@ Activate when the user:
 | QUAL-001 | WARNING | Component without spec file | `*.component.ts` with no matching `*.component.spec.ts` in the same directory — use `Glob` to check. **Exceções (não flagrar):** shell/layout components sem lógica de negócio; componentes puramente presentacionais (apenas `@Input`/`@Output`, sem service injection); wrappers de libs externas; arquivos `*.model.ts` e `*.routes.ts` |
 | QUAL-002 | INFO | Service without spec file | `*.service.ts` with no matching `*.service.spec.ts` in the same directory |
 
+### CSS / Estilos (CSS)
+
+Aplicar nos arquivos `*.component.scss` e `styles.scss`. Ler o arquivo `.scss` antes de flagrar.
+
+| ID | Severity | Rule | How to Detect |
+|----|----------|------|---------------|
+| CSS-001 | WARNING | `z-index` alto sem contexto de stacking | `z-index` com valor > 10 e < 900 em `.scss` de componente sem comentário explicando a hierarquia. PO-UI modais usam z-index ≥ 1000 — valores entre 11 e 999 em componentes custom costumam indicar "z-index war" |
+| CSS-002 | WARNING | `::ng-deep` sem escopo `:host` | `::ng-deep` sem prefixo `:host` — vaza estilos para outros componentes fora do encapsulamento. Correto: `:host ::ng-deep .po-table { ... }` |
+| CSS-003 | INFO | `!important` excessivo em component scss | Mais de 2 declarações `!important` num mesmo `.component.scss` — indica conflito com o framework; preferir especificidade CSS ou variáveis PO-UI |
+| CSS-004 | WARNING | Layout tabular manual em vez de `po-table` | `display: flex` ou `display: grid` com 4+ filhos estilizados como colunas de dados (ex: classes `col-`, `.campo-`, `.linha-`) — em ERP, dados tabulares devem usar `<po-table>` para sorting, paginação e acessibilidade nativos |
+
+> **CSS-001 — Exceções aceitáveis (não flagrar):**
+> - `z-index: 1000+` em overlay, dropdown, tooltip custom
+> - `z-index: -1` para efeitos de background
+> - Arquivos `styles.scss` globais onde a hierarquia é intencional e documentada
+>
+> **CSS-002 — Fix:**
+> ```scss
+> // ❌ Vaza para outros componentes
+> ::ng-deep .po-input { border-color: red; }
+>
+> // ✅ Escopo restrito ao host
+> :host ::ng-deep .po-input { border-color: red; }
+> ```
+
 ## Workflow
 
 ### Phase 1: Identify Targets
 
 - **Single file:** read directly
-- **Directory:** use `Glob` with `**/*.ts` and `**/*.html`, excluding `**/*.spec.ts` and `**/node_modules/**`
+- **Directory:** use `Glob` with `**/*.ts`, `**/*.html`, and `**/*.scss`, excluding `**/*.spec.ts` and `**/node_modules/**`
 - For QUAL rules, run a second `Glob` pass for `**/*.spec.ts` to cross-reference
+- For CSS rules, include `**/*.scss` files in the scan; skip `*.spec.ts` and vendor scss
 - Confirm file count before proceeding: `"Encontrei N arquivos para revisar. Prosseguindo..."`
 
 ### Phase 2: Determine Focus
@@ -127,7 +153,8 @@ Map `--focus` flag to rule categories. **Apply ONLY the listed rule IDs — skip
 | `seguranca` | SEC-001 … SEC-003 only |
 | `poui` | PUI-001 … PUI-004 only |
 | `qualidade` | QUAL-001 … QUAL-002 only |
-| `all` (default) | ALL rule IDs (BP + PERF + A11Y + SEC + PUI + QUAL) |
+| `css` | CSS-001 … CSS-004 only |
+| `all` (default) | ALL rule IDs (BP + PERF + A11Y + SEC + PUI + QUAL + CSS) |
 
 When `--focus` is set, explicitly filter findings before reporting: if a finding's ID does not start with the expected prefix(es), discard it. Do not mention discarded findings.
 
