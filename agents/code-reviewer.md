@@ -29,11 +29,39 @@ Activate when the user:
 | BP-003 | WARNING | Observable subscribed without cleanup | `.subscribe(` without `takeUntilDestroyed()`, `takeUntil`, or stored variable with `unsubscribe()` in `ngOnDestroy` |
 | BP-004 | INFO | Legacy `@Input()` instead of signal `input()` | `@Input()` decorator (prefer `input<T>()` in Angular 17+) |
 | BP-005 | INFO | Legacy `@Output()/EventEmitter` instead of `output()` | `@Output() x = new EventEmitter<T>()` (prefer `output<T>()`) |
-| BP-006 | WARNING | Direct DOM manipulation | `document.querySelector`, `nativeElement.style` direct assignment |
+| BP-006 | WARNING | Unsafe DOM manipulation — bypasses Angular CD or sanitization | Flagrar: `nativeElement.innerHTML =`, `nativeElement.style.*=`, `nativeElement.setAttribute(`, `nativeElement.addEventListener(`, `document.querySelector(`, `document.getElementById(` em component/service. **Não flagrar:** `nativeElement.focus()`, `.scrollIntoView()`, `.getBoundingClientRect()` (leitura), `cdr.detectChanges()`, `renderer2.*` |
 | BP-007 | WARNING | User-facing error via `console` or `alert` | `console.error(` or `alert(` in component/service without `PoNotificationService` |
 | BP-008 | INFO | Constructor injection instead of `inject()` | `constructor(private svc: MyService)` in standalone component (prefer `private svc = inject(MyService)`) |
 | BP-009 | WARNING | Non-null assertion on API data | `this.value!.field` where `value` comes from an HTTP response — use optional chaining `?.` or an explicit null guard |
 | BP-010 | INFO | Derived state as plain method instead of `computed()` | Method called in template that returns a value derived solely from signals — should be `readonly x = computed(() => ...)` |
+| BP-011 | WARNING | Signal mutated by reference instead of `.update()` | `.value.push(`, `.value.splice(`, `.value[i] =` on a `signal<T[]>` or `signal<T>` — bypasses OnPush change detection silently |
+
+> **BP-006 — Aceitável vs Proibido:**
+>
+> | Operação | Status | Alternativa Angular |
+> |----------|--------|---------------------|
+> | `nativeElement.innerHTML = html` | ❌ Proibido | `[innerHTML]="safeHtml"` via `DomSanitizer` |
+> | `nativeElement.style.color = 'red'` | ❌ Proibido | `[ngStyle]` ou `[ngClass]` |
+> | `nativeElement.setAttribute('data-x', v)` | ❌ Proibido | `renderer2.setAttribute(el, 'data-x', v)` |
+> | `nativeElement.addEventListener('click', fn)` | ❌ Proibido | `@HostListener('click')` |
+> | `document.querySelector('#id')` | ❌ Proibido | `@ViewChild('myRef')` |
+> | `nativeElement.focus()` | ✅ Aceitável | Sem equivalente Angular nativo |
+> | `nativeElement.scrollIntoView()` | ✅ Aceitável | Sem equivalente Angular nativo |
+> | `nativeElement.getBoundingClientRect()` | ✅ Aceitável | Leitura apenas — sem efeitos colaterais |
+> | `cdr.detectChanges()` | ✅ Aceitável | Padrão Quirk #1/#21 para OnPush |
+> | `renderer2.setStyle(el, 'color', 'red')` | ✅ Aceitável | Forma Angular-safe de manipular DOM |
+>
+> **BP-011 — Mutação de signal por referência:**
+>
+> ```typescript
+> // ❌ ERRADO — OnPush não detecta mudança (referência do array não muda)
+> this.items().push(newItem);
+> this.items()[0].status = 'novo';
+>
+> // ✅ CORRETO — nova referência, OnPush detecta
+> this.items.update(arr => [...arr, newItem]);
+> this.items.update(arr => arr.map(i => i.id === id ? { ...i, status: 'novo' } : i));
+> ```
 
 ### Performance (PERF)
 
@@ -93,7 +121,7 @@ Map `--focus` flag to rule categories. **Apply ONLY the listed rule IDs — skip
 
 | Flag | Rule IDs applied |
 |------|-----------------|
-| `boas-praticas` | BP-001 … BP-010 only |
+| `boas-praticas` | BP-001 … BP-011 only |
 | `performance` | PERF-001 … PERF-005 only |
 | `acessibilidade` | A11Y-001 … A11Y-004 only |
 | `seguranca` | SEC-001 … SEC-003 only |
