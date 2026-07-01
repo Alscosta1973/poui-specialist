@@ -26,6 +26,7 @@ Generates standalone Angular 17+ artifacts using PO-UI components, integrated wi
 | `page-dynamic-search` | `*.component.ts/html/scss` | Sim | Lista + busca avançada + disclaimers — **padrão Protheus** |
 | `page-dynamic` | `*.component.ts/html` | Sim | Zero-boilerplate via PoPageDynamicTableComponent — API deve seguir contrato do plugin |
 | `infinite-scroll` | `*.component.ts/html/scss` | Sim | Lista com carregamento automático ao rolar (`IntersectionObserver`) — alternativa ao show-more para feeds/logs/listas longas |
+| `po-tree` | `*.component.ts/html/scss` | Sim | Navegação hierárquica com `po-tree-view`: variante A (flat-to-tree pré-carregado) ou B (lazy loading por nó), opcionalmente com painel de detalhe lateral |
 | `master-detail` | `*.component.ts/html/scss` + model | Sim | Lista com linhas filho expansíveis (pedido/itens, NF/itens) |
 | `stacked-browse` | `*.component.ts/html/scss` | Sim | Dois po-table empilhados (master/detail) com navegação por teclado ArrowUp/Down e Tab para alternar |
 | `two-panel-browse` | `*.component.ts/html/scss` | Sim | Dois po-table lado a lado para conciliação/matching (seleciona um de cada e confirma) |

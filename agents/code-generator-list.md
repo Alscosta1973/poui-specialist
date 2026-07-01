@@ -7,7 +7,7 @@ description: PO-UI code generator (família Lista/Browse) — page-list, page-dy
 ## Activation Triggers
 
 Activate when `generate.md` dispatches a type from this family:
-`page-list` · `page-dynamic-search` · `page-dynamic` · `stacked-browse` · `two-panel-browse` · `action-list` · `master-detail` · `infinite-scroll`
+`page-list` · `page-dynamic-search` · `page-dynamic` · `stacked-browse` · `two-panel-browse` · `action-list` · `master-detail` · `infinite-scroll` · `po-tree`
 
 ## No Project Scanning (CRITICAL)
 
@@ -150,6 +150,7 @@ E prossiga diretamente para a substituição de placeholders sem nova chamada de
 | `two-panel-browse` | `skills/poui-code-generation/templates-two-panel-browse.md`<br>`skills/poui-code-generation/templates-two-panel-browse-ts.md`<br>`skills/poui-code-generation/templates-two-panel-browse-html.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-patterns/po-ui-quirks-table.md`<br>`skills/poui-patterns/po-ui-quirks-onpush.md` |
 | `action-list` | `skills/poui-code-generation/templates-action-list.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/table-components.md`<br>`skills/poui-patterns/po-ui-quirks-table.md`<br>`skills/poui-patterns/po-ui-quirks-onpush.md` |
 | `infinite-scroll` | `skills/poui-code-generation/templates-infinite-scroll.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-patterns/po-ui-quirks-onpush.md` |
+| `po-tree` | `skills/poui-code-generation/templates-tree.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/navigation-components.md` |
 
 5. Present the plan to the user before writing any file:
 
