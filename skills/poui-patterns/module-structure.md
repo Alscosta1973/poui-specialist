@@ -1,4 +1,4 @@
-# Angular 17+ Module Structure for PO-UI / Protheus Projects
+# Angular 17–21+ Module Structure for PO-UI / Protheus Projects
 
 ## Recommended Folder Structure
 
@@ -129,12 +129,12 @@ export class AppComponent {
 
 ## NgModule vs Standalone
 
-Este plugin gera **Standalone Components** (padrão Angular 17+).
+Este plugin gera **Standalone Components** (padrão Angular 17–21+).
 
 | | Standalone (este plugin) | NgModules |
 |---|---|---|
 | Angular mínimo | 14+ (estável no 17) | Todas as versões |
-| Padrão oficial | ✅ Angular 17+ recomendado | ⚠️ Legado |
+| Padrão oficial | ✅ Angular 17–21+ recomendado | ⚠️ Legado |
 | Geração | `ng new <projeto>` | `ng new <projeto> --no-standalone` |
 | Bootstrap | `bootstrapApplication()` | `platformBrowserDynamic().bootstrapModule()` |
 | Providers | `app.config.ts` | `app.module.ts` |

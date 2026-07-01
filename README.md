@@ -1,6 +1,6 @@
 # poui-specialist
 
-Plugin para [Claude Code](https://claude.ai/code) especializado em **PO-UI (Portinari)** — geração de componentes Angular 17+, review de código e referência de API, integrados ao **TOTVS Protheus** via REST.
+Plugin para [Claude Code](https://claude.ai/code) especializado em **PO-UI (Portinari)** — geração de componentes Angular 17–21+, review de código e referência de API, integrados ao **TOTVS Protheus** via REST.
 
 > © 2025–2026 Andre Costa. Todos os direitos reservados.
 
@@ -43,7 +43,7 @@ O primeiro comando registra o repositório como marketplace local com o nome `po
 
 ### `/poui-specialist:generate`
 
-Gera artefatos Angular 17+ standalone com PO-UI, integrados à API REST do Protheus.
+Gera artefatos Angular 17–21+ standalone com PO-UI, integrados à API REST do Protheus.
 
 ```
 /poui-specialist:generate <type> <Name> [--module <module>]

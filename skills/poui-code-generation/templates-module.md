@@ -167,27 +167,28 @@ export class AppComponent {
   },
   "private": true,
   "dependencies": {
-    "@angular/animations": "^17.3.0",
-    "@angular/common": "^17.3.0",
-    "@angular/compiler": "^17.3.0",
-    "@angular/core": "^17.3.0",
-    "@angular/forms": "^17.3.0",
-    "@angular/platform-browser": "^17.3.0",
-    "@angular/platform-browser-dynamic": "^17.3.0",
-    "@angular/router": "^17.3.0",
-    "@po-ui/ng-components": "^17.0.0",
-    "@po-ui/ng-templates": "^17.0.0",
-    "@totvs/po-theme": "^17.0.0",
-    "@totvs/protheus-lib-core": "^17.0.0",
+    "@angular/animations": "^21.0.0",
+    "@angular/common": "^21.0.0",
+    "@angular/compiler": "^21.0.0",
+    "@angular/core": "^21.0.0",
+    "@angular/forms": "^21.0.0",
+    "@angular/platform-browser": "^21.0.0",
+    "@angular/platform-browser-dynamic": "^21.0.0",
+    "@angular/router": "^21.0.0",
+    "@angular/cdk": "^21.0.0",
+    "@po-ui/ng-components": "^21.22.0",
+    "@po-ui/ng-templates": "^21.22.0",
+    "@totvs/po-theme": "^21.22.0",
+    "@totvs/protheus-lib-core": "^21.0.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.6.0",
-    "zone.js": "~0.14.0"
+    "zone.js": "~0.15.0"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "^17.3.0",
-    "@angular/cli": "~17.3.0",
-    "@angular/compiler-cli": "^17.3.0",
-    "typescript": "~5.4.0"
+    "@angular-devkit/build-angular": "^21.0.0",
+    "@angular/cli": "~21.0.0",
+    "@angular/compiler-cli": "^21.0.0",
+    "typescript": "~5.9.0"
   }
 }
 ```

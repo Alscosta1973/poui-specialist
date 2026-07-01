@@ -151,8 +151,8 @@ Tipo escolhido:
   • models              → interfaces TypeScript (simples, chave composta, flat relational)
   • tlpp-contract       → skeleton WsRestFul para backend Protheus
   • refactor            → converte .prw/.tlpp para PO-UI standalone
-  • http-interceptor    → interceptor funcional Angular 17+ (auth token / tradução erros / loading)
-  • route-guard         → guard funcional Angular 17+ (CanActivate / CanDeactivate)
+  • http-interceptor    → interceptor funcional Angular 17–21+ (auth token / tradução erros / loading)
+  • route-guard         → guard funcional Angular 17–21+ (CanActivate / CanDeactivate)
   • standalone-migrate  → migra componente NgModule legado para standalone + OnPush + signals
 
 Prosseguir? (s/n)

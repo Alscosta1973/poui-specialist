@@ -7,7 +7,7 @@ description: Use when generating PO-UI Angular code — complete ready-to-adapt 
 
 ## Overview
 
-Complete Angular 17+ templates for PO-UI components integrated with Protheus REST API. All templates use standalone components, `ChangeDetectionStrategy.OnPush`, and Angular signals.
+Complete Angular 17–21+ templates for PO-UI components integrated with Protheus REST API. All templates use standalone components, `ChangeDetectionStrategy.OnPush`, and Angular signals.
 
 ## Quick Selection Guide
 
@@ -97,9 +97,9 @@ All templates use these substitution placeholders:
 | **models** | `templates-models.md` | TypeScript model interfaces: simple, composite key, flat relational |
 | **tlpp-contract** | `templates-tlpp-contract.md` | Backend REST contract: endpoints, error format, WsRestFul skeleton |
 | **refactor-from-tlpp** | `templates-refactor-from-tlpp.md` | Analyze existing .prw/.tlpp → extract columns/actions/rules → assertive one-shot PO-UI generation |
-| **http-interceptor** | `templates-http-interceptor.md` | Angular 17+ functional interceptors: auth token, Protheus error translation, loading overlay |
-| **route-guard** | `templates-route-guard.md` | Angular 17+ functional guards: CanActivate (Protheus auth/permission), CanDeactivate (unsaved changes) |
-| **standalone-migrate** | `templates-standalone-migrate.md` | Migration guide: convert NgModule component to Angular 17+ standalone + OnPush + signals |
+| **http-interceptor** | `templates-http-interceptor.md` | Angular 17–21+ functional interceptors: auth token, Protheus error translation, loading overlay |
+| **route-guard** | `templates-route-guard.md` | Angular 17–21+ functional guards: CanActivate (Protheus auth/permission), CanDeactivate (unsaved changes) |
+| **standalone-migrate** | `templates-standalone-migrate.md` | Migration guide: convert NgModule component to Angular 17–21+ standalone + OnPush + signals |
 
 ---
 

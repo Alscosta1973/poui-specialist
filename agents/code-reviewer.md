@@ -27,7 +27,7 @@ Activate when the user:
 | BP-001 | CRITICAL | Missing `ChangeDetectionStrategy.OnPush` | `@Component` without `changeDetection: ChangeDetectionStrategy.OnPush` |
 | BP-002 | WARNING | Use of `any` type | `: any` in type annotations, parameters, or return types |
 | BP-003 | WARNING | Observable subscribed without cleanup | `.subscribe(` without `takeUntilDestroyed()`, `takeUntil`, or stored variable with `unsubscribe()` in `ngOnDestroy` |
-| BP-004 | INFO | Legacy `@Input()` instead of signal `input()` | `@Input()` decorator (prefer `input<T>()` in Angular 17+) |
+| BP-004 | INFO | Legacy `@Input()` instead of signal `input()` | `@Input()` decorator (prefer `input<T>()` in Angular 17–21+) |
 | BP-005 | INFO | Legacy `@Output()/EventEmitter` instead of `output()` | `@Output() x = new EventEmitter<T>()` (prefer `output<T>()`) |
 | BP-006 | WARNING | Unsafe DOM manipulation — bypasses Angular CD or sanitization | Flagrar: `nativeElement.innerHTML =`, `nativeElement.style.*=`, `nativeElement.setAttribute(`, `nativeElement.addEventListener(`, `document.querySelector(`, `document.getElementById(` em component/service. **Não flagrar:** `nativeElement.focus()`, `.scrollIntoView()`, `.getBoundingClientRect()` (leitura), `cdr.detectChanges()`, `renderer2.*` |
 | BP-007 | WARNING | User-facing error via `console` or `alert` | `console.error(` or `alert(` in component/service without `PoNotificationService` |

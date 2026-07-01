@@ -1,5 +1,5 @@
 ---
-description: Generate PO-UI Angular 17+ components, services and modules for Protheus REST integration
+description: Generate PO-UI Angular 17–21+ components, services and modules for Protheus REST integration
 allowed-tools: Read, Write, Glob, Grep, Skill, Agent, Bash, mcp__plugin_playwright_playwright__browser_navigate, mcp__plugin_playwright_playwright__browser_take_screenshot, mcp__plugin_playwright_playwright__browser_wait_for
 argument-hint: "<type> <Name> [--module <module>] [--dry-run] [--skip-build]"
 ---
@@ -15,7 +15,7 @@ Se a skill retornar `status: expirado` ou `status: revogado`, encerrar imediatam
 
 # /poui-specialist:generate
 
-Generates standalone Angular 17+ artifacts using PO-UI components, integrated with TOTVS Protheus REST API.
+Generates standalone Angular 17–21+ artifacts using PO-UI components, integrated with TOTVS Protheus REST API.
 
 ## Tipos válidos
 
@@ -49,8 +49,8 @@ Generates standalone Angular 17+ artifacts using PO-UI components, integrated wi
 | `refactor` | `*.component.ts/html/scss` + service + model | Sim | Converte `.prw`/`.tlpp` existente para PO-UI (fornecer o arquivo fonte) |
 | `models` | `<entidade>.model.ts` | Sim | Interfaces TypeScript: simples, chave composta, flat relational (padrão Protheus) |
 | `tlpp-contract` | skeleton WsRestFul `.tlpp` | Sim | Contrato REST backend para implementar com `/advpl-specialist:generate rest` |
-| `http-interceptor` | `*.interceptor.ts` | Sim | Interceptor funcional Angular 17+: auth token Protheus, tradução de erros Latin-1, loading overlay |
-| `route-guard` | `*.guard.ts` | Sim | Guard funcional Angular 17+: CanActivate (auth/permissão Protheus), CanDeactivate (alterações não salvas) |
+| `http-interceptor` | `*.interceptor.ts` | Sim | Interceptor funcional Angular 17–21+: auth token Protheus, tradução de erros Latin-1, loading overlay |
+| `route-guard` | `*.guard.ts` | Sim | Guard funcional Angular 17–21+: CanActivate (auth/permissão Protheus), CanDeactivate (alterações não salvas) |
 | `standalone-migrate` | Arquivo existente atualizado in-place | Sim | Migra componente legado NgModule → standalone + OnPush + signals + inject() |
 | `upload` | `*.component.ts/html/scss` | Sim | Upload de arquivos com `po-upload`: A (único auto-upload), B (múltiplo + tabela de resultados), C (embutido em form + envio manual via FormData) |
 

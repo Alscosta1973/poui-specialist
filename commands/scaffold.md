@@ -15,7 +15,7 @@ Se a skill retornar `status: expirado` ou `status: revogado`, encerrar imediatam
 
 # /poui-specialist:scaffold
 
-Cria um projeto Angular 17+ com PO-UI e integração Protheus **do zero**, pronto para rodar.
+Cria um projeto Angular 17–21+ com PO-UI e integração Protheus **do zero**, pronto para rodar.
 
 ## Exemplos
 
@@ -96,11 +96,11 @@ Se `--skip-install` **não** foi fornecido:
 
 ```powershell
 npm install `
-  @po-ui/ng-components@^17 `
-  @po-ui/ng-templates@^17 `
-  @po-ui/style@^17 `
-  @totvs/po-theme@^17 `
-  @totvs/protheus-lib-core@^17
+  @po-ui/ng-components@^21 `
+  @po-ui/ng-templates@^21 `
+  @po-ui/style@^21 `
+  @totvs/po-theme@^21 `
+  @totvs/protheus-lib-core@^21
 ```
 
 Exibir progresso. Se falhar com erro de peer dependency:

@@ -1,6 +1,6 @@
 # Padrão: Busca com Debounce + SwitchMap
 
-Guia de quando e como aplicar debounce e cancelamento de requests em componentes PO-UI com Angular 17+.
+Guia de quando e como aplicar debounce e cancelamento de requests em componentes PO-UI com Angular 17–21+.
 
 ---
 
