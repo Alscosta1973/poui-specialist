@@ -1,6 +1,19 @@
 # Changelog
 
-Todas as mudanças notáveis do plugin poui-specialist são documentadas aqui.
+All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
+
+## [1.9.0](https://github.com/Alscosta1973/poui-specialist/compare/v1.8.0...v1.9.0) (2026-07-01)
+
+
+### Documentation
+
+* update Angular/PO-UI version range to 17-21+ and upgrade generated package.json to Angular 21 ([4436add](https://github.com/Alscosta1973/poui-specialist/commit/4436adda9cda95e0f1805a42f824ea54d12d3a00))
+
+
+### Chores
+
+* add .gitignore — excluir Teste_poui e poui-specialist-docs do tracking ([43fed9b](https://github.com/Alscosta1973/poui-specialist/commit/43fed9b9e3ad6c2a39238b21e7a4c026e28ce463))
+* **tooling:** add commit-and-tag-version for automated release management ([2e10322](https://github.com/Alscosta1973/poui-specialist/commit/2e1032261c49f0461fe4a9446cbfca40e2db64e7))
 
 ## [1.5.1] — 2026-06-25
 
