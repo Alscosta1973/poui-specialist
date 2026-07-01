@@ -50,6 +50,7 @@ Generates standalone Angular 17+ artifacts using PO-UI components, integrated wi
 | `http-interceptor` | `*.interceptor.ts` | Sim | Interceptor funcional Angular 17+: auth token Protheus, tradução de erros Latin-1, loading overlay |
 | `route-guard` | `*.guard.ts` | Sim | Guard funcional Angular 17+: CanActivate (auth/permissão Protheus), CanDeactivate (alterações não salvas) |
 | `standalone-migrate` | Arquivo existente atualizado in-place | Sim | Migra componente legado NgModule → standalone + OnPush + signals + inject() |
+| `upload` | `*.component.ts/html/scss` | Sim | Upload de arquivos com `po-upload`: A (único auto-upload), B (múltiplo + tabela de resultados), C (embutido em form + envio manual via FormData) |
 
 ## Exemplos
 

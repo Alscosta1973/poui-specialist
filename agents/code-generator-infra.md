@@ -7,7 +7,7 @@ description: PO-UI code generator (família Infraestrutura) — service, module,
 ## Activation Triggers
 
 Activate when `generate.md` dispatches a type from this family:
-`service` · `module` · `dashboard` · `models` · `tlpp-contract` · `refactor` · `http-interceptor` · `route-guard` · `standalone-migrate`
+`service` · `module` · `dashboard` · `models` · `tlpp-contract` · `refactor` · `http-interceptor` · `route-guard` · `standalone-migrate` · `upload`
 
 ## No Project Scanning (CRITICAL)
 
@@ -137,6 +137,7 @@ Se um arquivo de template já foi carregado nesta sessão via `Read`, **não rel
 | `http-interceptor` | `skills/poui-code-generation/templates-http-interceptor.md`<br>`skills/poui-patterns/protheus-rest.md` |
 | `route-guard` | `skills/poui-code-generation/templates-route-guard.md` |
 | `standalone-migrate` | `skills/poui-code-generation/templates-standalone-migrate.md`<br>`skills/poui-patterns/po-ui-quirks-onpush.md`<br>`skills/poui-patterns/module-structure.md` |
+| `upload` | `skills/poui-code-generation/templates-upload.md` |
 
 5. Present the plan to the user before writing any file:
 
