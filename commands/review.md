@@ -21,17 +21,22 @@ Reviews PO-UI Angular code against established rules for best practices, perform
 
 | Focus | Rules Applied |
 |-------|---------------|
-| `boas-praticas` | OnPush, tipagem, signals, unsubscribe |
-| `performance` | trackBy, AsyncPipe, lazy loading |
-| `acessibilidade` | p-label, aria-label |
-| `all` | All categories (default) |
+| `boas-praticas` | OnPush, tipagem, signals, unsubscribe, inject(), computed() |
+| `performance` | trackBy, computed(), lazy loading, mutação de array |
+| `acessibilidade` | p-label, aria-label, p-help |
+| `seguranca` | bypassSecurityTrust*, URL hardcoded, concatenação em HTTP |
+| `poui` | po-table selection, loading state, column types, po-modal dismiss |
+| `qualidade` | cobertura de testes (spec files ausentes) |
+| `all` | Todas as categorias (padrão) |
 
 ## Examples
 
 ```bash
 /poui-specialist:review src/app/pedidos
 /poui-specialist:review src/app/pedido/pedido-list.component.ts --focus performance
-/poui-specialist:review src/ --focus acessibilidade
+/poui-specialist:review src/ --focus seguranca
+/poui-specialist:review src/app/ --focus poui
+/poui-specialist:review src/app/ --focus qualidade
 ```
 
 ## Process
