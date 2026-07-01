@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.10.0](https://github.com/Alscosta1973/poui-specialist/compare/v1.9.1...v1.10.0) (2026-07-01)
+
+
+### Features
+
+* /migrate + /lint + auth-login + dark-mode/i18n no scaffold + quickstart + troubleshooting + error-handling + test-plugin ([8c81b57](https://github.com/Alscosta1973/poui-specialist/commit/8c81b574f0b02f6f4b256cbef102357bda761baa))
+
+
+### Chores
+
+* **release:** update [@generated](https://github.com/generated) headers to v1.9.1 ([e3ce348](https://github.com/Alscosta1973/poui-specialist/commit/e3ce3486c1cf1bba541a3a3714f31b3bb2fd20c5))
+
 ## [1.9.1](https://github.com/Alscosta1973/poui-specialist/compare/v1.9.0...v1.9.1) (2026-07-01)
 
 
