@@ -9,7 +9,7 @@ description: PO-UI code generator (fallback — todos os tipos). Para melhor efi
 > - Formulários → `code-generator-forms`
 > - Infraestrutura → `code-generator-infra`
 >
-> Este agente cobre todos os 17 tipos e é usado em invocações diretas ou quando o tipo não está definido.
+> Este agente cobre todos os 20 tipos e é usado em invocações diretas ou quando o tipo não está definido.
 
 ## Activation Triggers
 
@@ -200,6 +200,9 @@ E prossiga diretamente para a substituição de placeholders sem nova chamada de
 | `refactor` | `skills/poui-code-generation/templates-refactor-from-tlpp.md`<br>`skills/poui-components/form-fields.md`<br>`skills/poui-components/table-components.md`<br>`skills/poui-patterns/po-ui-quirks-table.md`<br>`skills/poui-patterns/po-ui-quirks-forms.md`<br>`skills/poui-patterns/po-ui-quirks-onpush.md` |
 | `models` | `skills/poui-code-generation/templates-models.md` |
 | `tlpp-contract` | `skills/poui-code-generation/templates-tlpp-contract.md` |
+| `http-interceptor` | `skills/poui-code-generation/templates-http-interceptor.md` |
+| `route-guard` | `skills/poui-code-generation/templates-route-guard.md` |
+| `standalone-migrate` | `skills/poui-code-generation/templates-standalone-migrate.md` |
 
 > **Why conditional?** Loading all skills for every generation wastes tokens. A `page-list`
 > does not need `dynamic-form-fields.md`, `reactive-forms.md`, or `navigation-components.md`.

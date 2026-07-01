@@ -15,6 +15,7 @@
  *   agents/code-generator-list.md     → @generated poui-specialist vX.Y.Z
  *   agents/code-generator-forms.md    → @generated poui-specialist vX.Y.Z
  *   agents/code-generator-infra.md    → @generated poui-specialist vX.Y.Z
+ *   skills/**\/*.md                   → @generated poui-specialist vX.Y.Z (todos os templates)
  */
 
 const fs = require('fs');
@@ -42,6 +43,15 @@ function bumpVersion(current, type) {
   }
 }
 
+function walkMd(dir, results = []) {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) walkMd(full, results);
+    else if (entry.isFile() && entry.name.endsWith('.md')) results.push(full);
+  }
+  return results;
+}
+
 const bumpType = process.argv[2];
 if (!bumpType) {
   console.error('Uso: node scripts/bump-version.js <major|minor|patch|X.Y.Z>');
@@ -61,6 +71,8 @@ if (!currentVersion) {
 const newVersion = bumpVersion(currentVersion, bumpType);
 console.log(`Versão: ${currentVersion} → ${newVersion}`);
 
+const versionPattern = /(@generated\s+poui-specialist\s+v)[\d.]+/g;
+
 // 1. Atualizar plugin.json
 pluginJson.version = newVersion;
 writeJson(pluginJsonPath, pluginJson);
@@ -78,7 +90,6 @@ writeJson(marketplaceJsonPath, marketplaceJson);
 console.log('  ✓ .claude-plugin/marketplace.json');
 
 // 3. Atualizar agents com @generated header
-const versionPattern = /(@generated\s+poui-specialist\s+v)[\d.]+/g;
 const agentFiles = [
   'agents/code-generator.md',
   'agents/code-generator-list.md',
@@ -98,9 +109,22 @@ for (const rel of agentFiles) {
   }
 }
 
-const totalFiles = 2 + agentFiles.length;
+// 4. Atualizar todos os templates em skills/ com @generated header
+const skillsDir = path.join(ROOT, 'skills');
+let templateCount = 0;
+for (const templatePath of walkMd(skillsDir)) {
+  const content = fs.readFileSync(templatePath, 'utf8');
+  if (!content.includes('@generated')) continue;
+  const updated = content.replace(versionPattern, `$1${newVersion}`);
+  if (updated !== content) {
+    fs.writeFileSync(templatePath, updated, 'utf8');
+    console.log(`  ✓ ${path.relative(ROOT, templatePath)}`);
+    templateCount++;
+  }
+}
+
+const totalFiles = 2 + agentFiles.length + templateCount;
 console.log(`\nVersão ${newVersion} aplicada em ${totalFiles} arquivos.`);
 console.log('Próximos passos:');
-console.log('  git add .claude-plugin/plugin.json .claude-plugin/marketplace.json ' + agentFiles.join(' '));
-console.log(`  git commit -m "chore(release): bump version to ${newVersion}"`);
 console.log('  node scripts/sync-docs.js   # atualiza PLUGIN_VERSION no site');
+console.log(`  git add -A && git commit -m "chore(release): bump version to ${newVersion}"`);

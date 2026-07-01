@@ -75,7 +75,7 @@ Activate when the user:
 
 | ID | Severity | Rule | How to Detect |
 |----|----------|------|---------------|
-| QUAL-001 | WARNING | Component without spec file | `*.component.ts` with no matching `*.component.spec.ts` in the same directory — use `Glob` to check |
+| QUAL-001 | WARNING | Component without spec file | `*.component.ts` with no matching `*.component.spec.ts` in the same directory — use `Glob` to check. **Exceções (não flagrar):** shell/layout components sem lógica de negócio; componentes puramente presentacionais (apenas `@Input`/`@Output`, sem service injection); wrappers de libs externas; arquivos `*.model.ts` e `*.routes.ts` |
 | QUAL-002 | INFO | Service without spec file | `*.service.ts` with no matching `*.service.spec.ts` in the same directory |
 
 ## Workflow

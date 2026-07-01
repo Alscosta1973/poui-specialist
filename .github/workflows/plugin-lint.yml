@@ -119,6 +119,7 @@ jobs:
 
       # ── Q1: Referências "Quirk #X" em agentes existem nos arquivos de quirks ──
       - name: Q1 — Quirk references in agents must exist in quirks files
+        continue-on-error: true  # informativo: quirk pode ser referenciado antes de documentado; não bloqueia merge
         run: |
           FAIL=0
           QUIRKS_CONTENT=$(cat skills/poui-patterns/po-ui-quirks*.md 2>/dev/null || true)

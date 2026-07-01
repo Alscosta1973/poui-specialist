@@ -130,6 +130,19 @@ function decodeProtheusLatin1(raw: string): string {
 }
 ```
 
+**Registration in `app.config.ts`:**
+```typescript
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { {{InterceptorName}} } from './{{moduleName}}/{{kebab-name}}';
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideHttpClient(withInterceptors([{{InterceptorName}}])),
+    // ... outros providers
+  ],
+};
+```
+
 ---
 
 ## Template C — Loading overlay interceptor
@@ -175,6 +188,21 @@ export class LoadingService {
   show(): void { this.count++; this.isLoading.set(true); }
   hide(): void { this.count = Math.max(0, this.count - 1); if (this.count === 0) this.isLoading.set(false); }
 }
+```
+
+**Registration in `app.config.ts`:**
+```typescript
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { {{InterceptorName}} } from './{{moduleName}}/{{kebab-name}}';
+import { LoadingService } from './{{moduleName}}/loading.service';
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    LoadingService,
+    provideHttpClient(withInterceptors([{{InterceptorName}}])),
+    // ... outros providers
+  ],
+};
 ```
 
 ---
