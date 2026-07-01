@@ -1,6 +1,6 @@
 # PO-UI Known Quirks — Índice
 
-17 comportamentos documentados com diferenças de implementação, detalhes internos e overrides CSS
+18 comportamentos documentados com diferenças de implementação, detalhes internos e overrides CSS
 descobertos em uso de produção do PO-UI com Protheus.
 
 ## Arquivos por família
@@ -15,7 +15,7 @@ Carregar apenas a família relevante para o tipo de componente que está gerando
 
 ---
 
-## Quick Reference — 17 Known Quirks
+## Quick Reference — 18 Known Quirks
 
 | # | Componente / API | Sintoma | Família |
 |---|---|---|---|
@@ -36,6 +36,7 @@ Carregar apenas a família relevante para o tipo de componente que está gerando
 | 15 | po-stepper | `[p-current-active-step]` não existe (NG8002); `back()` não limpa 'done' | forms |
 | 16 | po-table | Colunas numéricas sem `type` alinhadas à esquerda | table |
 | 17 | po-decimal / po-number | Input numérico alinhado à esquerda em formulários | forms |
+| 21 | po-table (detail) | Linhas de detalhe expandidas invisíveis em OnPush | onpush |
 
 ---
 

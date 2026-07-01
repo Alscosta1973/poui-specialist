@@ -8,6 +8,7 @@ Carregar quando gerando componentes que usam `po-page-*`, `po-table` ou `po-char
 | 1 | po-page-content | Conteúdo invisível no load (OnPush + ng-content) | `ngAfterViewInit` + `setTimeout(() => cdr.detectChanges())` |
 | 12 | po-table | Tabela invisível no primeiro load em OnPush | Sempre definir `[p-height]` — sem ele, opacity é async e OnPush não re-renderiza |
 | 14 | PO-UI @Input() | Signal não é desembrulhada → `[object Object]` | Chamar sempre com `()`: `[p-items]="items()"` não `[p-items]="items"` |
+| 21 | po-table (detail) | Linhas de detalhe expandidas invisíveis em OnPush | `@HostListener('click') onHostClick() { this.cdr.detectChanges(); }` |
 
 ---
 
@@ -141,3 +142,57 @@ their own lifecycle hooks — they receive the Signal function object itself if 
 
 **Plugin rule:** Every template binding to a PO-UI component must use `signal()` with explicit `()`.
 Reviewer must flag any `[p-X]="signalProp"` without `()` as Critical.
+
+---
+
+## 21. po-table detail rows invisible on expand in OnPush components
+
+**Symptom:** In a `master-detail` component using `po-table` with a `type: 'detail'` column,
+clicking to expand a row shows nothing. The detail rows are in the DOM but have zero height
+or remain invisible. The content appears only after the user clicks elsewhere or triggers
+any zone event.
+
+**Root cause:** `po-table` handles row expansion entirely internally. When the user clicks
+the expand chevron, `po-table` toggles its internal `showDetails` flag and updates its own
+view — but it does **not** call `markForCheck()` on the parent component. With
+`ChangeDetectionStrategy.OnPush`, the parent component's CD cycle never fires, so Angular
+never re-renders the projected detail content.
+
+This is distinct from Quirk #1 (page blank on load) and Quirk #12 (table invisible on load)
+because it is triggered by a **user interaction event**, not initial render.
+
+**Why the zone event works:** Clicking anywhere else on the host (breadcrumb, filter, other
+rows) triggers Angular's zone, which schedules a global CD pass that picks up the already-
+toggled detail flag. This is why the content "appears on the next click."
+
+**Affects:** Any `OnPush` component using `po-table` with `type: 'detail'` columns
+(`PoTableDetail`, `master-detail` template pattern, stacked-browse with expandable rows).
+
+**Fix — add `@HostListener('click')` to call `detectChanges()`:**
+
+```typescript
+import { ChangeDetectorRef, HostListener, inject } from '@angular/core';
+
+export class MasterDetailComponent {
+  private readonly cdr = inject(ChangeDetectorRef);
+
+  // Quirk #21: po-table expand fires internally without marking this OnPush
+  // component dirty. Any click on the host forces re-render of the detail rows.
+  @HostListener('click')
+  onHostClick(): void {
+    this.cdr.detectChanges();
+  }
+
+  ngAfterViewInit(): void {
+    // Quirk #1: still needed for initial blank-page fix
+    setTimeout(() => this.cdr.detectChanges());
+  }
+}
+```
+
+**Why not `markForCheck()`:** `markForCheck()` schedules a future CD pass; if Angular's zone
+never fires again (no HTTP, no timer after the expand click), the check never runs. 
+`detectChanges()` is synchronous and runs immediately.
+
+**Plugin rule:** Every `master-detail` component template MUST include `@HostListener('click')`
+with `cdr.detectChanges()` alongside the `ngAfterViewInit` fix. Both are needed simultaneously.
