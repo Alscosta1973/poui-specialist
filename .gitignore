@@ -3,3 +3,7 @@ poui-specialist-docs/
 
 # Projeto de testes (repo separado)
 Teste_poui/
+
+# Dependências do tooling de release
+node_modules/
+package-lock.json

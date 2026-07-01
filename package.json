@@ -1,0 +1,16 @@
+{
+  "name": "poui-specialist",
+  "version": "1.8.0",
+  "description": "Claude Code plugin — PO-UI Angular 17–21+ specialist for TOTVS Protheus",
+  "private": true,
+  "scripts": {
+    "release": "commit-and-tag-version",
+    "release:minor": "commit-and-tag-version --release-as minor",
+    "release:patch": "commit-and-tag-version --release-as patch",
+    "release:major": "commit-and-tag-version --release-as major",
+    "bump": "node scripts/bump-version.js"
+  },
+  "devDependencies": {
+    "commit-and-tag-version": "^12.0.0"
+  }
+}
