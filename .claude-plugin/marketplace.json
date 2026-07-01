@@ -11,7 +11,7 @@
       "name": "poui-specialist",
       "source": "./",
       "description": "Especialista em PO-UI (Portinari) para projetos Angular integrados ao TOTVS Protheus — geração de componentes, review de código e referência de API",
-      "version": "1.6.0",
+      "version": "1.7.0",
       "author": {
         "name": "Andre Costa",
         "email": "andre.andrelscosta@gmail.com",
