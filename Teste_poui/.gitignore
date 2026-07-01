@@ -1,7 +1,0 @@
-node_modules/
-dist/
-.angular/
-*.log
-*.png
-.playwright-mcp/
-package-lock.json
