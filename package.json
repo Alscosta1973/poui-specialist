@@ -1,6 +1,6 @@
 {
   "name": "poui-specialist",
-  "version": "1.9.0",
+  "version": "1.9.1",
   "description": "Claude Code plugin — PO-UI Angular 17–21+ specialist for TOTVS Protheus",
   "private": true,
   "scripts": {

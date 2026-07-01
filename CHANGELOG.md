@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.9.1](https://github.com/Alscosta1973/poui-specialist/compare/v1.9.0...v1.9.1) (2026-07-01)
+
+
+### Bug Fixes
+
+* marketplace v1.9.0 + migra *ngIf→[@if](https://github.com/if) nos templates HTML + exemplo E2E Protheus ([6fdfd83](https://github.com/Alscosta1973/poui-specialist/commit/6fdfd83db96919384393f4c04c1c2ae7eff07cc9))
+
+
+### Chores
+
+* **release:** update [@generated](https://github.com/generated) headers and marketplace.json to v1.9.0 ([173fd3e](https://github.com/Alscosta1973/poui-specialist/commit/173fd3e9a68db047cc95c5ebacc03b30d23a9e77))
+
 ## [1.9.0](https://github.com/Alscosta1973/poui-specialist/compare/v1.8.0...v1.9.0) (2026-07-01)
 
 
