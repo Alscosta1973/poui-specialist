@@ -4,13 +4,13 @@
     "name": "Andre Costa"
   },
   "metadata": {
-    "description": "Marketplace para o plugin poui-specialist - especialista em PO-UI (Portinari) para projetos Angular integrados ao TOTVS Protheus"
+    "description": "Marketplace para o plugin poui-specialist v1.7.0 — 20 tipos de geração, 21 regras de review, 18 quirks documentados"
   },
   "plugins": [
     {
       "name": "poui-specialist",
       "source": "./",
-      "description": "Especialista em PO-UI (Portinari) para projetos Angular integrados ao TOTVS Protheus — geração de componentes, review de código e referência de API",
+      "description": "Especialista em PO-UI (Portinari) para Angular 17+ integrado ao TOTVS Protheus. Gera 20 tipos de artefatos standalone (page-list, modal-crud, dashboard, http-interceptor, route-guard e mais) via 3 agentes especializados com templates prontos. Revisa código com 21 regras em 6 categorias (boas práticas, performance, acessibilidade, segurança, PO-UI, qualidade). Documenta 18 quirks conhecidos do PO-UI v17. Inclui /test (specs Karma/Jasmine), /connect (integração REST Protheus), /review --focus e /generate --dry-run.",
       "version": "1.7.0",
       "author": {
         "name": "Andre Costa",
@@ -28,10 +28,16 @@
         "poui",
         "portinari",
         "angular",
+        "angular17",
         "protheus",
         "totvs",
         "po-ui",
         "frontend",
+        "standalone",
+        "onpush",
+        "signals",
+        "code-generator",
+        "code-reviewer",
         "claude-code-plugin"
       ]
     }
