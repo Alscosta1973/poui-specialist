@@ -129,7 +129,7 @@ Se um arquivo de template já foi carregado nesta sessão via `Read`, **não rel
 | Type | Files to read |
 |------|--------------|
 | `service` | `skills/poui-code-generation/templates-service.md`<br>`skills/poui-patterns/protheus-rest.md` |
-| `module` | `skills/poui-code-generation/templates-module.md`<br>`skills/poui-patterns/module-structure.md` |
+| `module` | `skills/poui-code-generation/templates-module.md`<br>`skills/poui-patterns/module-structure.md`<br>`skills/poui-patterns/po-ui-patterns-i18n.md` |
 | `dashboard` | `skills/poui-code-generation/templates-dashboard.md`<br>`skills/poui-patterns/po-ui-quirks-onpush.md` |
 | `models` | `skills/poui-code-generation/templates-models.md` |
 | `tlpp-contract` | `skills/poui-code-generation/templates-tlpp-contract.md` |

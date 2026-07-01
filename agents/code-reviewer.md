@@ -136,6 +136,16 @@ Aplicar nos arquivos `*.component.scss` e `styles.scss`. Ler o arquivo `.scss` a
 | CSS-003 | INFO | `!important` excessivo em component scss | Mais de 2 declarações `!important` num mesmo `.component.scss` — indica conflito com o framework; preferir especificidade CSS ou variáveis PO-UI |
 | CSS-004 | WARNING | Layout tabular manual em vez de `po-table` | `display: flex` ou `display: grid` com 4+ filhos estilizados como colunas de dados (ex: classes `col-`, `.campo-`, `.linha-`) — em ERP, dados tabulares devem usar `<po-table>` para sorting, paginação e acessibilidade nativos |
 
+### Internacionalização (I18N)
+
+Aplicar apenas quando `providePoI18n` for detectado em `app.config.ts` — sem essa configuração, labels hardcoded são aceitáveis.
+
+| ID | Severity | Rule | How to Detect |
+|----|----------|------|---------------|
+| I18N-001 | INFO | String PT-BR hardcoded em template quando i18n está configurado | Texto visível ao usuário em PT-BR hardcoded em `.html` (ex: `p-title="Pedidos de Compra"`) quando `providePoI18n` existe em `app.config.ts` — mover para dicionário e usar `[p-title]="lit().tituloPagina"` |
+| I18N-002 | INFO | `PoNotificationService` chamado com literal hardcoded quando i18n ativo | `notification.success('Salvo com sucesso!')` quando i18n configurado — usar `this.lit().sucessoSalvar` |
+| I18N-003 | WARNING | `getLiterals()` sem cleanup de Observable | `this.i18n.getLiterals(...)` sem `.pipe(takeUntilDestroyed(...))` — Observable nunca completa; se o componente for destruído antes de resolver, cria memory leak |
+
 > **CSS-001 — Exceções aceitáveis (não flagrar):**
 > - `z-index: 1000+` em overlay, dropdown, tooltip custom
 > - `z-index: -1` para efeitos de background
@@ -173,7 +183,8 @@ Map `--focus` flag to rule categories. **Apply ONLY the listed rule IDs — skip
 | `poui` | PUI-001 … PUI-004 only |
 | `qualidade` | QUAL-001 … QUAL-002 only |
 | `css` | CSS-001 … CSS-004 only |
-| `all` (default) | ALL rule IDs (BP + PERF + A11Y + SEC + PUI + QUAL + CSS) |
+| `i18n` | I18N-001 … I18N-003 only |
+| `all` (default) | ALL rule IDs (BP + PERF + A11Y + SEC + PUI + QUAL + CSS + I18N) |
 
 When `--focus` is set, explicitly filter findings before reporting: if a finding's ID does not start with the expected prefix(es), discard it. Do not mention discarded findings.
 
