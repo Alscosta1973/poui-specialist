@@ -55,13 +55,19 @@
   </div>
 
   <!-- Barra de status contextual — aparece apenas quando uma linha esquerda está selecionada -->
-  <div class="div-status-sel" *ngIf="selectedLeft()">
-    <span class="sel-info">
-      Selecionado: <strong>{{ selectedLeft()!['id'] }}</strong>
-    </span>
-    <span class="sel-seta" *ngIf="!selectedRight()">→ Selecione o registro correspondente à direita</span>
-    <span class="sel-seta" *ngIf="selectedRight()">✓ Pronto — clique em Confirmar</span>
-  </div>
+  @if (selectedLeft()) {
+    <div class="div-status-sel">
+      <span class="sel-info">
+        Selecionado: <strong>{{ selectedLeft()!['id'] }}</strong>
+      </span>
+      @if (!selectedRight()) {
+        <span class="sel-seta">→ Selecione o registro correspondente à direita</span>
+      }
+      @if (selectedRight()) {
+        <span class="sel-seta">✓ Pronto — clique em Confirmar</span>
+      }
+    </div>
+  }
 
   <!-- Dois painéis de browse lado a lado -->
   <div class="div-browses">

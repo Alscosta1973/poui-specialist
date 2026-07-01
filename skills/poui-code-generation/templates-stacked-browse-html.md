@@ -51,9 +51,11 @@
   <div class="browse-cabecalho" [class.browse-cabecalho-ativo]="activeBrowse() === 'master'">
     <span class="browse-titulo">{{MasterTitle}}</span>
     <div class="browse-direita">
-      <span class="browse-count" *ngIf="items().length > 0">
-        {{ items().length }} registro(s) &nbsp;·&nbsp; Tab para alternar browse &nbsp;·&nbsp; ↑↓ para navegar
-      </span>
+      @if (items().length > 0) {
+        <span class="browse-count">
+          {{ items().length }} registro(s) &nbsp;·&nbsp; Tab para alternar browse &nbsp;·&nbsp; ↑↓ para navegar
+        </span>
+      }
       <span class="link-remover-filtro"
             [class.link-remover-filtro--ativo]="isFiltrado()"
             (click)="isFiltrado() && removerFiltro()">✕ Remover Filtro</span>
@@ -75,7 +77,9 @@
   <!-- Browse Detail ────────────────────────────────────────────────────── -->
   <div class="browse-cabecalho browse-cabecalho-detail" [class.browse-cabecalho-ativo]="activeBrowse() === 'detail'">
     <span class="browse-titulo">{{ tituloDetail() }}</span>
-    <span class="browse-count" *ngIf="detailItems().length > 0">{{ detailItems().length }} item(ns)</span>
+    @if (detailItems().length > 0) {
+      <span class="browse-count">{{ detailItems().length }} item(ns)</span>
+    }
   </div>
   <div class="detail-browse" [class.browse-ativo]="activeBrowse() === 'detail'" (click)="onDetailClick()">
     <po-table
