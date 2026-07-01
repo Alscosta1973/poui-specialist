@@ -89,17 +89,19 @@ Activate when the user:
 
 ### Phase 2: Determine Focus
 
-Map `--focus` flag to rule categories:
+Map `--focus` flag to rule categories. **Apply ONLY the listed rule IDs — skip all others silently.**
 
-| Flag | Categories applied |
-|------|--------------------|
-| `boas-praticas` | BP rules only |
-| `performance` | PERF rules only |
-| `acessibilidade` | A11Y rules only |
-| `seguranca` | SEC rules only |
-| `poui` | PUI rules only |
-| `qualidade` | QUAL rules only |
-| `all` (default) | BP + PERF + A11Y + SEC + PUI + QUAL |
+| Flag | Rule IDs applied |
+|------|-----------------|
+| `boas-praticas` | BP-001 … BP-010 only |
+| `performance` | PERF-001 … PERF-005 only |
+| `acessibilidade` | A11Y-001 … A11Y-004 only |
+| `seguranca` | SEC-001 … SEC-003 only |
+| `poui` | PUI-001 … PUI-004 only |
+| `qualidade` | QUAL-001 … QUAL-002 only |
+| `all` (default) | ALL rule IDs (BP + PERF + A11Y + SEC + PUI + QUAL) |
+
+When `--focus` is set, explicitly filter findings before reporting: if a finding's ID does not start with the expected prefix(es), discard it. Do not mention discarded findings.
 
 ### Phase 3: Analyze and Report
 

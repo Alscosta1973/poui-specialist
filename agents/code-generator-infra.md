@@ -7,7 +7,7 @@ description: PO-UI code generator (família Infraestrutura) — service, module,
 ## Activation Triggers
 
 Activate when `generate.md` dispatches a type from this family:
-`service` · `module` · `dashboard` · `models` · `tlpp-contract` · `refactor`
+`service` · `module` · `dashboard` · `models` · `tlpp-contract` · `refactor` · `http-interceptor` · `route-guard` · `standalone-migrate`
 
 ## No Project Scanning (CRITICAL)
 
@@ -134,6 +134,9 @@ Se um arquivo de template já foi carregado nesta sessão via `Read`, **não rel
 | `models` | `skills/poui-code-generation/templates-models.md` |
 | `tlpp-contract` | `skills/poui-code-generation/templates-tlpp-contract.md` |
 | `refactor` | `skills/poui-code-generation/templates-refactor-from-tlpp.md`<br>`skills/poui-components/form-fields.md`<br>`skills/poui-components/table-components.md`<br>`skills/poui-patterns/po-ui-quirks-table.md`<br>`skills/poui-patterns/po-ui-quirks-forms.md`<br>`skills/poui-patterns/po-ui-quirks-onpush.md` |
+| `http-interceptor` | `skills/poui-code-generation/templates-http-interceptor.md`<br>`skills/poui-patterns/protheus-rest.md` |
+| `route-guard` | `skills/poui-code-generation/templates-route-guard.md` |
+| `standalone-migrate` | `skills/poui-code-generation/templates-standalone-migrate.md`<br>`skills/poui-patterns/po-ui-quirks-onpush.md`<br>`skills/poui-patterns/module-structure.md` |
 
 5. Present the plan to the user before writing any file:
 
@@ -141,12 +144,15 @@ Se um arquivo de template já foi carregado nesta sessão via `Read`, **não rel
 Vou criar os seguintes arquivos:
 
 Tipo escolhido:
-  • service       → Angular HttpClient service com contrato REST Protheus
-  • module        → scaffold completo de aplicação (routes, config, proxy)
-  • dashboard     → página analítica com po-widget KPIs + po-chart
-  • models        → interfaces TypeScript (simples, chave composta, flat relational)
-  • tlpp-contract → skeleton WsRestFul para backend Protheus
-  • refactor      → converte .prw/.tlpp para PO-UI standalone
+  • service             → Angular HttpClient service com contrato REST Protheus
+  • module              → scaffold completo de aplicação (routes, config, proxy)
+  • dashboard           → página analítica com po-widget KPIs + po-chart
+  • models              → interfaces TypeScript (simples, chave composta, flat relational)
+  • tlpp-contract       → skeleton WsRestFul para backend Protheus
+  • refactor            → converte .prw/.tlpp para PO-UI standalone
+  • http-interceptor    → interceptor funcional Angular 17+ (auth token / tradução erros / loading)
+  • route-guard         → guard funcional Angular 17+ (CanActivate / CanDeactivate)
+  • standalone-migrate  → migra componente NgModule legado para standalone + OnPush + signals
 
 Prosseguir? (s/n)
 ```

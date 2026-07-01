@@ -47,6 +47,9 @@ Generates standalone Angular 17+ artifacts using PO-UI components, integrated wi
 | `refactor` | `*.component.ts/html/scss` + service + model | Sim | Converte `.prw`/`.tlpp` existente para PO-UI (fornecer o arquivo fonte) |
 | `models` | `<entidade>.model.ts` | Sim | Interfaces TypeScript: simples, chave composta, flat relational (padrão Protheus) |
 | `tlpp-contract` | skeleton WsRestFul `.tlpp` | Sim | Contrato REST backend para implementar com `/advpl-specialist:generate rest` |
+| `http-interceptor` | `*.interceptor.ts` | Sim | Interceptor funcional Angular 17+: auth token Protheus, tradução de erros Latin-1, loading overlay |
+| `route-guard` | `*.guard.ts` | Sim | Guard funcional Angular 17+: CanActivate (auth/permissão Protheus), CanDeactivate (alterações não salvas) |
+| `standalone-migrate` | Arquivo existente atualizado in-place | Sim | Migra componente legado NgModule → standalone + OnPush + signals + inject() |
 
 ## Exemplos
 
@@ -67,6 +70,9 @@ Generates standalone Angular 17+ artifacts using PO-UI components, integrated wi
 /poui-specialist:generate two-panel-browse ConciliacaoCartao --module financeiro
 /poui-specialist:generate models Pedido --module compras
 /poui-specialist:generate tlpp-contract Pedido --module compras
+/poui-specialist:generate http-interceptor auth --module core
+/poui-specialist:generate route-guard auth --module core
+/poui-specialist:generate standalone-migrate ClientesLegado --module cadastro
 ```
 
 ## Processo
@@ -84,7 +90,7 @@ Generates standalone Angular 17+ artifacts using PO-UI components, integrated wi
    |---------|-------|--------|
    | Lista / Browse | `page-list`, `page-dynamic-search`, `page-dynamic`, `stacked-browse`, `two-panel-browse`, `action-list`, `master-detail` | `poui-specialist:code-generator-list` |
    | Formulários | `page-edit`, `page-detail`, `modal-crud`, `stepper-form` | `poui-specialist:code-generator-forms` |
-   | Infraestrutura | `service`, `module`, `dashboard`, `models`, `tlpp-contract`, `refactor` | `poui-specialist:code-generator-infra` |
+   | Infraestrutura | `service`, `module`, `dashboard`, `models`, `tlpp-contract`, `refactor`, `http-interceptor`, `route-guard`, `standalone-migrate` | `poui-specialist:code-generator-infra` |
 
    Invoke the matching specialized agent — it handles planning, validation, and generation.
 3. **Confirm output** — list created files with their absolute paths and suggested route addition

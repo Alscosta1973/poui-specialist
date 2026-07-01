@@ -12,6 +12,8 @@
  *   R3  Templates com "export class" devem ter {{ComponentClass}} ou {{ServiceClass}}
  *   R4  Nenhum template deve conter nomes hard-coded do projeto de teste
  *   R5  Templates de componente devem ter {{kebab-name}}
+ *   R6  Proibido tipo de coluna po-table inválido: 'tag', 'badge' (não existem na lib)
+ *   R7  Proibido evento obsoleto (p-value-change) — usar (p-form) + valueChanges
  */
 
 const fs = require('fs');
@@ -39,6 +41,8 @@ const CLASS_EXCEPTIONS = new Set([
   'templates-stacked-browse-html.md', // HTML parcial
   'templates-two-panel-browse.md',    // arquivo de visão geral
   'templates-two-panel-browse-html.md', // HTML parcial
+  'templates-http-interceptor.md',    // gera export const (funcional), export class é só exemplo de companion
+  'templates-route-guard.md',         // gera export const (funcional), export class é só exemplo de uso
 ]);
 
 // Templates que legitimamente não têm placeholders {{...}} (overview, TLPP, ou estilo <tag>)
@@ -148,6 +152,27 @@ for (const file of templateFiles) {
     } else {
       ok('{{kebab-name}} presente');
     }
+  }
+
+  // R6 — Tipos de coluna PO-UI inválidos não devem aparecer em templates
+  const INVALID_COLUMN_TYPES = ["type: 'tag'", 'type: "tag"', "type: 'badge'", 'type: "badge"'];
+  const foundInvalid = INVALID_COLUMN_TYPES.filter(t => content.includes(t));
+  if (foundInvalid.length > 0) {
+    fail(file, 'R6', `Tipo de coluna inválido em po-table: ${foundInvalid.join(', ')} — não existe na lib`);
+  } else {
+    ok('Sem tipos de coluna inválidos (tag/badge)');
+  }
+
+  // R7 — Evento PO-UI removido não deve aparecer em código gerado (ignora linhas de comentário)
+  const hasValueChangeBound = lines.some(line => {
+    const trimmed = line.trim();
+    const isComment = trimmed.startsWith('//') || trimmed.startsWith('*') || trimmed.startsWith('#');
+    return !isComment && trimmed.includes('(p-value-change)');
+  });
+  if (hasValueChangeBound) {
+    fail(file, 'R7', '(p-value-change) em código não-comentado — não existe em po-dynamic-form v17. Usar (p-form) + valueChanges');
+  } else {
+    ok('Sem (p-value-change) em código gerado');
   }
 
   // Nota: O header "@generated poui-specialist" é injetado pelo code-generator.md (Phase 3)

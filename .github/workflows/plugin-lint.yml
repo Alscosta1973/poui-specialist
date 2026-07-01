@@ -116,3 +116,20 @@ jobs:
           done
           if [ $FAIL -eq 0 ]; then echo "Todos os SKILL.md têm frontmatter OK"; fi
           exit $FAIL
+
+      # ── Q1: Referências "Quirk #X" em agentes existem nos arquivos de quirks ──
+      - name: Q1 — Quirk references in agents must exist in quirks files
+        run: |
+          FAIL=0
+          QUIRKS_CONTENT=$(cat skills/poui-patterns/po-ui-quirks*.md 2>/dev/null || true)
+          for agent in agents/code-generator*.md agents/code-reviewer.md; do
+            while IFS= read -r quirk; do
+              NUM=$(echo "$quirk" | grep -o '[0-9]\+')
+              if ! echo "$QUIRKS_CONTENT" | grep -q "Quirk #${NUM}\b\|^| ${NUM} |"; then
+                echo "ERRO: $agent referencia 'Quirk #${NUM}' mas não encontrado nos arquivos de quirks"
+                FAIL=1
+              fi
+            done < <(grep -o 'Quirk #[0-9]\+' "$agent" | sort -u)
+          done
+          if [ $FAIL -eq 0 ]; then echo "Todas as referências de Quirk encontradas nos arquivos de quirks OK"; fi
+          exit $FAIL

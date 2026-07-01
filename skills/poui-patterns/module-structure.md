@@ -251,6 +251,93 @@ export class PedidosListComponent implements OnInit {
 
 ---
 
+## Environments
+
+Angular environments são o lugar correto para URLs de API e flags de feature — nunca hardcode em services.
+
+### Estrutura de arquivos
+
+```
+src/environments/
+├── environment.ts           ← desenvolvimento local (proxy em localhost)
+├── environment.staging.ts   ← homologação (URL de HML do Protheus)
+└── environment.prod.ts      ← produção (URL de PRD do Protheus)
+```
+
+### environment.ts (desenvolvimento)
+
+```typescript
+export const environment = {
+  production: false,
+  apiUrl: '',            // vazio → proxy do Angular (proxy.conf.json) redireciona para localhost:8080
+  protheusVersion: '12',
+};
+```
+
+### environment.prod.ts (produção)
+
+```typescript
+export const environment = {
+  production: true,
+  apiUrl: 'https://protheus.empresa.com.br:8080',
+  protheusVersion: '12',
+};
+```
+
+### angular.json — configurar substituição de environment
+
+```json
+"configurations": {
+  "production": {
+    "fileReplacements": [
+      {
+        "replace": "src/environments/environment.ts",
+        "with": "src/environments/environment.prod.ts"
+      }
+    ]
+  }
+}
+```
+
+### Uso no service
+
+```typescript
+import { environment } from '../../../environments/environment';
+
+@Injectable({ providedIn: 'root' })
+export class PedidosService {
+  private readonly baseUrl = `${environment.apiUrl}/rest/api/custom/v1/pedidos`;
+  // Em dev: '/rest/api/custom/v1/pedidos' → resolvido pelo proxy para localhost:8080
+  // Em prod: 'https://protheus.empresa.com.br:8080/rest/api/custom/v1/pedidos'
+}
+```
+
+### proxy.conf.json (apenas desenvolvimento)
+
+```json
+{
+  "/rest": {
+    "target": "http://localhost:8080",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "warn"
+  }
+}
+```
+
+Registrar em `angular.json`:
+```json
+"serve": {
+  "options": {
+    "proxyConfig": "proxy.conf.json"
+  }
+}
+```
+
+> **Nota de segurança:** `proxy.conf.json` deve estar no `.gitignore` — contém URL do servidor de desenvolvimento que varia por máquina/ambiente.
+
+---
+
 ## Icon Reference
 
 Always use `po-icon-*` names. Never use `an an-*`.
