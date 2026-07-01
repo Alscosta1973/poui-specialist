@@ -1,17 +1,20 @@
 #!/usr/bin/env node
 /**
- * bump-version.js — atualiza a versão do plugin em todos os 3 locais atomicamente
+ * bump-version.js — atualiza a versão do plugin em todos os locais atomicamente
  *
  * Uso:
- *   node scripts/bump-version.js patch     → 1.5.1 → 1.5.2
- *   node scripts/bump-version.js minor     → 1.5.1 → 1.6.0
- *   node scripts/bump-version.js major     → 1.5.1 → 2.0.0
+ *   node scripts/bump-version.js patch     → 1.6.0 → 1.6.1
+ *   node scripts/bump-version.js minor     → 1.6.0 → 1.7.0
+ *   node scripts/bump-version.js major     → 1.6.0 → 2.0.0
  *   node scripts/bump-version.js 1.7.0     → define versão explícita
  *
  * Atualiza:
  *   .claude-plugin/plugin.json        → "version": "X.Y.Z"
  *   .claude-plugin/marketplace.json   → plugins[0].version: "X.Y.Z"
  *   agents/code-generator.md          → @generated poui-specialist vX.Y.Z
+ *   agents/code-generator-list.md     → @generated poui-specialist vX.Y.Z
+ *   agents/code-generator-forms.md    → @generated poui-specialist vX.Y.Z
+ *   agents/code-generator-infra.md    → @generated poui-specialist vX.Y.Z
  */
 
 const fs = require('fs');
@@ -74,19 +77,30 @@ marketplaceJson.plugins[0].version = newVersion;
 writeJson(marketplaceJsonPath, marketplaceJson);
 console.log('  ✓ .claude-plugin/marketplace.json');
 
-// 3. Atualizar code-generator.md
-const agentPath = path.join(ROOT, 'agents', 'code-generator.md');
-let agentContent = fs.readFileSync(agentPath, 'utf8');
+// 3. Atualizar agents com @generated header
 const versionPattern = /(@generated\s+poui-specialist\s+v)[\d.]+/g;
-const updated = agentContent.replace(versionPattern, `$1${newVersion}`);
-if (updated === agentContent) {
-  console.warn('  ⚠ @generated version não encontrado em agents/code-generator.md — verificar manualmente');
-} else {
-  fs.writeFileSync(agentPath, updated, 'utf8');
-  console.log('  ✓ agents/code-generator.md');
+const agentFiles = [
+  'agents/code-generator.md',
+  'agents/code-generator-list.md',
+  'agents/code-generator-forms.md',
+  'agents/code-generator-infra.md',
+];
+
+for (const rel of agentFiles) {
+  const agentPath = path.join(ROOT, rel);
+  const agentContent = fs.readFileSync(agentPath, 'utf8');
+  const updatedAgent = agentContent.replace(versionPattern, `$1${newVersion}`);
+  if (updatedAgent === agentContent) {
+    console.warn(`  ⚠ @generated version não encontrado em ${rel}`);
+  } else {
+    fs.writeFileSync(agentPath, updatedAgent, 'utf8');
+    console.log(`  ✓ ${rel}`);
+  }
 }
 
-console.log(`\nVersão ${newVersion} aplicada em 3 arquivos.`);
+const totalFiles = 2 + agentFiles.length;
+console.log(`\nVersão ${newVersion} aplicada em ${totalFiles} arquivos.`);
 console.log('Próximos passos:');
-console.log('  git add .claude-plugin/plugin.json .claude-plugin/marketplace.json agents/code-generator.md');
+console.log('  git add .claude-plugin/plugin.json .claude-plugin/marketplace.json ' + agentFiles.join(' '));
 console.log(`  git commit -m "chore(release): bump version to ${newVersion}"`);
+console.log('  node scripts/sync-docs.js   # atualiza PLUGIN_VERSION no site');
