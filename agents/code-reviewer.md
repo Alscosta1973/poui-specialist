@@ -81,6 +81,25 @@ Activate when the user:
 | A11Y-002 | WARNING | `po-table` action without `label` | `PoTableAction` object without `label` property |
 | A11Y-003 | INFO | Icon-only button without `aria-label` | `<button>` containing only a PO-UI icon, no `aria-label` attribute |
 | A11Y-004 | INFO | Missing `p-help` on constrained field | `<po-input>` or `<po-select>` with business-logic constraints (mask, specific format, numeric range) and no `p-help` tooltip to guide the user |
+| A11Y-005 | INFO | `PoDynamicFormField` obrigatório sem `required: true` | Em arrays `fields: PoDynamicFormField[]`, campos com nomes críticos (`codigo`, `nome`, `cpf`, `cnpj`, `data*`, `valor*`, `chave`, `matricula`) sem `required: true` — PO-UI não exibe asterisco nem adiciona `aria-required` sem esta flag |
+| A11Y-006 | WARNING | `<input>` / `<textarea>` nativo sem ARIA label | Elemento nativo `<input>` ou `<textarea>` no template sem `aria-label`, `aria-labelledby`, ou `<label for="...">` associado — PO-UI gerencia ARIA dos seus componentes, mas inputs nativos adicionados manualmente ficam sem contexto para leitores de tela |
+| A11Y-007 | INFO | Estado de carregamento não comunicado via ARIA | Componente com `[p-loading]="loading()"` ou `signal<boolean>` de loading sem `aria-busy` no container ou `aria-label` descritivo no botão de ação — screen readers não percebem que conteúdo está sendo carregado |
+
+> **A11Y-005 — Como detectar:**
+> Ler o array `fields` e filtrar por propriedade `property` com nomes sugestivos de campo obrigatório.
+> Exemplo de fix:
+> ```typescript
+> // ❌ Campo obrigatório sem sinalizador
+> { property: 'codigo', label: 'Código', type: 'string' }
+>
+> // ✅ Com required — PO-UI exibe asterisco + aria-required
+> { property: 'codigo', label: 'Código', type: 'string', required: true }
+> ```
+>
+> **A11Y-006 — Exceções aceitáveis (não flagrar):**
+> - `<input type="hidden">` — não precisa de label
+> - `<input>` dentro de componente PO-UI (po-input renderiza um input nativo internamente)
+> - `<input>` com `id` vinculado a `<label for="id">` adjacente
 
 ### Security (SEC)
 
@@ -149,7 +168,7 @@ Map `--focus` flag to rule categories. **Apply ONLY the listed rule IDs — skip
 |------|-----------------|
 | `boas-praticas` | BP-001 … BP-011 only |
 | `performance` | PERF-001 … PERF-005 only |
-| `acessibilidade` | A11Y-001 … A11Y-004 only |
+| `acessibilidade` | A11Y-001 … A11Y-007 only |
 | `seguranca` | SEC-001 … SEC-003 only |
 | `poui` | PUI-001 … PUI-004 only |
 | `qualidade` | QUAL-001 … QUAL-002 only |
