@@ -183,7 +183,7 @@ E prossiga diretamente para a substituição de placeholders sem nova chamada de
 
 | Type | Files to read |
 |------|--------------|
-| `page-list` | `skills/poui-code-generation/templates-page-list.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/table-components.md`<br>`skills/poui-patterns/po-ui-quirks-table.md`<br>`skills/poui-patterns/po-ui-quirks-onpush.md` |
+| `page-list` | `skills/poui-code-generation/templates-page-list.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/table-components.md`<br>`skills/poui-patterns/po-ui-quirks-table.md`<br>`skills/poui-patterns/po-ui-quirks-onpush.md`<br>`skills/poui-patterns/po-ui-patterns-search.md` |
 | `page-dynamic-search` | `skills/poui-code-generation/templates-page-dynamic-search.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/table-components.md`<br>`skills/poui-components/form-fields.md`<br>`skills/poui-patterns/po-ui-quirks-table.md`<br>`skills/poui-patterns/po-ui-quirks-onpush.md` |
 | `page-edit` | `skills/poui-code-generation/templates-page-edit.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/form-fields.md`<br>`skills/poui-components/dynamic-form-fields.md` |
 | `page-detail` | `skills/poui-code-generation/templates-page-detail.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/modal-dialog.md` |

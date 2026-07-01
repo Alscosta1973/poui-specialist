@@ -6,6 +6,8 @@ Gera um componente standalone `po-page-list` com `po-table`, paginação server-
 > Nunca use `an an-*` — esses são de uma biblioteca de ícones diferente.
 
 > **Dica:** Para busca avançada com filtros/disclaimers, use `page-dynamic-search` em vez deste.
+>
+> **Debounce:** `filterSettings.action` dispara apenas no Enter/clique — não a cada tecla. Se o projeto exigir busca em tempo real (por digitação), consulte `skills/poui-patterns/po-ui-patterns-search.md` para o padrão `Subject + debounceTime + switchMap`.
 
 ## {{kebab-name}}.component.ts
 
