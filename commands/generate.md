@@ -53,6 +53,7 @@ Generates standalone Angular 17–21+ artifacts using PO-UI components, integrat
 | `route-guard` | `*.guard.ts` | Sim | Guard funcional Angular 17–21+: CanActivate (auth/permissão Protheus), CanDeactivate (alterações não salvas) |
 | `standalone-migrate` | Arquivo existente atualizado in-place | Sim | Migra componente legado NgModule → standalone + OnPush + signals + inject() |
 | `upload` | `*.component.ts/html/scss` | Sim | Upload de arquivos com `po-upload`: A (único auto-upload), B (múltiplo + tabela de resultados), C (embutido em form + envio manual via FormData) |
+| `auth-login` | `login.component.ts/html`, `auth.service.ts`, `auth.guard.ts` | Não | Tela de login com `po-page-login` + AuthService + authGuard + tokenInterceptor — apenas para apps fora do iframe Protheus |
 
 ## Exemplos
 
@@ -76,6 +77,7 @@ Generates standalone Angular 17–21+ artifacts using PO-UI components, integrat
 /poui-specialist:generate http-interceptor auth --module core
 /poui-specialist:generate route-guard auth --module core
 /poui-specialist:generate standalone-migrate ClientesLegado --module cadastro
+/poui-specialist:generate auth-login Login
 ```
 
 ## Processo
@@ -93,7 +95,7 @@ Generates standalone Angular 17–21+ artifacts using PO-UI components, integrat
    |---------|-------|--------|
    | Lista / Browse | `page-list`, `page-dynamic-search`, `page-dynamic`, `stacked-browse`, `two-panel-browse`, `action-list`, `master-detail` | `poui-specialist:code-generator-list` |
    | Formulários | `page-edit`, `page-detail`, `modal-crud`, `stepper-form` | `poui-specialist:code-generator-forms` |
-   | Infraestrutura | `service`, `module`, `dashboard`, `models`, `tlpp-contract`, `refactor`, `http-interceptor`, `route-guard`, `standalone-migrate` | `poui-specialist:code-generator-infra` |
+   | Infraestrutura | `service`, `module`, `dashboard`, `models`, `tlpp-contract`, `refactor`, `http-interceptor`, `route-guard`, `standalone-migrate`, `upload`, `auth-login` | `poui-specialist:code-generator-infra` |
 
    Invoke the matching specialized agent — it handles planning, validation, and generation.
 3. **Confirm output** — list created files with their absolute paths and suggested route addition

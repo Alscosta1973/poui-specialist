@@ -203,6 +203,7 @@ E prossiga diretamente para a substituição de placeholders sem nova chamada de
 | `http-interceptor` | `skills/poui-code-generation/templates-http-interceptor.md` |
 | `route-guard` | `skills/poui-code-generation/templates-route-guard.md` |
 | `standalone-migrate` | `skills/poui-code-generation/templates-standalone-migrate.md` |
+| `auth-login` | `skills/poui-code-generation/templates-auth-login.md` |
 
 > **Why conditional?** Loading all skills for every generation wastes tokens. A `page-list`
 > does not need `dynamic-form-fields.md`, `reactive-forms.md`, or `navigation-components.md`.

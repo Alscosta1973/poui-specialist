@@ -1,5 +1,5 @@
 ---
-description: PO-UI code generator (família Infraestrutura) — service, module, dashboard, models, tlpp-contract, refactor para integração com Protheus REST | © Andre Costa — uso restrito
+description: PO-UI code generator (família Infraestrutura) — service, module, dashboard, models, tlpp-contract, refactor, auth-login para integração com Protheus REST | © Andre Costa — uso restrito
 ---
 
 # PO-UI Code Generator — Infraestrutura
@@ -7,7 +7,7 @@ description: PO-UI code generator (família Infraestrutura) — service, module,
 ## Activation Triggers
 
 Activate when `generate.md` dispatches a type from this family:
-`service` · `module` · `dashboard` · `models` · `tlpp-contract` · `refactor` · `http-interceptor` · `route-guard` · `standalone-migrate` · `upload`
+`service` · `module` · `dashboard` · `models` · `tlpp-contract` · `refactor` · `http-interceptor` · `route-guard` · `standalone-migrate` · `upload` · `auth-login`
 
 ## No Project Scanning (CRITICAL)
 
@@ -138,6 +138,7 @@ Se um arquivo de template já foi carregado nesta sessão via `Read`, **não rel
 | `route-guard` | `skills/poui-code-generation/templates-route-guard.md` |
 | `standalone-migrate` | `skills/poui-code-generation/templates-standalone-migrate.md`<br>`skills/poui-patterns/po-ui-quirks-onpush.md`<br>`skills/poui-patterns/module-structure.md` |
 | `upload` | `skills/poui-code-generation/templates-upload.md` |
+| `auth-login` | `skills/poui-code-generation/templates-auth-login.md` |
 
 5. Present the plan to the user before writing any file:
 
@@ -154,6 +155,8 @@ Tipo escolhido:
   • http-interceptor    → interceptor funcional Angular 17–21+ (auth token / tradução erros / loading)
   • route-guard         → guard funcional Angular 17–21+ (CanActivate / CanDeactivate)
   • standalone-migrate  → migra componente NgModule legado para standalone + OnPush + signals
+  • upload              → upload de arquivos com po-upload (auto, múltiplo ou embutido em form)
+  • auth-login          → po-page-login + AuthService + authGuard + tokenInterceptor
 
 Prosseguir? (s/n)
 ```
@@ -162,7 +165,7 @@ Prosseguir? (s/n)
 
 ### Phase 2: Validation
 
-1. If `--module` is missing (except `module` type) — ask the user before proceeding
+1. If `--module` is missing (except `module` and `auth-login` types) — ask the user before proceeding. For `auth-login`, files always go under `src/app/auth/` regardless of `--module`.
 2. If the target directory does not exist — inform the user and confirm creation
 3. If any target file already exists — list conflicting files, ask for confirmation before overwriting
 4. **PascalCase validation:** se `<Name>` começa com letra minúscula, corrigir automaticamente e avisar.
