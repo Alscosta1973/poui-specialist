@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.11.0](https://github.com/Alscosta1973/poui-specialist/compare/v1.10.0...v1.11.0) (2026-07-13)
+
+
+### Features
+
+* **header:** add Node.js/Angular versions to attribution header and extend it to generated HTML files ([6d8ed0d](https://github.com/Alscosta1973/poui-specialist/commit/6d8ed0da61a33aac8702a73b5bbcdf79ca232fc9))
+
+
+### Bug Fixes
+
+* register auth-login type in /generate command and infra agents ([e36f27a](https://github.com/Alscosta1973/poui-specialist/commit/e36f27a349e1a3d781e5d12a700dbf1aa99b8b4b))
+* **stacked-browse:** remove setTimeout race condition in row highlighting ([1512a30](https://github.com/Alscosta1973/poui-specialist/commit/1512a301addad0faa33bb21974cf7d408bc682f1))
+
 ## [1.10.0](https://github.com/Alscosta1973/poui-specialist/compare/v1.9.1...v1.10.0) (2026-07-01)
 
 
