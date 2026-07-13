@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.12.0](https://github.com/Alscosta1973/poui-specialist/compare/v1.11.0...v1.12.0) (2026-07-13)
+
+
+### Features
+
+* **generate:** warn when Node.js/Angular are below the supported range ([f0cf8bd](https://github.com/Alscosta1973/poui-specialist/commit/f0cf8bd08d627b6aa106e59a2049927c91b08a46))
+
+
+### Documentation
+
+* use consistent Angular 17-21+ range in poui-patterns (was 17+) ([e381eb0](https://github.com/Alscosta1973/poui-specialist/commit/e381eb0e665c794a8794be48d68eaf7c14035379))
+
 ## [1.11.0](https://github.com/Alscosta1973/poui-specialist/compare/v1.10.0...v1.11.0) (2026-07-13)
 
 

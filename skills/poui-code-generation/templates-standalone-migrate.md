@@ -89,7 +89,7 @@ export class {{ComponentClass}} implements OnInit, OnDestroy {
 
 ```typescript
 /**
- * @generated  poui-specialist v1.11.0
+ * @generated  poui-specialist v1.12.0
  * @author     Andre Costa <andre.andrelscosta@gmail.com>
  * @license    Uso permitido · redistribuição proibida sem autorização escrita
  * @see        https://github.com/Alscosta1973/poui-specialist
