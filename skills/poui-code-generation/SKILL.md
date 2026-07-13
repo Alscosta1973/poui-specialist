@@ -115,13 +115,24 @@ All templates use these substitution placeholders:
 
 Reuse the same two values for every file generated in the session — don't re-detect per file.
 
+### Outdated environment warning (print once, before generating any files)
+
+Compare the detected versions against the plugin's supported ranges and print a one-line warning per outdated item — **do not block generation and do not attempt to upgrade anything**, just warn and proceed:
+
+- Node.js below `18.19` →
+  `⚠ Node.js {detected} detectado — abaixo do mínimo suportado pelo plugin (>=18.19). Os componentes gerados podem falhar ao compilar. Recomendado atualizar o Node antes de continuar.`
+- `@angular/core` below `17.0.0` →
+  `⚠ Angular {detected} detectado — abaixo da faixa suportada pelo plugin (17-21+). Sintaxes geradas (standalone components, control flow @if/@for, signals) podem não existir nesta versão.`
+
+If both are within range, or a value is `not detected`, print nothing.
+
 ### `.ts` files
 
 Add this block at the **very top** of every generated `.ts` file, before the first `import`:
 
 ```typescript
 /**
- * @generated  poui-specialist v1.11.0
+ * @generated  poui-specialist v1.12.0
  * @author     Andre Costa <andre.andrelscosta@gmail.com>
  * @license    Uso permitido · redistribuição proibida sem autorização escrita
  * @see        https://github.com/Alscosta1973/poui-specialist
@@ -136,7 +147,7 @@ Add this block at the **very top** of every generated `.component.html` file:
 
 ```html
 <!--
-  @generated  poui-specialist v1.11.0
+  @generated  poui-specialist v1.12.0
   @author     Andre Costa <andre.andrelscosta@gmail.com>
   @license    Uso permitido · redistribuição proibida sem autorização escrita
   @see        https://github.com/Alscosta1973/poui-specialist
