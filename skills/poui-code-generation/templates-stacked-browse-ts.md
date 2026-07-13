@@ -155,7 +155,7 @@ export class {{ComponentClass}} implements OnInit, AfterViewInit {
       this.activeBrowse.set(next);
       if (next === 'detail' && this.cursorDetail() < 0 && this.detailItems().length) {
         this.cursorDetail.set(0);
-        setTimeout(() => this._highlightDetailRow(), 50);
+        this._highlightDetailRow();
       }
       return;
     }
@@ -166,10 +166,8 @@ export class {{ComponentClass}} implements OnInit, AfterViewInit {
 
     if (this.activeBrowse() === 'master') {
       this._moverCursor(delta);
-      setTimeout(() => this._highlightMasterRow(), 50);
     } else {
       this._moverCursorDetail(delta);
-      setTimeout(() => this._highlightDetailRow(), 50);
     }
   }
 
@@ -190,10 +188,18 @@ export class {{ComponentClass}} implements OnInit, AfterViewInit {
     const next = cur < 0 ? 0 : Math.max(0, Math.min(its.length - 1, cur + delta));
     if (next === cur && cur >= 0) return;
     this.cursorDetail.set(next);
-    setTimeout(() => this._highlightDetailRow(), 50);
+    this._highlightDetailRow();
   }
 
+  // OnPush não roda change detection sincronamente após um signal.set(). Sem o detectChanges()
+  // abaixo, o querySelectorAll leria o DOM antes do Angular re-renderizar o po-table (inclusive
+  // após items()/detailItems() serem substituídos), e getBoundingClientRect() retornaria valores
+  // stale. Chamar detectChanges() aqui torna estes métodos seguros para uso síncrono — nunca
+  // envolva a chamada em setTimeout: temporizadores concorrentes de chamadores diferentes (clique
+  // do mouse, seleção automática no load, navegação por teclado) são a causa raiz de duas linhas
+  // ficarem destacadas simultaneamente.
   private _highlightMasterRow(): void {
+    this.cdr.detectChanges();
     document.querySelectorAll('.master-browse .row-ativa').forEach(el => el.classList.remove('row-ativa'));
     const idx  = this.cursorIndex();
     if (idx < 0) return;
@@ -205,6 +211,7 @@ export class {{ComponentClass}} implements OnInit, AfterViewInit {
   }
 
   private _highlightDetailRow(): void {
+    this.cdr.detectChanges();
     document.querySelectorAll('.detail-browse .row-ativa').forEach(el => el.classList.remove('row-ativa'));
     const idx  = this.cursorDetail();
     if (idx < 0) return;
@@ -216,8 +223,6 @@ export class {{ComponentClass}} implements OnInit, AfterViewInit {
   }
 
   // Sobe o DOM a partir da linha para encontrar o ancestral scrollável real.
-  // Chamadores DEVEM usar setTimeout(..., 50) — NÃO 0ms — para que a detecção de mudanças
-  // do PO-UI tenha concluído e getBoundingClientRect() retorne valores corretos.
   // Nunca use scrollIntoView({ block:'nearest' }): ignora o thead fixo e
   // esconde a linha 0 atrás do cabeçalho fixo.
   private _scrollRowIntoView(row: HTMLElement): void {
@@ -248,8 +253,7 @@ export class {{ComponentClass}} implements OnInit, AfterViewInit {
     this.cursorDetail.set(-1);
     this.activeBrowse.set('master');
     this._carregarItens((item as any)['{{masterKey}}']);
-    this.cdr.markForCheck();
-    setTimeout(() => this._highlightMasterRow(), 50);
+    this._highlightMasterRow();
   }
 
   onMasterDeselecionado(_item: {{MasterModel}}): void {
@@ -263,7 +267,7 @@ export class {{ComponentClass}} implements OnInit, AfterViewInit {
     this.itensSelecionados.update(prev => [...prev, item]);
     const idx = this.detailItems().findIndex(i => (i as any)['item'] === (item as any)['item']);
     if (idx >= 0) this.cursorDetail.set(idx);
-    setTimeout(() => this._highlightDetailRow(), 50);
+    this._highlightDetailRow();
   }
 
   onItemDeselecionado(item: {{DetailModel}}): void {
@@ -286,7 +290,7 @@ export class {{ComponentClass}} implements OnInit, AfterViewInit {
     this.activeBrowse.set('detail');
     if (this.cursorDetail() < 0 && this.detailItems().length) {
       this.cursorDetail.set(0);
-      setTimeout(() => this._highlightDetailRow(), 50);
+      this._highlightDetailRow();
     }
   }
 
@@ -315,8 +319,7 @@ export class {{ComponentClass}} implements OnInit, AfterViewInit {
     this.cursorDetail.set(-1);
     this.activeBrowse.set('master');
     this.items.set(resultado.map(r => ({ ...r })));
-    this.cdr.markForCheck();
-    if (resultado.length > 0) setTimeout(() => this.onMasterSelecionado(resultado[0]), 0);
+    if (resultado.length > 0) this.onMasterSelecionado(resultado[0]);
   }
 
   removerFiltro(): void {
@@ -328,14 +331,10 @@ export class {{ComponentClass}} implements OnInit, AfterViewInit {
     this.cursorDetail.set(-1);
     this.activeBrowse.set('master');
     this.items.set(DEMO_MASTER.map(r => ({ ...r })));
-    this.cdr.markForCheck();
-    setTimeout(() => {
-      const todos = DEMO_MASTER;
-      const idx   = keyAtivo ? todos.findIndex(r => (r as any)['{{masterKey}}'] === keyAtivo) : 0;
-      const alvo  = todos[idx >= 0 ? idx : 0];
-      this.cursorIndex.set(idx >= 0 ? idx : 0);
-      this.onMasterSelecionado(alvo);
-    }, 0);
+    const todos = DEMO_MASTER;
+    const idx   = keyAtivo ? todos.findIndex(r => (r as any)['{{masterKey}}'] === keyAtivo) : 0;
+    const alvo  = todos[idx >= 0 ? idx : 0];
+    this.onMasterSelecionado(alvo);
   }
 
   confirmar(): void {

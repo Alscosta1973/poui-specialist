@@ -208,8 +208,6 @@ onKeyDown(event: KeyboardEvent): void {
   if      (event.key === 'ArrowDown') { event.preventDefault(); this._moverCursor(1);  }
   else if (event.key === 'ArrowUp')   { event.preventDefault(); this._moverCursor(-1); }
   else return;
-
-  setTimeout(() => this._highlightActiveRow(), 0);
 }
 
 private _moverCursor(delta: number): void {
@@ -220,6 +218,7 @@ private _moverCursor(delta: number): void {
   if (next === current && current >= 0) return;
   this.cursorIndex.set(next);
   this._onRowActivated(items[next]);
+  this._highlightActiveRow();
 }
 ```
 
@@ -228,8 +227,23 @@ private _moverCursor(delta: number): void {
 > **⚠️ Nunca usar `row.scrollIntoView({ block: 'nearest' })`** — não considera o `thead` sticky.
 > Usar o cálculo manual abaixo.
 
+> **⚠️ Nunca envolver a chamada a `_highlightActiveRow()` (ou variantes master/detail) em
+> `setTimeout(..., N)`.** Múltiplos temporizadores agendados por chamadores diferentes (clique do
+> mouse, navegação por teclado, seleção automática no load) competem entre si: se dois disparam
+> perto um do outro, o `querySelectorAll` de um deles pode rodar depois que o Angular já recriou os
+> `<tr>` do po-table (novo array de `items()`), removendo a classe da linha errada e deixando duas
+> linhas destacadas ao mesmo tempo. A correção correta é chamar `_highlightActiveRow()` de forma
+> **síncrona**, imediatamente após o `signal.set()` — ver `cdr.detectChanges()` abaixo.
+
 ```typescript
 private _highlightActiveRow(): void {
+  // OnPush não roda change detection sincronamente após um signal.set(); sem esta chamada,
+  // o querySelectorAll abaixo lê o DOM antes do Angular re-renderizar o po-table, e
+  // getBoundingClientRect() retorna valores stale. detectChanges() força o flush imediato
+  // (inclusive nos componentes filhos OnPush, como o po-table), tornando este método seguro
+  // para ser chamado de forma síncrona — sem setTimeout — eliminando a corrida entre chamadores.
+  this.cdr.detectChanges();
+
   document.querySelectorAll('.my-browse-container .row-ativa').forEach(
     el => el.classList.remove('row-ativa')
   );
@@ -273,8 +287,6 @@ private _scrollRowIntoView(row: HTMLElement): void {
 }
 ```
 
-> Usar `setTimeout(..., 50)` — não 0ms. Em 0ms, o CD do PO-UI não completou e `getBoundingClientRect()` retorna valores stale.
-
 ### Part 4 — SCSS
 ```scss
 .my-browse-container ::ng-deep tbody tr.row-ativa td {
@@ -289,14 +301,14 @@ onRowSelected(row: MyModel): void {
   const idx = this.items().findIndex(i => i.id === row.id);
   this.cursorIndex.set(idx);
   this._onRowActivated(row);
-  setTimeout(() => this._highlightActiveRow(), 0);
+  this._highlightActiveRow();
 }
 
 ngOnInit(): void {
   this.loadData();
   this.cursorIndex.set(0);
   if (this.items().length) this._onRowActivated(this.items()[0]);
-  setTimeout(() => this._highlightActiveRow(), 0);
+  this._highlightActiveRow();
 }
 ```
 
@@ -326,7 +338,7 @@ onKeyDown(event: KeyboardEvent): void {
     this.activeBrowse.set(this.activeBrowse() === 'master' ? 'detail' : 'master');
     if (this.activeBrowse() === 'detail' && this.cursorDetail() < 0 && this.detailItems().length) {
       this.cursorDetail.set(0);
-      setTimeout(() => this._highlightDetailRow(), 50);
+      this._highlightDetailRow();
     }
     return;
   }
@@ -337,13 +349,18 @@ onKeyDown(event: KeyboardEvent): void {
 
   if (this.activeBrowse() === 'master') {
     this._moverCursorMaster(delta);
-    setTimeout(() => this._highlightMasterRow(), 50);
+    this._highlightMasterRow();
   } else {
     this._moverCursorDetail(delta);
-    setTimeout(() => this._highlightDetailRow(), 50);
+    this._highlightDetailRow();
   }
 }
 ```
+
+> `_highlightMasterRow()`/`_highlightDetailRow()` seguem o mesmo padrão da Part 3 acima
+> (`_highlightActiveRow()`): chamar `this.cdr.detectChanges()` como primeira linha e nunca envolver
+> a chamada em `setTimeout`. Isso vale para todo chamador — clique do mouse, seleção automática
+> no load e navegação por teclado — para que não existam temporizadores concorrentes.
 
 ### Template — wrappers com indicador de browse ativo
 ```html
