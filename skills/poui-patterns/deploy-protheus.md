@@ -48,7 +48,7 @@ O build de produção falha se os bundles ultrapassam os limites padrão. Ajuste
 ng build --configuration production
 ```
 
-Isso gera a pasta `dist/<nome-projeto>/browser/` (Angular 17+).
+Isso gera a pasta `dist/<nome-projeto>/browser/` (Angular 17–21+).
 
 ---
 

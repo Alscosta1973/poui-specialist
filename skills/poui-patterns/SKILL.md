@@ -7,7 +7,7 @@ description: Use when generating Angular module structure or Protheus REST integ
 
 ## Contents
 
-- **Angular 17+ module structure** (standalone, lazy routing, app.config): see `module-structure.md`
+- **Angular 17–21+ module structure** (standalone, lazy routing, app.config): see `module-structure.md`
 - **Protheus REST integration** (response contract, pagination, error handling): see `protheus-rest.md`
 - **Reactive Forms with PO-UI** (FormGroup, FormBuilder, cross-field validation, FormArray): see `reactive-forms.md`
 - **PO-UI known quirks and fixes** (po-page-content opacity, po-input 8px offset, po-table horizontal scroll, dynamic table height): see `po-ui-quirks.md`
