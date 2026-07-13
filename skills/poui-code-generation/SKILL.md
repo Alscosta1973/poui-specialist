@@ -115,16 +115,36 @@ All templates use these substitution placeholders:
 
 Reuse the same two values for every file generated in the session — don't re-detect per file.
 
-### Outdated environment warning (print once, before generating any files)
+### Outdated environment gate (before generating any files)
 
-Compare the detected versions against the plugin's supported ranges and print a one-line warning per outdated item — **do not block generation and do not attempt to upgrade anything**, just warn and proceed:
+Compare the detected versions against the plugin's supported ranges. If either is outdated, **stop before writing any file** — never uninstall, reinstall, or otherwise modify Node/Angular on the developer's machine — print the corresponding message and require explicit confirmation to proceed anyway:
 
-- Node.js below `18.19` →
-  `⚠ Node.js {detected} detectado — abaixo do mínimo suportado pelo plugin (>=18.19). Os componentes gerados podem falhar ao compilar. Recomendado atualizar o Node antes de continuar.`
-- `@angular/core` below `17.0.0` →
-  `⚠ Angular {detected} detectado — abaixo da faixa suportada pelo plugin (17-21+). Sintaxes geradas (standalone components, control flow @if/@for, signals) podem não existir nesta versão.`
+- Node.js below `18.19`:
+  ```
+  ⚠ Node.js {detected} detectado — abaixo do mínimo suportado pelo plugin (>=18.19).
 
-If both are within range, or a value is `not detected`, print nothing.
+  Sugestão: instale uma versão compatível via nvm-windows/fnm (não substitui a atual, não precisa reiniciar a máquina):
+
+    nvm install 20.14.0
+    nvm use 20.14.0
+
+  Continuar mesmo assim (arquivos podem não compilar)? [s/N]
+  ```
+- `@angular/core` below `17.0.0`:
+  ```
+  ⚠ @angular/core {detected} detectado — abaixo da faixa suportada pelo plugin (17-21+).
+
+  Sintaxes geradas (standalone components, control flow @if/@for, signals) podem não existir nesta versão.
+  Sugestão: rode `ng update @angular/core @angular/cli` no projeto para atualizar.
+
+  Continuar mesmo assim (arquivos podem não compilar)? [s/N]
+  ```
+
+Wait for the developer's answer:
+- If they confirm ("s"/"sim"/"yes"/etc.), proceed to generation normally.
+- If they decline or don't answer affirmatively, stop — do not write any file.
+
+If both versions are within range, or a value is `not detected`, skip this gate entirely and proceed.
 
 ### `.ts` files
 
@@ -132,7 +152,7 @@ Add this block at the **very top** of every generated `.ts` file, before the fir
 
 ```typescript
 /**
- * @generated  poui-specialist v1.12.0
+ * @generated  poui-specialist v1.12.1
  * @author     Andre Costa <andre.andrelscosta@gmail.com>
  * @license    Uso permitido · redistribuição proibida sem autorização escrita
  * @see        https://github.com/Alscosta1973/poui-specialist
@@ -147,7 +167,7 @@ Add this block at the **very top** of every generated `.component.html` file:
 
 ```html
 <!--
-  @generated  poui-specialist v1.12.0
+  @generated  poui-specialist v1.12.1
   @author     Andre Costa <andre.andrelscosta@gmail.com>
   @license    Uso permitido · redistribuição proibida sem autorização escrita
   @see        https://github.com/Alscosta1973/poui-specialist

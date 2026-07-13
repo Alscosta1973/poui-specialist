@@ -184,15 +184,37 @@ Prosseguir? (s/n)
 
 Before writing any files, detect versions once: run `node --version` and read `@angular/core` from the target project's `package.json`. Reuse both values for every file generated in this session; use `not detected` if either is unavailable — never guess.
 
-If Node.js is below `18.19` or `@angular/core` is below `17.0.0`, print a one-line warning per outdated item (do not block generation, do not attempt to upgrade anything):
-- `⚠ Node.js {detected} detectado — abaixo do mínimo suportado pelo plugin (>=18.19). Os componentes gerados podem falhar ao compilar. Recomendado atualizar o Node antes de continuar.`
-- `⚠ Angular {detected} detectado — abaixo da faixa suportada pelo plugin (17-21+). Sintaxes geradas (standalone components, control flow @if/@for, signals) podem não existir nesta versão.`
+If Node.js is below `18.19` or `@angular/core` is below `17.0.0`, **stop before writing any file** — never uninstall, reinstall, or otherwise modify Node/Angular on the developer's machine. Print the message below and require explicit confirmation to proceed anyway:
+
+```
+⚠ Node.js {detected} detectado — abaixo do mínimo suportado pelo plugin (>=18.19).
+
+Sugestão: instale uma versão compatível via nvm-windows/fnm (não substitui a atual, não precisa reiniciar a máquina):
+
+  nvm install 20.14.0
+  nvm use 20.14.0
+
+Continuar mesmo assim (arquivos podem não compilar)? [s/N]
+```
+
+(or, for an outdated `@angular/core`):
+
+```
+⚠ @angular/core {detected} detectado — abaixo da faixa suportada pelo plugin (17-21+).
+
+Sintaxes geradas (standalone components, control flow @if/@for, signals) podem não existir nesta versão.
+Sugestão: rode `ng update @angular/core @angular/cli` no projeto para atualizar.
+
+Continuar mesmo assim (arquivos podem não compilar)? [s/N]
+```
+
+If the developer confirms, proceed to generation normally. Otherwise stop — do not write any file.
 
 Add this block at the **very top** of every generated `.ts` file, before the first `import` statement:
 
 ```typescript
 /**
- * @generated  poui-specialist v1.12.0
+ * @generated  poui-specialist v1.12.1
  * @author     Andre Costa <andre.andrelscosta@gmail.com>
  * @license    Uso permitido · redistribuição proibida sem autorização escrita
  * @see        https://github.com/Alscosta1973/poui-specialist
@@ -205,7 +227,7 @@ Add this block at the **very top** of every generated `.component.html` file:
 
 ```html
 <!--
-  @generated  poui-specialist v1.12.0
+  @generated  poui-specialist v1.12.1
   @author     Andre Costa <andre.andrelscosta@gmail.com>
   @license    Uso permitido · redistribuição proibida sem autorização escrita
   @see        https://github.com/Alscosta1973/poui-specialist
