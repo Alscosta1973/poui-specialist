@@ -8,6 +8,14 @@
 ## {{kebab-name}}.component.html
 
 ```html
+<!--
+  @generated  poui-specialist v1.11.0
+  @author     Andre Costa <andre.andrelscosta@gmail.com>
+  @license    Uso permitido · redistribuição proibida sem autorização escrita
+  @see        https://github.com/Alscosta1973/poui-specialist
+  @node       v20.14.0 (>=18.19 required)
+  @angular    ^21.0.0 (17-21+ supported)
+-->
 <po-page-default p-title="{{PageTitle}}">
 
   <!-- Filtros ─────────────────────────────────────────────────────────── -->

@@ -78,6 +78,13 @@ pluginJson.version = newVersion;
 writeJson(pluginJsonPath, pluginJson);
 console.log('  ✓ .claude-plugin/plugin.json');
 
+// 1b. Atualizar package.json (raiz)
+const rootPackageJsonPath = path.join(ROOT, 'package.json');
+const rootPackageJson = readJson(rootPackageJsonPath);
+rootPackageJson.version = newVersion;
+writeJson(rootPackageJsonPath, rootPackageJson);
+console.log('  ✓ package.json');
+
 // 2. Atualizar marketplace.json
 const marketplaceJsonPath = path.join(ROOT, '.claude-plugin', 'marketplace.json');
 const marketplaceJson = readJson(marketplaceJsonPath);
