@@ -11,7 +11,7 @@
       "name": "poui-specialist",
       "source": "./",
       "description": "Especialista em PO-UI (Portinari) para Angular 17–21+ integrado ao TOTVS Protheus. Gera 29 templates standalone prontos (page-list, modal-crud, dashboard, stacked-browse, two-panel-browse, action-list, auth-login, http-interceptor, route-guard e mais) via 10 comandos e 3 agentes especializados. Revisa código com 21 regras em 6 categorias. Documenta 18 quirks de produção. Inclui /migrate, /lint, /scaffold (--with-dark-mode, --with-i18n), /test, /discover e /generate --dry-run.",
-      "version": "1.12.0",
+      "version": "1.12.1",
       "author": {
         "name": "Andre Costa",
         "email": "andre.andrelscosta@gmail.com",
