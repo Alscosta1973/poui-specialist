@@ -1,6 +1,11 @@
 ---
 name: poui-components
 description: Use when generating or reviewing PO-UI Angular components — reference for inputs, outputs, TypeScript types, and usage examples for po-page-list, po-page-edit, po-table, and form fields | © Andre Costa — uso restrito · https://github.com/Alscosta1973/poui-specialist
+metadata:
+  domain: PO-UI / Angular / Protheus
+  author: Andre Costa
+  version: '1.12.1'
+  category: Documentation
 ---
 
 # PO-UI Components Reference (v17+)

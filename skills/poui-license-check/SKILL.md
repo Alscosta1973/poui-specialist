@@ -1,6 +1,11 @@
 ---
 name: poui-license-check
 description: Verifica validade da licença beta do poui-specialist — check local de data e check remoto via gist com timeout de 5s. Encerrar o comando pai imediatamente se expirado ou revogado.
+metadata:
+  domain: PO-UI / Angular / Protheus
+  author: Andre Costa
+  version: '1.12.1'
+  category: Governance
 ---
 
 # Verificação de Licença — poui-specialist

@@ -1,6 +1,11 @@
 ---
 name: poui-code-generation
 description: Use when generating PO-UI Angular code — complete ready-to-adapt templates for page-list, page-dynamic-search, page-edit, page-detail, modal-crud, stepper-form, page-dynamic, master-detail, stacked-browse, two-panel-browse, action-list, service, module, and dashboard artifacts for Protheus integration | © Andre Costa — uso restrito · https://github.com/Alscosta1973/poui-specialist
+metadata:
+  domain: PO-UI / Angular / Protheus
+  author: Andre Costa
+  version: '1.12.1'
+  category: Code Generation
 ---
 
 # PO-UI Code Generation Templates
@@ -95,7 +100,7 @@ All templates use these substitution placeholders:
 | **module** | `templates-module.md` | App scaffold: config, routes, shell, package.json, proxy, tsconfig |
 | **dashboard** | `templates-dashboard.md` | Analytics page: po-widget KPIs + po-chart |
 | **models** | `templates-models.md` | TypeScript model interfaces: simple, composite key, flat relational |
-| **tlpp-contract** | `templates-tlpp-contract.md` | Backend REST contract: endpoints, error format, WsRestFul skeleton |
+| **tlpp-contract** | `templates-tlpp-contract.md` | Backend REST contract: endpoints, pagination (TTALK `remainingRecords`), error format (legado + TTALK), skeleton WsRestFul e TLPP REST por anotações |
 | **refactor-from-tlpp** | `templates-refactor-from-tlpp.md` | Analyze existing .prw/.tlpp → extract columns/actions/rules → assertive one-shot PO-UI generation |
 | **http-interceptor** | `templates-http-interceptor.md` | Angular 17–21+ functional interceptors: auth token, Protheus error translation, loading overlay |
 | **route-guard** | `templates-route-guard.md` | Angular 17–21+ functional guards: CanActivate (Protheus auth/permission), CanDeactivate (unsaved changes) |

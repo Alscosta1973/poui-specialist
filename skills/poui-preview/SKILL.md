@@ -1,6 +1,11 @@
 ---
 name: poui-preview
 description: Use after generating any PO-UI component to open it live in the browser — registers the route, starts the Angular dev server on a free port (4200-4209), and shows a Playwright screenshot | © Andre Costa — uso restrito · https://github.com/Alscosta1973/poui-specialist
+metadata:
+  domain: PO-UI / Angular / Protheus
+  author: Andre Costa
+  version: '1.12.1'
+  category: Quality
 ---
 
 # PO-UI Preview — Live Browser

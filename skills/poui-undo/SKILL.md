@@ -1,6 +1,11 @@
 ---
 name: poui-undo
 description: Reverte componentes gerados pelo poui-specialist — localiza arquivos @generated, remove-os e desfaz a rota em app.routes.ts após confirmação do usuário
+metadata:
+  domain: PO-UI / Angular / Protheus
+  author: Andre Costa
+  version: '1.12.1'
+  category: Utility
 ---
 
 # PO-UI Undo — Reversão de Geração

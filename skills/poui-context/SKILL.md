@@ -1,6 +1,11 @@
 ---
 name: poui-context
 description: Use before /generate or /generate-batch to scan the Angular project — reads app.routes.ts and existing services to detect registered routes and reusable services, producing a CONTEXTO_PROJETO: block to inject into the manifest | © Andre Costa — uso restrito · https://github.com/Alscosta1973/poui-specialist
+metadata:
+  domain: PO-UI / Angular / Protheus
+  author: Andre Costa
+  version: '1.12.1'
+  category: Planning
 ---
 
 # PO-UI Context — Scan de Projeto

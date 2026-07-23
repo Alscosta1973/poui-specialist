@@ -1,6 +1,11 @@
 ---
 name: poui-discover
 description: Use before /generate-batch when you have a Protheus REST endpoint but no manifest — calls the endpoint with pageSize=1, inspects JSON fields, and generates a pre-filled manifest ready to review | © Andre Costa — uso restrito · https://github.com/Alscosta1973/poui-specialist
+metadata:
+  domain: PO-UI / Angular / Protheus
+  author: Andre Costa
+  version: '1.12.1'
+  category: Discovery
 ---
 
 # PO-UI Discover — Auto-Discovery do Contrato Protheus

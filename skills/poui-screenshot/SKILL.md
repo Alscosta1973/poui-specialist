@@ -1,6 +1,11 @@
 ---
 name: poui-screenshot
 description: Analyzes a screenshot or wireframe image (local path or URL) and generates a PO-UI Angular component manifest using multimodal vision — infers component type, fields, actions and module, then asks whether to generate immediately | © Andre Costa — uso restrito · https://github.com/Alscosta1973/poui-specialist
+metadata:
+  domain: PO-UI / Angular / Protheus
+  author: Andre Costa
+  version: '1.12.1'
+  category: Code Generation
 ---
 
 # PO-UI Screenshot — Visual para Código

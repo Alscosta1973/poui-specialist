@@ -1,6 +1,11 @@
 ---
 name: poui-patterns
 description: Use when generating Angular module structure or Protheus REST integration patterns — standalone components, lazy routing, app.config, Protheus response contract, pagination, and error handling | © Andre Costa — uso restrito · https://github.com/Alscosta1973/poui-specialist
+metadata:
+  domain: PO-UI / Angular / Protheus
+  author: Andre Costa
+  version: '1.12.1'
+  category: Documentation
 ---
 
 # PO-UI Patterns

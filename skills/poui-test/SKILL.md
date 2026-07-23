@@ -1,6 +1,11 @@
 ---
 name: poui-test
 description: Generates Angular unit test spec files (Karma + Jasmine) for components created by poui-specialist — smoke, loading, HTTP, router, modals | © Andre Costa — uso restrito · https://github.com/Alscosta1973/poui-specialist
+metadata:
+  domain: PO-UI / Angular / Protheus
+  author: Andre Costa
+  version: '1.12.1'
+  category: Testing
 ---
 
 # PO-UI Test Generator

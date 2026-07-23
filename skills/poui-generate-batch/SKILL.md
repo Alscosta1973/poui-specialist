@@ -1,6 +1,11 @@
 ---
 name: poui-generate-batch
 description: Use to generate multiple PO-UI components in one command — parses a structured manifest and dispatches one isolated subagent per component, keeping token cost fixed regardless of session length | © Andre Costa — uso restrito · https://github.com/Alscosta1973/poui-specialist
+metadata:
+  domain: PO-UI / Angular / Protheus
+  author: Andre Costa
+  version: '1.12.1'
+  category: Code Generation
 ---
 
 # PO-UI Generate Batch — Orquestrador de Geração em Lote
