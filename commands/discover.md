@@ -129,6 +129,37 @@ Para detalhe: usar o objeto diretamente.
 | String com comprimento > 30 | `description` | `string` (textarea no form) |
 | Array `[...]` | `array` | ⚠ mapear campo a campo |
 
+### 2A.4 — Validar contra campos padrão Protheus (opcional)
+
+Os tipos acima vêm só do *shape* do JSON. Se a tabela Protheus por trás do endpoint for uma das
+cobertas pela referência estática embutida em
+`skills/poui-patterns/protheus-standard-fields.md` (SA1, SA2, SB1, SC5, SC6, SE1, SE2), oferecer
+confirmar tamanho/decimais/obrigatoriedade reais dos campos **padrão**, sem depender de nenhum
+outro plugin instalado:
+
+```
+Deseja validar os campos contra a referência de campos padrão Protheus? (SA1, SA2, SB1, SC5, SC6, SE1, SE2)
+Informe o alias da tabela (ex: SA1) ou Enter para pular: >
+```
+
+Se o usuário pular ou a tabela não estiver coberta, seguir para o Passo 3 sem alterações.
+
+Se coberta: ler `skills/poui-patterns/protheus-standard-fields.md` e casar cada campo do JSON
+(case-insensitive, ignorando prefixo de tabela e underscore — ex: `A1_NOME` casa com `nome`) com
+uma linha da tabela padrão correspondente:
+
+- Tamanho → anotar como restrição de tamanho no relatório (Passo 4) e no manifesto `--suggest-batch`
+- Obrigatório = `S` → marcar como obrigatório mesmo que a heurística de valor não tenha marcado
+- Decimal > 0 → confirmar tipo `currency`/`number` com N casas decimais
+- Tipo `D` (Data) → confirmar tipo `date` já detectado
+
+Campos do JSON **sem correspondência** na referência (prováveis customizados `X_*`): adicionar
+em "Campos que precisam de atenção manual" (Passo 4): `<campo>: não encontrado na referência
+padrão — provável campo customizado, confirme tamanho/obrigatoriedade manualmente no Protheus`.
+
+> Esta referência cobre só campos padrão de fábrica — nunca inventa tamanho para campo
+> customizado, sinaliza como desconhecido em vez de adivinhar.
+
 ---
 
 ## Passo 2B — Modo Fonte: descoberta via arquivo .prw/.tlpp
