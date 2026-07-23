@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.13.0](https://github.com/Alscosta1973/poui-specialist/compare/v1.12.1...v1.13.0) (2026-07-23)
+
+
+### Features
+
+* **discover:** add e2e command and vendor standard-fields validation ([264078b](https://github.com/Alscosta1973/poui-specialist/commit/264078bbd185571e78b19861af1ac5c11b514703))
+
+
+### Bug Fixes
+
+* **skills:** frontmatter, metadata and TTALK alignment across skills ([c356bf5](https://github.com/Alscosta1973/poui-specialist/commit/c356bf56b68f61531beec7e53081ef669a757d11))
+
 ## [1.12.1](https://github.com/Alscosta1973/poui-specialist/compare/v1.12.0...v1.12.1) (2026-07-13)
 
 
