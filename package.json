@@ -9,6 +9,7 @@
     "release:patch": "commit-and-tag-version --release-as patch",
     "release:major": "commit-and-tag-version --release-as major",
     "bump": "node scripts/bump-version.js",
+    "renew-license": "node scripts/renew-license.js",
     "test": "node scripts/test-plugin.js"
   },
   "devDependencies": {
