@@ -12,9 +12,9 @@ metadata:
 
 ## Passo 1 — Check local
 
-Data de expiração: `2026-07-23`. Verificar `currentDate` no contexto do sistema.
+Data de expiração: `2026-10-27`. Verificar `currentDate` no contexto do sistema.
 
-Se hoje for posterior a `2026-07-23`: exibir a mensagem abaixo e retornar `status: expirado`.
+Se hoje for posterior a `2026-10-27`: exibir a mensagem abaixo e retornar `status: expirado`.
 
 ## Passo 2 — Check remoto
 
@@ -34,7 +34,7 @@ curl -s --max-time 5 "https://gist.githubusercontent.com/Alscosta1973/ace66c8661
 
 ```
 ⛔ Licença de teste do poui-specialist expirada ou revogada.
-   Período de acesso: até 23/07/2026.
+   Período de acesso: até 27/10/2026.
    Contato: andre.andrelscosta@gmail.com
 ```
 
