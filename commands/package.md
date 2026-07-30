@@ -1,7 +1,7 @@
 ---
 description: Compile an existing PO-UI Angular project and package it into a Resource/<project>.app ready to publish in Protheus
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, PowerShell, Skill
-argument-hint: "[--skip-build]"
+argument-hint: "[project-path] [--skip-build]"
 ---
 
 **IMPORTANT:** Always respond in the same language the user is writing in. If the user writes in Portuguese, respond in Portuguese.
@@ -18,21 +18,42 @@ Se a skill retornar `status: expirado` ou `status: revogado`, encerrar imediatam
 Compila um projeto Angular + PO-UI **já pronto** (depois que os componentes já foram gerados,
 testados e revisados) e empacota o resultado em `Resource/<projeto>.app`, pronto para copiar
 ao AppServer do Protheus. Diferente do `/scaffold`, este comando não cria projeto novo — roda
-em qualquer projeto Angular + PO-UI existente na pasta atual.
+em qualquer projeto Angular + PO-UI existente, na pasta atual ou em `[project-path]`.
 
 ## Exemplos
 
 ```bash
-# Build de produção + empacotamento completo
+# Build de produção + empacotamento completo — pasta atual
 /poui-specialist:package
+
+# Informando a pasta do projeto — sem precisar entrar nela antes
+/poui-specialist:package C:\TOTVS\Projetos\Claude\poui-specialist\Teste_poui
 
 # Já rodei o build manualmente — só empacotar o dist/ existente
 /poui-specialist:package --skip-build
+
+# Combinando os dois
+/poui-specialist:package C:\caminho\do\projeto --skip-build
 ```
 
 ---
 
 ## Passo 1 — Identificar o projeto
+
+Se `[project-path]` foi informado:
+
+```powershell
+if (-not (Test-Path $projectPath)) {
+    Write-Host "⚠ Pasta não encontrada: $projectPath"
+    exit 1
+}
+Set-Location $projectPath
+```
+
+Se `[project-path]` **não** foi informado, usar o diretório atual sem trocar de local.
+
+A partir daqui, todos os passos seguintes rodam relativos a essa pasta (atual ou
+`[project-path]`).
 
 Ler `angular.json` na raiz do diretório atual. Se não existir: informar que o comando deve
 ser executado na raiz de um projeto Angular e encerrar.
