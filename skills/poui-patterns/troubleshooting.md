@@ -173,38 +173,49 @@ UnZipApp: Não foi possível extrair o arquivo \http-root\app-root\<projeto>.app
 Falha ao renomear, FError: 161 on UNZIPAPP(FWCALLAPP.PRW)
 ```
 
-Esse mesmo erro tem **duas causas raiz distintas** — confirme qual delas se aplica abrindo o
-`.app` (é um zip) com o 7-Zip/Explorer e olhando a estrutura interna.
+Esse mesmo sintoma teve **três causas raiz** encontradas em sequência ao investigar um caso real
+em produção — confirme a estrutura interna do `.app` (é um zip) com `7z l arquivo.app` antes de
+supor qual delas se aplica:
 
-**Causa 1 — ZIP gerado com `Compress-Archive` do PowerShell.** O `.NET System.IO.Compression`
-produz um formato que a função interna `UNZIPAPP` do Protheus (`FWCALLAPP.PRW`) não extrai
-corretamente. Um ZIP gerado com **7-Zip** funciona normalmente.
+1. **ZIP gerado com `Compress-Archive` do PowerShell.** O `.NET System.IO.Compression` produz
+   um formato que o `UNZIPAPP` não extrai corretamente — trocar por **7-Zip** resolve o formato,
+   mas não basta sozinho (ver causa 3).
+2. **`index.html` dentro de `dist\<projeto>\` no zip.** Acontece se o `7z a` for chamado da raiz
+   do projeto apontando para `dist\<projeto>\*` — o 7-Zip preserva esse caminho de origem dentro
+   do zip. Descartado, mas não era a causa final.
+3. **A causa real: o zip precisa ter a pasta `<projeto>/` como raiz, não vir achatado.**
+   Confirmado comparando um `.app` gerado manualmente (que funcionou) com o gerado pelo plugin
+   (que falhava mesmo já com formato e caminho corretos): o `UNZIPAPP` extrai o `.app` esperando
+   encontrar uma pasta com o nome do projeto para processar/renomear. Um zip **achatado**
+   (arquivos direto na raiz, sem essa pasta — o que as duas correções anteriores produziam)
+   também causa "Falha ao renomear", só que por não haver pasta nenhuma para renomear.
 
-**Causa 2 — `index.html` está dentro de uma subpasta `dist\<projeto>\` no zip, em vez de estar
-na raiz.** Acontece quando o `7z a` é chamado a partir da raiz do projeto apontando para
-`dist\<projeto>\*` — o 7-Zip **preserva o caminho da pasta de origem** dentro do zip nesse caso
-(diferente do `Compress-Archive`, que já achata automaticamente). O Protheus extrai o `.app`
-esperando os arquivos direto na raiz.
+**Estrutura correta dentro do zip:**
+```
+<projeto>.app (zip)
+└── <projeto>/
+    ├── index.html
+    ├── main.js
+    └── ...
+```
 
-**Fix (ambas):** `/poui-specialist:package` e o Passo 10.5 do `/poui-specialist:scaffold`
-(a partir da v1.15.3) usam `7z.exe` automaticamente quando encontrado — no `PATH` ou nos locais
-padrão de instalação (`C:\Program Files\7-Zip\7z.exe` / `...\7-Zip (x86)\...`) — e entram
-(`Push-Location`) dentro de `dist/<projeto>/` antes de compactar com `*`, garantindo que o zip
-não tenha nenhum prefixo de pasta. `Compress-Archive` só é usado como fallback quando nenhum
-7-Zip é encontrado, e o plugin pergunta antes de prosseguir com ele — nunca gera silenciosamente
-um `.app` sabidamente incompatível.
+**Fix:** `/poui-specialist:package` e o Passo 10.5 do `/poui-specialist:scaffold` (a partir da
+v1.15.4) entram (`Push-Location`) em `dist/` (a pasta **pai**) e compactam a pasta `<projeto>`
+inteira pelo nome — isso preserva `<projeto>/` como raiz do zip, sem incluir `dist/` no caminho
+e sem achatar o conteúdo. `Compress-Archive` (fallback, sem 7-Zip) usa o mesmo princípio: apontar
+para a pasta `dist/<projeto>` sem o sufixo `/*`.
 
-Se você ainda tiver um `.app` com qualquer um dos dois problemas (gerado por uma versão do
-plugin anterior à v1.15.3), regenere:
+Se você ainda tiver um `.app` com qualquer uma das três estruturas incorretas, regenere:
 
 1. Confirmar o 7-Zip instalado (`C:\Program Files\7-Zip\7z.exe` ou no `PATH`).
-2. Rodar `/poui-specialist:package` de novo — ou manualmente, **de dentro** da pasta `dist/<projeto>/`:
+2. Rodar `/poui-specialist:package` de novo — ou manualmente, de dentro da pasta `dist/`:
    ```powershell
-   cd dist\<projeto>
-   & "C:\Program Files\7-Zip\7z.exe" a -tzip ..\..\<projeto>.zip *
-   cd ..\..
+   cd dist
+   & "C:\Program Files\7-Zip\7z.exe" a -tzip ..\<projeto>.zip <projeto>
+   cd ..
    ```
-   (nunca `7z a <projeto>.zip "dist\<projeto>\*"` a partir da raiz — isso preserva o prefixo `dist\<projeto>\` no zip)
+   (nunca zipar de dentro de `dist\<projeto>\` com `*` — isso acha o conteúdo e perde a pasta
+   `<projeto>/` que o Protheus precisa encontrar)
 3. Copiar o zip para `Resource/` e renomear para `<projeto>.app`.
 
 ---

@@ -435,11 +435,19 @@ Gera o pacote `.app` pronto para publicar no Protheus, a partir de uma build de 
 `UNZIPAPP` do Protheus (`FWCALLAPP.PRW`) — erro `FError: 161`, "Falha ao renomear". O 7-Zip
 gera um ZIP compatível.
 
-**Crítico: zipar de dentro de `dist/<projeto>/`, nunca com `dist/<projeto>\*` como alvo de fora.**
-`7z a arquivo.zip pasta\*` executado na raiz do projeto preserva o prefixo `dist\<projeto>\`
-dentro do zip — o Protheus extrai o `.app` esperando os arquivos (`index.html` etc.) direto na
-raiz, não dentro de uma subpasta. Testado e confirmado: `Push-Location` para dentro de
-`dist/<projeto>/` antes de rodar o `7z a` com `*` (sem prefixo de pasta) resolve.
+**Crítico: o zip precisa ter a pasta `<projeto>/` como raiz — não achatado, e não com prefixo
+`dist/<projeto>/`.** Confirmado empiricamente com um `.app` que funcionou no Protheus: o
+`UNZIPAPP` (`FWCALLAPP.PRW`) extrai o zip esperando encontrar uma pasta com o nome do projeto
+para processar/renomear; um zip achatado (arquivos direto na raiz, sem essa pasta) causa
+"Falha ao renomear" por não haver o que renomear. A estrutura correta dentro do zip é:
+
+```
+<projeto>.app (zip)
+└── <projeto>/
+    ├── index.html
+    ├── main.js
+    └── ...
+```
 
 ```powershell
 ng build --configuration production
@@ -463,8 +471,10 @@ if ($sevenZipCmd) {
 }
 
 if ($sevenZipPath) {
-    Push-Location $distPath
-    & $sevenZipPath a -tzip $zipFullPath * | Out-Null
+    # Entrar em dist/ (pai) e compactar a pasta do projeto pelo nome — preserva
+    # "<projeto>/" como raiz do zip, sem incluir "dist/" no caminho.
+    Push-Location "dist"
+    & $sevenZipPath a -tzip $zipFullPath $projectName | Out-Null
     Pop-Location
 } else {
     Write-Host "⚠ 7-Zip não encontrado (nem no PATH, nem em C:\Program Files\7-Zip)."
@@ -478,9 +488,10 @@ se deseja instalar o 7-Zip agora e repetir, ou prosseguir mesmo assim com `Compr
 sabendo que o pacote provavelmente falhará no Protheus. Nunca empacotar com `Compress-Archive`
 silenciosamente.
 
-Se o usuário optar por prosseguir mesmo assim:
+Se o usuário optar por prosseguir mesmo assim (mesma estrutura — **sem** `/*`, para preservar
+`<projeto>/` como pasta raiz do zip):
 ```powershell
-Compress-Archive -Path "$distPath/*" -DestinationPath $zipPath
+Compress-Archive -Path $distPath -DestinationPath $zipPath
 ```
 
 ```powershell
