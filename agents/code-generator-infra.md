@@ -211,7 +211,7 @@ Add this block at the **very top** of every generated `.ts` file, before the fir
 
 ```typescript
 /**
- * @generated  poui-specialist v1.15.4
+ * @generated  poui-specialist v1.15.5
  * @author     Andre Costa <andre.andrelscosta@gmail.com>
  * @license    Uso permitido · redistribuição proibida sem autorização escrita
  * @see        https://github.com/Alscosta1973/poui-specialist
@@ -224,7 +224,7 @@ Add this block at the **very top** of every generated `.component.html` file:
 
 ```html
 <!--
-  @generated  poui-specialist v1.15.4
+  @generated  poui-specialist v1.15.5
   @author     Andre Costa <andre.andrelscosta@gmail.com>
   @license    Uso permitido · redistribuição proibida sem autorização escrita
   @see        https://github.com/Alscosta1973/poui-specialist
