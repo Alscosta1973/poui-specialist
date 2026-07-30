@@ -435,11 +435,18 @@ Gera o pacote `.app` pronto para publicar no Protheus, a partir de uma build de 
 `UNZIPAPP` do Protheus (`FWCALLAPP.PRW`) — erro `FError: 161`, "Falha ao renomear". O 7-Zip
 gera um ZIP compatível.
 
+**Crítico: zipar de dentro de `dist/<projeto>/`, nunca com `dist/<projeto>\*` como alvo de fora.**
+`7z a arquivo.zip pasta\*` executado na raiz do projeto preserva o prefixo `dist\<projeto>\`
+dentro do zip — o Protheus extrai o `.app` esperando os arquivos (`index.html` etc.) direto na
+raiz, não dentro de uma subpasta. Testado e confirmado: `Push-Location` para dentro de
+`dist/<projeto>/` antes de rodar o `7z a` com `*` (sem prefixo de pasta) resolve.
+
 ```powershell
 ng build --configuration production
 
 $distPath = "dist/$projectName"      # já achatado — ver outputPath no Passo 4
 $zipPath  = "$projectName.zip"
+$zipFullPath = Join-Path (Get-Location).Path $zipPath
 
 if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
 
@@ -456,7 +463,9 @@ if ($sevenZipCmd) {
 }
 
 if ($sevenZipPath) {
-    & $sevenZipPath a -tzip $zipPath "$distPath\*" | Out-Null
+    Push-Location $distPath
+    & $sevenZipPath a -tzip $zipFullPath * | Out-Null
+    Pop-Location
 } else {
     Write-Host "⚠ 7-Zip não encontrado (nem no PATH, nem em C:\Program Files\7-Zip)."
     Write-Host "  O fallback (Compress-Archive do PowerShell) é CONHECIDO por gerar um .app que"

@@ -173,27 +173,38 @@ UnZipApp: Não foi possível extrair o arquivo \http-root\app-root\<projeto>.app
 Falha ao renomear, FError: 161 on UNZIPAPP(FWCALLAPP.PRW)
 ```
 
-**Causa:** o ZIP foi gerado com `Compress-Archive` do PowerShell (.NET `System.IO.Compression`). A função interna `UNZIPAPP` do Protheus (`FWCALLAPP.PRW`) não extrai corretamente esse formato — falha ao localizar/renomear os arquivos extraídos. Um ZIP gerado com **7-Zip** funciona normalmente.
+Esse mesmo erro tem **duas causas raiz distintas** — confirme qual delas se aplica abrindo o
+`.app` (é um zip) com o 7-Zip/Explorer e olhando a estrutura interna.
 
-**Fix:** `/poui-specialist:package` e o Passo 10.5 do `/poui-specialist:scaffold` usam `7z.exe`
-automaticamente quando encontrado — no `PATH` ou nos locais padrão de instalação
-(`C:\Program Files\7-Zip\7z.exe` / `...\7-Zip (x86)\...`). `Compress-Archive` só é usado como
-fallback quando nenhum dos dois é encontrado, e o plugin pergunta antes de prosseguir com ele
-(a partir da v1.15.2) — nunca gera silenciosamente um `.app` sabidamente incompatível.
+**Causa 1 — ZIP gerado com `Compress-Archive` do PowerShell.** O `.NET System.IO.Compression`
+produz um formato que a função interna `UNZIPAPP` do Protheus (`FWCALLAPP.PRW`) não extrai
+corretamente. Um ZIP gerado com **7-Zip** funciona normalmente.
 
-> **7-Zip instalado mas não no PATH é o caso mais comum** (`v1.15.1` só checava `Get-Command`,
-> que só olha o PATH — corrigido na `v1.15.2` para também checar `C:\Program Files\7-Zip\`).
-> Recomendado: adicionar `C:\Program Files\7-Zip\` ao `PATH` do sistema para não depender da
-> detecção automática.
+**Causa 2 — `index.html` está dentro de uma subpasta `dist\<projeto>\` no zip, em vez de estar
+na raiz.** Acontece quando o `7z a` é chamado a partir da raiz do projeto apontando para
+`dist\<projeto>\*` — o 7-Zip **preserva o caminho da pasta de origem** dentro do zip nesse caso
+(diferente do `Compress-Archive`, que já achata automaticamente). O Protheus extrai o `.app`
+esperando os arquivos direto na raiz.
 
-Se você ainda tiver um `.app` gerado com `Compress-Archive` (empacotado antes da v1.15.1, ou
-gerado com fallback), regenere:
+**Fix (ambas):** `/poui-specialist:package` e o Passo 10.5 do `/poui-specialist:scaffold`
+(a partir da v1.15.3) usam `7z.exe` automaticamente quando encontrado — no `PATH` ou nos locais
+padrão de instalação (`C:\Program Files\7-Zip\7z.exe` / `...\7-Zip (x86)\...`) — e entram
+(`Push-Location`) dentro de `dist/<projeto>/` antes de compactar com `*`, garantindo que o zip
+não tenha nenhum prefixo de pasta. `Compress-Archive` só é usado como fallback quando nenhum
+7-Zip é encontrado, e o plugin pergunta antes de prosseguir com ele — nunca gera silenciosamente
+um `.app` sabidamente incompatível.
+
+Se você ainda tiver um `.app` com qualquer um dos dois problemas (gerado por uma versão do
+plugin anterior à v1.15.3), regenere:
 
 1. Confirmar o 7-Zip instalado (`C:\Program Files\7-Zip\7z.exe` ou no `PATH`).
-2. Rodar `/poui-specialist:package` de novo — ou manualmente:
+2. Rodar `/poui-specialist:package` de novo — ou manualmente, **de dentro** da pasta `dist/<projeto>/`:
    ```powershell
-   & "C:\Program Files\7-Zip\7z.exe" a -tzip <projeto>.zip "dist\<projeto>\*"
+   cd dist\<projeto>
+   & "C:\Program Files\7-Zip\7z.exe" a -tzip ..\..\<projeto>.zip *
+   cd ..\..
    ```
+   (nunca `7z a <projeto>.zip "dist\<projeto>\*"` a partir da raiz — isso preserva o prefixo `dist\<projeto>\` no zip)
 3. Copiar o zip para `Resource/` e renomear para `<projeto>.app`.
 
 ---
