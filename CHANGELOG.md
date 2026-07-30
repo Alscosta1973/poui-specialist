@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.13.1](https://github.com/Alscosta1973/poui-specialist/compare/v1.13.0...v1.13.1) (2026-07-30)
+
+
+### Features
+
+* **scripts:** add renew-license script to automate beta license renewal ([5829ee0](https://github.com/Alscosta1973/poui-specialist/commit/5829ee064966180d2f4f6e6856dcf8e32fd8cb0e))
+
+
+### Bug Fixes
+
+* **scaffold:** align with official PO-UI setup guide and fix Protheus deploy path ([3bdbe17](https://github.com/Alscosta1973/poui-specialist/commit/3bdbe170d3ee8c25920b22b5d95dc87821f3af81))
+
+
+### Chores
+
+* **license:** extend beta license expiration to 2026-10-27 ([afea4a6](https://github.com/Alscosta1973/poui-specialist/commit/afea4a6112d51b56e43dc37afb5fdc28fc6f95fd))
+* **release:** sync marketplace and generated headers to v1.13.0 ([ca9a11e](https://github.com/Alscosta1973/poui-specialist/commit/ca9a11ef83278547ed7d4d9a7111677204843147))
+
 ## [1.13.0](https://github.com/Alscosta1973/poui-specialist/compare/v1.12.1...v1.13.0) (2026-07-23)
 
 
