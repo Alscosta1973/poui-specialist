@@ -1,0 +1,27 @@
+<po-page-detail
+  p-title="Detalhe — Pedido de Compra"
+  [p-breadcrumb]="breadcrumb"
+  (p-back)="voltar()">
+
+  @if (loading()) {
+    <po-loading-overlay p-text="Carregando..."></po-loading-overlay>
+  }
+
+  @if (record(); as rec) {
+    <po-container p-title="Dados do Pedido">
+      <po-dynamic-view
+        [p-fields]="viewFields"
+        [p-value]="rec">
+      </po-dynamic-view>
+    </po-container>
+
+    <po-container p-title="Itens do Pedido" class="po-mt-2">
+      <po-table
+        [p-columns]="colunasItens"
+        [p-items]="itensPedido()"
+        [p-hide-columns-manager]="true">
+      </po-table>
+    </po-container>
+  }
+
+</po-page-detail>

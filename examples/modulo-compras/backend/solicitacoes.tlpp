@@ -1,0 +1,348 @@
+#include "totvs.ch"
+#include "restful.ch"
+
+/*/{Protheus.doc} SolicitacoesAPI
+    Skeleton de contrato REST para Solicitacoes de Compra (tabela SC1).
+    Gerado por poui-specialist /generate tlpp-contract — implementar a
+    regra de negocio completa com /advpl-specialist:generate rest --entity Solicitacoes
+
+    Endpoints:
+      GET    /api/custom/v1/solicitacoes            -> lista paginada
+      GET    /api/custom/v1/solicitacoes/{id}        -> detalhe (chave C1_NUM)
+      POST   /api/custom/v1/solicitacoes             -> inclusao
+      PUT    /api/custom/v1/solicitacoes/{id}        -> alteracao
+      DELETE /api/custom/v1/solicitacoes/{id}        -> exclusao
+
+    Contrato de resposta da listagem (obrigatorio para o frontend PO-UI):
+      { "items": [ {...} ], "hasNext": true|false }
+
+    Contrato de erro (obrigatorio para escrita 4xx/5xx):
+      { "errorMessage": "{\"code\":\"..\",\"message\":\"..\",\"detailedMessage\":\"..\"}" }
+    @type Class
+    @author Andre Costa
+/*/
+WSRESTFUL SolicitacoesAPI DESCRIPTION "Solicitacoes de Compra API"
+
+    WSDATA id       AS CHARACTER OPTIONAL
+    WSDATA page     AS INTEGER   OPTIONAL
+    WSDATA pageSize AS INTEGER   OPTIONAL
+    WSDATA q        AS CHARACTER OPTIONAL
+    WSDATA order    AS CHARACTER OPTIONAL
+
+    WSMETHOD GET    DESCRIPTION "Listar / Consultar Solicitacao de Compra" WSSYNTAX "/api/custom/v1/solicitacoes"
+    WSMETHOD POST   DESCRIPTION "Incluir Solicitacao de Compra"            WSSYNTAX "/api/custom/v1/solicitacoes"
+    WSMETHOD PUT    DESCRIPTION "Alterar Solicitacao de Compra"           WSSYNTAX "/api/custom/v1/solicitacoes"
+    WSMETHOD DELETE DESCRIPTION "Excluir Solicitacao de Compra"           WSSYNTAX "/api/custom/v1/solicitacoes"
+
+END WSRESTFUL
+
+/*/{Protheus.doc} GET
+    Lista Solicitacoes de Compra (SC1) paginadas quando ::id vazio, ou
+    retorna o detalhe de uma unica Solicitacao quando ::id (C1_NUM) informado.
+    @param id       Character, opcional, numero da Solicitacao (C1_NUM)
+    @param page     Integer, opcional, pagina atual
+    @param pageSize Integer, opcional, itens por pagina
+    @param q        Character, opcional, busca rapida
+    @param order    Character, opcional, campo de ordenacao (prefixo - = desc)
+    @type WSMETHOD
+    @author Andre Costa
+/*/
+WSMETHOD GET WSRECEIVE id, page, pageSize, q, order WSSERVICE SolicitacoesAPI
+    Local oSvc := SolicService():New()
+    Local lOk  := .T.
+
+    If !FWUserLogged()
+        Self:SetResponse('{"errorMessage":"Não autenticado"}')
+        Self:SetHTTPStatus(401, "Unauthorized")
+        Return .F.
+    EndIf
+
+    If !FWValidUserLog("SC1", "LI")
+        Self:SetResponse('{"errorMessage":"Acesso negado"}')
+        Self:SetHTTPStatus(403, "Forbidden")
+        Return .F.
+    EndIf
+
+    If Empty(::id)
+        lOk := oSvc:LstPage(::page, ::pageSize, ::q, ::order)
+    Else
+        lOk := oSvc:GetKey(::id)
+    EndIf
+
+    If lOk
+        Self:SetResponse(oSvc:GetResp())
+        Self:SetHTTPStatus(200, "Ok")
+    Else
+        Self:SetResponse(oSvc:GetErro())
+        Self:SetHTTPStatus(oSvc:GetSts(), "Error")
+    EndIf
+
+Return lOk
+
+/*/{Protheus.doc} POST
+    Inclui uma nova Solicitacao de Compra (SC1) a partir do corpo JSON.
+    @type WSMETHOD
+    @author Andre Costa
+/*/
+WSMETHOD POST WSSERVICE SolicitacoesAPI
+    Local oSvc  := SolicService():New()
+    Local cBody := Self:GetContent()
+    Local lOk   := .T.
+
+    If !FWUserLogged()
+        Self:SetResponse('{"errorMessage":"Não autenticado"}')
+        Self:SetHTTPStatus(401, "Unauthorized")
+        Return .F.
+    EndIf
+
+    If !FWValidUserLog("SC1", "IN")
+        Self:SetResponse('{"errorMessage":"Acesso negado"}')
+        Self:SetHTTPStatus(403, "Forbidden")
+        Return .F.
+    EndIf
+
+    lOk := oSvc:Insert(cBody)
+
+    If lOk
+        Self:SetResponse(oSvc:GetResp())
+        Self:SetHTTPStatus(201, "Created")
+    Else
+        Self:SetResponse(oSvc:GetErro())
+        Self:SetHTTPStatus(oSvc:GetSts(), "Error")
+    EndIf
+
+Return lOk
+
+/*/{Protheus.doc} PUT
+    Altera a Solicitacao de Compra (SC1) identificada por ::id (C1_NUM)
+    a partir do corpo JSON.
+    @type WSMETHOD
+    @author Andre Costa
+/*/
+WSMETHOD PUT WSRECEIVE id WSSERVICE SolicitacoesAPI
+    Local oSvc  := SolicService():New()
+    Local cBody := Self:GetContent()
+    Local lOk   := .T.
+
+    If !FWUserLogged()
+        Self:SetResponse('{"errorMessage":"Não autenticado"}')
+        Self:SetHTTPStatus(401, "Unauthorized")
+        Return .F.
+    EndIf
+
+    If !FWValidUserLog("SC1", "AT")
+        Self:SetResponse('{"errorMessage":"Acesso negado"}')
+        Self:SetHTTPStatus(403, "Forbidden")
+        Return .F.
+    EndIf
+
+    If Empty(::id)
+        Self:SetResponse('{"errorMessage":"{\"code\":\"SC10002\",\"message\":\"Identificador não informado\",\"detailedMessage\":\"\"}"}')
+        Self:SetHTTPStatus(400, "Bad Request")
+        Return .F.
+    EndIf
+
+    lOk := oSvc:Update(::id, cBody)
+
+    If lOk
+        Self:SetResponse(oSvc:GetResp())
+        Self:SetHTTPStatus(200, "Ok")
+    Else
+        Self:SetResponse(oSvc:GetErro())
+        Self:SetHTTPStatus(oSvc:GetSts(), "Error")
+    EndIf
+
+Return lOk
+
+/*/{Protheus.doc} DELETE
+    Exclui (logicamente, via rotina padrao) a Solicitacao de Compra (SC1)
+    identificada por ::id (C1_NUM).
+    @type WSMETHOD
+    @author Andre Costa
+/*/
+WSMETHOD DELETE WSRECEIVE id WSSERVICE SolicitacoesAPI
+    Local oSvc := SolicService():New()
+    Local lOk  := .T.
+
+    If !FWUserLogged()
+        Self:SetResponse('{"errorMessage":"Não autenticado"}')
+        Self:SetHTTPStatus(401, "Unauthorized")
+        Return .F.
+    EndIf
+
+    If !FWValidUserLog("SC1", "EX")
+        Self:SetResponse('{"errorMessage":"Acesso negado"}')
+        Self:SetHTTPStatus(403, "Forbidden")
+        Return .F.
+    EndIf
+
+    If Empty(::id)
+        Self:SetResponse('{"errorMessage":"{\"code\":\"SC10002\",\"message\":\"Identificador não informado\",\"detailedMessage\":\"\"}"}')
+        Self:SetHTTPStatus(400, "Bad Request")
+        Return .F.
+    EndIf
+
+    lOk := oSvc:Delete(::id)
+
+    If lOk
+        Self:SetHTTPStatus(204, "No Content")
+    Else
+        Self:SetResponse(oSvc:GetErro())
+        Self:SetHTTPStatus(oSvc:GetSts(), "Error")
+    EndIf
+
+Return lOk
+
+/*/{Protheus.doc} SolicService
+    Classe de servico (skeleton) responsavel pelas operacoes de CRUD da
+    Solicitacao de Compra (tabela SC1). Metodos contem apenas TODOs —
+    implementar a regra de negocio real com
+    /advpl-specialist:generate rest --entity Solicitacoes
+    (BeginSQL/EndSQL para consulta e FWMVCRotAuto + MATA120 para escrita).
+    @type Class
+    @author Andre Costa
+/*/
+Class SolicService
+
+    Data cJsonResp
+    Data cJsonErro
+    Data nHttpSts
+
+    Public Method New() As Object
+    Public Method LstPage(nPage, nSize, cQuery, cOrder) As Logical
+    Public Method GetKey(cId) As Logical
+    Public Method Insert(cBody) As Logical
+    Public Method Update(cId, cBody) As Logical
+    Public Method Delete(cId) As Logical
+    Public Method GetResp() As Character
+    Public Method GetErro() As Character
+    Public Method GetSts() As Numeric
+
+EndClass
+
+/*/{Protheus.doc} New
+    Construtor — inicializa buffers de resposta/erro e status HTTP padrao.
+    @type Method
+    @author Andre Costa
+/*/
+Public Method New() Class SolicService
+    ::cJsonResp := ""
+    ::cJsonErro := ""
+    ::nHttpSts  := 200
+Return Self
+
+/*/{Protheus.doc} LstPage
+    TODO: listar SC1 paginado via BeginSQL/EndSQL.
+    Filtrar por %xFilial:SC1% e %NotDel%; cQuery em LIKE sobre C1_DESCRI;
+    cOrder define ORDER BY dinamico (validar contra whitelist de colunas).
+    Preencher ::cJsonResp com { "items": [...], "hasNext": true|false }.
+    @type Method
+    @author Andre Costa
+/*/
+Public Method LstPage(nPage, nSize, cQuery, cOrder) Class SolicService
+    Local oJson  := JsonObject():New()
+    Local aItems := {}
+
+    // TODO: aplicar default nPage=1 / nSize=10 e executar consulta real em SC1
+
+    oJson['items']   := aItems
+    oJson['hasNext'] := .F.
+
+    ::cJsonResp := oJson:ToJson()
+    ::nHttpSts  := 200
+
+Return .T.
+
+/*/{Protheus.doc} GetKey
+    TODO: localizar 1 registro em SC1 (C1_FILIAL + C1_NUM = cId + D_E_L_E_T_="")
+    e serializar no mesmo shape do item da listagem. Se nao encontrado,
+    preencher ::cJsonErro no formato Protheus e ::nHttpSts := 404.
+    @type Method
+    @author Andre Costa
+/*/
+Public Method GetKey(cId) Class SolicService
+    Local oJson   := JsonObject():New()
+    Local lFound  := .F.
+
+    // TODO: DbSeek/BeginSQL em SC1 usando cId (C1_NUM)
+
+    If lFound
+        oJson['numero'] := cId
+        // TODO: demais campos (C1_PRODUTO, C1_QUANT, C1_EMISSAO, C1_OBS, etc.)
+        ::cJsonResp := oJson:ToJson()
+        ::nHttpSts  := 200
+    Else
+        ::cJsonErro := '{"errorMessage":"{\"code\":\"SC10001\",\"message\":\"Solicitação não encontrada\",\"detailedMessage\":\"\"}"}'
+        ::nHttpSts  := 404
+    EndIf
+
+Return lFound
+
+/*/{Protheus.doc} Insert
+    TODO: desserializar cBody (JsonObject():New():FromJson(cBody)) e mapear
+    para o array de campos SC1 esperado por FWMVCRotAuto('SC1', 'MATA120', ..., 3)
+    (3 = inclusao). Retornar em ::cJsonResp o registro criado (com C1_NUM gerado).
+    @type Method
+    @author Andre Costa
+/*/
+Public Method Insert(cBody) Class SolicService
+    Local oJson := JsonObject():New()
+
+    // TODO: validar payload, executar FWMVCRotAuto e capturar C1_NUM gerado
+    oJson['numero'] := ""
+
+    ::cJsonResp := oJson:ToJson()
+    ::nHttpSts  := 201
+
+Return .T.
+
+/*/{Protheus.doc} Update
+    TODO: desserializar cBody e mapear para FWMVCRotAuto('SC1', 'MATA120', ..., 4)
+    (4 = alteracao) usando cId (C1_NUM) como chave. Retornar registro atualizado.
+    @type Method
+    @author Andre Costa
+/*/
+Public Method Update(cId, cBody) Class SolicService
+    Local oJson := JsonObject():New()
+
+    // TODO: validar existencia (cId) e executar FWMVCRotAuto de alteracao
+    oJson['numero'] := cId
+
+    ::cJsonResp := oJson:ToJson()
+    ::nHttpSts  := 200
+
+Return .T.
+
+/*/{Protheus.doc} Delete
+    TODO: excluir via FWMVCRotAuto('SC1', 'MATA120', ..., 5) (5 = exclusao)
+    usando cId (C1_NUM) como chave. Retorno .F. + ::nHttpSts := 404 se nao existir.
+    @type Method
+    @author Andre Costa
+/*/
+Public Method Delete(cId) Class SolicService
+    // TODO: validar existencia (cId) e executar FWMVCRotAuto de exclusao
+Return .T.
+
+/*/{Protheus.doc} GetResp
+    Retorna o ultimo JSON de sucesso montado pela classe.
+    @type Method
+    @author Andre Costa
+/*/
+Public Method GetResp() Class SolicService
+Return ::cJsonResp
+
+/*/{Protheus.doc} GetErro
+    Retorna o ultimo JSON de erro montado pela classe (formato Protheus).
+    @type Method
+    @author Andre Costa
+/*/
+Public Method GetErro() Class SolicService
+Return ::cJsonErro
+
+/*/{Protheus.doc} GetSts
+    Retorna o ultimo status HTTP calculado pela classe.
+    @type Method
+    @author Andre Costa
+/*/
+Public Method GetSts() Class SolicService
+Return ::nHttpSts

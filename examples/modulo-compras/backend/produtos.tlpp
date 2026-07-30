@@ -1,0 +1,290 @@
+// Gerado por poui-specialist (tlpp-contract) — skeleton de contrato REST.
+// Implementar as regras de negocio com: /advpl-specialist:generate rest --entity Produtos
+#include "totvs.ch"
+#include "restful.ch"
+
+/*/{Protheus.doc} ProdutosAPI
+    Contrato REST (WsRestFul) para Cadastro de Produtos (SB1) do modulo
+    Compras. Endpoints: GET (lista paginada / consulta por chave codigo),
+    POST (incluir), PUT (alterar), DELETE (excluir). Skeleton gerado pelo
+    poui-specialist — a persistencia real (MSExecAuto/FWMVCRotAuto) deve ser
+    implementada com /advpl-specialist:generate rest --entity Produtos.
+    @type Class
+    @author Andre Costa
+/*/
+WSRESTFUL ProdutosAPI DESCRIPTION "Cadastro de Produtos API"
+
+    WSDATA codigo    AS CHARACTER OPTIONAL
+    WSDATA page      AS INTEGER   OPTIONAL
+    WSDATA pageSize  AS INTEGER   OPTIONAL
+    WSDATA q         AS CHARACTER OPTIONAL
+    WSDATA order     AS CHARACTER OPTIONAL
+
+    WSMETHOD GET    DESCRIPTION "Listar / Consultar Produtos" WSSYNTAX "/api/custom/v1/produtos"
+    WSMETHOD POST   DESCRIPTION "Incluir Produto"             WSSYNTAX "/api/custom/v1/produtos"
+    WSMETHOD PUT    DESCRIPTION "Alterar Produto"             WSSYNTAX "/api/custom/v1/produtos"
+    WSMETHOD DELETE DESCRIPTION "Excluir Produto"             WSSYNTAX "/api/custom/v1/produtos"
+
+END WSRESTFUL
+
+/*/{Protheus.doc} GET
+    Lista produtos paginados (sem chave informada) ou consulta um produto
+    especifico pela chave codigo.
+    @type Method
+    @author Andre Costa
+/*/
+WSMETHOD GET WSRECEIVE codigo, page, pageSize, q, order WSSERVICE ProdutosAPI
+    Local lOk := .T.
+
+    If !_PrdAuth(Self, "LI")
+        Return .F.
+    EndIf
+
+    If Empty(Self:codigo)
+        lOk := _PrdLista(Self)
+    Else
+        lOk := _PrdCons(Self)
+    EndIf
+
+Return lOk
+
+/*/{Protheus.doc} POST
+    Inclui um novo Produto.
+    @type Method
+    @author Andre Costa
+/*/
+WSMETHOD POST WSSERVICE ProdutosAPI
+Return _PrdInc(Self)
+
+/*/{Protheus.doc} PUT
+    Altera um Produto existente (chave codigo).
+    @type Method
+    @author Andre Costa
+/*/
+WSMETHOD PUT WSRECEIVE codigo WSSERVICE ProdutosAPI
+Return _PrdAlt(Self)
+
+/*/{Protheus.doc} DELETE
+    Exclui um Produto existente (chave codigo).
+    @type Method
+    @author Andre Costa
+/*/
+WSMETHOD DELETE WSRECEIVE codigo WSSERVICE ProdutosAPI
+Return _PrdExc(Self)
+
+/*/{Protheus.doc} _PrdAuth
+    Valida autenticacao e permissao de rotina (SB1) para os endpoints de
+    Produtos. Em caso de falha, ja monta a resposta de erro e o status HTTP.
+    @param oWS      Object,    instancia WsRestFul (Self do metodo chamador)
+    @param cAcao    Character, acao a validar (LI=Listar IN=Incluir AT=Alterar EX=Excluir)
+    @return lValido Logical,   .T. se autenticado e autorizado
+    @type Static Function
+    @author Andre Costa
+/*/
+Static Function _PrdAuth(oWS, cAcao)
+    Local lValido := .T.
+
+    If !FWUserLogged()
+        oWS:SetResponse('{"errorMessage":"Não autenticado"}')
+        oWS:SetHTTPStatus(401, "Unauthorized")
+        lValido := .F.
+    ElseIf !FWValidUserLog("SB1", cAcao)
+        oWS:SetResponse('{"errorMessage":"Acesso negado"}')
+        oWS:SetHTTPStatus(403, "Forbidden")
+        lValido := .F.
+    EndIf
+
+Return lValido
+
+/*/{Protheus.doc} _PrdLista
+    Lista produtos (SB1) paginados, com busca rapida opcional (q) na
+    descricao. Monta o contrato { items[], hasNext } esperado pelo
+    frontend PO-UI.
+    TODO: aplicar ordenacao dinamica pelo parametro 'order' e trocar a
+    paginacao por DbSkip por uma paginacao real (TOP/OFFSET) na
+    implementacao final via /advpl-specialist:generate rest.
+    @param oWS  Object,  instancia WsRestFul (Self do metodo GET)
+    @return lOk Logical, .T. em caso de sucesso
+    @type Static Function
+    @author Andre Costa
+/*/
+Static Function _PrdLista(oWS)
+    Local nPage     := Iif(oWS:page > 0, oWS:page, 1)
+    Local nPageSize := Iif(oWS:pageSize > 0, oWS:pageSize, 10)
+    Local cBusca    := AllTrim(oWS:q)
+    Local nSkip     := (nPage - 1) * nPageSize
+    Local oJson     := JsonObject():New()
+    Local aItems    := {}
+    Local lHasNext  := .F.
+    Local nLidos    := 0
+
+    BeginSQL Alias "QPRDLST"
+        SELECT B1_FILIAL, B1_COD, B1_DESC, B1_UM, B1_TIPO, B1_GRUPO,
+               B1_LOCPAD, B1_PRV1, B1_MSBLQL
+        FROM %Table:SB1%
+        WHERE %NotDel%
+        AND %xFilial:SB1%
+        AND (%Exp:cBusca% = '' OR UPPER(B1_DESC) LIKE UPPER('%' + %Exp:cBusca% + '%'))
+        ORDER BY B1_COD
+    EndSQL
+
+    If nSkip > 0
+        QPRDLST->(DbSkip(nSkip))
+    EndIf
+
+    While !QPRDLST->(Eof()) .And. nLidos <= nPageSize
+        nLidos++
+        If nLidos > nPageSize
+            lHasNext := .T.
+            Exit
+        EndIf
+        AAdd(aItems, _PrdRow("QPRDLST"))
+        QPRDLST->(DbSkip())
+    EndDo
+    QPRDLST->(DbCloseArea())
+
+    oJson["items"]   := aItems
+    oJson["hasNext"] := lHasNext
+
+    oWS:SetResponse(oJson:ToJson())
+    FreeObj(oJson)
+
+Return .T.
+
+/*/{Protheus.doc} _PrdCons
+    Consulta um Produto (SB1) especifico pela chave codigo.
+    @param oWS  Object,  instancia WsRestFul (Self do metodo GET)
+    @return lOk Logical, .T. se encontrado (200), .F. se nao encontrado (404)
+    @type Static Function
+    @author Andre Costa
+/*/
+Static Function _PrdCons(oWS)
+    Local cCod := PadR(AllTrim(oWS:codigo), TamSX3("B1_COD")[1])
+    Local lOk  := .T.
+
+    DbSelectArea("SB1")
+    SB1->(DbSetOrder(1))
+    If SB1->(DbSeek(xFilial("SB1") + cCod))
+        oWS:SetResponse(_PrdRow("SB1"):ToJson())
+    Else
+        oWS:SetResponse('{"errorMessage":"{\"code\":\"PRD404\",\"message\":\"Produto n\\u00e3o encontrado\",\"detailedMessage\":\"\"}"}')
+        oWS:SetHTTPStatus(404, "Not Found")
+        lOk := .F.
+    EndIf
+
+Return lOk
+
+/*/{Protheus.doc} _PrdRow
+    Monta o objeto JSON de uma linha de Produto a partir do alias de
+    trabalho informado (query ou tabela SB1 posicionada).
+    @param cAlias Character, nome do alias posicionado (ex: "QPRDLST" ou "SB1")
+    @return oRow  Object,    JsonObject com os campos do produto
+    @type Static Function
+    @author Andre Costa
+/*/
+Static Function _PrdRow(cAlias)
+    Local oRow := JsonObject():New()
+
+    oRow["codigo"]      := AllTrim((cAlias)->B1_COD)
+    oRow["descricao"]   := AllTrim((cAlias)->B1_DESC)
+    oRow["unidade"]     := AllTrim((cAlias)->B1_UM)
+    oRow["tipo"]        := AllTrim((cAlias)->B1_TIPO)
+    oRow["grupo"]       := AllTrim((cAlias)->B1_GRUPO)
+    oRow["localizacao"] := AllTrim((cAlias)->B1_LOCPAD)
+    oRow["precoCompra"] := (cAlias)->B1_PRV1
+    oRow["ativo"]       := (AllTrim((cAlias)->B1_MSBLQL) != "1")
+
+Return oRow
+
+/*/{Protheus.doc} _PrdInc
+    Inclui um novo Produto (SB1). Skeleton — a gravacao real deve usar
+    MSExecAuto/FWMVCRotAuto (rotina automatica SB1).
+    TODO: validar campos obrigatorios e executar a rotina automatica com
+    os dados de oJson — ver /advpl-specialist:generate rest --entity Produtos.
+    @param oWS  Object,  instancia WsRestFul (Self do metodo POST)
+    @return lOk Logical, .T. em caso de sucesso (201)
+    @type Static Function
+    @author Andre Costa
+/*/
+Static Function _PrdInc(oWS)
+    Local oJson := JsonObject():New()
+    Local lOk   := .T.
+
+    If !_PrdAuth(oWS, "IN")
+        Return .F.
+    EndIf
+
+    oJson:FromJson(oWS:GetContent())
+
+    // TODO: validar campos obrigatorios e executar MSExecAuto/FWMVCRotAuto
+    // (rotina automatica SB1) com os dados de oJson
+
+    oWS:SetResponse(oJson:ToJson())
+    oWS:SetHTTPStatus(201, "Created")
+
+Return lOk
+
+/*/{Protheus.doc} _PrdAlt
+    Altera um Produto (SB1) existente, localizado pela chave codigo.
+    TODO: aplicar as alteracoes via MSExecAuto/FWMVCRotAuto com os dados
+    de oJson — ver /advpl-specialist:generate rest --entity Produtos.
+    @param oWS  Object,  instancia WsRestFul (Self do metodo PUT)
+    @return lOk Logical, .T. em caso de sucesso (200), .F. se nao encontrado (404)
+    @type Static Function
+    @author Andre Costa
+/*/
+Static Function _PrdAlt(oWS)
+    Local cCod  := PadR(AllTrim(oWS:codigo), TamSX3("B1_COD")[1])
+    Local oJson := JsonObject():New()
+    Local lOk   := .T.
+
+    If !_PrdAuth(oWS, "AT")
+        Return .F.
+    EndIf
+
+    oJson:FromJson(oWS:GetContent())
+
+    DbSelectArea("SB1")
+    SB1->(DbSetOrder(1))
+    If !SB1->(DbSeek(xFilial("SB1") + cCod))
+        oWS:SetResponse('{"errorMessage":"{\"code\":\"PRD404\",\"message\":\"Produto n\\u00e3o encontrado\",\"detailedMessage\":\"\"}"}')
+        oWS:SetHTTPStatus(404, "Not Found")
+        Return .F.
+    EndIf
+
+    // TODO: aplicar as alteracoes via MSExecAuto/FWMVCRotAuto com os dados de oJson
+
+    oWS:SetResponse(_PrdRow("SB1"):ToJson())
+
+Return lOk
+
+/*/{Protheus.doc} _PrdExc
+    Exclui (delecao logica) um Produto (SB1) existente, localizado pela
+    chave codigo.
+    TODO: executar a exclusao via MSExecAuto/FWMVCRotAuto — ver
+    /advpl-specialist:generate rest --entity Produtos.
+    @param oWS  Object,  instancia WsRestFul (Self do metodo DELETE)
+    @return lOk Logical, .T. em caso de sucesso (204), .F. se nao encontrado (404)
+    @type Static Function
+    @author Andre Costa
+/*/
+Static Function _PrdExc(oWS)
+    Local cCod := PadR(AllTrim(oWS:codigo), TamSX3("B1_COD")[1])
+
+    If !_PrdAuth(oWS, "EX")
+        Return .F.
+    EndIf
+
+    DbSelectArea("SB1")
+    SB1->(DbSetOrder(1))
+    If !SB1->(DbSeek(xFilial("SB1") + cCod))
+        oWS:SetResponse('{"errorMessage":"{\"code\":\"PRD404\",\"message\":\"Produto n\\u00e3o encontrado\",\"detailedMessage\":\"\"}"}')
+        oWS:SetHTTPStatus(404, "Not Found")
+        Return .F.
+    EndIf
+
+    // TODO: executar a exclusao (delecao logica) via MSExecAuto/FWMVCRotAuto
+
+    oWS:SetHTTPStatus(204, "No Content")
+
+Return .T.

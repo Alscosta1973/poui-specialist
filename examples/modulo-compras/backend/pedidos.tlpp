@@ -1,0 +1,296 @@
+// Gerado por poui-specialist (tlpp-contract) — skeleton de contrato REST.
+// Implementar as regras de negocio com: /advpl-specialist:generate rest --entity Pedidos
+#include "totvs.ch"
+#include "restful.ch"
+
+/*/{Protheus.doc} PedidosAPI
+    Contrato REST (WsRestFul) para Pedidos de Compra (SC7) do modulo Compras.
+    Endpoints: GET (lista paginada / consulta por chave numero+item),
+    POST (incluir), PUT (alterar), DELETE (excluir). Skeleton gerado pelo
+    poui-specialist — a persistencia real (MSExecAuto/FWMVCRotAuto) deve ser
+    implementada com /advpl-specialist:generate rest --entity Pedidos.
+    @type Class
+    @author Andre Costa
+/*/
+WSRESTFUL PedidosAPI DESCRIPTION "Pedidos de Compra API"
+
+    WSDATA numero    AS CHARACTER OPTIONAL
+    WSDATA item      AS CHARACTER OPTIONAL
+    WSDATA page      AS INTEGER   OPTIONAL
+    WSDATA pageSize  AS INTEGER   OPTIONAL
+    WSDATA q         AS CHARACTER OPTIONAL
+    WSDATA order     AS CHARACTER OPTIONAL
+
+    WSMETHOD GET    DESCRIPTION "Listar / Consultar Pedidos de Compra" WSSYNTAX "/api/custom/v1/pedidos"
+    WSMETHOD POST   DESCRIPTION "Incluir Pedido de Compra"             WSSYNTAX "/api/custom/v1/pedidos"
+    WSMETHOD PUT    DESCRIPTION "Alterar Pedido de Compra"             WSSYNTAX "/api/custom/v1/pedidos"
+    WSMETHOD DELETE DESCRIPTION "Excluir Pedido de Compra"             WSSYNTAX "/api/custom/v1/pedidos"
+
+END WSRESTFUL
+
+/*/{Protheus.doc} GET
+    Lista pedidos de compra paginados (sem chave informada) ou consulta um
+    pedido especifico pela chave composta numero+item.
+    @type Method
+    @author Andre Costa
+/*/
+WSMETHOD GET WSRECEIVE numero, item, page, pageSize, q, order WSSERVICE PedidosAPI
+    Local lOk := .T.
+
+    If !_PedAuth(Self, "LI")
+        Return .F.
+    EndIf
+
+    If Empty(Self:numero)
+        lOk := _PedLista(Self)
+    Else
+        lOk := _PedCons(Self)
+    EndIf
+
+Return lOk
+
+/*/{Protheus.doc} POST
+    Inclui um novo Pedido de Compra.
+    @type Method
+    @author Andre Costa
+/*/
+WSMETHOD POST WSSERVICE PedidosAPI
+Return _PedInc(Self)
+
+/*/{Protheus.doc} PUT
+    Altera um Pedido de Compra existente (chave numero+item).
+    @type Method
+    @author Andre Costa
+/*/
+WSMETHOD PUT WSRECEIVE numero, item WSSERVICE PedidosAPI
+Return _PedAlt(Self)
+
+/*/{Protheus.doc} DELETE
+    Exclui um Pedido de Compra existente (chave numero+item).
+    @type Method
+    @author Andre Costa
+/*/
+WSMETHOD DELETE WSRECEIVE numero, item WSSERVICE PedidosAPI
+Return _PedExc(Self)
+
+/*/{Protheus.doc} _PedAuth
+    Valida autenticacao e permissao de rotina (SC7) para os endpoints de
+    Pedidos. Em caso de falha, ja monta a resposta de erro e o status HTTP.
+    @param oWS      Object,    instancia WsRestFul (Self do metodo chamador)
+    @param cAcao    Character, acao a validar (LI=Listar IN=Incluir AT=Alterar EX=Excluir)
+    @return lValido Logical,   .T. se autenticado e autorizado
+    @type Static Function
+    @author Andre Costa
+/*/
+Static Function _PedAuth(oWS, cAcao)
+    Local lValido := .T.
+
+    If !FWUserLogged()
+        oWS:SetResponse('{"errorMessage":"Não autenticado"}')
+        oWS:SetHTTPStatus(401, "Unauthorized")
+        lValido := .F.
+    ElseIf !FWValidUserLog("SC7", cAcao)
+        oWS:SetResponse('{"errorMessage":"Acesso negado"}')
+        oWS:SetHTTPStatus(403, "Forbidden")
+        lValido := .F.
+    EndIf
+
+Return lValido
+
+/*/{Protheus.doc} _PedLista
+    Lista pedidos de compra (SC7) paginados, com busca rapida opcional (q)
+    no produto. Monta o contrato { items[], hasNext } esperado pelo
+    frontend PO-UI.
+    TODO: aplicar ordenacao dinamica pelo parametro 'order' e trocar a
+    paginacao por DbSkip por uma paginacao real (TOP/OFFSET) na
+    implementacao final via /advpl-specialist:generate rest.
+    @param oWS  Object,  instancia WsRestFul (Self do metodo GET)
+    @return lOk Logical, .T. em caso de sucesso
+    @type Static Function
+    @author Andre Costa
+/*/
+Static Function _PedLista(oWS)
+    Local nPage     := Iif(oWS:page > 0, oWS:page, 1)
+    Local nPageSize := Iif(oWS:pageSize > 0, oWS:pageSize, 10)
+    Local cBusca    := AllTrim(oWS:q)
+    Local nSkip     := (nPage - 1) * nPageSize
+    Local oJson     := JsonObject():New()
+    Local aItems    := {}
+    Local lHasNext  := .F.
+    Local nLidos    := 0
+
+    BeginSQL Alias "QPEDLST"
+        SELECT C7_FILIAL, C7_NUM, C7_ITEM, C7_PRODUTO, C7_QUANT, C7_PRECO,
+               C7_FORNECE, C7_LOJA, C7_EMISSAO
+        FROM %Table:SC7%
+        WHERE %NotDel%
+        AND %xFilial:SC7%
+        AND (%Exp:cBusca% = '' OR UPPER(C7_PRODUTO) LIKE UPPER('%' + %Exp:cBusca% + '%'))
+        ORDER BY C7_NUM, C7_ITEM
+    EndSQL
+
+    If nSkip > 0
+        QPEDLST->(DbSkip(nSkip))
+    EndIf
+
+    While !QPEDLST->(Eof()) .And. nLidos <= nPageSize
+        nLidos++
+        If nLidos > nPageSize
+            lHasNext := .T.
+            Exit
+        EndIf
+        AAdd(aItems, _PedRow("QPEDLST"))
+        QPEDLST->(DbSkip())
+    EndDo
+    QPEDLST->(DbCloseArea())
+
+    oJson["items"]   := aItems
+    oJson["hasNext"] := lHasNext
+
+    oWS:SetResponse(oJson:ToJson())
+    FreeObj(oJson)
+
+Return .T.
+
+/*/{Protheus.doc} _PedCons
+    Consulta um Pedido de Compra (SC7) especifico pela chave composta
+    numero + item.
+    @param oWS  Object,  instancia WsRestFul (Self do metodo GET)
+    @return lOk Logical, .T. se encontrado (200), .F. se nao encontrado (404)
+    @type Static Function
+    @author Andre Costa
+/*/
+Static Function _PedCons(oWS)
+    Local cNum  := PadR(AllTrim(oWS:numero), TamSX3("C7_NUM")[1])
+    Local cItem := PadR(AllTrim(oWS:item), TamSX3("C7_ITEM")[1])
+    Local lOk   := .T.
+
+    DbSelectArea("SC7")
+    SC7->(DbSetOrder(1))
+    If SC7->(DbSeek(xFilial("SC7") + cNum + cItem))
+        oWS:SetResponse(_PedRow("SC7"):ToJson())
+    Else
+        oWS:SetResponse('{"errorMessage":"{\"code\":\"PED404\",\"message\":\"Pedido n\\u00e3o encontrado\",\"detailedMessage\":\"\"}"}')
+        oWS:SetHTTPStatus(404, "Not Found")
+        lOk := .F.
+    EndIf
+
+Return lOk
+
+/*/{Protheus.doc} _PedRow
+    Monta o objeto JSON de uma linha de Pedido de Compra a partir do alias
+    de trabalho informado (query ou tabela SC7 posicionada).
+    @param cAlias Character, nome do alias posicionado (ex: "QPEDLST" ou "SC7")
+    @return oRow  Object,    JsonObject com os campos do pedido
+    @type Static Function
+    @author Andre Costa
+/*/
+Static Function _PedRow(cAlias)
+    Local oRow := JsonObject():New()
+
+    oRow["numero"]     := AllTrim((cAlias)->C7_NUM)
+    oRow["item"]       := AllTrim((cAlias)->C7_ITEM)
+    oRow["produto"]    := AllTrim((cAlias)->C7_PRODUTO)
+    oRow["quantidade"] := (cAlias)->C7_QUANT
+    oRow["preco"]      := (cAlias)->C7_PRECO
+    oRow["fornecedor"] := AllTrim((cAlias)->C7_FORNECE)
+    oRow["loja"]       := AllTrim((cAlias)->C7_LOJA)
+    oRow["emissao"]    := DtoS((cAlias)->C7_EMISSAO)
+
+Return oRow
+
+/*/{Protheus.doc} _PedInc
+    Inclui um novo Pedido de Compra (SC7). Skeleton — a gravacao real deve
+    usar MSExecAuto/FWMVCRotAuto (rotina automatica SC7).
+    TODO: validar campos obrigatorios e executar a rotina automatica com
+    os dados de oJson — ver /advpl-specialist:generate rest --entity Pedidos.
+    @param oWS  Object,  instancia WsRestFul (Self do metodo POST)
+    @return lOk Logical, .T. em caso de sucesso (201)
+    @type Static Function
+    @author Andre Costa
+/*/
+Static Function _PedInc(oWS)
+    Local oJson := JsonObject():New()
+    Local lOk   := .T.
+
+    If !_PedAuth(oWS, "IN")
+        Return .F.
+    EndIf
+
+    oJson:FromJson(oWS:GetContent())
+
+    // TODO: validar campos obrigatorios e executar MSExecAuto/FWMVCRotAuto
+    // (rotina automatica SC7) com os dados de oJson
+
+    oWS:SetResponse(oJson:ToJson())
+    oWS:SetHTTPStatus(201, "Created")
+
+Return lOk
+
+/*/{Protheus.doc} _PedAlt
+    Altera um Pedido de Compra (SC7) existente, localizado pela chave
+    composta numero + item.
+    TODO: aplicar as alteracoes via MSExecAuto/FWMVCRotAuto com os dados
+    de oJson — ver /advpl-specialist:generate rest --entity Pedidos.
+    @param oWS  Object,  instancia WsRestFul (Self do metodo PUT)
+    @return lOk Logical, .T. em caso de sucesso (200), .F. se nao encontrado (404)
+    @type Static Function
+    @author Andre Costa
+/*/
+Static Function _PedAlt(oWS)
+    Local cNum  := PadR(AllTrim(oWS:numero), TamSX3("C7_NUM")[1])
+    Local cItem := PadR(AllTrim(oWS:item), TamSX3("C7_ITEM")[1])
+    Local oJson := JsonObject():New()
+    Local lOk   := .T.
+
+    If !_PedAuth(oWS, "AT")
+        Return .F.
+    EndIf
+
+    oJson:FromJson(oWS:GetContent())
+
+    DbSelectArea("SC7")
+    SC7->(DbSetOrder(1))
+    If !SC7->(DbSeek(xFilial("SC7") + cNum + cItem))
+        oWS:SetResponse('{"errorMessage":"{\"code\":\"PED404\",\"message\":\"Pedido n\\u00e3o encontrado\",\"detailedMessage\":\"\"}"}')
+        oWS:SetHTTPStatus(404, "Not Found")
+        Return .F.
+    EndIf
+
+    // TODO: aplicar as alteracoes via MSExecAuto/FWMVCRotAuto com os dados de oJson
+
+    oWS:SetResponse(_PedRow("SC7"):ToJson())
+
+Return lOk
+
+/*/{Protheus.doc} _PedExc
+    Exclui (delecao logica) um Pedido de Compra (SC7) existente, localizado
+    pela chave composta numero + item.
+    TODO: executar a exclusao via MSExecAuto/FWMVCRotAuto — ver
+    /advpl-specialist:generate rest --entity Pedidos.
+    @param oWS  Object,  instancia WsRestFul (Self do metodo DELETE)
+    @return lOk Logical, .T. em caso de sucesso (204), .F. se nao encontrado (404)
+    @type Static Function
+    @author Andre Costa
+/*/
+Static Function _PedExc(oWS)
+    Local cNum  := PadR(AllTrim(oWS:numero), TamSX3("C7_NUM")[1])
+    Local cItem := PadR(AllTrim(oWS:item), TamSX3("C7_ITEM")[1])
+
+    If !_PedAuth(oWS, "EX")
+        Return .F.
+    EndIf
+
+    DbSelectArea("SC7")
+    SC7->(DbSetOrder(1))
+    If !SC7->(DbSeek(xFilial("SC7") + cNum + cItem))
+        oWS:SetResponse('{"errorMessage":"{\"code\":\"PED404\",\"message\":\"Pedido n\\u00e3o encontrado\",\"detailedMessage\":\"\"}"}')
+        oWS:SetHTTPStatus(404, "Not Found")
+        Return .F.
+    EndIf
+
+    // TODO: executar a exclusao (delecao logica) via MSExecAuto/FWMVCRotAuto
+
+    oWS:SetHTTPStatus(204, "No Content")
+
+Return .T.

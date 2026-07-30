@@ -1,0 +1,63 @@
+<po-toolbar p-title="Compras"></po-toolbar>
+
+<po-page-default p-title="Painel de Compras">
+
+  @if (loading()) {
+    <po-loading-overlay p-text="Carregando painel de compras..."></po-loading-overlay>
+  }
+
+  @if (!loading() && error()) {
+    <div class="po-row po-mb-2">
+      <po-widget class="po-md-12" p-title="Falha ao carregar dados">
+        <p class="po-color-07">{{ error() }}</p>
+        <po-button p-label="Tentar novamente" p-icon="po-icon-refresh" (p-click)="reload()"></po-button>
+      </po-widget>
+    </div>
+  }
+
+  @if (!loading() && isDemoData()) {
+    <div class="po-row po-mb-2">
+      <po-widget class="po-md-12" p-title="Modo demonstração">
+        <p>Exibindo dados de demonstração — os endpoints REST de Compras ainda não retornaram dados reais.</p>
+      </po-widget>
+    </div>
+  }
+
+  @if (!loading()) {
+    <!-- Cartões KPI -->
+    <div class="po-row">
+      <po-widget class="po-md-12 po-lg-3 po-mt-2" p-title="Pedidos abertos">
+        <div class="po-font-subtitle po-text-center">{{ totalPedidosAbertos() }}</div>
+        <div class="po-text-center">Pedidos de compra em aberto</div>
+      </po-widget>
+
+      <po-widget class="po-md-12 po-lg-3 po-mt-2" p-title="Solicitações pendentes">
+        <div class="po-font-subtitle po-text-center">{{ totalSolicitacoesPendentes() }}</div>
+        <div class="po-text-center">Solicitações aguardando aprovação</div>
+      </po-widget>
+
+      <po-widget class="po-md-12 po-lg-3 po-mt-2" p-title="Valor total em pedidos">
+        <div class="po-font-subtitle po-text-center">{{ valorTotalPedidos() }}</div>
+        <div class="po-text-center">Soma dos pedidos de compra</div>
+      </po-widget>
+
+      <po-widget class="po-md-12 po-lg-3 po-mt-2" p-title="Fornecedores ativos">
+        <div class="po-font-subtitle po-text-center">{{ fornecedoresAtivos() }}</div>
+        <div class="po-text-center">Fornecedores habilitados</div>
+      </po-widget>
+    </div>
+
+    <!-- Gráfico -->
+    <div class="po-row">
+      <po-chart
+        class="po-md-12 po-mt-2"
+        p-title="Pedidos por status"
+        [p-type]="barChartType"
+        [p-options]="chartOptions()"
+        [p-categories]="chartCategories()"
+        [p-series]="chartSeries()">
+      </po-chart>
+    </div>
+  }
+
+</po-page-default>

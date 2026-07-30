@@ -1,0 +1,296 @@
+// Gerado por poui-specialist (tlpp-contract) — skeleton de contrato REST.
+// Implementar as regras de negocio com: /advpl-specialist:generate rest --entity Fornecedores
+#include "totvs.ch"
+#include "restful.ch"
+
+/*/{Protheus.doc} FornecedoresAPI
+    Contrato REST (WsRestFul) para Cadastro de Fornecedores (SA2) do modulo
+    Compras. Endpoints: GET (lista paginada / consulta por chave codigo+loja),
+    POST (incluir), PUT (alterar), DELETE (excluir). Skeleton gerado pelo
+    poui-specialist — a persistencia real (MSExecAuto/FWMVCRotAuto) deve ser
+    implementada com /advpl-specialist:generate rest --entity Fornecedores.
+    @type Class
+    @author Andre Costa
+/*/
+WSRESTFUL FornecedoresAPI DESCRIPTION "Fornecedores API"
+
+    WSDATA codigo    AS CHARACTER OPTIONAL
+    WSDATA loja      AS CHARACTER OPTIONAL
+    WSDATA page      AS INTEGER   OPTIONAL
+    WSDATA pageSize  AS INTEGER   OPTIONAL
+    WSDATA q         AS CHARACTER OPTIONAL
+    WSDATA order     AS CHARACTER OPTIONAL
+
+    WSMETHOD GET    DESCRIPTION "Listar / Consultar Fornecedores" WSSYNTAX "/api/custom/v1/fornecedores"
+    WSMETHOD POST   DESCRIPTION "Incluir Fornecedor"              WSSYNTAX "/api/custom/v1/fornecedores"
+    WSMETHOD PUT    DESCRIPTION "Alterar Fornecedor"              WSSYNTAX "/api/custom/v1/fornecedores"
+    WSMETHOD DELETE DESCRIPTION "Excluir Fornecedor"              WSSYNTAX "/api/custom/v1/fornecedores"
+
+END WSRESTFUL
+
+/*/{Protheus.doc} GET
+    Lista fornecedores paginados (sem chave informada) ou consulta um
+    fornecedor especifico pela chave composta codigo+loja.
+    @type Method
+    @author Andre Costa
+/*/
+WSMETHOD GET WSRECEIVE codigo, loja, page, pageSize, q, order WSSERVICE FornecedoresAPI
+    Local lOk := .T.
+
+    If !_ForAuth(Self, "LI")
+        Return .F.
+    EndIf
+
+    If Empty(Self:codigo)
+        lOk := _ForLista(Self)
+    Else
+        lOk := _ForCons(Self)
+    EndIf
+
+Return lOk
+
+/*/{Protheus.doc} POST
+    Inclui um novo Fornecedor.
+    @type Method
+    @author Andre Costa
+/*/
+WSMETHOD POST WSSERVICE FornecedoresAPI
+Return _ForInc(Self)
+
+/*/{Protheus.doc} PUT
+    Altera um Fornecedor existente (chave codigo+loja).
+    @type Method
+    @author Andre Costa
+/*/
+WSMETHOD PUT WSRECEIVE codigo, loja WSSERVICE FornecedoresAPI
+Return _ForAlt(Self)
+
+/*/{Protheus.doc} DELETE
+    Exclui um Fornecedor existente (chave codigo+loja).
+    @type Method
+    @author Andre Costa
+/*/
+WSMETHOD DELETE WSRECEIVE codigo, loja WSSERVICE FornecedoresAPI
+Return _ForExc(Self)
+
+/*/{Protheus.doc} _ForAuth
+    Valida autenticacao e permissao de rotina (SA2) para os endpoints de
+    Fornecedores. Em caso de falha, ja monta a resposta de erro e o status
+    HTTP.
+    @param oWS      Object,    instancia WsRestFul (Self do metodo chamador)
+    @param cAcao    Character, acao a validar (LI=Listar IN=Incluir AT=Alterar EX=Excluir)
+    @return lValido Logical,   .T. se autenticado e autorizado
+    @type Static Function
+    @author Andre Costa
+/*/
+Static Function _ForAuth(oWS, cAcao)
+    Local lValido := .T.
+
+    If !FWUserLogged()
+        oWS:SetResponse('{"errorMessage":"Não autenticado"}')
+        oWS:SetHTTPStatus(401, "Unauthorized")
+        lValido := .F.
+    ElseIf !FWValidUserLog("SA2", cAcao)
+        oWS:SetResponse('{"errorMessage":"Acesso negado"}')
+        oWS:SetHTTPStatus(403, "Forbidden")
+        lValido := .F.
+    EndIf
+
+Return lValido
+
+/*/{Protheus.doc} _ForLista
+    Lista fornecedores (SA2) paginados, com busca rapida opcional (q) no
+    nome/nome reduzido. Monta o contrato { items[], hasNext } esperado pelo
+    frontend PO-UI.
+    TODO: aplicar ordenacao dinamica pelo parametro 'order' e trocar a
+    paginacao por DbSkip por uma paginacao real (TOP/OFFSET) na
+    implementacao final via /advpl-specialist:generate rest.
+    @param oWS  Object,  instancia WsRestFul (Self do metodo GET)
+    @return lOk Logical, .T. em caso de sucesso
+    @type Static Function
+    @author Andre Costa
+/*/
+Static Function _ForLista(oWS)
+    Local nPage     := Iif(oWS:page > 0, oWS:page, 1)
+    Local nPageSize := Iif(oWS:pageSize > 0, oWS:pageSize, 10)
+    Local cBusca    := AllTrim(oWS:q)
+    Local nSkip     := (nPage - 1) * nPageSize
+    Local oJson     := JsonObject():New()
+    Local aItems    := {}
+    Local lHasNext  := .F.
+    Local nLidos    := 0
+
+    BeginSQL Alias "QFORLST"
+        SELECT A2_FILIAL, A2_COD, A2_LOJA, A2_NOME, A2_NREDUZ, A2_CGC,
+               A2_EST, A2_MUN, A2_TEL
+        FROM %Table:SA2%
+        WHERE %NotDel%
+        AND %xFilial:SA2%
+        AND (%Exp:cBusca% = '' OR UPPER(A2_NOME) LIKE UPPER('%' + %Exp:cBusca% + '%')
+             OR UPPER(A2_NREDUZ) LIKE UPPER('%' + %Exp:cBusca% + '%'))
+        ORDER BY A2_COD, A2_LOJA
+    EndSQL
+
+    If nSkip > 0
+        QFORLST->(DbSkip(nSkip))
+    EndIf
+
+    While !QFORLST->(Eof()) .And. nLidos <= nPageSize
+        nLidos++
+        If nLidos > nPageSize
+            lHasNext := .T.
+            Exit
+        EndIf
+        AAdd(aItems, _ForRow("QFORLST"))
+        QFORLST->(DbSkip())
+    EndDo
+    QFORLST->(DbCloseArea())
+
+    oJson["items"]   := aItems
+    oJson["hasNext"] := lHasNext
+
+    oWS:SetResponse(oJson:ToJson())
+    FreeObj(oJson)
+
+Return .T.
+
+/*/{Protheus.doc} _ForCons
+    Consulta um Fornecedor (SA2) especifico pela chave composta
+    codigo + loja.
+    @param oWS  Object,  instancia WsRestFul (Self do metodo GET)
+    @return lOk Logical, .T. se encontrado (200), .F. se nao encontrado (404)
+    @type Static Function
+    @author Andre Costa
+/*/
+Static Function _ForCons(oWS)
+    Local cCod  := PadR(AllTrim(oWS:codigo), TamSX3("A2_COD")[1])
+    Local cLoja := PadR(AllTrim(oWS:loja), TamSX3("A2_LOJA")[1])
+    Local lOk   := .T.
+
+    DbSelectArea("SA2")
+    SA2->(DbSetOrder(1))
+    If SA2->(DbSeek(xFilial("SA2") + cCod + cLoja))
+        oWS:SetResponse(_ForRow("SA2"):ToJson())
+    Else
+        oWS:SetResponse('{"errorMessage":"{\"code\":\"FOR404\",\"message\":\"Fornecedor n\\u00e3o encontrado\",\"detailedMessage\":\"\"}"}')
+        oWS:SetHTTPStatus(404, "Not Found")
+        lOk := .F.
+    EndIf
+
+Return lOk
+
+/*/{Protheus.doc} _ForRow
+    Monta o objeto JSON de uma linha de Fornecedor a partir do alias de
+    trabalho informado (query ou tabela SA2 posicionada).
+    @param cAlias Character, nome do alias posicionado (ex: "QFORLST" ou "SA2")
+    @return oRow  Object,    JsonObject com os campos do fornecedor
+    @type Static Function
+    @author Andre Costa
+/*/
+Static Function _ForRow(cAlias)
+    Local oRow := JsonObject():New()
+
+    oRow["codigo"]      := AllTrim((cAlias)->A2_COD)
+    oRow["loja"]        := AllTrim((cAlias)->A2_LOJA)
+    oRow["nome"]        := AllTrim((cAlias)->A2_NOME)
+    oRow["nomeReduzido"] := AllTrim((cAlias)->A2_NREDUZ)
+    oRow["cnpjCpf"]     := AllTrim((cAlias)->A2_CGC)
+    oRow["estado"]      := AllTrim((cAlias)->A2_EST)
+    oRow["municipio"]   := AllTrim((cAlias)->A2_MUN)
+    oRow["telefone"]    := AllTrim((cAlias)->A2_TEL)
+
+Return oRow
+
+/*/{Protheus.doc} _ForInc
+    Inclui um novo Fornecedor (SA2). Skeleton — a gravacao real deve usar
+    MSExecAuto/FWMVCRotAuto (rotina automatica SA2).
+    TODO: validar campos obrigatorios e executar a rotina automatica com
+    os dados de oJson — ver /advpl-specialist:generate rest --entity Fornecedores.
+    @param oWS  Object,  instancia WsRestFul (Self do metodo POST)
+    @return lOk Logical, .T. em caso de sucesso (201)
+    @type Static Function
+    @author Andre Costa
+/*/
+Static Function _ForInc(oWS)
+    Local oJson := JsonObject():New()
+    Local lOk   := .T.
+
+    If !_ForAuth(oWS, "IN")
+        Return .F.
+    EndIf
+
+    oJson:FromJson(oWS:GetContent())
+
+    // TODO: validar campos obrigatorios e executar MSExecAuto/FWMVCRotAuto
+    // (rotina automatica SA2) com os dados de oJson
+
+    oWS:SetResponse(oJson:ToJson())
+    oWS:SetHTTPStatus(201, "Created")
+
+Return lOk
+
+/*/{Protheus.doc} _ForAlt
+    Altera um Fornecedor (SA2) existente, localizado pela chave composta
+    codigo + loja.
+    TODO: aplicar as alteracoes via MSExecAuto/FWMVCRotAuto com os dados
+    de oJson — ver /advpl-specialist:generate rest --entity Fornecedores.
+    @param oWS  Object,  instancia WsRestFul (Self do metodo PUT)
+    @return lOk Logical, .T. em caso de sucesso (200), .F. se nao encontrado (404)
+    @type Static Function
+    @author Andre Costa
+/*/
+Static Function _ForAlt(oWS)
+    Local cCod  := PadR(AllTrim(oWS:codigo), TamSX3("A2_COD")[1])
+    Local cLoja := PadR(AllTrim(oWS:loja), TamSX3("A2_LOJA")[1])
+    Local oJson := JsonObject():New()
+    Local lOk   := .T.
+
+    If !_ForAuth(oWS, "AT")
+        Return .F.
+    EndIf
+
+    oJson:FromJson(oWS:GetContent())
+
+    DbSelectArea("SA2")
+    SA2->(DbSetOrder(1))
+    If !SA2->(DbSeek(xFilial("SA2") + cCod + cLoja))
+        oWS:SetResponse('{"errorMessage":"{\"code\":\"FOR404\",\"message\":\"Fornecedor n\\u00e3o encontrado\",\"detailedMessage\":\"\"}"}')
+        oWS:SetHTTPStatus(404, "Not Found")
+        Return .F.
+    EndIf
+
+    // TODO: aplicar as alteracoes via MSExecAuto/FWMVCRotAuto com os dados de oJson
+
+    oWS:SetResponse(_ForRow("SA2"):ToJson())
+
+Return lOk
+
+/*/{Protheus.doc} _ForExc
+    Exclui (delecao logica) um Fornecedor (SA2) existente, localizado pela
+    chave composta codigo + loja.
+    TODO: executar a exclusao via MSExecAuto/FWMVCRotAuto — ver
+    /advpl-specialist:generate rest --entity Fornecedores.
+    @param oWS  Object,  instancia WsRestFul (Self do metodo DELETE)
+    @return lOk Logical, .T. em caso de sucesso (204), .F. se nao encontrado (404)
+    @type Static Function
+    @author Andre Costa
+/*/
+Static Function _ForExc(oWS)
+    Local cCod  := PadR(AllTrim(oWS:codigo), TamSX3("A2_COD")[1])
+    Local cLoja := PadR(AllTrim(oWS:loja), TamSX3("A2_LOJA")[1])
+
+    If !_ForAuth(oWS, "EX")
+        Return .F.
+    EndIf
+
+    DbSelectArea("SA2")
+    SA2->(DbSetOrder(1))
+    If !SA2->(DbSeek(xFilial("SA2") + cCod + cLoja))
+        oWS:SetResponse('{"errorMessage":"{\"code\":\"FOR404\",\"message\":\"Fornecedor n\\u00e3o encontrado\",\"detailedMessage\":\"\"}"}')
+        oWS:SetHTTPStatus(404, "Not Found")
+        Return .F.
+    EndIf
+
+    // TODO: executar a exclusao (delecao logica) via MSExecAuto/FWMVCRotAuto
+
+Return .T.

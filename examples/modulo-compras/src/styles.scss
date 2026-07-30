@@ -1,0 +1,20 @@
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap');
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: 'Open Sans', Arial, sans-serif;
+}
+
+/* Quirk #17 — po-decimal e po-number não alinham à direita por padrão (PO-UI v17) */
+po-decimal input,
+po-number input {
+  text-align: right;
+}
+
+/* Dark mode — variáveis CSS adaptam automaticamente os componentes PO-UI */
+[theme="default-dark"] {
+  --background: #1a1a1a;
+  --text:       #f0f0f0;
+}

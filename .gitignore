@@ -7,3 +7,9 @@ Teste_poui/
 # Dependências do tooling de release
 node_modules/
 package-lock.json
+
+# Build artifacts do projeto de exemplo (examples/modulo-compras)
+examples/modulo-compras/dist/
+examples/modulo-compras/.angular/
+# package-lock.json acima ignora só o da raiz (tooling) — manter o do exemplo, para instalação reprodutível
+!examples/modulo-compras/package-lock.json

@@ -1,0 +1,21 @@
+<po-toolbar p-title="Solicitação de Compra"></po-toolbar>
+
+<po-page-dynamic-search
+  p-title="Solicitação de Compra"
+  [p-actions]="pageActions"
+  [p-filters]="advancedFilters"
+  (p-quick-search)="onQuickSearch($event)"
+  (p-advanced-search)="onAdvancedSearch($event)"
+  (p-change-disclaimers)="onChangeDisclaimers($event)">
+
+  <po-table
+    [p-columns]="columns"
+    [p-items]="items()"
+    [p-loading]="loading()"
+    [p-actions]="tableActions"
+    [p-height]="500"
+    [p-show-more-disabled]="!hasNext()"
+    (p-show-more)="onShowMore()">
+  </po-table>
+
+</po-page-dynamic-search>

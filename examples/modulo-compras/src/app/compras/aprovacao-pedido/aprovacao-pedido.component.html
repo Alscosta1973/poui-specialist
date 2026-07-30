@@ -1,0 +1,52 @@
+<po-page-list
+  [p-title]="title"
+  [p-filter]="filterSettings">
+
+  <po-table
+    [p-columns]="columns"
+    [p-items]="items()"
+    [p-loading]="loading()"
+    [p-actions]="tableActions"
+    [p-height]="500"
+    [p-show-more-disabled]="!hasNext()"
+    (p-show-more)="onShowMore()">
+  </po-table>
+
+</po-page-list>
+
+<!-- Modal de confirmação (Aprovar / Rejeitar) -->
+<po-modal
+  #confirmModal
+  [p-title]="confirmModalTitle()"
+  [p-primary-action]="confirmPrimary()"
+  [p-secondary-action]="confirmSecondary">
+  <p>{{ confirmModalMessage() }}</p>
+
+  @if (isRejectFlow()) {
+    <po-textarea
+      [ngModel]="motivoRejeicao()"
+      (ngModelChange)="motivoRejeicao.set($event)"
+      p-label="Motivo da rejeição"
+      p-placeholder="Descreva o motivo da rejeição"
+      [p-required]="true"
+      [p-rows]="3">
+    </po-textarea>
+  }
+</po-modal>
+
+<!-- Modal de resultados (abre apenas quando falha > 0) -->
+<po-modal
+  #resultsModal
+  [p-title]="'Resultado — ' + (actionResults()?.actionLabel ?? '')"
+  [p-primary-action]="resultsPrimary"
+  p-size="lg">
+  <p>
+    <strong>{{ actionResults()?.sucesso }}</strong> processado(s) com sucesso ·
+    <strong>{{ actionResults()?.falha }}</strong> com erro
+  </p>
+  <po-table
+    [p-columns]="resultsColumns"
+    [p-items]="actionResults()?.itens ?? []"
+    [p-height]="250">
+  </po-table>
+</po-modal>

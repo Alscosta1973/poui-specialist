@@ -1,0 +1,9 @@
+{
+  "app": {
+    "titulo": "Purchasing Module",
+    "sair": "Exit",
+    "salvar": "Save",
+    "cancelar": "Cancel",
+    "confirmar": "Confirm"
+  }
+}

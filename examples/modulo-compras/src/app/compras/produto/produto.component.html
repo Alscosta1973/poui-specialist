@@ -1,0 +1,68 @@
+<po-page-default p-title="Novo Produto">
+
+  @if (loading()) {
+    <po-loading-overlay p-text="Salvando..."></po-loading-overlay>
+  }
+
+  <po-stepper
+    [p-steps]="steps()"
+    (p-change-step)="onStepChange($event)">
+  </po-stepper>
+
+  @if (!isConfirmStep()) {
+    <po-dynamic-form
+      [p-fields]="currentFields()"
+      [p-value]="formData"
+      (p-form)="onFormInit($event)">
+    </po-dynamic-form>
+  }
+
+  @if (isConfirmStep()) {
+    <p class="po-font-text-large po-mt-3 po-mb-1">Revise os dados antes de confirmar:</p>
+    <po-dynamic-view
+      [p-fields]="confirmFields"
+      [p-value]="formData">
+    </po-dynamic-view>
+  }
+
+  <div class="po-row po-mt-3">
+    <div class="po-md-12">
+
+      <po-button
+        p-label="Cancelar"
+        p-kind="secondary"
+        (p-click)="cancel()">
+      </po-button>
+
+      @if (!isFirstStep()) {
+        <po-button
+          p-label="Anterior"
+          p-kind="secondary"
+          (p-click)="back()"
+          class="po-ml-1">
+        </po-button>
+      }
+
+      @if (!isLastStep()) {
+        <po-button
+          p-label="Próximo"
+          p-kind="primary"
+          (p-click)="next()"
+          class="po-ml-1">
+        </po-button>
+      }
+
+      @if (isLastStep()) {
+        <po-button
+          p-label="Confirmar e Salvar"
+          p-kind="primary"
+          [p-loading]="loading()"
+          (p-click)="submit()"
+          class="po-ml-1">
+        </po-button>
+      }
+
+    </div>
+  </div>
+
+</po-page-default>

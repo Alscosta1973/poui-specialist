@@ -1,0 +1,48 @@
+<div class="login-wrapper">
+  <po-container p-title="Login" class="login-card">
+    <form [formGroup]="form" (ngSubmit)="entrar()">
+      <div class="po-row">
+        <po-input
+          class="po-md-12"
+          p-label="Usuário"
+          p-placeholder="Informe seu usuário"
+          formControlName="usuario"
+          p-required
+          [p-disabled]="loading() ? 'true' : 'false'">
+        </po-input>
+      </div>
+
+      <div class="po-row">
+        <po-password
+          class="po-md-12"
+          p-label="Senha"
+          p-placeholder="Informe sua senha"
+          formControlName="senha"
+          p-required
+          [p-disabled]="loading() ? 'true' : 'false'">
+        </po-password>
+      </div>
+
+      @if (errorMessage()) {
+        <div class="po-row">
+          <po-info
+            class="po-md-12"
+            p-label="Erro"
+            [p-value]="errorMessage()!">
+          </po-info>
+        </div>
+      }
+
+      <div class="po-row po-mt-2">
+        <po-button
+          class="po-md-12"
+          p-label="Entrar"
+          p-kind="primary"
+          [p-type]="PoButtonType.Submit"
+          [p-loading]="loading()"
+          [p-disabled]="loading()">
+        </po-button>
+      </div>
+    </form>
+  </po-container>
+</div>

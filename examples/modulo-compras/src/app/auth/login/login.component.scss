@@ -1,0 +1,18 @@
+.login-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 24px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 400px;
+}
+
+// Quirk #2 — po-input/po-password reservam 8px internos para mensagem de validação;
+// sem este ajuste o botão "Entrar" fica visualmente desalinhado em relação aos campos.
+po-button {
+  margin-bottom: 8px;
+}
