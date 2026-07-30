@@ -443,17 +443,38 @@ $zipPath  = "$projectName.zip"
 
 if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
 
-$sevenZip = Get-Command 7z.exe -ErrorAction SilentlyContinue
-if ($sevenZip) {
-    & $sevenZip.Source a -tzip $zipPath "$distPath\*" | Out-Null
+$sevenZipPath = $null
+$sevenZipCmd = Get-Command 7z.exe -ErrorAction SilentlyContinue
+if ($sevenZipCmd) {
+    $sevenZipPath = $sevenZipCmd.Source
 } else {
-    Write-Host "⚠ 7-Zip não encontrado — usando Compress-Archive (PowerShell) como fallback."
-    Write-Host "  Zips gerados por Compress-Archive são conhecidos por falhar ao extrair no"
-    Write-Host "  Protheus (UNZIPAPP FError: 161 / 'Falha ao renomear'). Se o deploy falhar,"
-    Write-Host "  instale o 7-Zip (https://www.7-zip.org/) e rode /poui-specialist:package de novo."
-    Compress-Archive -Path "$distPath/*" -DestinationPath $zipPath
+    # Get-Command só acha o que está no PATH — 7-Zip é comumente instalado sem
+    # adicionar-se ao PATH, então checar os locais padrão de instalação também.
+    foreach ($candidate in @("$env:ProgramFiles\7-Zip\7z.exe", "${env:ProgramFiles(x86)}\7-Zip\7z.exe")) {
+        if ($candidate -and (Test-Path $candidate)) { $sevenZipPath = $candidate; break }
+    }
 }
 
+if ($sevenZipPath) {
+    & $sevenZipPath a -tzip $zipPath "$distPath\*" | Out-Null
+} else {
+    Write-Host "⚠ 7-Zip não encontrado (nem no PATH, nem em C:\Program Files\7-Zip)."
+    Write-Host "  O fallback (Compress-Archive do PowerShell) é CONHECIDO por gerar um .app que"
+    Write-Host "  o Protheus falha ao extrair (UNZIPAPP FError: 161 / 'Falha ao renomear')."
+}
+```
+
+Se `$sevenZipPath` não foi encontrado: **parar e perguntar ao usuário** (via `AskUserQuestion`)
+se deseja instalar o 7-Zip agora e repetir, ou prosseguir mesmo assim com `Compress-Archive`
+sabendo que o pacote provavelmente falhará no Protheus. Nunca empacotar com `Compress-Archive`
+silenciosamente.
+
+Se o usuário optar por prosseguir mesmo assim:
+```powershell
+Compress-Archive -Path "$distPath/*" -DestinationPath $zipPath
+```
+
+```powershell
 $resourceDir = "Resource"
 if (-not (Test-Path $resourceDir)) {
     New-Item -ItemType Directory -Path $resourceDir | Out-Null

@@ -175,12 +175,24 @@ Falha ao renomear, FError: 161 on UNZIPAPP(FWCALLAPP.PRW)
 
 **Causa:** o ZIP foi gerado com `Compress-Archive` do PowerShell (.NET `System.IO.Compression`). A função interna `UNZIPAPP` do Protheus (`FWCALLAPP.PRW`) não extrai corretamente esse formato — falha ao localizar/renomear os arquivos extraídos. Um ZIP gerado com **7-Zip** funciona normalmente.
 
-**Fix:** `/poui-specialist:package` e o Passo 10.5 do `/poui-specialist:scaffold` (a partir da v1.15.1) já usam `7z.exe` automaticamente quando disponível no PATH, com `Compress-Archive` apenas como fallback (avisando quando isso acontece). Se você ainda tiver um `.app` gerado por uma versão anterior do plugin, ou se `7z.exe` não estiver instalado:
+**Fix:** `/poui-specialist:package` e o Passo 10.5 do `/poui-specialist:scaffold` usam `7z.exe`
+automaticamente quando encontrado — no `PATH` ou nos locais padrão de instalação
+(`C:\Program Files\7-Zip\7z.exe` / `...\7-Zip (x86)\...`). `Compress-Archive` só é usado como
+fallback quando nenhum dos dois é encontrado, e o plugin pergunta antes de prosseguir com ele
+(a partir da v1.15.2) — nunca gera silenciosamente um `.app` sabidamente incompatível.
 
-1. Instalar o [7-Zip](https://www.7-zip.org/) e garantir que `7z.exe` está no `PATH`.
+> **7-Zip instalado mas não no PATH é o caso mais comum** (`v1.15.1` só checava `Get-Command`,
+> que só olha o PATH — corrigido na `v1.15.2` para também checar `C:\Program Files\7-Zip\`).
+> Recomendado: adicionar `C:\Program Files\7-Zip\` ao `PATH` do sistema para não depender da
+> detecção automática.
+
+Se você ainda tiver um `.app` gerado com `Compress-Archive` (empacotado antes da v1.15.1, ou
+gerado com fallback), regenere:
+
+1. Confirmar o 7-Zip instalado (`C:\Program Files\7-Zip\7z.exe` ou no `PATH`).
 2. Rodar `/poui-specialist:package` de novo — ou manualmente:
    ```powershell
-   7z a -tzip <projeto>.zip "dist\<projeto>\*"
+   & "C:\Program Files\7-Zip\7z.exe" a -tzip <projeto>.zip "dist\<projeto>\*"
    ```
 3. Copiar o zip para `Resource/` e renomear para `<projeto>.app`.
 
