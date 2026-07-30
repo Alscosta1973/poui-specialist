@@ -2,6 +2,11 @@
 
 Fluxo completo para compilar o projeto Angular e publicá-lo dentro do Protheus.
 
+> **Atalho:** os passos 2-4 (ajustar `outputPath`, build de produção, empacotar em `.app`) são
+> automatizados pelo comando `/poui-specialist:package` — rode-o em projetos já prontos (depois
+> dos testes/revisões) para pular direto para `Resource/<projeto>.app`. O restante deste guia
+> (estrutura de pastas, `.prw` com `FWCallApp`, `appserver.ini`) ainda é manual.
+
 ---
 
 ## 1. tsconfig.json — desabilitar strict mode

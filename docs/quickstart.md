@@ -71,6 +71,19 @@ O plugin analisa o componente gerado e reporta problemas de boas práticas, perf
 
 ---
 
+## Passo 6 — Compilar e empacotar para o Protheus
+
+Quando o projeto já passou pelos testes e revisões (Passos 2-5) e está pronto para publicar:
+
+```
+/poui-specialist:package
+```
+
+Builda em produção e gera `Resource/<projeto>.app`, pronto para copiar ao AppServer — falta
+só a verificação dentro do Protheus (ver `skills/poui-patterns/deploy-protheus.md`).
+
+---
+
 ## Referência de tipos disponíveis
 
 | Tipo | Uso |

@@ -160,7 +160,9 @@ private parseError(err: HttpErrorResponse): string {
   "browser": ""
 }
 ```
-Com isso, `ng build` entrega `index.html`, `main.js` etc. direto em `dist/<projeto>/`, sem subpasta. Projetos criados via `/poui-specialist:scaffold` já saem configurados assim — o ajuste só é necessário em projetos existentes. Ver fluxo completo de deploy em `skills/poui-patterns/deploy-protheus.md`.
+Com isso, `ng build` entrega `index.html`, `main.js` etc. direto em `dist/<projeto>/`, sem subpasta. Projetos criados via `/poui-specialist:scaffold` já saem configurados assim — o ajuste só é necessário em projetos existentes.
+
+Em vez de aplicar manualmente, rode `/poui-specialist:package` — ele detecta e corrige o `outputPath`, builda em produção e já empacota em `Resource/<projeto>.app`. Ver fluxo completo de deploy em `skills/poui-patterns/deploy-protheus.md`.
 
 ---
 

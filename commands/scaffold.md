@@ -452,6 +452,7 @@ Write-Host "✓ Pacote gerado: $appPath"
 
 > `$projectName.zip` permanece na raiz do projeto; a cópia renomeada para `.app` fica em `Resource/$projectName.app`, pronta para copiar ao AppServer Protheus (ver `skills/poui-patterns/deploy-protheus.md`).
 > Se `Compress-Archive` falhar por já existir handle aberto no zip anterior, remover manualmente e repetir.
+> Para builds futuras (depois de gerar mais componentes com `/generate`), não repita o `/scaffold` — use `/poui-specialist:package`, que faz exatamente estes passos em um projeto já existente.
 
 Verificar `.gitignore` — adicionar os artefatos de build/empacotamento se ainda não existirem:
 ```powershell
