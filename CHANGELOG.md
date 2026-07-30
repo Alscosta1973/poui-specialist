@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.14.0](https://github.com/Alscosta1973/poui-specialist/compare/v1.13.1...v1.14.0) (2026-07-30)
+
+
+### Features
+
+* **package:** add /poui-specialist:package command ([63ec7b5](https://github.com/Alscosta1973/poui-specialist/commit/63ec7b51d6410055bfe736d4dab08909f5005a82))
+
+
+### Chores
+
+* **release:** sync marketplace and generated headers to v1.13.1 ([3ffde13](https://github.com/Alscosta1973/poui-specialist/commit/3ffde13bebadc832768202f3eab07f26abd36a94))
+
 ## [1.13.1](https://github.com/Alscosta1973/poui-specialist/compare/v1.13.0...v1.13.1) (2026-07-30)
 
 
