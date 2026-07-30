@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.15.0](https://github.com/Alscosta1973/poui-specialist/compare/v1.14.0...v1.15.0) (2026-07-30)
+
+
+### Features
+
+* **package:** accept optional project-path argument ([cbc7d86](https://github.com/Alscosta1973/poui-specialist/commit/cbc7d86468dd04c380956201de17a78fd5e68c1f))
+
+
+### Chores
+
+* **release:** sync marketplace and generated headers to v1.14.0 ([33a8a82](https://github.com/Alscosta1973/poui-specialist/commit/33a8a827575d0bcb0b604dbcec066abac1181d82))
+
 ## [1.14.0](https://github.com/Alscosta1973/poui-specialist/compare/v1.13.1...v1.14.0) (2026-07-30)
 
 
