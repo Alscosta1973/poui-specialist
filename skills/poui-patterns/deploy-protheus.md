@@ -20,7 +20,7 @@ compilação com os padrões da lib:
 
 ---
 
-## 2. angular.json — ajustar budgets
+## 2. angular.json — ajustar budgets e outputPath
 
 O build de produção falha se os bundles ultrapassam os limites padrão. Ajuste em
 `architect.build.configurations.production.budgets`:
@@ -40,6 +40,17 @@ O build de produção falha se os bundles ultrapassam os limites padrão. Ajuste
 ]
 ```
 
+**Achatar a saída do build (`outputPath`):** o builder `@angular/build:application` (padrão desde Angular 17+) por padrão gera a saída em `dist/<nome-projeto>/browser/`, reservando a raiz de `dist/<nome-projeto>/` para uma eventual build de servidor (SSR). O Protheus (`FWCallApp`/`AjustaIndex` em `FWCALLAPP.PRW`) espera `index.html` diretamente na raiz da pasta publicada — sem ajustar isso, o deploy falha com **"Falha ao Ajustar os arquivos Index"**. Ajuste em `architect.build.options`:
+
+```json
+"outputPath": {
+  "base": "dist/<nome-projeto>",
+  "browser": ""
+}
+```
+
+> Projetos criados via `/poui-specialist:scaffold` já saem com esse ajuste configurado — este passo só é necessário em projetos existentes que ainda não têm `outputPath` achatado.
+
 ---
 
 ## 3. Build de produção
@@ -48,7 +59,7 @@ O build de produção falha se os bundles ultrapassam os limites padrão. Ajuste
 ng build --configuration production
 ```
 
-Isso gera a pasta `dist/<nome-projeto>/browser/` (Angular 17–21+).
+Com o `outputPath` do passo 2, isso gera `index.html`, `main.js` etc. **diretamente** em `dist/<nome-projeto>/` — sem subpasta `browser/`.
 
 ---
 
@@ -58,10 +69,12 @@ O Protheus exige que o bundle Angular tenha extensão `.app`:
 
 ```bash
 # Windows (PowerShell)
-Rename-Item "dist\<nome-projeto>\browser" "<nome-projeto>.app"
+Rename-Item "dist\<nome-projeto>" "<nome-projeto>.app"
 ```
 
-Resultado: `dist\<nome-projeto>\<nome-projeto>.app\`
+Resultado: `dist\<nome-projeto>.app\` (com `index.html` na raiz)
+
+> Se o `angular.json` **não** tiver o `outputPath` achatado (passo 2), o build sai em `dist\<nome-projeto>\browser\` e é essa subpasta — não `dist\<nome-projeto>\` — que deve ser renomeada para `<nome-projeto>.app`.
 
 ---
 

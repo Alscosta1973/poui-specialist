@@ -149,6 +149,21 @@ private parseError(err: HttpErrorResponse): string {
 
 ---
 
+### `Falha ao Ajustar os arquivos Index` ao publicar no Protheus
+
+**Causa:** O builder `@angular/build:application` (padrão desde Angular 17+) gera a saída de build em `dist/<projeto>/browser/`, reservando a raiz de `dist/<projeto>/` para uma eventual build de servidor (SSR). O `FWCallApp`/`AjustaIndex` (`FWCALLAPP.PRW`) espera `index.html` diretamente na raiz da pasta publicada e não encontra o arquivo dentro da subpasta `browser/`.
+
+**Fix:** Achatar a saída do build em `angular.json` → `architect.build.options`:
+```json
+"outputPath": {
+  "base": "dist/<projeto>",
+  "browser": ""
+}
+```
+Com isso, `ng build` entrega `index.html`, `main.js` etc. direto em `dist/<projeto>/`, sem subpasta. Projetos criados via `/poui-specialist:scaffold` já saem configurados assim — o ajuste só é necessário em projetos existentes. Ver fluxo completo de deploy em `skills/poui-patterns/deploy-protheus.md`.
+
+---
+
 ### Paginação retorna sempre os mesmos registros
 
 **Causa:** Endpoint TLPP não está lendo o parâmetro `page` corretamente.

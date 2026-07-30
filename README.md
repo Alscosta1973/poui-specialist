@@ -130,7 +130,7 @@ Revisa código Angular/PO-UI contra regras de boas práticas, performance e aces
 
 - [Claude Code](https://claude.ai/code) instalado e autenticado
 - Projeto Angular com `@totvs/po-ui` ou `@po-ui/ng-components`
-- Node.js 18+
+- Node.js 18.19+ (20.11+ obrigatório para projetos Angular 21 criados via `/scaffold`)
 
 ---
 

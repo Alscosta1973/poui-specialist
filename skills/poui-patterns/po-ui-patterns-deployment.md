@@ -13,7 +13,9 @@ autenticação em produção e deploy dentro do SmartClient/iframe.
 ng build --configuration production
 ```
 
-Saída em `dist/<project-name>/browser/` (Angular 17) com:
+Saída em `dist/<project-name>/browser/` por padrão do builder `@angular/build:application` (Angular 17+), que reserva a raiz de `dist/<project-name>/` para uma eventual build SSR. Projetos criados via `/poui-specialist:scaffold` configuram `outputPath.browser: ""` em `angular.json`, então a saída já vem achatada direto em `dist/<project-name>/` — sem a subpasta `browser/`. Isso é necessário porque o Protheus (`FWCallApp`/`AjustaIndex`) espera `index.html` na raiz da pasta publicada; veja `deploy-protheus.md` seção 2.
+
+A build gera:
 - Minificação de JS/CSS
 - Tree-shaking de imports não usados
 - Hashing de nomes de arquivo (`main.abc123.js`) para cache-busting automático
@@ -55,7 +57,9 @@ no bundle inicial após gzip.
 ```powershell
 npm install -D webpack-bundle-analyzer
 ng build --configuration production --stats-json
-npx webpack-bundle-analyzer dist/<project-name>/browser/stats.json
+npx webpack-bundle-analyzer dist/<project-name>/stats.json
+# Projeto sem outputPath achatado (subpasta browser/ ainda presente):
+# npx webpack-bundle-analyzer dist/<project-name>/browser/stats.json
 ```
 
 Abre browser com mapa visual de tamanho por módulo. Identificar:
@@ -67,7 +71,9 @@ Abre browser com mapa visual de tamanho por módulo. Identificar:
 
 ```powershell
 ng build --configuration production --source-map
-npx source-map-explorer dist/<project-name>/browser/*.js
+npx source-map-explorer dist/<project-name>/*.js
+# Projeto sem outputPath achatado (subpasta browser/ ainda presente):
+# npx source-map-explorer dist/<project-name>/browser/*.js
 ```
 
 ### Verificar lazy loading
@@ -158,7 +164,7 @@ server {
 
 O Protheus pode servir arquivos estáticos diretamente do AppServer:
 
-1. Copiar `dist/<project-name>/browser/` para o diretório `web/` do AppServer
+1. Copiar o **conteúdo** de `dist/<project-name>/` (com `outputPath` achatado — ver seção 1) para o diretório `web/<project-name>/` do AppServer, garantindo que `index.html` fique na raiz dessa pasta — o `FWCallApp`/`AjustaIndex` não encontra o app se `index.html` estiver dentro de uma subpasta `browser/`. Ver fluxo completo em `deploy-protheus.md`.
 2. Configurar rota no `appserver.ini`:
    ```ini
    [HTTP]
@@ -387,7 +393,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: dist
-          path: dist/*/browser/
+          path: dist/*/
+          # Projeto sem outputPath achatado (subpasta browser/ ainda presente): dist/*/browser/
 ```
 
 > **Secrets no CI:** URLs de AppServer, tokens de deploy — sempre em `Settings > Secrets`,

@@ -62,12 +62,21 @@ if (-not $ngVersion) {
 }
 Write-Host "✓ Angular CLI $ngVersion"
 
-# Verificar Node.js (mínimo 18)
+# Verificar Node.js (mínimo 20.11.x — exigido pelo PO-UI 21 / @po-ui/ng-components@^21)
 $nodeVersion = node --version
+$nodeParts = $nodeVersion.TrimStart('v').Split('.')
+$nodeMajor = [int]$nodeParts[0]
+$nodeMinor = [int]$nodeParts[1]
+if ($nodeMajor -lt 20 -or ($nodeMajor -eq 20 -and $nodeMinor -lt 11)) {
+    Write-Host "⚠ Node.js $nodeVersion detectado — abaixo do mínimo exigido pelo PO-UI 21 (>=20.11.0)."
+    Write-Host "  Atualize o Node.js antes de continuar: https://nodejs.org"
+    exit 1
+}
 Write-Host "✓ Node.js $nodeVersion"
 ```
 
 Se Angular CLI não estiver instalado: exibir instrução e encerrar.
+Se Node.js estiver abaixo de 20.11.0: exibir instrução e encerrar.
 
 ---
 
@@ -94,32 +103,40 @@ Set-Location $projectName
 
 ## Passo 3 — Instalar pacotes PO-UI
 
+`@po-ui/ng-components` e `@po-ui/ng-templates` têm schematic `ng add` oficial (instala o pacote, injeta o tema padrão e integra `HttpClientModule`/`PoModule`). Rodar com `--configSideMenu=false` para pular o schematic de menu lateral — o Passo 6/8 já cria o shell próprio integrado ao Protheus, evitando conflito com o gerado pelo schematic.
+
+`@totvs/po-theme` e `@totvs/protheus-lib-core` **não têm** schematic `ng add` (pacotes CSS/lib puros) — instalar via `npm install` normal.
+
 Se `--skip-install` **não** foi fornecido:
 
 ```powershell
-npm install `
-  @po-ui/ng-components@^21 `
-  @po-ui/ng-templates@^21 `
-  @po-ui/style@^21 `
-  @totvs/po-theme@^21 `
-  @totvs/protheus-lib-core@^21
+ng add @po-ui/ng-components@21 --configSideMenu=false
+ng add @po-ui/ng-templates@21
+
+npm install @totvs/po-theme@^21 @totvs/protheus-lib-core@^21
 ```
 
+> `ng add` já executa a instalação do próprio pacote — não repetir `npm install` para `@po-ui/ng-components` / `@po-ui/ng-templates`.
+
 Exibir progresso. Se falhar com erro de peer dependency:
-- Tentar novamente com `--legacy-peer-deps`
+- Tentar novamente com `--legacy-peer-deps` no `npm install` das libs TOTVS
 - Se ainda falhar: exibir erro e sugerir `npm install --force`
 
 Se `--skip-install` foi fornecido:
 ```
-⚠ npm install ignorado (--skip-install). Execute manualmente quando pronto:
-   npm install @po-ui/ng-components @po-ui/ng-templates @po-ui/style @totvs/po-theme @totvs/protheus-lib-core
+⚠ Instalação ignorada (--skip-install). Execute manualmente quando pronto:
+   ng add @po-ui/ng-components@21 --configSideMenu=false
+   ng add @po-ui/ng-templates@21
+   npm install @totvs/po-theme@^21 @totvs/protheus-lib-core@^21
 ```
 
 ---
 
 ## Passo 4 — Configurar angular.json
 
-Ler `angular.json`, localizar o array `projects.<projectName>.architect.build.options.styles` e adicionar as folhas CSS do PO-UI **antes** de `"src/styles.scss"`:
+O `ng add @po-ui/ng-components` do Passo 3 já injeta `"./node_modules/@po-ui/style/css/po-theme-default.min.css"` (tema padrão da comunidade PO-UI) no início do array `styles` — este projeto usa o tema corporativo TOTVS (`@totvs/po-theme`) no lugar, então essa entrada precisa ser **removida** antes de aplicar o tema TOTVS.
+
+Ler `angular.json`, localizar o array `projects.<projectName>.architect.build.options.styles`, remover a entrada `"./node_modules/@po-ui/style/css/po-theme-default.min.css"` (adicionada pelo `ng add`) e deixar as folhas CSS do PO-UI **antes** de `"src/styles.scss"`:
 
 ```json
 "styles": [
@@ -130,7 +147,18 @@ Ler `angular.json`, localizar o array `projects.<projectName>.architect.build.op
 ]
 ```
 
-> **Crítico:** sem estes arquivos os componentes PO-UI são renderizados sem nenhum estilo.
+> **Crítico:** sem estes arquivos os componentes PO-UI são renderizados sem nenhum estilo. Manter a entrada `po-theme-default.min.css` do `ng add` junto com o tema TOTVS causa conflito de variáveis CSS — sempre remover antes de aplicar o tema TOTVS.
+
+Ainda em `angular.json`, ajustar `projects.<projectName>.architect.build.options.outputPath` para achatar a saída do build:
+
+```json
+"outputPath": {
+  "base": "dist/{{projectName}}",
+  "browser": ""
+}
+```
+
+> **Crítico:** o builder `@angular/build:application` (padrão desde Angular 17+) por padrão gera a saída em `dist/<projeto>/browser/`, reservando a raiz de `dist/<projeto>/` para uma eventual build de servidor (SSR). O Protheus (`FWCallApp`/`AjustaIndex` em `FWCALLAPP.PRW`) espera `index.html` diretamente na raiz da pasta publicada — sem esse ajuste, o deploy falha com **"Falha ao Ajustar os arquivos Index"**. Com `browser: ""`, o `ng build` já entrega `index.html` direto em `dist/{{projectName}}/`, sem subpasta.
 
 ---
 
@@ -373,7 +401,7 @@ Se o projeto foi criado com `--skip-git`, inicializar git e fazer o primeiro com
 ```powershell
 git init
 git add .
-git commit -m "chore: scaffold Angular 17 + PO-UI via poui-specialist"
+git commit -m "chore: scaffold Angular 21 + PO-UI via poui-specialist"
 ```
 
 ---
@@ -381,10 +409,58 @@ git commit -m "chore: scaffold Angular 17 + PO-UI via poui-specialist"
 ## Passo 10 — Verificação de build
 
 ```powershell
+$buildOutput = ng build --configuration development 2>&1
+$buildOutput | Select-Object -Last 10
+```
+
+**Observação Angular 19+/21+:** se o erro for `Could not find the @angular/build:dev-server builder's package`, o projeto está usando o novo build system baseado em `@angular/build` mas o pacote não está instalado. Corrigir com:
+
+```powershell
+npm install -D @angular/build
 ng build --configuration development 2>&1 | Select-Object -Last 10
 ```
 
-Se falhar: exibir erros, tentar correção automática via skill `poui-specialist:build-fix`.
+Se persistir, verificar em `angular.json` se `architect.build.builder` e `architect.serve.builder` apontam para `@angular/build:application` / `@angular/build:dev-server` e se `@angular/build` está declarado em `devDependencies`.
+
+Se falhar por outro motivo: exibir erros, tentar correção automática via skill `poui-specialist:build-fix`.
+
+---
+
+## Passo 10.5 — Empacotar .app para Protheus (Resource/)
+
+Gera o pacote `.app` pronto para publicar no Protheus, a partir de uma build de produção (não a build de desenvolvimento do Passo 10):
+
+```powershell
+ng build --configuration production
+
+$distPath = "dist/$projectName"      # já achatado — ver outputPath no Passo 4
+$zipPath  = "$projectName.zip"
+
+if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
+Compress-Archive -Path "$distPath/*" -DestinationPath $zipPath
+
+$resourceDir = "Resource"
+if (-not (Test-Path $resourceDir)) {
+    New-Item -ItemType Directory -Path $resourceDir | Out-Null
+    Write-Host "✓ Pasta Resource criada"
+}
+
+$appPath = Join-Path $resourceDir "$projectName.app"
+Copy-Item -Path $zipPath -Destination $appPath -Force
+Write-Host "✓ Pacote gerado: $appPath"
+```
+
+> `$projectName.zip` permanece na raiz do projeto; a cópia renomeada para `.app` fica em `Resource/$projectName.app`, pronta para copiar ao AppServer Protheus (ver `skills/poui-patterns/deploy-protheus.md`).
+> Se `Compress-Archive` falhar por já existir handle aberto no zip anterior, remover manualmente e repetir.
+
+Verificar `.gitignore` — adicionar os artefatos de build/empacotamento se ainda não existirem:
+```powershell
+foreach ($pattern in @("dist/", "*.zip", "Resource/")) {
+    if (-not (Select-String -Path ".gitignore" -Pattern ([regex]::Escape($pattern)) -Quiet -ErrorAction SilentlyContinue)) {
+        Add-Content ".gitignore" "`n$pattern"
+    }
+}
+```
 
 ---
 
@@ -403,13 +479,14 @@ Exibir:
    ├── src/app/app.component.*   — shell com po-toolbar + po-menu
    ├── src/styles.scss           — Open Sans + Quirk #17 fix
    ├── proxy.conf.json           — proxy /rest → {{protheusUrl}}
-   └── angular.json              — estilos PO-UI configurados
+   ├── angular.json              — estilos PO-UI + outputPath achatado (deploy Protheus)
+   └── Resource/{{projectName}}.app — pacote pronto para publicar no Protheus
 
 📦 Dependências:
-   @po-ui/ng-components    17.x
-   @po-ui/ng-templates     17.x
-   @totvs/po-theme         17.x
-   @totvs/protheus-lib-core 17.x
+   @po-ui/ng-components    21.x
+   @po-ui/ng-templates     21.x
+   @totvs/po-theme         21.x
+   @totvs/protheus-lib-core 21.x
 
 🚀 Para iniciar o servidor:
    cd {{projectName}}
@@ -547,3 +624,5 @@ Informar: adicione contextos por módulo conforme necessário.
 - **O `proxy.conf.json` é sensível** — sempre adicionar ao `.gitignore`
 - **`--skip-git` no `ng new`** evita conflito com o git do diretório pai; o passo 9 inicializa o git do projeto novo
 - **Se o diretório já existir**: avisar o usuário antes de sobrescrever qualquer arquivo
+- **`ng add` roda não-interativo** desde que a única opção com prompt (`configSideMenu` em `@po-ui/ng-components`) seja passada como flag (`--configSideMenu=false`); `@po-ui/ng-templates` não tem nenhum prompt. Nunca rodar `ng add` sem essa flag — sem ela o schematic pode travar esperando input em modo não-interativo
+- **`ng add @po-ui/ng-components` sobrescreve `src/app/app.config.ts`** com seus próprios providers antes do Passo 6 rodar — não é um problema, pois o Passo 6.1 sobrescreve o arquivo por completo com a versão específica do Protheus logo em seguida

@@ -8,7 +8,7 @@ Gere seu primeiro componente PO-UI para Protheus em menos de 5 minutos.
 
 - Claude Code instalado
 - Plugin instalado: `/plugin install poui-specialist@Alscosta1973-poui-specialist`
-- Node.js 18+ e Angular CLI: `npm install -g @angular/cli`
+- Node.js 20.11+ e Angular CLI 21: `npm install -g @angular/cli@21`
 
 ---
 

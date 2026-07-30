@@ -214,6 +214,19 @@ Sem esses arquivos os componentes PO-UI são renderizados sem nenhum estilo.
 
 ---
 
+## angular.json (outputPath — crítico para deploy no Protheus)
+
+```json
+"outputPath": {
+  "base": "dist/{{kebab-name}}",
+  "browser": ""
+}
+```
+
+O builder `@angular/build:application` (padrão desde Angular 17+) por padrão gera a saída em `dist/<projeto>/browser/`, reservando a raiz de `dist/<projeto>/` para uma eventual build de servidor (SSR). O Protheus (`FWCallApp`/`AjustaIndex` em `FWCALLAPP.PRW`) espera `index.html` diretamente na raiz da pasta publicada — sem esse ajuste, o deploy falha com **"Falha ao Ajustar os arquivos Index"**. Com `browser: ""`, o `ng build` já entrega `index.html` direto em `dist/{{kebab-name}}/`, sem subpasta.
+
+---
+
 ## proxy.conf.json
 
 Usado durante o desenvolvimento local para fazer proxy das chamadas `/rest` para o AppServer Protheus:
