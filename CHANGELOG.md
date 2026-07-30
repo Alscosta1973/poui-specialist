@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.16.0](https://github.com/Alscosta1973/poui-specialist/compare/v1.15.5...v1.16.0) (2026-07-30)
+
+
+### Features
+
+* **license-check:** warn (non-blocking) when installed plugin is outdated ([51ea711](https://github.com/Alscosta1973/poui-specialist/commit/51ea7117225657db5f292a6cc0489e79fe048076))
+
+
+### Chores
+
+* **release:** sync marketplace and generated headers to v1.15.5 ([87df115](https://github.com/Alscosta1973/poui-specialist/commit/87df11567c879b5408290566f3fdce1e9169aa62))
+
 ## [1.15.5](https://github.com/Alscosta1973/poui-specialist/compare/v1.15.4...v1.15.5) (2026-07-30)
 
 
