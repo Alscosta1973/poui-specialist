@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.15.2](https://github.com/Alscosta1973/poui-specialist/compare/v1.15.1...v1.15.2) (2026-07-30)
+
+
+### Bug Fixes
+
+* **package:** find 7-Zip outside PATH and stop before an unsafe fallback ([c629674](https://github.com/Alscosta1973/poui-specialist/commit/c6296745d6f2df52f3d6bb2ea2daa5d11d391575))
+
+
+### Chores
+
+* **release:** sync marketplace and generated headers to v1.15.1 ([c653996](https://github.com/Alscosta1973/poui-specialist/commit/c653996ba32e0d092830262059bbee99b0fcc3f6))
+
 ## [1.15.1](https://github.com/Alscosta1973/poui-specialist/compare/v1.15.0...v1.15.1) (2026-07-30)
 
 
