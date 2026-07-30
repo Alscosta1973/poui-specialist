@@ -185,7 +185,28 @@ if (-not (Test-Path $resourceDir)) {
 
 $appPath = Join-Path $resourceDir "$projectName.app"
 Copy-Item -Path $zipPath -Destination $appPath -Force
-Write-Host "✓ Pacote gerado: $appPath"
+```
+
+**Nunca reportar sucesso sem verificar a estrutura de verdade.** Abrir o zip gerado (com
+caminho absoluto — `Environment.CurrentDirectory` não segue `Set-Location`/`Push-Location`,
+então caminhos relativos aqui podem resolver contra o diretório errado) e confirmar que a
+primeira entrada é a pasta do projeto:
+
+```powershell
+$appFullPath = (Resolve-Path $appPath).Path
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+$zip = [System.IO.Compression.ZipFile]::OpenRead($appFullPath)
+$firstEntry = $zip.Entries | Select-Object -First 1
+$hasProjectRoot = $zip.Entries | Where-Object { $_.FullName -eq "$projectName/" -or $_.FullName -like "$projectName/*" } | Select-Object -First 1
+$zip.Dispose()
+
+if ($hasProjectRoot) {
+    Write-Host "✓ Pacote gerado e verificado: $appPath ($($projectName)/ confirmado como raiz)"
+} else {
+    Write-Host "✗ ESTRUTURA INCORRETA — $appPath NÃO tem '$projectName/' como raiz do zip."
+    Write-Host "  Primeira entrada encontrada: $($firstEntry.FullName)"
+    Write-Host "  Não declarar sucesso — este .app provavelmente falhará no Protheus (UNZIPAPP FError: 161)."
+}
 ```
 
 > `$projectName.zip` permanece na raiz do projeto; a cópia renomeada para `.app` fica em
