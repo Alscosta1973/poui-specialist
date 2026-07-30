@@ -16,12 +16,22 @@
  *   agents/code-generator-forms.md    → @generated poui-specialist vX.Y.Z
  *   agents/code-generator-infra.md    → @generated poui-specialist vX.Y.Z
  *   skills/**\/*.md                   → @generated poui-specialist vX.Y.Z (todos os templates)
+ *   gist ace66c8661a912f3877c47ca8e7259be → latest_version: "X.Y.Z" (requer `gh` autenticado;
+ *                                            lido pela skill poui-license-check para avisar
+ *                                            quando o plugin instalado estiver desatualizado)
+ *
+ * Flags:
+ *   --no-gist   pula a atualização do latest_version no gist remoto
  */
 
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
+const { execFileSync } = require('child_process');
 
 const ROOT = path.resolve(__dirname, '..');
+const GIST_ID = 'ace66c8661a912f3877c47ca8e7259be';
+const GIST_FILENAME = 'poui-license.json';
 
 function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));
@@ -52,9 +62,11 @@ function walkMd(dir, results = []) {
   return results;
 }
 
-const bumpType = process.argv[2];
+const rawArgs = process.argv.slice(2);
+const noGist = rawArgs.includes('--no-gist');
+const bumpType = rawArgs.find(a => !a.startsWith('--'));
 if (!bumpType) {
-  console.error('Uso: node scripts/bump-version.js <major|minor|patch|X.Y.Z>');
+  console.error('Uso: node scripts/bump-version.js <major|minor|patch|X.Y.Z> [--no-gist]');
   process.exit(1);
 }
 
@@ -132,6 +144,31 @@ for (const templatePath of walkMd(skillsDir)) {
 
 const totalFiles = 2 + agentFiles.length + templateCount;
 console.log(`\nVersão ${newVersion} aplicada em ${totalFiles} arquivos.`);
-console.log('Próximos passos:');
+
+// 5. Atualizar latest_version no gist da licença — lido pela skill poui-license-check
+// para avisar (sem bloquear) quando o plugin instalado estiver desatualizado.
+if (!noGist) {
+  try {
+    const raw = execFileSync(
+      'curl',
+      ['-s', '--max-time', '5', `https://gist.githubusercontent.com/Alscosta1973/${GIST_ID}/raw/${GIST_FILENAME}`],
+      { encoding: 'utf8' }
+    );
+    const current = JSON.parse(raw);
+    const payload = { ...current, latest_version: newVersion };
+    const tmpFile = path.join(os.tmpdir(), `poui-license-${Date.now()}.json`);
+    fs.writeFileSync(tmpFile, JSON.stringify(payload) + '\n', 'utf8');
+    execFileSync('gh', ['gist', 'edit', GIST_ID, '--filename', GIST_FILENAME, tmpFile], { stdio: 'inherit' });
+    fs.unlinkSync(tmpFile);
+    console.log(`  ✓ gist ${GIST_ID} → latest_version=${newVersion}`);
+  } catch (err) {
+    console.warn(`  ⚠ Falha ao atualizar latest_version no gist: ${err.message}`);
+    console.warn(`    Atualize manualmente: gh gist edit ${GIST_ID} --filename ${GIST_FILENAME} <arquivo.json>`);
+  }
+} else {
+  console.log('  [gist] pulado (--no-gist)');
+}
+
+console.log('\nPróximos passos:');
 console.log('  node scripts/sync-docs.js   # atualiza PLUGIN_VERSION no site');
 console.log(`  git add -A && git commit -m "chore(release): bump version to ${newVersion}"`);
