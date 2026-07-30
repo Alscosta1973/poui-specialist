@@ -166,6 +166,26 @@ Em vez de aplicar manualmente, rode `/poui-specialist:package` — ele detecta e
 
 ---
 
+### `UnZipApp: Não foi possível extrair` / `FError: 161 on UNZIPAPP` ao abrir o `.app` no Protheus
+
+```
+UnZipApp: Não foi possível extrair o arquivo \http-root\app-root\<projeto>.app no diretório \http-root\app-root\ .
+Falha ao renomear, FError: 161 on UNZIPAPP(FWCALLAPP.PRW)
+```
+
+**Causa:** o ZIP foi gerado com `Compress-Archive` do PowerShell (.NET `System.IO.Compression`). A função interna `UNZIPAPP` do Protheus (`FWCALLAPP.PRW`) não extrai corretamente esse formato — falha ao localizar/renomear os arquivos extraídos. Um ZIP gerado com **7-Zip** funciona normalmente.
+
+**Fix:** `/poui-specialist:package` e o Passo 10.5 do `/poui-specialist:scaffold` (a partir da v1.15.1) já usam `7z.exe` automaticamente quando disponível no PATH, com `Compress-Archive` apenas como fallback (avisando quando isso acontece). Se você ainda tiver um `.app` gerado por uma versão anterior do plugin, ou se `7z.exe` não estiver instalado:
+
+1. Instalar o [7-Zip](https://www.7-zip.org/) e garantir que `7z.exe` está no `PATH`.
+2. Rodar `/poui-specialist:package` de novo — ou manualmente:
+   ```powershell
+   7z a -tzip <projeto>.zip "dist\<projeto>\*"
+   ```
+3. Copiar o zip para `Resource/` e renomear para `<projeto>.app`.
+
+---
+
 ### Paginação retorna sempre os mesmos registros
 
 **Causa:** Endpoint TLPP não está lendo o parâmetro `page` corretamente.

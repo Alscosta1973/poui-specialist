@@ -430,6 +430,11 @@ Se falhar por outro motivo: exibir erros, tentar correção automática via skil
 
 Gera o pacote `.app` pronto para publicar no Protheus, a partir de uma build de produção (não a build de desenvolvimento do Passo 10):
 
+**Usar 7-Zip, não `Compress-Archive`.** O ZIP gerado pelo `Compress-Archive` do PowerShell
+(.NET `System.IO.Compression`) é conhecido por falhar na extração pela função interna
+`UNZIPAPP` do Protheus (`FWCALLAPP.PRW`) — erro `FError: 161`, "Falha ao renomear". O 7-Zip
+gera um ZIP compatível.
+
 ```powershell
 ng build --configuration production
 
@@ -437,7 +442,17 @@ $distPath = "dist/$projectName"      # já achatado — ver outputPath no Passo 
 $zipPath  = "$projectName.zip"
 
 if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
-Compress-Archive -Path "$distPath/*" -DestinationPath $zipPath
+
+$sevenZip = Get-Command 7z.exe -ErrorAction SilentlyContinue
+if ($sevenZip) {
+    & $sevenZip.Source a -tzip $zipPath "$distPath\*" | Out-Null
+} else {
+    Write-Host "⚠ 7-Zip não encontrado — usando Compress-Archive (PowerShell) como fallback."
+    Write-Host "  Zips gerados por Compress-Archive são conhecidos por falhar ao extrair no"
+    Write-Host "  Protheus (UNZIPAPP FError: 161 / 'Falha ao renomear'). Se o deploy falhar,"
+    Write-Host "  instale o 7-Zip (https://www.7-zip.org/) e rode /poui-specialist:package de novo."
+    Compress-Archive -Path "$distPath/*" -DestinationPath $zipPath
+}
 
 $resourceDir = "Resource"
 if (-not (Test-Path $resourceDir)) {
@@ -451,7 +466,7 @@ Write-Host "✓ Pacote gerado: $appPath"
 ```
 
 > `$projectName.zip` permanece na raiz do projeto; a cópia renomeada para `.app` fica em `Resource/$projectName.app`, pronta para copiar ao AppServer Protheus (ver `skills/poui-patterns/deploy-protheus.md`).
-> Se `Compress-Archive` falhar por já existir handle aberto no zip anterior, remover manualmente e repetir.
+> Se o `7z`/`Compress-Archive` falhar por já existir handle aberto no zip anterior, remover manualmente e repetir.
 > Para builds futuras (depois de gerar mais componentes com `/generate`), não repita o `/scaffold` — use `/poui-specialist:package`, que faz exatamente estes passos em um projeto já existente.
 
 Verificar `.gitignore` — adicionar os artefatos de build/empacotamento se ainda não existirem:

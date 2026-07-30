@@ -114,12 +114,27 @@ Se não existir, avisar que não há build para empacotar e encerrar.
 
 ## Passo 4 — Empacotar em `Resource/<projeto>.app`
 
+**Usar 7-Zip, não `Compress-Archive`.** O ZIP gerado pelo `Compress-Archive` do PowerShell
+(.NET `System.IO.Compression`) é conhecido por falhar na extração pela função interna
+`UNZIPAPP` do Protheus (`FWCALLAPP.PRW`) — erro `FError: 161`, "Falha ao renomear". O 7-Zip
+gera um ZIP compatível.
+
 ```powershell
 $distPath = "dist/$projectName"
 $zipPath  = "$projectName.zip"
 
 if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
-Compress-Archive -Path "$distPath/*" -DestinationPath $zipPath
+
+$sevenZip = Get-Command 7z.exe -ErrorAction SilentlyContinue
+if ($sevenZip) {
+    & $sevenZip.Source a -tzip $zipPath "$distPath\*" | Out-Null
+} else {
+    Write-Host "⚠ 7-Zip não encontrado — usando Compress-Archive (PowerShell) como fallback."
+    Write-Host "  Zips gerados por Compress-Archive são conhecidos por falhar ao extrair no"
+    Write-Host "  Protheus (UNZIPAPP FError: 161 / 'Falha ao renomear'). Se o deploy falhar,"
+    Write-Host "  instale o 7-Zip (https://www.7-zip.org/) e rode este comando de novo."
+    Compress-Archive -Path "$distPath/*" -DestinationPath $zipPath
+}
 
 $resourceDir = "Resource"
 if (-not (Test-Path $resourceDir)) {
