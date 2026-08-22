@@ -6,4 +6,12 @@ describe('extension packaging', () => {
     const ext = vscode.extensions.getExtension('andre-costa.poui-vscode');
     assert.ok(ext, 'expected the poui-vscode extension to be discoverable');
   });
+
+  it('registers both poui commands after activation', async () => {
+    const ext = vscode.extensions.getExtension('andre-costa.poui-vscode');
+    await ext?.activate();
+    const commands = await vscode.commands.getCommands(true);
+    assert.ok(commands.includes('poui.generate.pageList'));
+    assert.ok(commands.includes('poui.setApiKey'));
+  });
 });
