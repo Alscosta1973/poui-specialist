@@ -15,7 +15,7 @@
 - Project lives at `poui-vscode/` inside this same repo (`poui-specialist`), not a separate repo — keeps the source-of-truth agent/skill files and the extension that reuses them in one place for Fase 0.
 - Node.js >= `18.19.0` (matches the plugin's own minimum, see `agents/code-generator-list.md` Phase 3).
 - `@anthropic-ai/claude-agent-sdk` ships as `"type": "module"` (ESM-only, confirmed via `npm view`) — the extension itself compiles to CommonJS (`tsconfig.json` `"module": "commonjs"`), and loads the SDK via `await import('@anthropic-ai/claude-agent-sdk')` inside `agentRuntime.ts`. Never `require()` it directly — that throws `ERR_REQUIRE_ESM`.
-- `tsconfig.json` uses `"moduleResolution": "bundler"` so `tsc` can read the SDK's ESM `exports` map for types while still emitting CommonJS.
+- **Ruling (Task 1 review, post-dispatch correction):** `tsconfig.json` does **not** set `"moduleResolution"` — leave it unset so it defaults to classic/node10 resolution under `"module": "commonjs"`. The originally planned `"moduleResolution": "bundler"` fails to compile on TypeScript 5.9.3 (error TS5095: bundler resolution requires an ESNext/Preserve module setting, incompatible with `"module": "commonjs"`). Verified this doesn't lose ESM type resolution for `@anthropic-ai/claude-agent-sdk`: the package's `package.json` has a flat top-level `"types": "sdk.d.ts"` field (in addition to its conditional `exports` map), which classic resolution reads directly — confirmed with a throwaway `tsc --noEmit` smoke test compiling `typeof import('@anthropic-ai/claude-agent-sdk').query` against the installed package. Cost if wrong: a type-resolution failure would surface immediately as a Task 5 compile error, cheap to catch and fix.
 - **Resolved — open question 1 (permissionMode):** use `permissionMode: 'bypassPermissions'` with `allowDangerouslySkipPermissions: true` on every `query()` call. The safety boundary is `cwd` (the agent's file tools cannot leave the open workspace folder), not per-write interactive confirmation — matching how the current plugin already writes files without per-file y/n prompts once the plan is approved.
 - **Resolved — open question 2 (`.claude/` auto-load):** not used in Fase 0. The extension pre-reads and concatenates the 6 needed markdown files into `systemPrompt` itself (see Task 4), with an explicit preamble telling the model not to re-`Read` the relative `skills/...`/`agents/...` paths mentioned inside them. Simpler and fully within the extension's control; revisit `.claude/` auto-load as an optimization in a later phase once more of the catalog is ported.
 - Anthropic API key is read **only** from `vscode.SecretStorage` (`context.secrets`) via the `poui.setApiKey` command — never from `process.env.ANTHROPIC_API_KEY` on the user's machine, never hardcoded.
@@ -110,13 +110,12 @@ Create `poui-vscode/package.json`:
 }
 ```
 
-Create `poui-vscode/tsconfig.json`:
+Create `poui-vscode/tsconfig.json` (see the Global Constraints ruling above — no `moduleResolution` line; classic resolution already finds the SDK's flat `"types"` field):
 
 ```json
 {
   "compilerOptions": {
     "module": "commonjs",
-    "moduleResolution": "bundler",
     "target": "ES2022",
     "lib": ["ES2022"],
     "outDir": "out",
