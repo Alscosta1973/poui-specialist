@@ -5,6 +5,11 @@ import { buildPageListSystemPrompt, buildPageListUserPrompt } from './promptBuil
 import { getApiKey } from './apiKey';
 import { runGeneratePageList } from './agentRuntime';
 
+/** Nome de entidade aceitável: começa por letra e usa apenas letras, dígitos,
+ * espaço, hífen ou underscore — evita entradas como `---` ou `123`, que
+ * derivariam nomes quebrados em `deriveEntityNaming`. */
+const ENTITY_NAME_PATTERN = /^[A-Za-z][A-Za-z0-9 _-]*$/;
+
 export function registerGeneratePageListCommand(
   context: vscode.ExtensionContext,
   outputChannel: vscode.OutputChannel,
@@ -32,7 +37,15 @@ export function registerGeneratePageListCommand(
 
     const rawName = await vscode.window.showInputBox({
       prompt: 'Nome da entidade (ex: Pedidos)',
-      validateInput: (value) => (value.trim() ? undefined : 'Informe um nome.'),
+      validateInput: (value) => {
+        const trimmed = value.trim();
+        if (!trimmed) {
+          return 'Informe um nome.';
+        }
+        return ENTITY_NAME_PATTERN.test(trimmed)
+          ? undefined
+          : 'Use letras, números, espaço, hífen ou underscore, começando por letra.';
+      },
     });
     if (!rawName) {
       return;
@@ -87,14 +100,23 @@ export function registerGeneratePageListCommand(
         systemPrompt,
         userPrompt,
         model: vscode.workspace.getConfiguration('poui').get<string>('model'),
+        effort: vscode.workspace
+          .getConfiguration('poui')
+          .get<'low' | 'medium' | 'high' | 'xhigh' | 'max'>('effort'),
       },
       outputChannel,
     );
 
     if (!result.succeeded) {
-      void vscode.window.showErrorMessage(
-        `PO-UI: falha ao gerar componente — ${result.errorMessage ?? 'erro desconhecido'}.`,
-      );
+      const message = `PO-UI: falha ao gerar componente — ${result.errorMessage ?? 'erro desconhecido'}.`;
+      if (result.isAuthError) {
+        const choice = await vscode.window.showErrorMessage(message, 'Configurar API Key');
+        if (choice === 'Configurar API Key') {
+          await vscode.commands.executeCommand('poui.setApiKey');
+        }
+        return;
+      }
+      void vscode.window.showErrorMessage(message);
       return;
     }
 
