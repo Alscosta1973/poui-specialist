@@ -1,0 +1,59 @@
+{
+  "name": "poui-vscode",
+  "displayName": "PO-UI Specialist",
+  "description": "Gera componentes Angular PO-UI integrados ao Protheus REST diretamente no VS Code, sem depender do Claude Code CLI.",
+  "version": "0.0.1",
+  "publisher": "andre-costa",
+  "private": true,
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.90.0",
+    "node": ">=18.19.0"
+  },
+  "categories": ["Other"],
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      { "command": "poui.generate.pageList", "title": "PO-UI: Gerar Page List" },
+      { "command": "poui.setApiKey", "title": "PO-UI: Configurar API Key" }
+    ],
+    "configuration": {
+      "title": "PO-UI Specialist",
+      "properties": {
+        "poui.model": {
+          "type": "string",
+          "default": "claude-opus-5",
+          "description": "Modelo Claude usado para gerar código."
+        },
+        "poui.effort": {
+          "type": "string",
+          "enum": ["low", "medium", "high", "xhigh", "max"],
+          "default": "high",
+          "description": "Nível de esforço/raciocínio do modelo."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "sync-prompts": "node scripts/sync-prompts.mjs",
+    "compile": "npm run sync-prompts && tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile",
+    "test": "node ./out/test/runTest.js",
+    "test:unit": "mocha --require ts-node/register \"src/test/unit/**/*.test.ts\""
+  },
+  "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.3.239"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^22.0.0",
+    "@types/vscode": "^1.90.0",
+    "@vscode/test-electron": "^3.1.0",
+    "glob": "^11.0.0",
+    "mocha": "^11.8.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.0"
+  }
+}

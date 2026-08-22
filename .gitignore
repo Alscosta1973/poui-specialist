@@ -16,3 +16,9 @@ examples/modulo-compras/.angular/
 
 # Worktrees isolados de execução de planos (superpowers)
 .worktrees/
+
+# Extensão VS Code (poui-vscode) — build/test artifacts
+poui-vscode/out/
+poui-vscode/.vscode-test/
+poui-vscode/assets/agent-prompts/
+!poui-vscode/package-lock.json
