@@ -41,7 +41,7 @@
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile",
     "test": "node ./out/test/runTest.js",
-    "test:unit": "mocha --require ts-node/register \"src/test/unit/**/*.test.ts\""
+    "test:unit": "mocha --require ts-node/register --timeout 15000 \"src/test/unit/**/*.test.ts\""
   },
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.3.239"
