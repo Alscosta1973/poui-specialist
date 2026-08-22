@@ -29,6 +29,18 @@ describe('buildPageListSystemPrompt', () => {
       prompt.toLowerCase().includes('não tente ler novamente'),
       'expected the preamble warning about not re-reading relative paths',
     );
+    assert.ok(
+      prompt.toLowerCase().includes('não interativa'),
+      'expected the preamble to declare the run as non-interactive',
+    );
+    assert.ok(
+      prompt.toLowerCase().includes('não peça confirmação'),
+      'expected the preamble to forbid asking the user for confirmation',
+    );
+    assert.ok(
+      prompt.includes('`skills/`, `agents/` ou `commands/`'),
+      'expected the preamble to forbid creating the plugin-internal directories',
+    );
   });
 
   it('rejects when a reference file is missing', async () => {
