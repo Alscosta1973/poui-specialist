@@ -68,7 +68,16 @@ export function registerGeneratePageListCommand(
     outputChannel.appendLine(`Gerando page-list para ${naming.entityPascal} em ${moduleName}...`);
 
     const assetsDir = path.join(context.extensionUri.fsPath, 'assets', 'agent-prompts');
-    const systemPrompt = await buildPageListSystemPrompt(assetsDir);
+    let systemPrompt: string;
+    try {
+      systemPrompt = await buildPageListSystemPrompt(assetsDir);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      void vscode.window.showErrorMessage(
+        `PO-UI: falha ao carregar os arquivos de referência — ${message}.`,
+      );
+      return;
+    }
     const userPrompt = buildPageListUserPrompt(naming, moduleName, resolvedApiPath);
 
     const result = await runGeneratePageList(
@@ -99,11 +108,18 @@ export function registerGeneratePageListCommand(
       'Abrir arquivo gerado',
     );
     if (openChoice === 'Abrir arquivo gerado') {
-      const firstFile = path.isAbsolute(result.filesWritten[0])
-        ? result.filesWritten[0]
-        : path.join(workspaceFolder.uri.fsPath, result.filesWritten[0]);
-      const doc = await vscode.workspace.openTextDocument(firstFile);
-      await vscode.window.showTextDocument(doc);
+      try {
+        const firstFile = path.isAbsolute(result.filesWritten[0])
+          ? result.filesWritten[0]
+          : path.join(workspaceFolder.uri.fsPath, result.filesWritten[0]);
+        const doc = await vscode.workspace.openTextDocument(firstFile);
+        await vscode.window.showTextDocument(doc);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        void vscode.window.showErrorMessage(
+          `PO-UI: não foi possível abrir o arquivo gerado — ${message}.`,
+        );
+      }
     }
   });
 }
