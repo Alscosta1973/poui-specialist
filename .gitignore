@@ -13,3 +13,6 @@ examples/modulo-compras/dist/
 examples/modulo-compras/.angular/
 # package-lock.json acima ignora só o da raiz (tooling) — manter o do exemplo, para instalação reprodutível
 !examples/modulo-compras/package-lock.json
+
+# Worktrees isolados de execução de planos (superpowers)
+.worktrees/
