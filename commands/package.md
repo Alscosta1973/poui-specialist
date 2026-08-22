@@ -185,6 +185,10 @@ if (-not (Test-Path $resourceDir)) {
 
 $appPath = Join-Path $resourceDir "$projectName.app"
 Copy-Item -Path $zipPath -Destination $appPath -Force
+
+# $zipPath era só um artefato intermediário para chegar no .app em Resource/ — remover
+# para não deixar um .zip solto na raiz do projeto a cada empacotamento.
+Remove-Item $zipPath -Force
 ```
 
 **Nunca reportar sucesso sem verificar a estrutura de verdade.** Abrir o zip gerado (com
@@ -209,8 +213,8 @@ if ($hasProjectRoot) {
 }
 ```
 
-> `$projectName.zip` permanece na raiz do projeto; a cópia renomeada para `.app` fica em
-> `Resource/$projectName.app`.
+> `$projectName.zip` é removido da raiz do projeto após a cópia para `Resource/$projectName.app` —
+> só o `.app` final permanece.
 > Se o `7z`/`Compress-Archive` falhar por já existir handle aberto no zip anterior, remover
 > manualmente e repetir.
 

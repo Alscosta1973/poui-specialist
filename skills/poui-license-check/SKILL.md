@@ -4,7 +4,7 @@ description: Verifica validade da licença beta do poui-specialist — check loc
 metadata:
   domain: PO-UI / Angular / Protheus
   author: Andre Costa
-  version: '1.15.5'
+  version: '1.16.2'
   category: Governance
 ---
 
@@ -57,7 +57,13 @@ Só executar se o Passo 2 teve sucesso e a resposta remota contém o campo `late
 
 Se qualquer uma dessas leituras falhar (arquivo ausente, JSON inválido, campo `installPath`
 não encontrado, `latest_version` ausente na resposta remota, ou o Passo 2 falhou/deu timeout):
-**pular este passo silenciosamente** — não é crítico e nunca deve impedir o comando de rodar.
+**não bloquear o comando**, mas exibir uma linha curta informando que a checagem não foi
+possível — para não passar a impressão de que a versão foi comparada e está em dia quando na
+verdade a checagem nem rodou:
+
+```
+ℹ Não foi possível checar se há versão mais nova do poui-specialist (rede indisponível ou resposta incompleta).
+```
 
 ## Resultado
 
