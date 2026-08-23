@@ -1,8 +1,9 @@
 # PO-UI Specialist — extensão VS Code (Fase 0)
 
 Prova de conceito: gera um componente Angular PO-UI `page-list` diretamente
-do VS Code, sem depender do Claude Code CLI. Usa o Claude Agent SDK
-embutido, autenticado com sua própria API key da Anthropic.
+do VS Code. Roda o Claude Code CLI (`claude`) como subprocesso,
+reaproveitando a sessão já autenticada no claude.ai — sem API key
+separada, mas dependente do CLI instalado na máquina.
 
 ## Rodando em desenvolvimento
 
@@ -36,7 +37,7 @@ Com o Extension Development Host rodando (F5) e `examples/modulo-compras`
    `claude` do PATH (ou rode num ambiente sem ele) e rode `PO-UI: Gerar
    Page List` → esperado: erro orientando instalar/logar o Claude Code CLI,
    sem travar a extensão.
-3. **Nome em minúsculas** — configure a API key e rode o comando novamente com o
+3. **Nome em minúsculas** — rode `PO-UI: Gerar Page List` com o
    nome de entidade `fornecedores` → esperado: o aviso "nome corrigido para
    PascalCase: Fornecedores" e a geração prosseguindo.
 4. **Módulo inválido** — digite `Compras Financeiro` (contém espaço/maiúscula)
