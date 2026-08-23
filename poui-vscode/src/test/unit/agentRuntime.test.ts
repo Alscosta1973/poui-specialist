@@ -1,5 +1,7 @@
 import * as assert from 'node:assert';
-import { runGeneratePageList, OutputSink } from '../../agentRuntime';
+import { EventEmitter } from 'node:events';
+import { Readable } from 'node:stream';
+import { runGeneratePageList, OutputSink, SpawnFn, SpawnedProcess } from '../../agentRuntime';
 
 class RecordingSink implements OutputSink {
   readonly lines: string[] = [];
@@ -8,66 +10,69 @@ class RecordingSink implements OutputSink {
   }
 }
 
-async function fakeQuery(messages: unknown[]) {
-  async function* generator() {
-    for (const message of messages) {
-      yield message;
-    }
+/**
+ * Fake `child_process`-like objeto. `lines` são serializadas como JSON e
+ * emitidas via `stdout`, uma por linha — o mesmo formato que
+ * `claude --output-format stream-json --verbose` produz de verdade. Depois
+ * que `stdout` termina, emite `close(exitCode)` (padrão 0) num
+ * `setImmediate`, a menos que `spawnError` seja passado — nesse caso emite
+ * só `error` (simulando `ENOENT`, binário não encontrado).
+ */
+function makeFakeProcess(options: {
+  messages?: unknown[];
+  exitCode?: number | null;
+  spawnError?: Error;
+}): SpawnedProcess {
+  const emitter = new EventEmitter();
+  const lines = (options.messages ?? []).map((message) => `${JSON.stringify(message)}\n`);
+  const stdout = Readable.from(lines);
+  const stderr = new Readable({ read() { this.push(null); } });
+
+  if (options.spawnError) {
+    setImmediate(() => emitter.emit('error', options.spawnError));
+  } else {
+    stdout.on('end', () => {
+      setImmediate(() => emitter.emit('close', options.exitCode ?? 0));
+    });
   }
-  return (_params: unknown) => generator();
+
+  return {
+    stdout,
+    stderr,
+    on: (event: string, listener: (...args: unknown[]) => void) => emitter.on(event, listener),
+  } as unknown as SpawnedProcess;
 }
 
-type LoadQueryArg = Parameters<typeof runGeneratePageList>[2];
-
-/**
- * Fixtures shaped like the real `SDKMessage` union: the discriminant lives on
- * the top-level `message.type`, and text/tool_use are *content blocks* nested
- * in `message.message.content` (Anthropic Messages API shape).
- */
 function assistantMessage(content: unknown[], error?: string) {
-  return {
-    type: 'assistant',
-    parent_tool_use_id: null,
-    error,
-    message: { role: 'assistant', content },
-  };
+  return { type: 'assistant', error, message: { role: 'assistant', content } };
 }
 
 describe('runGeneratePageList', () => {
   it('streams assistant content blocks to the sink and collects written files', async () => {
     const sink = new RecordingSink();
-    const messages = [
-      assistantMessage([
-        { type: 'text', text: 'Planejando arquivos...' },
-        {
-          type: 'tool_use',
-          name: 'Write',
-          input: {
-            file_path: 'src/app/financeiro/pedidos-list/pedidos-list.component.ts',
-            content: '...',
-          },
-        },
-      ]),
-      assistantMessage([
-        {
-          type: 'tool_use',
-          name: 'Edit',
-          input: { file_path: 'src/app/app.routes.ts', old_string: 'a', new_string: 'b' },
-        },
-        { type: 'tool_use', name: 'Read', input: { file_path: 'package.json' } },
-      ]),
-      { type: 'result', subtype: 'success', is_error: false, result: 'done' },
-    ];
+    const spawnFn: SpawnFn = () =>
+      makeFakeProcess({
+        messages: [
+          assistantMessage([
+            { type: 'text', text: 'Planejando arquivos...' },
+            {
+              type: 'tool_use',
+              name: 'Write',
+              input: { file_path: 'src/app/financeiro/pedidos-list/pedidos-list.component.ts' },
+            },
+          ]),
+          assistantMessage([
+            { type: 'tool_use', name: 'Edit', input: { file_path: 'src/app/app.routes.ts' } },
+            { type: 'tool_use', name: 'Read', input: { file_path: 'package.json' } },
+          ]),
+          { type: 'result', subtype: 'success', is_error: false, result: 'done' },
+        ],
+      });
 
     const result = await runGeneratePageList(
-      {
-        cwd: '/tmp/workspace',
-        apiKey: 'sk-ant-fake',
-        systemPrompt: 'system',
-        userPrompt: 'user',
-      },
+      { cwd: '/tmp/workspace', systemPrompt: 'system', userPrompt: 'user' },
       sink,
-      (() => fakeQuery(messages)) as unknown as LoadQueryArg,
+      spawnFn,
     );
 
     assert.strictEqual(result.succeeded, true);
@@ -81,65 +86,37 @@ describe('runGeneratePageList', () => {
     assert.ok(sink.lines.some((line) => line.includes('Read')));
   });
 
-  it('ignores user messages carrying nested tool_result blocks', async () => {
+  it('returns succeeded: false when the result message reports an error, even with exit code 0', async () => {
     const sink = new RecordingSink();
-    const messages = [
-      assistantMessage([
-        { type: 'tool_use', name: 'Write', input: { file_path: 'a.ts', content: 'x' } },
-      ]),
-      {
-        type: 'user',
-        message: {
-          role: 'user',
-          content: [{ type: 'tool_result', tool_use_id: 'toolu_1', content: 'ok' }],
-        },
-      },
-      { type: 'result', subtype: 'success', is_error: false, result: 'done' },
-    ];
+    const spawnFn: SpawnFn = () =>
+      makeFakeProcess({
+        exitCode: 0,
+        messages: [
+          assistantMessage([{ type: 'text', text: 'tentando...' }]),
+          { type: 'result', subtype: 'error_during_execution', is_error: true, errors: ['tool execution failed', 'aborted'] },
+        ],
+      });
 
     const result = await runGeneratePageList(
-      { cwd: '/tmp/workspace', apiKey: 'sk-ant-fake', systemPrompt: 'system', userPrompt: 'user' },
+      { cwd: '/tmp/workspace', systemPrompt: 'system', userPrompt: 'user' },
       sink,
-      (() => fakeQuery(messages)) as unknown as LoadQueryArg,
-    );
-
-    assert.strictEqual(result.succeeded, true);
-    assert.deepStrictEqual(result.filesWritten, ['a.ts']);
-    assert.ok(!sink.lines.some((line) => line.includes('tool_result')));
-  });
-
-  it('returns succeeded: false when the result message reports an error', async () => {
-    const sink = new RecordingSink();
-    const messages = [
-      assistantMessage([{ type: 'text', text: 'tentando...' }]),
-      {
-        type: 'result',
-        subtype: 'error_during_execution',
-        is_error: true,
-        errors: ['tool execution failed', 'aborted'],
-      },
-    ];
-
-    const result = await runGeneratePageList(
-      { cwd: '/tmp/workspace', apiKey: 'sk-ant-fake', systemPrompt: 'system', userPrompt: 'user' },
-      sink,
-      (() => fakeQuery(messages)) as unknown as LoadQueryArg,
+      spawnFn,
     );
 
     assert.strictEqual(result.succeeded, false);
     assert.strictEqual(result.errorMessage, 'tool execution failed; aborted');
-    assert.ok(!result.isAuthError);
     assert.ok(sink.lines.some((line) => line.includes('falha ao executar o agente')));
   });
 
   it('falls back to the result subtype when the error list is empty', async () => {
     const sink = new RecordingSink();
-    const messages = [{ type: 'result', subtype: 'error_max_turns', is_error: true, errors: [] }];
+    const spawnFn: SpawnFn = () =>
+      makeFakeProcess({ messages: [{ type: 'result', subtype: 'error_max_turns', is_error: true, errors: [] }] });
 
     const result = await runGeneratePageList(
-      { cwd: '/tmp/workspace', apiKey: 'sk-ant-fake', systemPrompt: 'system', userPrompt: 'user' },
+      { cwd: '/tmp/workspace', systemPrompt: 'system', userPrompt: 'user' },
       sink,
-      (() => fakeQuery(messages)) as unknown as LoadQueryArg,
+      spawnFn,
     );
 
     assert.strictEqual(result.succeeded, false);
@@ -148,25 +125,18 @@ describe('runGeneratePageList', () => {
 
   it('flags isAuthError when an assistant message reports authentication_failed', async () => {
     const sink = new RecordingSink();
-    const messages = [
-      assistantMessage([{ type: 'text', text: 'sem acesso' }], 'authentication_failed'),
-      {
-        type: 'result',
-        subtype: 'error_during_execution',
-        is_error: true,
-        errors: ['authentication failed'],
-      },
-    ];
+    const spawnFn: SpawnFn = () =>
+      makeFakeProcess({
+        messages: [
+          assistantMessage([{ type: 'text', text: 'sem acesso' }], 'authentication_failed'),
+          { type: 'result', subtype: 'error_during_execution', is_error: true, errors: ['authentication failed'] },
+        ],
+      });
 
     const result = await runGeneratePageList(
-      {
-        cwd: '/tmp/workspace',
-        apiKey: 'sk-ant-invalid',
-        systemPrompt: 'system',
-        userPrompt: 'user',
-      },
+      { cwd: '/tmp/workspace', systemPrompt: 'system', userPrompt: 'user' },
       sink,
-      (() => fakeQuery(messages)) as unknown as LoadQueryArg,
+      spawnFn,
     );
 
     assert.strictEqual(result.succeeded, false);
@@ -175,25 +145,17 @@ describe('runGeneratePageList', () => {
 
   it('flags isAuthError when the result carries api_error_status 401', async () => {
     const sink = new RecordingSink();
-    const messages = [
-      {
-        type: 'result',
-        subtype: 'success',
-        is_error: true,
-        api_error_status: 401,
-        result: 'invalid x-api-key',
-      },
-    ];
+    const spawnFn: SpawnFn = () =>
+      makeFakeProcess({
+        messages: [
+          { type: 'result', subtype: 'success', is_error: true, api_error_status: 401, result: 'invalid x-api-key' },
+        ],
+      });
 
     const result = await runGeneratePageList(
-      {
-        cwd: '/tmp/workspace',
-        apiKey: 'sk-ant-invalid',
-        systemPrompt: 'system',
-        userPrompt: 'user',
-      },
+      { cwd: '/tmp/workspace', systemPrompt: 'system', userPrompt: 'user' },
       sink,
-      (() => fakeQuery(messages)) as unknown as LoadQueryArg,
+      spawnFn,
     );
 
     assert.strictEqual(result.succeeded, false);
@@ -201,90 +163,102 @@ describe('runGeneratePageList', () => {
     assert.strictEqual(result.errorMessage, 'invalid x-api-key');
   });
 
-  it('returns succeeded: false and records the error when loading the SDK fails', async () => {
+  it('treats a clean exit with no result message as a failure (fallback signal)', async () => {
     const sink = new RecordingSink();
-    const loadQuery = async () => {
-      throw new Error('rede indisponível');
-    };
+    const spawnFn: SpawnFn = () => makeFakeProcess({ messages: [assistantMessage([{ type: 'text', text: 'oi' }])], exitCode: 0 });
 
     const result = await runGeneratePageList(
-      { cwd: '/tmp/workspace', apiKey: 'sk-ant-fake', systemPrompt: 'system', userPrompt: 'user' },
+      { cwd: '/tmp/workspace', systemPrompt: 'system', userPrompt: 'user' },
       sink,
-      loadQuery as unknown as LoadQueryArg,
+      spawnFn,
     );
 
     assert.strictEqual(result.succeeded, false);
-    assert.strictEqual(result.errorMessage, 'rede indisponível');
+    assert.ok(result.errorMessage);
+  });
+
+  it('returns succeeded: false and records the error when the process fails to spawn', async () => {
+    const sink = new RecordingSink();
+    const spawnFn: SpawnFn = () => makeFakeProcess({ spawnError: new Error('spawn claude ENOENT') });
+
+    const result = await runGeneratePageList(
+      { cwd: '/tmp/workspace', systemPrompt: 'system', userPrompt: 'user' },
+      sink,
+      spawnFn,
+    );
+
+    assert.strictEqual(result.succeeded, false);
+    assert.strictEqual(result.errorMessage, 'spawn claude ENOENT');
     assert.ok(sink.lines.some((line) => line.includes('falha ao executar o agente')));
   });
 
-  it('forwards the API key and scrubs redirect/oauth env vars from the SDK env', async () => {
+  it('builds the expected CLI arguments, scrubbing API-key env vars from the child env', async () => {
     const sink = new RecordingSink();
+    let capturedArgs: string[] | undefined;
+    let capturedEnv: NodeJS.ProcessEnv | undefined;
+    process.env.ANTHROPIC_API_KEY = 'sk-ant-should-be-removed';
+    process.env.ANTHROPIC_AUTH_TOKEN = 'oauth-should-be-removed';
     process.env.ANTHROPIC_BASE_URL = 'https://evil.example';
-    process.env.ANTHROPIC_AUTH_TOKEN = 'oauth-token';
-    process.env.CLAUDE_CODE_OAUTH_TOKEN = 'cc-token';
-    let captured: Record<string, unknown> | undefined;
 
-    const loadQuery = async () => (params: { options: Record<string, unknown> }) => {
-      captured = params.options;
-      async function* generator() {
-        yield { type: 'result', subtype: 'success', is_error: false, result: 'done' };
-      }
-      return generator();
+    const spawnFn: SpawnFn = (_command, args, options) => {
+      capturedArgs = args;
+      capturedEnv = options.env;
+      return makeFakeProcess({ messages: [{ type: 'result', subtype: 'success', is_error: false, result: 'done' }] });
     };
 
     try {
       await runGeneratePageList(
-        {
-          cwd: '/tmp/workspace',
-          apiKey: 'sk-ant-real',
-          systemPrompt: 'system',
-          userPrompt: 'user',
-        },
+        { cwd: '/tmp/workspace', systemPrompt: 'system', userPrompt: 'gere um componente', model: 'claude-opus-5', effort: 'max' },
         sink,
-        loadQuery as unknown as LoadQueryArg,
+        spawnFn,
       );
     } finally {
-      delete process.env.ANTHROPIC_BASE_URL;
+      delete process.env.ANTHROPIC_API_KEY;
       delete process.env.ANTHROPIC_AUTH_TOKEN;
-      delete process.env.CLAUDE_CODE_OAUTH_TOKEN;
+      delete process.env.ANTHROPIC_BASE_URL;
     }
 
-    const env = captured?.env as Record<string, string | undefined>;
-    assert.strictEqual(env.ANTHROPIC_API_KEY, 'sk-ant-real');
-    assert.ok(!('ANTHROPIC_BASE_URL' in env));
-    assert.ok(!('ANTHROPIC_AUTH_TOKEN' in env));
-    assert.ok(!('CLAUDE_CODE_OAUTH_TOKEN' in env));
+    assert.ok(capturedArgs);
+    assert.ok(capturedArgs?.includes('-p'));
+    assert.ok(capturedArgs?.includes('gere um componente'));
+    assert.ok(capturedArgs?.includes('--output-format'));
+    assert.ok(capturedArgs?.includes('stream-json'));
+    assert.ok(!capturedArgs?.includes('--include-partial-messages'));
+    assert.ok(!capturedArgs?.includes('--bare'));
+    assert.ok(capturedArgs?.includes('--tools'));
+    assert.ok(capturedArgs?.includes('Read,Write,Edit,Glob,Grep'));
+    assert.ok(capturedArgs?.includes('--permission-mode'));
+    assert.ok(capturedArgs?.includes('acceptEdits'));
+    assert.ok(capturedArgs?.includes('--setting-sources'));
+    assert.ok(capturedArgs?.includes('--model'));
+    assert.ok(capturedArgs?.includes('claude-opus-5'));
+    assert.ok(capturedArgs?.includes('--effort'));
+    assert.ok(capturedArgs?.includes('max'));
+    assert.ok(capturedArgs?.includes('--append-system-prompt-file'));
+
+    assert.ok(capturedEnv);
+    assert.ok(!('ANTHROPIC_API_KEY' in (capturedEnv ?? {})));
+    assert.ok(!('ANTHROPIC_AUTH_TOKEN' in (capturedEnv ?? {})));
+    assert.ok(!('ANTHROPIC_BASE_URL' in (capturedEnv ?? {})));
   });
 
-  it('isolates filesystem settings, restricts the toolset and forwards effort', async () => {
+  it('writes the system prompt to a temp file and removes it afterward', async () => {
     const sink = new RecordingSink();
-    let captured: Record<string, unknown> | undefined;
-
-    const loadQuery = async () => (params: { options: Record<string, unknown> }) => {
-      captured = params.options;
-      async function* generator() {
-        yield { type: 'result', subtype: 'success', is_error: false, result: 'done' };
-      }
-      return generator();
+    let promptFilePath: string | undefined;
+    const spawnFn: SpawnFn = (_command, args) => {
+      const flagIndex = args.indexOf('--append-system-prompt-file');
+      promptFilePath = args[flagIndex + 1];
+      return makeFakeProcess({ messages: [{ type: 'result', subtype: 'success', is_error: false, result: 'done' }] });
     };
 
     await runGeneratePageList(
-      {
-        cwd: '/tmp/workspace',
-        apiKey: 'sk-ant-fake',
-        systemPrompt: 'system',
-        userPrompt: 'user',
-        effort: 'max',
-      },
+      { cwd: '/tmp/workspace', systemPrompt: 'conteúdo do prompt de sistema', userPrompt: 'user' },
       sink,
-      loadQuery as unknown as LoadQueryArg,
+      spawnFn,
     );
 
-    assert.deepStrictEqual(captured?.settingSources, []);
-    assert.deepStrictEqual(captured?.tools, ['Read', 'Write', 'Edit', 'Glob', 'Grep']);
-    assert.strictEqual(captured?.effort, 'max');
-    assert.strictEqual(captured?.permissionMode, 'bypassPermissions');
-    assert.strictEqual(captured?.allowDangerouslySkipPermissions, true);
+    assert.ok(promptFilePath);
+    const fs = await import('node:fs/promises');
+    await assert.rejects(() => fs.access(promptFilePath as string));
   });
 });
