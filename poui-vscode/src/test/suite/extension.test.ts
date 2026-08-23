@@ -12,5 +12,6 @@ describe('extension packaging', () => {
     await ext?.activate();
     const commands = await vscode.commands.getCommands(true);
     assert.ok(commands.includes('poui.generate.pageList'));
+    assert.ok(!commands.includes('poui.setApiKey'));
   });
 });
