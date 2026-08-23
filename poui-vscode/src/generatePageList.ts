@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'node:path';
 import { deriveEntityNaming, isValidModuleName } from './naming';
 import { buildPageListSystemPrompt, buildPageListUserPrompt } from './promptBuilder';
-import { getApiKey } from './apiKey';
+import { checkClaudeCliAvailable } from './cliCheck';
 import { runGeneratePageList } from './agentRuntime';
 
 /** Nome de entidade aceitável: começa por letra e usa apenas letras, dígitos,
@@ -23,15 +23,11 @@ export function registerGeneratePageListCommand(
       return;
     }
 
-    const apiKey = await getApiKey(context.secrets);
-    if (!apiKey) {
-      const choice = await vscode.window.showErrorMessage(
-        'PO-UI: configure a API key da Anthropic antes de gerar código.',
-        'Configurar API Key',
+    const cliCheck = await checkClaudeCliAvailable();
+    if (!cliCheck.available) {
+      void vscode.window.showErrorMessage(
+        `PO-UI: CLI do Claude Code não encontrado ou não está no PATH — instale (https://code.claude.com) e faça login com \`claude\` antes de gerar código.${cliCheck.errorMessage ? ` (${cliCheck.errorMessage})` : ''}`,
       );
-      if (choice === 'Configurar API Key') {
-        await vscode.commands.executeCommand('poui.setApiKey');
-      }
       return;
     }
 
@@ -96,7 +92,6 @@ export function registerGeneratePageListCommand(
     const result = await runGeneratePageList(
       {
         cwd: workspaceFolder.uri.fsPath,
-        apiKey,
         systemPrompt,
         userPrompt,
         model: vscode.workspace.getConfiguration('poui').get<string>('model'),
@@ -110,10 +105,9 @@ export function registerGeneratePageListCommand(
     if (!result.succeeded) {
       const message = `PO-UI: falha ao gerar componente — ${result.errorMessage ?? 'erro desconhecido'}.`;
       if (result.isAuthError) {
-        const choice = await vscode.window.showErrorMessage(message, 'Configurar API Key');
-        if (choice === 'Configurar API Key') {
-          await vscode.commands.executeCommand('poui.setApiKey');
-        }
+        void vscode.window.showErrorMessage(
+          `${message} Rode \`claude\` em um terminal para fazer login novamente.`,
+        );
         return;
       }
       void vscode.window.showErrorMessage(message);
