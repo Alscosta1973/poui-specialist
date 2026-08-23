@@ -84,6 +84,9 @@ describe('runGeneratePageList', () => {
     assert.ok(sink.lines.some((line) => line.includes('Planejando arquivos')));
     assert.ok(sink.lines.some((line) => line.includes('Write')));
     assert.ok(sink.lines.some((line) => line.includes('Read')));
+    // Regressão: o `close` que chega depois de um `result` de sucesso não
+    // pode injetar uma linha de falha no output.
+    assert.ok(!sink.lines.some((line) => line.includes('falha ao executar')));
   });
 
   it('returns succeeded: false when the result message reports an error, even with exit code 0', async () => {
@@ -163,6 +166,55 @@ describe('runGeneratePageList', () => {
     assert.strictEqual(result.errorMessage, 'invalid x-api-key');
   });
 
+  it('flags isAuthError when an error-subtype result carries api_error_status 403', async () => {
+    const sink = new RecordingSink();
+    const spawnFn: SpawnFn = () =>
+      makeFakeProcess({
+        messages: [
+          {
+            type: 'result',
+            subtype: 'error_during_execution',
+            is_error: true,
+            api_error_status: 403,
+            errors: ['forbidden'],
+          },
+        ],
+      });
+
+    const result = await runGeneratePageList(
+      { cwd: '/tmp/workspace', systemPrompt: 'system', userPrompt: 'user' },
+      sink,
+      spawnFn,
+    );
+
+    assert.strictEqual(result.succeeded, false);
+    assert.strictEqual(result.isAuthError, true);
+  });
+
+  it('flags isAuthError when the failure text mentions an auth problem in free form', async () => {
+    const sink = new RecordingSink();
+    const spawnFn: SpawnFn = () =>
+      makeFakeProcess({
+        messages: [
+          {
+            type: 'result',
+            subtype: 'error_during_execution',
+            is_error: true,
+            errors: ['Unauthorized: please run `claude` to log in again'],
+          },
+        ],
+      });
+
+    const result = await runGeneratePageList(
+      { cwd: '/tmp/workspace', systemPrompt: 'system', userPrompt: 'user' },
+      sink,
+      spawnFn,
+    );
+
+    assert.strictEqual(result.succeeded, false);
+    assert.strictEqual(result.isAuthError, true);
+  });
+
   it('treats a clean exit with no result message as a failure (fallback signal)', async () => {
     const sink = new RecordingSink();
     const spawnFn: SpawnFn = () => makeFakeProcess({ messages: [assistantMessage([{ type: 'text', text: 'oi' }])], exitCode: 0 });
@@ -230,6 +282,8 @@ describe('runGeneratePageList', () => {
     assert.ok(capturedArgs?.includes('--permission-mode'));
     assert.ok(capturedArgs?.includes('acceptEdits'));
     assert.ok(capturedArgs?.includes('--setting-sources'));
+    const settingSourcesIndex = capturedArgs?.indexOf('--setting-sources');
+    assert.strictEqual(capturedArgs?.[(settingSourcesIndex ?? -1) + 1], '');
     assert.ok(capturedArgs?.includes('--model'));
     assert.ok(capturedArgs?.includes('claude-opus-5'));
     assert.ok(capturedArgs?.includes('--effort'));

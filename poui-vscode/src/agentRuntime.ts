@@ -46,7 +46,15 @@ function defaultSpawn(
   args: string[],
   options: { cwd: string; env: NodeJS.ProcessEnv },
 ): SpawnedProcess {
-  return spawn(command, args, { cwd: options.cwd, env: options.env }) as unknown as SpawnedProcess;
+  // `stdio: ['ignore', ...]` faz o filho ver stdin já fechado. Sem isso o
+  // Node abre um pipe de stdin que ninguém escreve nem fecha, e o CLI espera
+  // ~3s por dados antes de desistir — atrasando toda execução e emitindo
+  // "Warning: no stdin data received in 3s" no stderr.
+  return spawn(command, args, {
+    cwd: options.cwd,
+    env: options.env,
+    stdio: ['ignore', 'pipe', 'pipe'],
+  }) as unknown as SpawnedProcess;
 }
 
 /** Remove do env herdado as variáveis que dariam prioridade a uma API key
@@ -169,14 +177,12 @@ export async function runGeneratePageList(
             errors?: string[];
             api_error_status?: number | null;
           };
-          if (
-            resultMessage.subtype === 'success' &&
-            (resultMessage.api_error_status === 401 || resultMessage.api_error_status === 403)
-          ) {
+          if (resultMessage.api_error_status === 401 || resultMessage.api_error_status === 403) {
             isAuthError = true;
           }
           if (resultMessage.is_error) {
             const errorMessage = describeResultFailure(resultMessage);
+            isAuthError = isAuthError || /authentication|unauthorized|401|403/i.test(errorMessage);
             sink.appendLine(`✗ falha ao executar o agente: ${errorMessage}`);
             finish({ filesWritten, succeeded: false, errorMessage, isAuthError });
           } else {
@@ -186,11 +192,19 @@ export async function runGeneratePageList(
       });
 
       child.on('error', (error) => {
+        if (finished) {
+          return;
+        }
         sink.appendLine(`✗ falha ao executar o agente: ${error.message}`);
         finish({ filesWritten, succeeded: false, errorMessage: error.message, isAuthError });
       });
 
       child.on('close', () => {
+        if (finished) {
+          // A execução já foi resolvida por uma mensagem `result` — nada a
+          // reportar aqui, nem sequer uma linha no output.
+          return;
+        }
         // Fallback: o processo encerrou sem nunca emitir uma mensagem
         // `result` (crash, kill, etc.) — o código de saída em si não é
         // sinal confiável de sucesso/falha da tarefa (confirmado
