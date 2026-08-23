@@ -6,15 +6,16 @@ embutido, autenticado com sua própria API key da Anthropic.
 
 ## Rodando em desenvolvimento
 
-1. `cd poui-vscode && npm install`
-2. Pressione **F5** no VS Code (roda a task `npm: compile` e abre um
+1. Tenha o [Claude Code CLI](https://code.claude.com) instalado e logado
+   (`claude` no PATH, `claude --version` funcionando — a extensão usa a
+   mesma sessão do claude.ai já autenticada, sem API key separada)
+2. `cd poui-vscode && npm install`
+3. Pressione **F5** no VS Code (roda a task `npm: compile` e abre um
    "Extension Development Host")
-3. No host de desenvolvimento, rode `PO-UI: Configurar API Key` na paleta
-   (`Ctrl+Shift+P`) e informe sua `ANTHROPIC_API_KEY`
 4. Abra uma pasta de projeto Angular (ex: `examples/modulo-compras` deste
    repo) como workspace do host de desenvolvimento
-5. Rode `PO-UI: Gerar Page List` na paleta, informe o nome da entidade e o
-   módulo de destino
+5. Rode `PO-UI: Gerar Page List` na paleta (`Ctrl+Shift+P`), informe o
+   nome da entidade e o módulo de destino
 
 ## Testes
 
@@ -31,9 +32,10 @@ Com o Extension Development Host rodando (F5) e `examples/modulo-compras`
 1. **Sem workspace aberto** — feche a pasta do workspace e rode `PO-UI: Gerar
    Page List` → esperado: o erro "abra uma pasta de projeto Angular antes de
    gerar um componente" e nenhum prompt adicional.
-2. **Sem API key configurada** — com um workspace aberto, mas antes de rodar
-   `PO-UI: Configurar API Key`, rode `PO-UI: Gerar Page List` → esperado: o erro
-   com o botão "Configurar API Key"; clicar nele abre a caixa de entrada da key.
+2. **CLI não instalado/não logado** — renomeie temporariamente o binário
+   `claude` do PATH (ou rode num ambiente sem ele) e rode `PO-UI: Gerar
+   Page List` → esperado: erro orientando instalar/logar o Claude Code CLI,
+   sem travar a extensão.
 3. **Nome em minúsculas** — configure a API key e rode o comando novamente com o
    nome de entidade `fornecedores` → esperado: o aviso "nome corrigido para
    PascalCase: Fornecedores" e a geração prosseguindo.
