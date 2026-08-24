@@ -17,6 +17,12 @@ seguida de uma nova verificação de build); erros pré-existentes no
 projeto (fora dos arquivos gerados nesta execução) nunca são "corrigidos"
 automaticamente — só reportados.
 
+Também gera testes unitários Karma + Jasmine (`PO-UI: Gerar Teste
+Unitário`) para qualquer `.component.ts`/`.service.ts` do projeto —
+gerado pelo plugin ou legado — via um seletor de arquivo. Diferente da
+geração de componentes, não roda `ng test` automaticamente depois: o
+spec é escrito e cabe a você rodar `ng test` para verificar.
+
 ## Rodando em desenvolvimento
 
 1. Tenha o [Claude Code CLI](https://code.claude.com) instalado e logado
@@ -32,6 +38,9 @@ automaticamente — só reportados.
    Infraestrutura) e informe o nome da entidade e o módulo de destino
    (pulado automaticamente para `auth-login`, que sempre vai em
    `src/app/auth/`)
+6. Ou rode `PO-UI: Gerar Teste Unitário` na paleta, selecione um
+   `.component.ts`/`.service.ts` existente no diálogo de arquivo (começa
+   em `src/app`) e aguarde o `.spec.ts` ser escrito ao lado
 
 ## Testes
 
@@ -90,6 +99,19 @@ Com o Extension Development Host rodando (F5) e `examples/modulo-compras`
     escolha um dos dois → esperado: geração usando os arquivos de
     referência de `code-generator-infra.md`, sem necessariamente criar
     `.component.ts/html/scss` (conforme a convenção do próprio tipo).
+11. **Gerar teste unitário** — rode `PO-UI: Gerar Teste Unitário`, selecione
+    um `.component.ts` gerado num cenário anterior (ex: o de `Fornecedores`
+    do cenário 5) → esperado: diálogo de arquivo abrindo em `src/app`,
+    geração do `.spec.ts` ao lado do componente, notificação final "teste
+    gerado. Rode `ng test` manualmente..." (sem `ng test` rodando sozinho).
+    Depois, rode `ng test --include="<specPath>" --watch=false` manualmente
+    para confirmar que o spec compila e passa.
+12. **Gerar teste para arquivo inválido** — rode `PO-UI: Gerar Teste
+    Unitário` e tente selecionar algo que não seja `.component.ts`/
+    `.service.ts` (ex: um `.html`) → esperado: como o diálogo já filtra por
+    `.ts`, selecione um `.ts` que não seja componente/service (ex: um
+    `.module.ts`) → erro "selecione um arquivo `.component.ts` ou
+    `.service.ts`", sem chamar o CLI.
 
 ## Escopo desta fase
 
@@ -106,6 +128,11 @@ Toda geração é seguida automaticamente por uma verificação de build
 3 tentativas, restrita a erros localizados nos arquivos gerados nesta
 mesma execução (equivalente ao `poui-build-fix` do plugin original).
 
+`PO-UI: Gerar Teste Unitário` (comando `poui.generate.test`) gera specs
+Karma + Jasmine (equivalente ao `/poui-specialist:test` do plugin
+original) para qualquer `.component.ts`/`.service.ts` do projeto,
+apontado via um diálogo de arquivo — não roda `ng test` automaticamente.
+
 **Adiados deliberadamente** (não são bugs — decisão de escopo por
 orçamento de tempo/tokens da sessão, ver memória do projeto):
 `module` (cria um app inteiro do zero, semântica diferente dos demais
@@ -113,6 +140,6 @@ tipos), `refactor` (precisa de um passo de seleção de arquivo `.prw`/
 `.tlpp` que a extensão ainda não tem) e a skill `discover` (analisa um
 endpoint REST fazendo uma chamada HTTP real contra um backend Protheus —
 arquitetura bem diferente dos geradores). A sidebar tree view e os demais
-comandos do plugin `poui-specialist` (`test`, `e2e`, `preview`, `lint`,
-`review`, `quality`) ficam para depois — ver
+comandos do plugin `poui-specialist` (`e2e`, `preview`, `lint`, `review`,
+`quality`) ficam para depois — ver
 `docs/superpowers/specs/2026-08-21-vscode-extension-phase0-design.md`.
