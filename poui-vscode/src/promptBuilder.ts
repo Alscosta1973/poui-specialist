@@ -1,19 +1,11 @@
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import type { EntityNaming } from './naming';
+import type { ListComponentType } from './listTypes';
 
-const PAGE_LIST_PROMPT_FILES = [
-  'code-generator-list.md',
-  'templates-page-list.md',
-  'templates-service.md',
-  'table-components.md',
-  'po-ui-quirks-table.md',
-  'po-ui-quirks-onpush.md',
-] as const;
-
-export async function buildPageListSystemPrompt(assetsDir: string): Promise<string> {
+export async function buildListSystemPrompt(type: ListComponentType, assetsDir: string): Promise<string> {
   const sections = await Promise.all(
-    PAGE_LIST_PROMPT_FILES.map(async (file) => {
+    type.referenceFiles.map(async (file) => {
       const filePath = path.join(assetsDir, file);
       const content = await fs.readFile(filePath, 'utf8');
       return `<!-- source: ${file} -->\n${content}`;
@@ -37,13 +29,14 @@ export async function buildPageListSystemPrompt(assetsDir: string): Promise<stri
   return [preamble, ...sections].join('\n\n---\n\n');
 }
 
-export function buildPageListUserPrompt(
+export function buildListUserPrompt(
+  type: ListComponentType,
   naming: EntityNaming,
   moduleName: string,
   apiPath: string,
 ): string {
   return [
-    `Gere um componente page-list para a entidade "${naming.entityPascal}".`,
+    `Gere um componente do tipo \`${type.id}\` (${type.label}) para a entidade "${naming.entityPascal}".`,
     `Módulo: ${moduleName}`,
     `Endpoint REST Protheus: ${apiPath}`,
     `Classe do componente: ${naming.componentClass}`,

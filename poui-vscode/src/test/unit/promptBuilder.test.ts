@@ -2,28 +2,27 @@ import * as assert from 'node:assert';
 import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import { buildPageListSystemPrompt, buildPageListUserPrompt } from '../../promptBuilder';
+import { buildListSystemPrompt, buildListUserPrompt } from '../../promptBuilder';
 import { deriveEntityNaming } from '../../naming';
+import { getListComponentType } from '../../listTypes';
 
-describe('buildPageListSystemPrompt', () => {
-  it('concatenates all 6 reference files with source markers and a preamble', async () => {
-    const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'poui-prompt-'));
-    const fixtures: Record<string, string> = {
-      'code-generator-list.md': 'MARKER_AGENT',
-      'templates-page-list.md': 'MARKER_TEMPLATE_PAGE_LIST',
-      'templates-service.md': 'MARKER_TEMPLATE_SERVICE',
-      'table-components.md': 'MARKER_TABLE_COMPONENTS',
-      'po-ui-quirks-table.md': 'MARKER_QUIRKS_TABLE',
-      'po-ui-quirks-onpush.md': 'MARKER_QUIRKS_ONPUSH',
-    };
-    for (const [file, content] of Object.entries(fixtures)) {
-      await fs.writeFile(path.join(tmpDir, file), content, 'utf8');
-    }
+async function writeFixtures(files: string[]): Promise<string> {
+  const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'poui-prompt-'));
+  for (const file of files) {
+    await fs.writeFile(path.join(tmpDir, file), `MARKER_${file}`, 'utf8');
+  }
+  return tmpDir;
+}
 
-    const prompt = await buildPageListSystemPrompt(tmpDir);
+describe('buildListSystemPrompt', () => {
+  it('concatenates all of page-list\'s 6 reference files with source markers and a preamble', async () => {
+    const type = getListComponentType('page-list')!;
+    const tmpDir = await writeFixtures(type.referenceFiles);
 
-    for (const marker of Object.values(fixtures)) {
-      assert.ok(prompt.includes(marker), `expected prompt to include ${marker}`);
+    const prompt = await buildListSystemPrompt(type, tmpDir);
+
+    for (const file of type.referenceFiles) {
+      assert.ok(prompt.includes(`MARKER_${file}`), `expected prompt to include the fixture for ${file}`);
     }
     assert.ok(
       prompt.toLowerCase().includes('não tente ler novamente'),
@@ -43,17 +42,34 @@ describe('buildPageListSystemPrompt', () => {
     );
   });
 
+  it('concatenates a different type\'s reference files too (proves it is generic, not page-list-only)', async () => {
+    const type = getListComponentType('stacked-browse')!;
+    const tmpDir = await writeFixtures(type.referenceFiles);
+
+    const prompt = await buildListSystemPrompt(type, tmpDir);
+
+    for (const file of type.referenceFiles) {
+      assert.ok(prompt.includes(`MARKER_${file}`), `expected prompt to include the fixture for ${file}`);
+    }
+    // page-list's own template must NOT leak into a stacked-browse prompt.
+    assert.ok(!prompt.includes('templates-page-list.md'));
+  });
+
   it('rejects when a reference file is missing', async () => {
+    const type = getListComponentType('page-list')!;
     const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'poui-prompt-missing-'));
-    await assert.rejects(() => buildPageListSystemPrompt(tmpDir));
+    await assert.rejects(() => buildListSystemPrompt(type, tmpDir));
   });
 });
 
-describe('buildPageListUserPrompt', () => {
-  it('includes entity, module, endpoint and derived names', () => {
+describe('buildListUserPrompt', () => {
+  it('includes the type id/label, entity, module, endpoint and derived names', () => {
+    const type = getListComponentType('stacked-browse')!;
     const naming = deriveEntityNaming('Pedidos');
-    const prompt = buildPageListUserPrompt(naming, 'financeiro', '/rest/api/custom/v1/pedidos');
+    const prompt = buildListUserPrompt(type, naming, 'financeiro', '/rest/api/custom/v1/pedidos');
 
+    assert.ok(prompt.includes('stacked-browse'));
+    assert.ok(prompt.includes('Stacked Browse'));
     assert.ok(prompt.includes('Pedidos'));
     assert.ok(prompt.includes('financeiro'));
     assert.ok(prompt.includes('/rest/api/custom/v1/pedidos'));
