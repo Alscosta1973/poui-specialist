@@ -15,7 +15,8 @@
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
-      { "command": "poui.generate.component", "title": "PO-UI: Gerar Componente" }
+      { "command": "poui.generate.component", "title": "PO-UI: Gerar Componente" },
+      { "command": "poui.generate.test", "title": "PO-UI: Gerar Teste Unitário" }
     ],
     "configuration": {
       "title": "PO-UI Specialist",

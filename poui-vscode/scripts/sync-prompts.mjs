@@ -53,6 +53,16 @@ const sources = [
   ['skills/poui-code-generation/templates-tlpp-contract.md', 'templates-tlpp-contract.md'],
   // auth-login
   ['skills/poui-code-generation/templates-auth-login.md', 'templates-auth-login.md'],
+
+  // Fase 3 — /poui-specialist:test (skill poui-test)
+  ['skills/poui-test/SKILL.md', 'poui-test-skill.md'],
+  ['skills/poui-test/templates-test-base.md', 'templates-test-base.md'],
+  ['skills/poui-test/templates-test-list.md', 'templates-test-list.md'],
+  ['skills/poui-test/templates-test-form.md', 'templates-test-form.md'],
+  ['skills/poui-test/templates-test-detail.md', 'templates-test-detail.md'],
+  ['skills/poui-test/templates-test-complex.md', 'templates-test-complex.md'],
+  ['skills/poui-test/templates-test-other.md', 'templates-test-other.md'],
+  ['skills/poui-test/templates-test-advanced.md', 'templates-test-advanced.md'],
 ];
 
 async function main() {
