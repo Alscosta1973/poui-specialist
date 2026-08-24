@@ -1,20 +1,21 @@
 import * as vscode from 'vscode';
 import * as path from 'node:path';
 import { deriveEntityNaming, isValidModuleName } from './naming';
-import { buildPageListSystemPrompt, buildPageListUserPrompt } from './promptBuilder';
+import { buildListSystemPrompt, buildListUserPrompt } from './promptBuilder';
 import { checkClaudeCliAvailable } from './cliCheck';
 import { runGeneratePageList } from './agentRuntime';
+import { LIST_COMPONENT_TYPES, ListComponentType } from './listTypes';
 
 /** Nome de entidade aceitável: começa por letra e usa apenas letras, dígitos,
  * espaço, hífen ou underscore — evita entradas como `---` ou `123`, que
  * derivariam nomes quebrados em `deriveEntityNaming`. */
 const ENTITY_NAME_PATTERN = /^[A-Za-z][A-Za-z0-9 _-]*$/;
 
-export function registerGeneratePageListCommand(
+export function registerGenerateListComponentCommand(
   context: vscode.ExtensionContext,
   outputChannel: vscode.OutputChannel,
 ): vscode.Disposable {
-  return vscode.commands.registerCommand('poui.generate.pageList', async () => {
+  return vscode.commands.registerCommand('poui.generate.listComponent', async () => {
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
     if (!workspaceFolder) {
       void vscode.window.showErrorMessage(
@@ -30,6 +31,20 @@ export function registerGeneratePageListCommand(
       );
       return;
     }
+
+    const typeChoice = await vscode.window.showQuickPick(
+      LIST_COMPONENT_TYPES.map((type) => ({
+        label: type.label,
+        description: type.id,
+        detail: type.description,
+        type,
+      })),
+      { placeHolder: 'Qual tipo de componente de lista você quer gerar?' },
+    );
+    if (!typeChoice) {
+      return;
+    }
+    const type: ListComponentType = typeChoice.type;
 
     const rawName = await vscode.window.showInputBox({
       prompt: 'Nome da entidade (ex: Pedidos)',
@@ -74,12 +89,12 @@ export function registerGeneratePageListCommand(
 
     outputChannel.clear();
     outputChannel.show(true);
-    outputChannel.appendLine(`Gerando page-list para ${naming.entityPascal} em ${moduleName}...`);
+    outputChannel.appendLine(`Gerando ${type.id} para ${naming.entityPascal} em ${moduleName}...`);
 
     const assetsDir = path.join(context.extensionUri.fsPath, 'assets', 'agent-prompts');
     let systemPrompt: string;
     try {
-      systemPrompt = await buildPageListSystemPrompt(assetsDir);
+      systemPrompt = await buildListSystemPrompt(type, assetsDir);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       void vscode.window.showErrorMessage(
@@ -87,7 +102,7 @@ export function registerGeneratePageListCommand(
       );
       return;
     }
-    const userPrompt = buildPageListUserPrompt(naming, moduleName, resolvedApiPath);
+    const userPrompt = buildListUserPrompt(type, naming, moduleName, resolvedApiPath);
 
     const result = await runGeneratePageList(
       {

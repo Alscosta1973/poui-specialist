@@ -15,7 +15,7 @@
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
-      { "command": "poui.generate.pageList", "title": "PO-UI: Gerar Page List" }
+      { "command": "poui.generate.listComponent", "title": "PO-UI: Gerar Componente" }
     ],
     "configuration": {
       "title": "PO-UI Specialist",
