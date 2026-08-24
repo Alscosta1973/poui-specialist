@@ -2,9 +2,9 @@ import * as assert from 'node:assert';
 import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import { buildListSystemPrompt, buildListUserPrompt } from '../../promptBuilder';
+import { buildGeneratorSystemPrompt, buildGeneratorUserPrompt } from '../../promptBuilder';
 import { deriveEntityNaming } from '../../naming';
-import { getListComponentType } from '../../listTypes';
+import { getGeneratorType } from '../../generatorTypes';
 
 async function writeFixtures(files: string[]): Promise<string> {
   const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'poui-prompt-'));
@@ -14,12 +14,12 @@ async function writeFixtures(files: string[]): Promise<string> {
   return tmpDir;
 }
 
-describe('buildListSystemPrompt', () => {
+describe('buildGeneratorSystemPrompt', () => {
   it('concatenates all of page-list\'s 6 reference files with source markers and a preamble', async () => {
-    const type = getListComponentType('page-list')!;
+    const type = getGeneratorType('page-list')!;
     const tmpDir = await writeFixtures(type.referenceFiles);
 
-    const prompt = await buildListSystemPrompt(type, tmpDir);
+    const prompt = await buildGeneratorSystemPrompt(type, tmpDir);
 
     for (const file of type.referenceFiles) {
       assert.ok(prompt.includes(`MARKER_${file}`), `expected prompt to include the fixture for ${file}`);
@@ -42,31 +42,42 @@ describe('buildListSystemPrompt', () => {
     );
   });
 
-  it('concatenates a different type\'s reference files too (proves it is generic, not page-list-only)', async () => {
-    const type = getListComponentType('stacked-browse')!;
+  it('concatenates a Formulários type\'s reference files too (proves it is generic across families)', async () => {
+    const type = getGeneratorType('page-edit')!;
     const tmpDir = await writeFixtures(type.referenceFiles);
 
-    const prompt = await buildListSystemPrompt(type, tmpDir);
+    const prompt = await buildGeneratorSystemPrompt(type, tmpDir);
 
     for (const file of type.referenceFiles) {
       assert.ok(prompt.includes(`MARKER_${file}`), `expected prompt to include the fixture for ${file}`);
     }
-    // page-list's own template must NOT leak into a stacked-browse prompt.
+    // page-list's own template must NOT leak into a page-edit prompt.
     assert.ok(!prompt.includes('templates-page-list.md'));
   });
 
+  it('concatenates an Infraestrutura type\'s reference files too', async () => {
+    const type = getGeneratorType('auth-login')!;
+    const tmpDir = await writeFixtures(type.referenceFiles);
+
+    const prompt = await buildGeneratorSystemPrompt(type, tmpDir);
+
+    for (const file of type.referenceFiles) {
+      assert.ok(prompt.includes(`MARKER_${file}`), `expected prompt to include the fixture for ${file}`);
+    }
+  });
+
   it('rejects when a reference file is missing', async () => {
-    const type = getListComponentType('page-list')!;
+    const type = getGeneratorType('page-list')!;
     const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'poui-prompt-missing-'));
-    await assert.rejects(() => buildListSystemPrompt(type, tmpDir));
+    await assert.rejects(() => buildGeneratorSystemPrompt(type, tmpDir));
   });
 });
 
-describe('buildListUserPrompt', () => {
+describe('buildGeneratorUserPrompt', () => {
   it('includes the type id/label, entity, module, endpoint and derived names', () => {
-    const type = getListComponentType('stacked-browse')!;
+    const type = getGeneratorType('stacked-browse')!;
     const naming = deriveEntityNaming('Pedidos');
-    const prompt = buildListUserPrompt(type, naming, 'financeiro', '/rest/api/custom/v1/pedidos');
+    const prompt = buildGeneratorUserPrompt(type, naming, 'financeiro', '/rest/api/custom/v1/pedidos');
 
     assert.ok(prompt.includes('stacked-browse'));
     assert.ok(prompt.includes('Stacked Browse'));
@@ -75,5 +86,14 @@ describe('buildListUserPrompt', () => {
     assert.ok(prompt.includes('/rest/api/custom/v1/pedidos'));
     assert.ok(prompt.includes('PedidosListComponent'));
     assert.ok(prompt.includes('PedidosService'));
+  });
+
+  it('tells the model to prefer the type-specific naming convention over the generic suggestion', () => {
+    const type = getGeneratorType('page-edit')!;
+    const naming = deriveEntityNaming('PedidoEdit');
+    const prompt = buildGeneratorUserPrompt(type, naming, 'financeiro', '/rest/api/custom/v1/pedidos');
+
+    assert.ok(prompt.includes('page-edit'));
+    assert.ok(prompt.toLowerCase().includes('convenção de nomenclatura específica do tipo'));
   });
 });

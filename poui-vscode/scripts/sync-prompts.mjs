@@ -30,6 +30,29 @@ const sources = [
   ['skills/poui-code-generation/templates-action-list.md', 'templates-action-list.md'],
   // master-detail
   ['skills/poui-code-generation/templates-master-detail.md', 'templates-master-detail.md'],
+
+  // Família Formulários (Fase 2) — agente code-generator-forms.md
+  ['agents/code-generator-forms.md', 'code-generator-forms.md'],
+  ['skills/poui-components/dynamic-form-fields.md', 'dynamic-form-fields.md'],
+  ['skills/poui-components/modal-dialog.md', 'modal-dialog.md'],
+  // page-edit
+  ['skills/poui-code-generation/templates-page-edit.md', 'templates-page-edit.md'],
+  // page-detail
+  ['skills/poui-code-generation/templates-page-detail.md', 'templates-page-detail.md'],
+  // modal-crud
+  ['skills/poui-code-generation/templates-modal-crud.md', 'templates-modal-crud.md'],
+  // stepper-form
+  ['skills/poui-code-generation/templates-stepper-form.md', 'templates-stepper-form.md'],
+
+  // Família Infraestrutura (Fase 2) — agente code-generator-infra.md
+  ['agents/code-generator-infra.md', 'code-generator-infra.md'],
+  ['skills/poui-patterns/protheus-rest.md', 'protheus-rest.md'],
+  // dashboard
+  ['skills/poui-code-generation/templates-dashboard.md', 'templates-dashboard.md'],
+  // tlpp-contract
+  ['skills/poui-code-generation/templates-tlpp-contract.md', 'templates-tlpp-contract.md'],
+  // auth-login
+  ['skills/poui-code-generation/templates-auth-login.md', 'templates-auth-login.md'],
 ];
 
 async function main() {

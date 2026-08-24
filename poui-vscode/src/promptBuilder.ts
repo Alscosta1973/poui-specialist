@@ -1,9 +1,9 @@
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import type { EntityNaming } from './naming';
-import type { ListComponentType } from './listTypes';
+import type { GeneratorType } from './generatorTypes';
 
-export async function buildListSystemPrompt(type: ListComponentType, assetsDir: string): Promise<string> {
+export async function buildGeneratorSystemPrompt(type: GeneratorType, assetsDir: string): Promise<string> {
   const sections = await Promise.all(
     type.referenceFiles.map(async (file) => {
       const filePath = path.join(assetsDir, file);
@@ -29,8 +29,8 @@ export async function buildListSystemPrompt(type: ListComponentType, assetsDir: 
   return [preamble, ...sections].join('\n\n---\n\n');
 }
 
-export function buildListUserPrompt(
-  type: ListComponentType,
+export function buildGeneratorUserPrompt(
+  type: GeneratorType,
   naming: EntityNaming,
   moduleName: string,
   apiPath: string,
@@ -39,9 +39,12 @@ export function buildListUserPrompt(
     `Gere um componente do tipo \`${type.id}\` (${type.label}) para a entidade "${naming.entityPascal}".`,
     `Módulo: ${moduleName}`,
     `Endpoint REST Protheus: ${apiPath}`,
-    `Classe do componente: ${naming.componentClass}`,
-    `Seletor: ${naming.selector}`,
+    `Nome base sugerido: ${naming.entityPascal}.`,
+    `Classe/seletor/diretório sugeridos genericamente: ${naming.componentClass}, ${naming.selector}, src/app/${moduleName}/${naming.entityKebab}-list/`,
+    `— siga a convenção de nomenclatura específica do tipo \`${type.id}\` carregada nos`,
+    'arquivos de referência acima em vez dessa sugestão genérica, caso sejam diferentes',
+    '(ex: sufixo de classe, nome de diretório, ou ausência de componente Angular para',
+    'tipos que só geram service/contrato backend).',
     `Service: ${naming.serviceClass} (arquivo ${naming.serviceFileBase}.ts)`,
-    `Diretório de destino: src/app/${moduleName}/${naming.entityKebab}-list/`,
   ].join('\n');
 }

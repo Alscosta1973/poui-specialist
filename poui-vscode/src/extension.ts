@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { registerGenerateListComponentCommand } from './generateListComponent';
+import { registerGenerateComponentCommand } from './generateComponent';
 
 export function activate(context: vscode.ExtensionContext): void {
   const outputChannel = vscode.window.createOutputChannel('PO-UI');
@@ -10,7 +10,7 @@ export function activate(context: vscode.ExtensionContext): void {
   // `delete` numa chave inexistente é no-op, então é fire-and-forget.
   void context.secrets.delete('poui.anthropicApiKey');
 
-  context.subscriptions.push(registerGenerateListComponentCommand(context, outputChannel));
+  context.subscriptions.push(registerGenerateComponentCommand(context, outputChannel));
 }
 
 export function deactivate(): void {}
