@@ -1,4 +1,4 @@
-# PO-UI Specialist — extensão VS Code (Fase 2)
+# PO-UI Specialist — extensão VS Code (Fase 3)
 
 Gera componentes Angular PO-UI de 3 famílias diretamente do VS Code —
 **Lista/Browse** (`page-list`, `page-dynamic-search`, `stacked-browse`,
@@ -8,6 +8,14 @@ Gera componentes Angular PO-UI de 3 famílias diretamente do VS Code —
 `auth-login`). Roda o Claude Code CLI (`claude`) como subprocesso,
 reaproveitando a sessão já autenticada no claude.ai — sem API key
 separada, mas dependente do CLI instalado na máquina.
+
+Após gerar os arquivos com sucesso, a extensão roda `ng build
+--configuration development` automaticamente para verificar o
+resultado. Se o build falhar com erros localizados nos arquivos que ela
+acabou de gerar, tenta corrigi-los sozinha (até 3 tentativas, cada uma
+seguida de uma nova verificação de build); erros pré-existentes no
+projeto (fora dos arquivos gerados nesta execução) nunca são "corrigidos"
+automaticamente — só reportados.
 
 ## Rodando em desenvolvimento
 
@@ -59,6 +67,14 @@ Com o Extension Development Host rodando (F5) e `examples/modulo-compras`
    produção desse projeto de exemplo são apertados demais mesmo sem nenhum
    componente novo) → esperado: compilação bem-sucedida com os arquivos
    recém gerados incluídos, sem erros de TypeScript.
+6b. **Build-fix automático** — logo após uma geração bem-sucedida (cenário 5
+    ou 7-10), observe o output channel "PO-UI": deve aparecer "Verificando o
+    build..." seguido de "✓ Build passou na tentativa 1." (build já limpo) ou,
+    se introduzir deliberadamente um erro de tipo num arquivo gerado antes de
+    rodar o comando, das mensagens "✗ Build falhou... corrigindo (tentativa
+    N/3)..." até "✓ Build passou na tentativa N." → esperado: a notificação
+    final some "build ok." ao sucesso, ou "build ainda com erro(s)" (aviso, não
+    erro) se as 3 tentativas se esgotarem.
 7. **Outro tipo da família Lista** — rode `PO-UI: Gerar Componente` de novo,
    escolha um tipo diferente (ex: `Stacked Browse` ou `Action List`) →
    esperado: geração usando os arquivos de referência daquele tipo
@@ -85,6 +101,11 @@ no `QuickPick`:
 - **Formulários**: `page-edit`, `page-detail`, `modal-crud`, `stepper-form`
 - **Infraestrutura**: `service`, `dashboard`, `tlpp-contract`, `auth-login`
 
+Toda geração é seguida automaticamente por uma verificação de build
+(`ng build --configuration development`) com correção automática de até
+3 tentativas, restrita a erros localizados nos arquivos gerados nesta
+mesma execução (equivalente ao `poui-build-fix` do plugin original).
+
 **Adiados deliberadamente** (não são bugs — decisão de escopo por
 orçamento de tempo/tokens da sessão, ver memória do projeto):
 `module` (cria um app inteiro do zero, semântica diferente dos demais
@@ -92,5 +113,6 @@ tipos), `refactor` (precisa de um passo de seleção de arquivo `.prw`/
 `.tlpp` que a extensão ainda não tem) e a skill `discover` (analisa um
 endpoint REST fazendo uma chamada HTTP real contra um backend Protheus —
 arquitetura bem diferente dos geradores). A sidebar tree view e os demais
-comandos do plugin `poui-specialist` (Fases 3-5) ficam para depois — ver
+comandos do plugin `poui-specialist` (`test`, `e2e`, `preview`, `lint`,
+`review`, `quality`) ficam para depois — ver
 `docs/superpowers/specs/2026-08-21-vscode-extension-phase0-design.md`.
