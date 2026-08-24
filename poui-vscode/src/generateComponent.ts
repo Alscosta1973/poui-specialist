@@ -4,6 +4,7 @@ import { deriveEntityNaming, isValidModuleName } from './naming';
 import { buildGeneratorSystemPrompt, buildGeneratorUserPrompt } from './promptBuilder';
 import { checkClaudeCliAvailable } from './cliCheck';
 import { runClaudeAgent } from './agentRuntime';
+import { runBuildFixLoop } from './buildFixLoop';
 import { GENERATOR_TYPES, GeneratorType } from './generatorTypes';
 
 /** Nome de entidade aceitável: começa por letra e usa apenas letras, dígitos,
@@ -152,10 +153,26 @@ export function registerGenerateComponentCommand(
       return;
     }
 
-    const openChoice = await vscode.window.showInformationMessage(
-      `PO-UI: ${result.filesWritten.length} arquivo(s) gerado(s).`,
-      'Abrir arquivo gerado',
+    outputChannel.appendLine('Verificando o build...');
+    const buildFix = await runBuildFixLoop(
+      {
+        cwd: workspaceFolder.uri.fsPath,
+        filesWritten: result.filesWritten,
+        systemPrompt,
+        model: vscode.workspace.getConfiguration('poui').get<string>('model'),
+        effort: vscode.workspace
+          .getConfiguration('poui')
+          .get<'low' | 'medium' | 'high' | 'xhigh' | 'max'>('effort'),
+      },
+      outputChannel,
     );
+
+    const summary = `PO-UI: ${result.filesWritten.length} arquivo(s) gerado(s)${
+      buildFix.finalSuccess ? ', build ok.' : ' — build ainda com erro(s), revise antes de usar.'
+    }`;
+    const openChoice = buildFix.finalSuccess
+      ? await vscode.window.showInformationMessage(summary, 'Abrir arquivo gerado')
+      : await vscode.window.showWarningMessage(summary, 'Abrir arquivo gerado');
     if (openChoice === 'Abrir arquivo gerado') {
       try {
         const firstFile = path.isAbsolute(result.filesWritten[0])
