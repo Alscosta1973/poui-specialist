@@ -1,11 +1,13 @@
-# PO-UI Specialist — extensão VS Code (Fase 1)
+# PO-UI Specialist — extensão VS Code (Fase 2)
 
-Gera componentes Angular PO-UI da família Lista/Browse diretamente do VS
-Code: `page-list`, `page-dynamic-search`, `stacked-browse`,
-`two-panel-browse`, `action-list` e `master-detail`. Roda o Claude Code
-CLI (`claude`) como subprocesso, reaproveitando a sessão já autenticada
-no claude.ai — sem API key separada, mas dependente do CLI instalado na
-máquina.
+Gera componentes Angular PO-UI de 3 famílias diretamente do VS Code —
+**Lista/Browse** (`page-list`, `page-dynamic-search`, `stacked-browse`,
+`two-panel-browse`, `action-list`, `master-detail`), **Formulários**
+(`page-edit`, `page-detail`, `modal-crud`, `stepper-form`) e
+**Infraestrutura** (`service`, `dashboard`, `tlpp-contract`,
+`auth-login`). Roda o Claude Code CLI (`claude`) como subprocesso,
+reaproveitando a sessão já autenticada no claude.ai — sem API key
+separada, mas dependente do CLI instalado na máquina.
 
 ## Rodando em desenvolvimento
 
@@ -18,9 +20,10 @@ máquina.
 4. Abra uma pasta de projeto Angular (ex: `examples/modulo-compras` deste
    repo) como workspace do host de desenvolvimento
 5. Rode `PO-UI: Gerar Componente` na paleta (`Ctrl+Shift+P`), escolha o
-   tipo (page-list, page-dynamic-search, stacked-browse, two-panel-browse,
-   action-list ou master-detail) e informe o nome da entidade e o módulo
-   de destino
+   tipo no `QuickPick` (agrupado por família: Lista/Browse, Formulários,
+   Infraestrutura) e informe o nome da entidade e o módulo de destino
+   (pulado automaticamente para `auth-login`, que sempre vai em
+   `src/app/auth/`)
 
 ## Testes
 
@@ -60,11 +63,34 @@ Com o Extension Development Host rodando (F5) e `examples/modulo-compras`
    escolha um tipo diferente (ex: `Stacked Browse` ou `Action List`) →
    esperado: geração usando os arquivos de referência daquele tipo
    específico (não os de `page-list`), mesmo fluxo de nome/módulo/endpoint.
+8. **Tipo da família Formulários** — escolha `Page Edit` ou `Modal CRUD` →
+   esperado: geração usando os arquivos de referência de
+   `code-generator-forms.md` (formulário com `po-dynamic-form`), não os de
+   Lista/Browse.
+9. **Tipo sem módulo (`auth-login`)** — escolha `Auth Login` → esperado: a
+   pergunta de módulo é pulada (log no output channel confirmando o destino
+   fixo `auth`), geração direto em `src/app/auth/`.
+10. **Tipo sem componente Angular (`tlpp-contract` ou `service`)** —
+    escolha um dos dois → esperado: geração usando os arquivos de
+    referência de `code-generator-infra.md`, sem necessariamente criar
+    `.component.ts/html/scss` (conforme a convenção do próprio tipo).
 
 ## Escopo desta fase
 
-6 tipos da família Lista/Browse disponíveis via `PO-UI: Gerar Componente`:
-`page-list`, `page-dynamic-search`, `stacked-browse`, `two-panel-browse`,
-`action-list` e `master-detail`. A sidebar tree view e os demais tipos/
-comandos do plugin `poui-specialist` ficam para fases futuras — ver
+14 tipos disponíveis via `PO-UI: Gerar Componente`, agrupados por família
+no `QuickPick`:
+
+- **Lista/Browse**: `page-list`, `page-dynamic-search`, `stacked-browse`,
+  `two-panel-browse`, `action-list`, `master-detail`
+- **Formulários**: `page-edit`, `page-detail`, `modal-crud`, `stepper-form`
+- **Infraestrutura**: `service`, `dashboard`, `tlpp-contract`, `auth-login`
+
+**Adiados deliberadamente** (não são bugs — decisão de escopo por
+orçamento de tempo/tokens da sessão, ver memória do projeto):
+`module` (cria um app inteiro do zero, semântica diferente dos demais
+tipos), `refactor` (precisa de um passo de seleção de arquivo `.prw`/
+`.tlpp` que a extensão ainda não tem) e a skill `discover` (analisa um
+endpoint REST fazendo uma chamada HTTP real contra um backend Protheus —
+arquitetura bem diferente dos geradores). A sidebar tree view e os demais
+comandos do plugin `poui-specialist` (Fases 3-5) ficam para depois — ver
 `docs/superpowers/specs/2026-08-21-vscode-extension-phase0-design.md`.
