@@ -11,6 +11,8 @@ package-lock.json
 # Build artifacts do projeto de exemplo (examples/modulo-compras)
 examples/modulo-compras/dist/
 examples/modulo-compras/.angular/
+# Config local de IDE (ex: debugger ADVPL com caminho de máquina específico)
+examples/modulo-compras/.vscode/
 # package-lock.json acima ignora só o da raiz (tooling) — manter o do exemplo, para instalação reprodutível
 !examples/modulo-compras/package-lock.json
 

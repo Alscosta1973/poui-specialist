@@ -1,0 +1,25 @@
+<!--
+  @generated  poui-specialist v1.16.2
+  @author     Andre Costa <andre.andrelscosta@gmail.com>
+  @license    Uso permitido · redistribuição proibida sem autorização escrita
+  @see        https://github.com/Alscosta1973/poui-specialist
+  @node       not detected (>=18.19 required)
+  @angular    ^21.2.0 (17-21+ supported)
+-->
+
+<po-page-list
+  [p-title]="title"
+  [p-actions]="pageActions"
+  [p-filter]="filterSettings">
+
+  <po-table
+    [p-columns]="columns"
+    [p-items]="items()"
+    [p-loading]="loading()"
+    [p-actions]="tableActions"
+    [p-height]="tableHeight()"
+    [p-show-more-disabled]="!hasNext()"
+    (p-show-more)="onShowMore()">
+  </po-table>
+
+</po-page-list>
