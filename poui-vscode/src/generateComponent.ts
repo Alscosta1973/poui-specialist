@@ -3,7 +3,7 @@ import * as path from 'node:path';
 import { deriveEntityNaming, isValidModuleName } from './naming';
 import { buildGeneratorSystemPrompt, buildGeneratorUserPrompt } from './promptBuilder';
 import { checkClaudeCliAvailable } from './cliCheck';
-import { runGeneratePageList } from './agentRuntime';
+import { runClaudeAgent } from './agentRuntime';
 import { GENERATOR_TYPES, GeneratorType } from './generatorTypes';
 
 /** Nome de entidade aceitável: começa por letra e usa apenas letras, dígitos,
@@ -122,7 +122,7 @@ export function registerGenerateComponentCommand(
     }
     const userPrompt = buildGeneratorUserPrompt(type, naming, moduleName, resolvedApiPath);
 
-    const result = await runGeneratePageList(
+    const result = await runClaudeAgent(
       {
         cwd: workspaceFolder.uri.fsPath,
         systemPrompt,

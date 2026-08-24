@@ -16,7 +16,7 @@ export interface GenerateResult {
   isAuthError?: boolean;
 }
 
-export interface RunGenerateOptions {
+export interface RunAgentOptions {
   cwd: string;
   systemPrompt: string;
   userPrompt: string;
@@ -69,7 +69,7 @@ function buildSubprocessEnv(): NodeJS.ProcessEnv {
   return env;
 }
 
-function buildArgs(options: RunGenerateOptions, systemPromptFile: string): string[] {
+function buildArgs(options: RunAgentOptions, systemPromptFile: string): string[] {
   const args = [
     '-p',
     options.userPrompt,
@@ -102,8 +102,8 @@ function describeResultFailure(message: { subtype: string; result?: string; erro
   return message.errors && message.errors.length > 0 ? message.errors.join('; ') : message.subtype;
 }
 
-export async function runGeneratePageList(
-  options: RunGenerateOptions,
+export async function runClaudeAgent(
+  options: RunAgentOptions,
   sink: OutputSink,
   spawnFn: SpawnFn = defaultSpawn,
 ): Promise<GenerateResult> {

@@ -1,7 +1,7 @@
 import * as assert from 'node:assert';
 import { EventEmitter } from 'node:events';
 import { Readable } from 'node:stream';
-import { runGeneratePageList, OutputSink, SpawnFn, SpawnedProcess } from '../../agentRuntime';
+import { runClaudeAgent, OutputSink, SpawnFn, SpawnedProcess } from '../../agentRuntime';
 
 class RecordingSink implements OutputSink {
   readonly lines: string[] = [];
@@ -47,7 +47,7 @@ function assistantMessage(content: unknown[], error?: string) {
   return { type: 'assistant', error, message: { role: 'assistant', content } };
 }
 
-describe('runGeneratePageList', () => {
+describe('runClaudeAgent', () => {
   it('streams assistant content blocks to the sink and collects written files', async () => {
     const sink = new RecordingSink();
     const spawnFn: SpawnFn = () =>
@@ -69,7 +69,7 @@ describe('runGeneratePageList', () => {
         ],
       });
 
-    const result = await runGeneratePageList(
+    const result = await runClaudeAgent(
       { cwd: '/tmp/workspace', systemPrompt: 'system', userPrompt: 'user' },
       sink,
       spawnFn,
@@ -100,7 +100,7 @@ describe('runGeneratePageList', () => {
         ],
       });
 
-    const result = await runGeneratePageList(
+    const result = await runClaudeAgent(
       { cwd: '/tmp/workspace', systemPrompt: 'system', userPrompt: 'user' },
       sink,
       spawnFn,
@@ -116,7 +116,7 @@ describe('runGeneratePageList', () => {
     const spawnFn: SpawnFn = () =>
       makeFakeProcess({ messages: [{ type: 'result', subtype: 'error_max_turns', is_error: true, errors: [] }] });
 
-    const result = await runGeneratePageList(
+    const result = await runClaudeAgent(
       { cwd: '/tmp/workspace', systemPrompt: 'system', userPrompt: 'user' },
       sink,
       spawnFn,
@@ -136,7 +136,7 @@ describe('runGeneratePageList', () => {
         ],
       });
 
-    const result = await runGeneratePageList(
+    const result = await runClaudeAgent(
       { cwd: '/tmp/workspace', systemPrompt: 'system', userPrompt: 'user' },
       sink,
       spawnFn,
@@ -155,7 +155,7 @@ describe('runGeneratePageList', () => {
         ],
       });
 
-    const result = await runGeneratePageList(
+    const result = await runClaudeAgent(
       { cwd: '/tmp/workspace', systemPrompt: 'system', userPrompt: 'user' },
       sink,
       spawnFn,
@@ -181,7 +181,7 @@ describe('runGeneratePageList', () => {
         ],
       });
 
-    const result = await runGeneratePageList(
+    const result = await runClaudeAgent(
       { cwd: '/tmp/workspace', systemPrompt: 'system', userPrompt: 'user' },
       sink,
       spawnFn,
@@ -205,7 +205,7 @@ describe('runGeneratePageList', () => {
         ],
       });
 
-    const result = await runGeneratePageList(
+    const result = await runClaudeAgent(
       { cwd: '/tmp/workspace', systemPrompt: 'system', userPrompt: 'user' },
       sink,
       spawnFn,
@@ -219,7 +219,7 @@ describe('runGeneratePageList', () => {
     const sink = new RecordingSink();
     const spawnFn: SpawnFn = () => makeFakeProcess({ messages: [assistantMessage([{ type: 'text', text: 'oi' }])], exitCode: 0 });
 
-    const result = await runGeneratePageList(
+    const result = await runClaudeAgent(
       { cwd: '/tmp/workspace', systemPrompt: 'system', userPrompt: 'user' },
       sink,
       spawnFn,
@@ -233,7 +233,7 @@ describe('runGeneratePageList', () => {
     const sink = new RecordingSink();
     const spawnFn: SpawnFn = () => makeFakeProcess({ spawnError: new Error('spawn claude ENOENT') });
 
-    const result = await runGeneratePageList(
+    const result = await runClaudeAgent(
       { cwd: '/tmp/workspace', systemPrompt: 'system', userPrompt: 'user' },
       sink,
       spawnFn,
@@ -259,7 +259,7 @@ describe('runGeneratePageList', () => {
     };
 
     try {
-      await runGeneratePageList(
+      await runClaudeAgent(
         { cwd: '/tmp/workspace', systemPrompt: 'system', userPrompt: 'gere um componente', model: 'claude-opus-5', effort: 'max' },
         sink,
         spawnFn,
@@ -305,7 +305,7 @@ describe('runGeneratePageList', () => {
       return makeFakeProcess({ messages: [{ type: 'result', subtype: 'success', is_error: false, result: 'done' }] });
     };
 
-    await runGeneratePageList(
+    await runClaudeAgent(
       { cwd: '/tmp/workspace', systemPrompt: 'conteúdo do prompt de sistema', userPrompt: 'user' },
       sink,
       spawnFn,
