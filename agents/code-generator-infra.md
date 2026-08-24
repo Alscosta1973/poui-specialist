@@ -77,6 +77,7 @@ When the user's manifest or prompt contains a `CONTEXTO_PROJETO:` block (produce
 ### PoDynamicFormField — propriedades que NÃO existem (applicable to `refactor`)
 - **`dateFormat`** não existe → usar **`format`**
 - **`min`** e **`max`** não existem → remover
+- **`regex`** não existe → usar **`pattern`** (compatível com `po-input`/`po-password`)
 - Para `type: 'currency'` com casas decimais: usar `decimalsLength: 2`
 
 ### po-table selection (applicable to `refactor` and `dashboard` with selectable tables)

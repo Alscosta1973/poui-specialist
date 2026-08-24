@@ -23,22 +23,29 @@ Template completo de tela de login com `po-page-login` integrado ao `ProAppConfi
 
 ## login.component.ts
 
+> **Import correto (verificado contra o pacote instalado — TS2307/TS2305 se usar `@po-ui/ng-components`):**
+> `PoPageLoginModule`, `PoPageLogin` (tipo do evento `(p-login-submit)`) e `PoPageLoginLiterals` vêm do
+> pacote **`@po-ui/ng-templates`** (não `@po-ui/ng-components`, onde não existem). Não existe um
+> `PoPageLoginComponent` standalone — o import correto no array `imports` do componente é o
+> **módulo** `PoPageLoginModule`. Confirme que `@po-ui/ng-templates` está no `package.json` do
+> projeto (é o pacote irmão de `@po-ui/ng-components` para templates prontos do PO-UI).
+
 ```typescript
 import {
   ChangeDetectionStrategy, Component, inject, signal
 } from '@angular/core';
 import { Router } from '@angular/router';
 import {
-  PoPageLoginComponent, PoPageLoginLiterals,
-  PoNotificationService
-} from '@po-ui/ng-components';
+  PoPageLogin, PoPageLoginLiterals, PoPageLoginModule
+} from '@po-ui/ng-templates';
+import { PoNotificationService } from '@po-ui/ng-components';
 import { AuthService } from '../auth.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [PoPageLoginComponent],
+  imports: [PoPageLoginModule],
   template: `
     <po-page-login
       p-product-name="{{projectName}}"
@@ -62,9 +69,9 @@ export class LoginComponent {
     submitLabel: 'Entrar',
   };
 
-  onSubmit(event: { login: string; password: string }): void {
+  onSubmit(event: PoPageLogin): void {
     this.loading.set(true);
-    this.auth.login(event.login, event.password).subscribe({
+    this.auth.login(event.login ?? '', event.password ?? '').subscribe({
       next: () => {
         this.loading.set(false);
         this.router.navigate(['/inicio']);

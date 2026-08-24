@@ -72,6 +72,7 @@ When the user's manifest or prompt contains a `CONTEXTO_PROJETO:` block (produce
 ### PoDynamicFormField — propriedades que NÃO existem (TS2353 se usar)
 - **`dateFormat`** não existe → usar **`format`** (ex: `format: 'dd/MM/yyyy'`)
 - **`min`** e **`max`** não existem → remover; use `minLength`/`maxLength` para texto
+- **`regex`** não existe → usar **`pattern`** (compatível com `po-input`/`po-password`; ex: `pattern: '^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$'`)
 - **`type: 'label'` com boolean value** não funciona → usar **`type: 'boolean'`** com `booleanTrue`/`booleanFalse`
 - Para `type: 'currency'` com casas decimais: usar `decimalsLength: 2` (não `min`)
 
