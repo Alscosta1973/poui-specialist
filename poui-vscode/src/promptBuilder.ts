@@ -1,32 +1,9 @@
-import * as fs from 'node:fs/promises';
-import * as path from 'node:path';
 import type { EntityNaming } from './naming';
 import type { GeneratorType } from './generatorTypes';
+import { assembleSystemPrompt } from './systemPromptAssembly';
 
 export async function buildGeneratorSystemPrompt(type: GeneratorType, assetsDir: string): Promise<string> {
-  const sections = await Promise.all(
-    type.referenceFiles.map(async (file) => {
-      const filePath = path.join(assetsDir, file);
-      const content = await fs.readFile(filePath, 'utf8');
-      return `<!-- source: ${file} -->\n${content}`;
-    }),
-  );
-
-  const preamble = [
-    'Os arquivos de referência abaixo (agente + templates + quirks PO-UI) já foram',
-    'carregados nesta mensagem — não tente ler novamente os caminhos relativos',
-    '`skills/...` ou `agents/...` mencionados no texto, eles não existem no',
-    'workspace do usuário. Gere os arquivos finais diretamente no workspace aberto.',
-    'Esta é uma execução não interativa, de um único turno: não há como fazer',
-    'perguntas ao usuário nem receber respostas, portanto não peça confirmação,',
-    'não apresente a lista de arquivos para aprovação e não aguarde autorização',
-    'para criar diretórios — escreva os arquivos diretamente. Não crie os',
-    'diretórios `skills/`, `agents/` ou `commands/` no workspace do usuário:',
-    'esses caminhos se referem aos arquivos internos de referência deste plugin,',
-    'não a algo que deva ser criado aqui.',
-  ].join(' ');
-
-  return [preamble, ...sections].join('\n\n---\n\n');
+  return assembleSystemPrompt(type.referenceFiles, assetsDir);
 }
 
 export function buildGeneratorUserPrompt(
