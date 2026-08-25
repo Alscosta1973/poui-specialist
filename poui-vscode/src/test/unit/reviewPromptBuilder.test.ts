@@ -44,4 +44,9 @@ describe('buildReviewUserPrompt', () => {
     const prompt = buildReviewUserPrompt('src/app/financeiro');
     assert.ok(prompt.toLowerCase().includes('não modifique'));
   });
+
+  it('tells the model not to offer applying the fixes itself (no write access, real-world coherence gap)', () => {
+    const prompt = buildReviewUserPrompt('src/app/financeiro');
+    assert.ok(prompt.toLowerCase().includes('não ofereça'));
+  });
 });
