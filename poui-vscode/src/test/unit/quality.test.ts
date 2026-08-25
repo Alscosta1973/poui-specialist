@@ -59,6 +59,32 @@ describe('evaluateComponentQuality', () => {
     assert.strictEqual(result.criteria.find((c) => c.key === 'onpush')!.passed, true);
     assert.strictEqual(result.criteria.find((c) => c.key === 'loading')!.passed, false);
   });
+
+  it('passes Error handling when the error callback sets an inline error signal (real-world false positive)', () => {
+    const ts = `
+// ${MARKER}
+@Component({ changeDetection: ChangeDetectionStrategy.OnPush })
+export class PainelComprasComponent {
+  readonly error = signal<string | null>(null);
+
+  private loadDashboard(): void {
+    this.service
+      .getDashboardData()
+      .pipe(finalize(() => { this.loading.set(false); this.cdr.markForCheck(); }), takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: data => this.applyData(data),
+        error: () => {
+          this.error.set('Não foi possível carregar os dados.');
+          this.isDemoData.set(true);
+          this.applyData(DEMO_DASHBOARD_DATA);
+        },
+      });
+  }
+}
+`;
+    const result = evaluateComponentQuality('src/app/x/x.component.ts', ts);
+    assert.strictEqual(result.criteria.find((c) => c.key === 'error')!.passed, true);
+  });
 });
 
 describe('auditRoutesLazyLoading', () => {

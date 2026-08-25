@@ -22,6 +22,36 @@ export interface ComponentQualityResult {
   classification: QualityClassification;
 }
 
+/** Além de `notification.error(...)`/`catchError(...)`, um callback `error:`
+ * que atualiza um signal (`this.error.set(...)`, `this.someState.set(...)`)
+ * também é tratamento de erro válido — padrão comum em dashboards que
+ * mostram um banner inline em vez de toast (achado testando de verdade em
+ * VS Code: `painel-compras.component.ts` faz exatamente isso e caía em
+ * "Atenção necessária" mesmo tratando o erro corretamente). */
+function errorCallbackSetsSignal(tsContent: string): boolean {
+  const re = /error\s*:\s*\([^)]*\)\s*=>\s*\{/g;
+  let match: RegExpExecArray | null;
+  while ((match = re.exec(tsContent))) {
+    const openBraceIndex = match.index + match[0].length - 1;
+    let depth = 0;
+    for (let i = openBraceIndex; i < tsContent.length; i++) {
+      if (tsContent[i] === '{') {
+        depth++;
+      } else if (tsContent[i] === '}') {
+        depth--;
+        if (depth === 0) {
+          const body = tsContent.slice(openBraceIndex, i + 1);
+          if (/\.set\(/.test(body)) {
+            return true;
+          }
+          break;
+        }
+      }
+    }
+  }
+  return false;
+}
+
 export function evaluateComponentQuality(filePath: string, tsContent: string): ComponentQualityResult {
   const criteria: QualityCriterionResult[] = [
     {
@@ -39,7 +69,10 @@ export function evaluateComponentQuality(filePath: string, tsContent: string): C
     {
       key: 'error',
       label: 'Error handling',
-      passed: /notification\.error\(/.test(tsContent) || /catchError\(/.test(tsContent),
+      passed:
+        /notification\.error\(/.test(tsContent) ||
+        /catchError\(/.test(tsContent) ||
+        errorCallbackSetsSignal(tsContent),
       suggestion: "Adicionar notification.error(...) ou catchError(...) no tratamento de erro",
     },
     {
