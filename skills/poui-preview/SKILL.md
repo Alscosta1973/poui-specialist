@@ -64,7 +64,14 @@ Verificar se já existe uma entrada com `path: '<module>/<kebab-name>'`.
   },
 ```
 
-> Inserir antes do `];` final. Nunca duplicar rotas existentes.
+> Inserir logo antes da rota `**` (catch-all), se existir — ela precisa
+> continuar sendo a última do array, senão intercepta qualquer navegação
+> destinada à rota nova (o Angular Router casa a primeira rota que bate).
+> Quando não houver `**`, inserir antes do `];` final. Se a última entrada
+> existente não tiver vírgula final (estilo comum sem trailing comma),
+> adicionar uma antes de colar o novo objeto — dois object literals
+> adjacentes sem separador quebram a compilação. Nunca duplicar rotas
+> existentes.
 
 ---
 
