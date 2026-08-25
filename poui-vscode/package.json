@@ -18,7 +18,8 @@
       { "command": "poui.generate.component", "title": "PO-UI: Gerar Componente" },
       { "command": "poui.generate.test", "title": "PO-UI: Gerar Teste Unitário" },
       { "command": "poui.lint", "title": "PO-UI: Lint de Componentes" },
-      { "command": "poui.quality", "title": "PO-UI: Auditoria de Qualidade" }
+      { "command": "poui.quality", "title": "PO-UI: Auditoria de Qualidade" },
+      { "command": "poui.review", "title": "PO-UI: Revisar Código" }
     ],
     "configuration": {
       "title": "PO-UI Specialist",

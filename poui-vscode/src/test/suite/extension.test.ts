@@ -31,4 +31,11 @@ describe('extension packaging', () => {
     assert.ok(commands.includes('poui.lint'));
     assert.ok(commands.includes('poui.quality'));
   });
+
+  it('registers the poui.review command after activation', async () => {
+    const ext = vscode.extensions.getExtension('andre-costa.poui-vscode');
+    await ext?.activate();
+    const commands = await vscode.commands.getCommands(true);
+    assert.ok(commands.includes('poui.review'));
+  });
 });

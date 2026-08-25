@@ -63,6 +63,9 @@ const sources = [
   ['skills/poui-test/templates-test-complex.md', 'templates-test-complex.md'],
   ['skills/poui-test/templates-test-other.md', 'templates-test-other.md'],
   ['skills/poui-test/templates-test-advanced.md', 'templates-test-advanced.md'],
+
+  // Fase 3 — /poui-specialist:review (agente code-reviewer)
+  ['agents/code-reviewer.md', 'code-reviewer.md'],
 ];
 
 async function main() {
