@@ -5,6 +5,7 @@ import { registerLintCommand } from './generateLint';
 import { registerQualityCommand } from './generateQuality';
 import { registerReviewCommand } from './generateReview';
 import { registerPreviewCommand } from './generatePreview';
+import { registerE2eCommand } from './generateE2e';
 
 export function activate(context: vscode.ExtensionContext): void {
   const outputChannel = vscode.window.createOutputChannel('PO-UI');
@@ -21,6 +22,7 @@ export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(registerQualityCommand(context, outputChannel));
   context.subscriptions.push(registerReviewCommand(context, outputChannel));
   context.subscriptions.push(registerPreviewCommand(context, outputChannel));
+  context.subscriptions.push(registerE2eCommand(context, outputChannel));
 }
 
 export function deactivate(): void {}
