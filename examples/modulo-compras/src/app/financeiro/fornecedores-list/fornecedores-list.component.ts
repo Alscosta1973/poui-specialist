@@ -184,6 +184,9 @@ export class FornecedoresListComponent implements OnInit, AfterViewInit {
   }
 
   private parseProtheusError(err: unknown): string {
+    if (!(err as any).error?.errorMessage) {
+      return (err as any).error?.message ?? 'Erro ao processar a requisição.';
+    }
     try {
       const errObj = JSON.parse((err as any).error?.errorMessage ?? '{}');
       const decode = (s: string) =>
