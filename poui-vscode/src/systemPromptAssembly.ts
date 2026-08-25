@@ -12,7 +12,11 @@ const NON_INTERACTIVE_PREAMBLE = [
   'para criar diretórios — escreva os arquivos diretamente. Não crie os',
   'diretórios `skills/`, `agents/` ou `commands/` no workspace do usuário:',
   'esses caminhos se referem aos arquivos internos de referência deste plugin,',
-  'não a algo que deva ser criado aqui.',
+  'não a algo que deva ser criado aqui. Você não tem acesso à ferramenta Bash',
+  `nesta execução, então não tente rodar \`node --version\`: o Node.js detectado`,
+  `pelo ambiente que está te executando é \`${process.version}\` — use esse valor`,
+  'diretamente onde os arquivos de referência pedirem a versão do Node (ex: no',
+  'cabeçalho `@node` dos arquivos gerados), sem tentar detectar de outra forma.',
 ].join(' ');
 
 /** Concatena os arquivos de referência (relativos a `assetsDir`) com marcadores de
