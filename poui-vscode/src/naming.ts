@@ -54,3 +54,11 @@ export function deriveEntityNaming(rawName: string): EntityNaming {
 export function isValidModuleName(module: string): boolean {
   return /^[a-z][a-z0-9-]*$/.test(module.trim());
 }
+
+/** Resolve o módulo de destino para tipos com `requiresModule: false` — usa o
+ * `fixedModule` do tipo (ex: `auth-login` sempre em `auth`) quando declarado,
+ * ou o próprio nome derivado da entidade quando não há destino fixo (ex:
+ * `module`, que usa o nome escolhido pelo usuário como módulo). */
+export function resolveFixedModuleName(fixedModule: string | undefined, entityKebab: string): string {
+  return fixedModule ?? entityKebab;
+}

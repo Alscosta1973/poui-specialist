@@ -96,4 +96,26 @@ describe('buildGeneratorUserPrompt', () => {
     assert.ok(prompt.includes('page-edit'));
     assert.ok(prompt.toLowerCase().includes('convenção de nomenclatura específica do tipo'));
   });
+
+  it('includes the source file path when provided (refactor)', () => {
+    const type = getGeneratorType('refactor')!;
+    const naming = deriveEntityNaming('Pedido');
+    const prompt = buildGeneratorUserPrompt(
+      type,
+      naming,
+      'financeiro',
+      '/rest/api/custom/v1/pedidos',
+      'C:\\totvs\\FATA001.prw',
+    );
+
+    assert.ok(prompt.includes('C:\\totvs\\FATA001.prw'));
+  });
+
+  it('omits any source file line when not provided', () => {
+    const type = getGeneratorType('page-edit')!;
+    const naming = deriveEntityNaming('Pedido');
+    const prompt = buildGeneratorUserPrompt(type, naming, 'financeiro', '/rest/api/custom/v1/pedidos');
+
+    assert.ok(!prompt.toLowerCase().includes('arquivo fonte'));
+  });
 });

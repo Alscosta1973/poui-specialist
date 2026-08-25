@@ -11,8 +11,9 @@ export function buildGeneratorUserPrompt(
   naming: EntityNaming,
   moduleName: string,
   apiPath: string,
+  sourceFilePath?: string,
 ): string {
-  return [
+  const lines = [
     `Gere um componente do tipo \`${type.id}\` (${type.label}) para a entidade "${naming.entityPascal}".`,
     `Módulo: ${moduleName}`,
     `Endpoint REST Protheus: ${apiPath}`,
@@ -23,5 +24,9 @@ export function buildGeneratorUserPrompt(
     '(ex: sufixo de classe, nome de diretório, ou ausência de componente Angular para',
     'tipos que só geram service/contrato backend).',
     `Service: ${naming.serviceClass} (arquivo ${naming.serviceFileBase}.ts)`,
-  ].join('\n');
+  ];
+  if (sourceFilePath) {
+    lines.push(`Arquivo fonte a converter: ${sourceFilePath}`);
+  }
+  return lines.join('\n');
 }

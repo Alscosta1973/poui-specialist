@@ -2,7 +2,7 @@ import * as assert from 'node:assert';
 import { GENERATOR_TYPES, getGeneratorType } from '../../generatorTypes';
 
 describe('GENERATOR_TYPES', () => {
-  it('has exactly the 14 Fase 1 + Fase 2 types, each well-formed', () => {
+  it('has exactly the 24 plugin types, each well-formed', () => {
     const ids = GENERATOR_TYPES.map((t) => t.id);
     assert.deepStrictEqual(ids, [
       'page-list',
@@ -11,6 +11,9 @@ describe('GENERATOR_TYPES', () => {
       'two-panel-browse',
       'action-list',
       'master-detail',
+      'page-dynamic',
+      'infinite-scroll',
+      'po-tree',
       'page-edit',
       'page-detail',
       'modal-crud',
@@ -19,6 +22,13 @@ describe('GENERATOR_TYPES', () => {
       'dashboard',
       'tlpp-contract',
       'auth-login',
+      'module',
+      'models',
+      'refactor',
+      'http-interceptor',
+      'route-guard',
+      'standalone-migrate',
+      'upload',
     ]);
     for (const type of GENERATOR_TYPES) {
       assert.ok(type.label.length > 0, `${type.id} needs a label`);
@@ -38,7 +48,7 @@ describe('GENERATOR_TYPES', () => {
 
   it('points every Lista/Browse type at the list agent file', () => {
     const listTypes = GENERATOR_TYPES.filter((t) => t.family === 'Lista/Browse');
-    assert.strictEqual(listTypes.length, 6);
+    assert.strictEqual(listTypes.length, 9);
     for (const type of listTypes) {
       assert.ok(type.referenceFiles.includes('code-generator-list.md'));
       assert.strictEqual(type.requiresModule, true);
@@ -56,7 +66,7 @@ describe('GENERATOR_TYPES', () => {
 
   it('points every Infraestrutura type at the infra agent file', () => {
     const infraTypes = GENERATOR_TYPES.filter((t) => t.family === 'Infraestrutura');
-    assert.strictEqual(infraTypes.length, 4);
+    assert.strictEqual(infraTypes.length, 11);
     for (const type of infraTypes) {
       assert.ok(type.referenceFiles.includes('code-generator-infra.md'));
     }
@@ -66,6 +76,21 @@ describe('GENERATOR_TYPES', () => {
     const authLogin = getGeneratorType('auth-login')!;
     assert.strictEqual(authLogin.requiresModule, false);
     assert.strictEqual(authLogin.fixedModule, 'auth');
+  });
+
+  it('marks module as not requiring a module input and without a fixed target (derives from entity name instead)', () => {
+    const moduleType = getGeneratorType('module')!;
+    assert.strictEqual(moduleType.requiresModule, false);
+    assert.strictEqual(moduleType.fixedModule, undefined);
+  });
+
+  it('marks refactor as requiring a source file, unlike every other type', () => {
+    const refactor = getGeneratorType('refactor')!;
+    assert.strictEqual(refactor.requiresSourceFile, true);
+    const others = GENERATOR_TYPES.filter((t) => t.id !== 'refactor');
+    for (const type of others) {
+      assert.notStrictEqual(type.requiresSourceFile, true, `${type.id} should not require a source file`);
+    }
   });
 });
 

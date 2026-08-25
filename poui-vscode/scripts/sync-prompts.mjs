@@ -54,6 +54,33 @@ const sources = [
   // auth-login
   ['skills/poui-code-generation/templates-auth-login.md', 'templates-auth-login.md'],
 
+  // Fase 4 — 10 tipos que faltavam no /generate original do plugin
+  // page-dynamic
+  ['skills/poui-code-generation/templates-page-dynamic.md', 'templates-page-dynamic.md'],
+  ['skills/poui-components/dynamic-pages.md', 'dynamic-pages.md'],
+  // infinite-scroll
+  ['skills/poui-code-generation/templates-infinite-scroll.md', 'templates-infinite-scroll.md'],
+  // po-tree
+  ['skills/poui-code-generation/templates-tree.md', 'templates-tree.md'],
+  ['skills/poui-components/navigation-components.md', 'navigation-components.md'],
+  // module
+  ['skills/poui-code-generation/templates-module.md', 'templates-module.md'],
+  ['skills/poui-patterns/module-structure.md', 'module-structure.md'],
+  ['skills/poui-patterns/po-ui-patterns-i18n.md', 'po-ui-patterns-i18n.md'],
+  // models
+  ['skills/poui-code-generation/templates-models.md', 'templates-models.md'],
+  // refactor
+  ['skills/poui-code-generation/templates-refactor-from-tlpp.md', 'templates-refactor-from-tlpp.md'],
+  ['skills/poui-patterns/po-ui-quirks-forms.md', 'po-ui-quirks-forms.md'],
+  // http-interceptor
+  ['skills/poui-code-generation/templates-http-interceptor.md', 'templates-http-interceptor.md'],
+  // route-guard
+  ['skills/poui-code-generation/templates-route-guard.md', 'templates-route-guard.md'],
+  // standalone-migrate
+  ['skills/poui-code-generation/templates-standalone-migrate.md', 'templates-standalone-migrate.md'],
+  // upload
+  ['skills/poui-code-generation/templates-upload.md', 'templates-upload.md'],
+
   // Fase 3 — /poui-specialist:test (skill poui-test)
   ['skills/poui-test/SKILL.md', 'poui-test-skill.md'],
   ['skills/poui-test/templates-test-base.md', 'templates-test-base.md'],

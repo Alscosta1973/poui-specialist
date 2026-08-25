@@ -2,12 +2,15 @@
 
 Gera componentes Angular PO-UI de 3 famílias diretamente do VS Code —
 **Lista/Browse** (`page-list`, `page-dynamic-search`, `stacked-browse`,
-`two-panel-browse`, `action-list`, `master-detail`), **Formulários**
-(`page-edit`, `page-detail`, `modal-crud`, `stepper-form`) e
-**Infraestrutura** (`service`, `dashboard`, `tlpp-contract`,
-`auth-login`). Roda o Claude Code CLI (`claude`) como subprocesso,
-reaproveitando a sessão já autenticada no claude.ai — sem API key
-separada, mas dependente do CLI instalado na máquina.
+`two-panel-browse`, `action-list`, `master-detail`, `page-dynamic`,
+`infinite-scroll`, `po-tree`), **Formulários** (`page-edit`,
+`page-detail`, `modal-crud`, `stepper-form`) e **Infraestrutura**
+(`service`, `dashboard`, `tlpp-contract`, `auth-login`, `module`,
+`models`, `refactor`, `http-interceptor`, `route-guard`,
+`standalone-migrate`, `upload`) — os 24 tipos do plugin original.
+Roda o Claude Code CLI (`claude`) como subprocesso, reaproveitando a
+sessão já autenticada no claude.ai — sem API key separada, mas
+dependente do CLI instalado na máquina.
 
 Após gerar os arquivos com sucesso, a extensão roda `ng build
 --configuration development` automaticamente para verificar o
@@ -269,13 +272,23 @@ Com o Extension Development Host rodando (F5) e `examples/modulo-compras`
 
 ## Escopo desta fase
 
-14 tipos disponíveis via `PO-UI: Gerar Componente`, agrupados por família
-no `QuickPick`:
+24 tipos disponíveis via `PO-UI: Gerar Componente` (paridade completa com
+o `/generate` do plugin original), agrupados por família no `QuickPick`:
 
 - **Lista/Browse**: `page-list`, `page-dynamic-search`, `stacked-browse`,
-  `two-panel-browse`, `action-list`, `master-detail`
+  `two-panel-browse`, `action-list`, `master-detail`, `page-dynamic`,
+  `infinite-scroll`, `po-tree`
 - **Formulários**: `page-edit`, `page-detail`, `modal-crud`, `stepper-form`
-- **Infraestrutura**: `service`, `dashboard`, `tlpp-contract`, `auth-login`
+- **Infraestrutura**: `service`, `dashboard`, `tlpp-contract`,
+  `auth-login`, `module`, `models`, `refactor`, `http-interceptor`,
+  `route-guard`, `standalone-migrate`, `upload`
+
+`module` não pede módulo nem arquivo — usa o próprio nome como módulo
+(scaffold de app inteiro). `refactor` é o único tipo que abre um diálogo
+de arquivo (`showOpenDialog`) para escolher o `.prw`/`.tlpp` de origem
+antes de gerar. `upload` tem 3 variantes internas (auto-upload único,
+múltiplo + tabela, ou embutido em form) que o próprio agente escolhe a
+partir da descrição — sem pergunta extra na UI.
 
 Toda geração é seguida automaticamente por uma verificação de build
 (`ng build --configuration development`) com correção automática de até

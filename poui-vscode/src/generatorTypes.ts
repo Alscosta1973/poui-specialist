@@ -9,6 +9,8 @@ export interface GeneratorType {
   requiresModule: boolean;
   /** Usado no lugar do módulo perguntado ao usuário quando requiresModule é falso. */
   fixedModule?: string;
+  /** Verdadeiro só para `refactor` — pede um arquivo `.prw`/`.tlpp` fonte via showOpenDialog. */
+  requiresSourceFile?: boolean;
 }
 
 export const GENERATOR_TYPES: GeneratorType[] = [
@@ -85,6 +87,30 @@ export const GENERATOR_TYPES: GeneratorType[] = [
     referenceFiles: ['code-generator-list.md', 'templates-master-detail.md', 'templates-service.md', 'table-components.md', 'po-ui-quirks-table.md', 'po-ui-quirks-onpush.md'],
     requiresModule: true,
   },
+  {
+    id: 'page-dynamic',
+    label: 'Page Dynamic',
+    description: 'Zero-boilerplate via PoPageDynamicTableComponent',
+    family: 'Lista/Browse',
+    referenceFiles: ['code-generator-list.md', 'templates-page-dynamic.md', 'dynamic-pages.md', 'po-ui-quirks-onpush.md'],
+    requiresModule: true,
+  },
+  {
+    id: 'infinite-scroll',
+    label: 'Infinite Scroll',
+    description: 'Lista com carregamento automático ao rolar (IntersectionObserver)',
+    family: 'Lista/Browse',
+    referenceFiles: ['code-generator-list.md', 'templates-infinite-scroll.md', 'templates-service.md', 'po-ui-quirks-onpush.md'],
+    requiresModule: true,
+  },
+  {
+    id: 'po-tree',
+    label: 'Po Tree',
+    description: 'Navegação hierárquica com po-tree-view (flat-to-tree pré-carregado ou lazy loading por nó)',
+    family: 'Lista/Browse',
+    referenceFiles: ['code-generator-list.md', 'templates-tree.md', 'templates-service.md', 'navigation-components.md'],
+    requiresModule: true,
+  },
   // Formulários (Fase 2) — agente code-generator-forms.md
   {
     id: 'page-edit',
@@ -151,6 +177,71 @@ export const GENERATOR_TYPES: GeneratorType[] = [
     referenceFiles: ['code-generator-infra.md', 'templates-auth-login.md'],
     requiresModule: false,
     fixedModule: 'auth',
+  },
+  {
+    id: 'module',
+    label: 'Module',
+    description: 'Scaffold completo de aplicação (routes, config, proxy, package.json) — usa o próprio nome como módulo',
+    family: 'Infraestrutura',
+    referenceFiles: ['code-generator-infra.md', 'templates-module.md', 'module-structure.md', 'po-ui-patterns-i18n.md'],
+    requiresModule: false,
+  },
+  {
+    id: 'models',
+    label: 'Models',
+    description: 'Interfaces TypeScript: simples, chave composta, flat relational (padrão Protheus)',
+    family: 'Infraestrutura',
+    referenceFiles: ['code-generator-infra.md', 'templates-models.md'],
+    requiresModule: true,
+  },
+  {
+    id: 'refactor',
+    label: 'Refactor',
+    description: 'Converte .prw/.tlpp existente para PO-UI standalone',
+    family: 'Infraestrutura',
+    referenceFiles: [
+      'code-generator-infra.md',
+      'templates-refactor-from-tlpp.md',
+      'form-fields.md',
+      'table-components.md',
+      'po-ui-quirks-table.md',
+      'po-ui-quirks-forms.md',
+      'po-ui-quirks-onpush.md',
+    ],
+    requiresModule: true,
+    requiresSourceFile: true,
+  },
+  {
+    id: 'http-interceptor',
+    label: 'Http Interceptor',
+    description: 'Interceptor funcional — auth token Protheus, tradução de erros Latin-1, loading overlay',
+    family: 'Infraestrutura',
+    referenceFiles: ['code-generator-infra.md', 'templates-http-interceptor.md', 'protheus-rest.md'],
+    requiresModule: true,
+  },
+  {
+    id: 'route-guard',
+    label: 'Route Guard',
+    description: 'Guard funcional — CanActivate (auth/permissão Protheus) e CanDeactivate (alterações não salvas)',
+    family: 'Infraestrutura',
+    referenceFiles: ['code-generator-infra.md', 'templates-route-guard.md'],
+    requiresModule: true,
+  },
+  {
+    id: 'standalone-migrate',
+    label: 'Standalone Migrate',
+    description: 'Migra componente legado NgModule para standalone + OnPush + signals + inject()',
+    family: 'Infraestrutura',
+    referenceFiles: ['code-generator-infra.md', 'templates-standalone-migrate.md', 'po-ui-quirks-onpush.md', 'module-structure.md'],
+    requiresModule: true,
+  },
+  {
+    id: 'upload',
+    label: 'Upload',
+    description: 'Upload de arquivos com po-upload (único auto-upload, múltiplo + tabela, ou embutido em form)',
+    family: 'Infraestrutura',
+    referenceFiles: ['code-generator-infra.md', 'templates-upload.md'],
+    requiresModule: true,
   },
 ];
 

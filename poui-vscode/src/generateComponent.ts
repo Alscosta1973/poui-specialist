@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'node:path';
-import { deriveEntityNaming, isValidModuleName } from './naming';
+import { deriveEntityNaming, isValidModuleName, resolveFixedModuleName } from './naming';
 import { buildGeneratorSystemPrompt, buildGeneratorUserPrompt } from './promptBuilder';
 import { checkClaudeCliAvailable } from './cliCheck';
 import { runClaudeAgent } from './agentRuntime';
@@ -74,6 +74,13 @@ export function registerGenerateComponentCommand(
       return;
     }
 
+    const naming = deriveEntityNaming(rawName);
+    if (naming.wasAutoCorrected) {
+      void vscode.window.showWarningMessage(
+        `PO-UI: nome corrigido para PascalCase: ${naming.entityPascal}.`,
+      );
+    }
+
     let moduleName: string;
     if (type.requiresModule) {
       const moduleInput = await vscode.window.showInputBox({
@@ -86,15 +93,8 @@ export function registerGenerateComponentCommand(
       }
       moduleName = moduleInput;
     } else {
-      moduleName = type.fixedModule ?? '';
+      moduleName = resolveFixedModuleName(type.fixedModule, naming.entityKebab);
       outputChannel.appendLine(`Tipo \`${type.id}\` tem destino fixo — usando módulo "${moduleName}".`);
-    }
-
-    const naming = deriveEntityNaming(rawName);
-    if (naming.wasAutoCorrected) {
-      void vscode.window.showWarningMessage(
-        `PO-UI: nome corrigido para PascalCase: ${naming.entityPascal}.`,
-      );
     }
 
     const apiPathInput = await vscode.window.showInputBox({
@@ -105,6 +105,19 @@ export function registerGenerateComponentCommand(
       return;
     }
     const resolvedApiPath = apiPathInput.trim() || naming.defaultApiPath;
+
+    let sourceFilePath: string | undefined;
+    if (type.requiresSourceFile) {
+      const sourceFileUris = await vscode.window.showOpenDialog({
+        title: 'Selecione o arquivo .prw/.tlpp de origem',
+        canSelectMany: false,
+        filters: { 'ADVPL/TLPP': ['prw', 'tlpp'] },
+      });
+      if (!sourceFileUris || sourceFileUris.length === 0) {
+        return;
+      }
+      sourceFilePath = sourceFileUris[0].fsPath;
+    }
 
     outputChannel.clear();
     outputChannel.show(true);
@@ -121,7 +134,7 @@ export function registerGenerateComponentCommand(
       );
       return;
     }
-    const userPrompt = buildGeneratorUserPrompt(type, naming, moduleName, resolvedApiPath);
+    const userPrompt = buildGeneratorUserPrompt(type, naming, moduleName, resolvedApiPath, sourceFilePath);
 
     const result = await runClaudeAgent(
       {

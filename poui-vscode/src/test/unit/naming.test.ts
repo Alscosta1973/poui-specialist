@@ -1,5 +1,5 @@
 import * as assert from 'node:assert';
-import { deriveEntityNaming, isValidModuleName } from '../../naming';
+import { deriveEntityNaming, isValidModuleName, resolveFixedModuleName } from '../../naming';
 
 describe('deriveEntityNaming', () => {
   it('derives all conventions from a PascalCase plural name', () => {
@@ -31,6 +31,16 @@ describe('deriveEntityNaming', () => {
 
   it('throws on an empty name', () => {
     assert.throws(() => deriveEntityNaming('   '), /não pode ser vazio/);
+  });
+});
+
+describe('resolveFixedModuleName', () => {
+  it('uses the fixed module when the type declares one (e.g. auth-login → auth)', () => {
+    assert.strictEqual(resolveFixedModuleName('auth', 'faturamento'), 'auth');
+  });
+
+  it('falls back to the derived entity kebab name when there is no fixed module (e.g. module type)', () => {
+    assert.strictEqual(resolveFixedModuleName(undefined, 'faturamento'), 'faturamento');
   });
 });
 
