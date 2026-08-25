@@ -41,6 +41,16 @@ CLI, roda com um conjunto de ferramentas restrito a leitura
 (`Read,Glob,Grep` — sem `Write`/`Edit`), já que revisão nunca deve poder
 alterar código sozinha.
 
+`PO-UI: Preview no Browser` **não usa o Claude Code CLI nem Playwright**
+— diferente do `poui-preview`/`poui-e2e` originais (que rodam num chat
+sem tela e por isso precisam de MCP + screenshot), a extensão roda no
+computador do usuário com um browser de verdade disponível. O comando
+registra a rota em `app.routes.ts` (se ainda não existir), sobe
+`ng serve` numa porta livre (4200-4209, detectada via `net` do Node) e
+abre a URL no browser padrão do sistema via `vscode.env.openExternal`.
+O dev server continua rodando em background depois — não há comando de
+"parar" nesta fatia.
+
 ## Rodando em desenvolvimento
 
 1. Tenha o [Claude Code CLI](https://code.claude.com) instalado e logado
@@ -67,6 +77,8 @@ alterar código sozinha.
 9. Ou rode `PO-UI: Revisar Código`, selecione um arquivo ou pasta,
    escolha o foco no `QuickPick` e veja o relatório de achados no output
    channel "PO-UI"
+10. Ou rode `PO-UI: Preview no Browser`, selecione um `.component.ts` já
+    gerado e aguarde o browser abrir sozinho na rota do componente
 
 ## Testes
 
@@ -164,6 +176,22 @@ Com o Extension Development Host rodando (F5) e `examples/modulo-compras`
     escolhendo "Segurança" → esperado: achados restritos à categoria
     (`bypassSecurityTrust*`, URL hardcoded, concatenação em HTTP), sem
     misturar com os das outras categorias.
+18. **Preview de um componente novo** — rode `PO-UI: Preview no Browser`,
+    selecione um `.component.ts` gerado num cenário anterior cuja rota
+    ainda não existe em `app.routes.ts` → esperado: output channel mostra
+    "Rota registrada: <módulo>/<kebab-name>", `app.routes.ts` ganha a
+    nova entrada `loadComponent`, "Iniciando dev server na porta 4200...",
+    e o browser padrão do sistema abre sozinho em
+    `http://localhost:4200/<módulo>/<kebab-name>` mostrando o componente.
+19. **Preview de rota já registrada** — rode `PO-UI: Preview no Browser`
+    de novo apontando pro mesmo componente do cenário 18, sem fechar o
+    dev server anterior → esperado: "Rota já registrada: ..." (sem
+    duplicar a entrada em `app.routes.ts`); como o comando não rastreia
+    servidores já rodando, a porta 4200 aparece ocupada e ele sobe **um
+    segundo** `ng serve` na próxima porta livre (4201) e abre o browser
+    nela — limitação conhecida desta fatia (sem reaproveitar servidor
+    já no ar), ok pra esse teste, mas encerre os processos `ng serve`
+    manualmente no terminal ao final.
 
 ## Escopo desta fase
 
@@ -205,6 +233,17 @@ original, que também não inclui ferramentas de escrita. Cobre as mesmas
 quirks PO-UI, qualidade) via o único arquivo de referência
 `agents/code-reviewer.md`.
 
+`PO-UI: Preview no Browser` (`poui.preview`, equivalente ao `poui-
+preview` original) **não usa o Claude Code CLI nem Playwright** — a
+extensão roda no computador do usuário com um browser real disponível,
+então em vez de MCP + screenshot ela registra a rota em
+`app.routes.ts` (`src/previewRoutes.ts`), sobe `ng serve` numa porta
+livre 4200-4209 (`src/devServer.ts`, detecção via `net` do Node, sem
+PowerShell/netstat) e abre o browser padrão do sistema via
+`vscode.env.openExternal`. Limitação conhecida: não rastreia servidores
+já em execução, então rodar o comando duas vezes sobe dois `ng serve`
+em portas diferentes (ver cenário de QA 19).
+
 **Adiados deliberadamente** (não são bugs — decisão de escopo por
 orçamento de tempo/tokens da sessão, ver memória do projeto):
 `module` (cria um app inteiro do zero, semântica diferente dos demais
@@ -212,8 +251,10 @@ tipos), `refactor` (precisa de um passo de seleção de arquivo `.prw`/
 `.tlpp` que a extensão ainda não tem) e a skill `discover` (analisa um
 endpoint REST fazendo uma chamada HTTP real contra um backend Protheus —
 arquitetura bem diferente dos geradores). A correção automática de
-`H01`/`H02` no lint (ver acima), a sidebar tree view e os demais
-comandos do plugin `poui-specialist` (`e2e`, `preview` — ambos dependem
-de Playwright + dev server real, uma peça de infraestrutura que a
-extensão ainda não tem) ficam para depois — ver
+`H01`/`H02` no lint (ver acima), a sidebar tree view, um comando de
+"parar o dev server" para o preview, e `e2e` (o único item realmente
+restante do plugin original — precisa do agente controlando um browser
+ao vivo via Playwright/MCP dentro do CLI headless, uma peça de
+arquitetura nova que merece sua própria investigação) ficam para depois
+— ver
 `docs/superpowers/specs/2026-08-21-vscode-extension-phase0-design.md`.
