@@ -48,7 +48,7 @@ Para cada componente encontrado, verificar:
 | L04 | WARNING | `@Input()` em vez de `input()` | não (risco de quebra) |
 | L05 | ERROR | `inject()` não usado — construtor com muitos parâmetros (Angular 17+ best practice) | não |
 | L06 | WARNING | `subscribe()` sem callback `error:` — loading pode travar | sim (adiciona error: stub) |
-| L07 | ERROR | Ausência de `loading.set(false)` no callback `error:` | sim |
+| L07 | ERROR | Ausência de `loading.set(false)` no callback `error:` **e** ausência de `.pipe(finalize(() => loading.set(false)), ...)` antes do `.subscribe(` — `finalize()` já garante o reset em sucesso e erro, então não é uma falha real quando presente | sim |
 
 ### Verificações em `.component.html`
 

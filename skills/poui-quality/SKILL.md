@@ -78,12 +78,12 @@ Para cada arquivo em `$components`, ler o conteúdo e avaliar:
 |---|---|---|---|
 | 1 | OnPush | `ChangeDetectionStrategy\.OnPush` presente no arquivo | Crítico |
 | 2 | Loading state | `finalize\(` presente no arquivo | Atenção |
-| 3 | Error handling | `notification\.error\(` ou `catchError\(` presente no arquivo | Atenção |
+| 3 | Error handling | `notification\.error\(` ou `catchError\(` presente no arquivo, **ou** um callback `error:` cujo corpo chama `.set(` (ex: `error: () => { this.error.set(msg); ... }`) — padrão de banner inline via signal, comum em dashboards que evitam toast em cima de gráfico | Atenção |
 | 4 | Cleanup observables | `takeUntilDestroyed` presente no arquivo | Atenção |
 
 **Regra 5 — Lazy loading (apenas `app.routes.ts`):**
 
-Para cada entrada com `path:` em `$routesContent`, verificar se a mesma entrada de rota contém `loadComponent:` (aprovado) ou `component:` (reprovado). Reportar como seção separada no relatório — não por componente individual.
+Para cada entrada com `path:` em `$routesContent`, verificar se a mesma entrada de rota contém `loadComponent:` (aprovado) ou `component:` (reprovado). **Entradas de redirect puro** (`redirectTo`, sem `component` nem `loadComponent` — ex: `path: ''` ou `path: '**'` que só redirecionam) não referenciam nenhum componente e devem ser **ignoradas** nesta auditoria, não reportadas como "reprovado". Reportar como seção separada no relatório — não por componente individual.
 
 ---
 
