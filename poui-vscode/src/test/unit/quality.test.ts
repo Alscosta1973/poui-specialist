@@ -83,6 +83,21 @@ export const routes: Routes = [
   it('returns an empty list for an empty routes file', () => {
     assert.deepStrictEqual(auditRoutesLazyLoading(''), []);
   });
+
+  it('excludes pure redirectTo routes — they reference no component at all (real-world false positive)', () => {
+    const routes = `
+export const routes: Routes = [
+  { path: '', redirectTo: 'inicio', pathMatch: 'full' },
+  { path: 'inicio', loadComponent: () => import('./home/home.component').then(m => m.HomeComponent) },
+  { path: '**', redirectTo: 'inicio' },
+];
+`;
+    const audits = auditRoutesLazyLoading(routes);
+    assert.deepStrictEqual(
+      audits.map((a) => [a.routePath, a.lazy]),
+      [['inicio', true]],
+    );
+  });
 });
 
 describe('formatQualityReport', () => {

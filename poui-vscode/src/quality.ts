@@ -70,6 +70,11 @@ export interface RouteAudit {
   lazy: boolean;
 }
 
+/** Rotas de redirect puro (`redirectTo`, sem `component`/`loadComponent`) não
+ * referenciam nenhum componente — não fazem parte da auditoria de lazy
+ * loading (achado testando de verdade em VS Code: as rotas `''` e `'**'`
+ * típicas de um `app.routes.ts` real são redirects, e apareciam como
+ * "❌ component direto" mesmo sem usar `component:` de jeito nenhum). */
 export function auditRoutesLazyLoading(routesContent: string): RouteAudit[] {
   const audits: RouteAudit[] = [];
   const pathRe = /path\s*:\s*['"]([^'"]*)['"]/g;
@@ -79,7 +84,12 @@ export function auditRoutesLazyLoading(routesContent: string): RouteAudit[] {
     const start = matches[i].index!;
     const end = i + 1 < matches.length ? matches[i + 1].index! : routesContent.length;
     const chunk = routesContent.slice(start, end);
-    audits.push({ routePath: matches[i][1], lazy: /loadComponent\s*:/.test(chunk) });
+    const hasLoadComponent = /loadComponent\s*:/.test(chunk);
+    const hasComponent = /\bcomponent\s*:/.test(chunk);
+    if (!hasLoadComponent && !hasComponent) {
+      continue;
+    }
+    audits.push({ routePath: matches[i][1], lazy: hasLoadComponent });
   }
 
   return audits;
