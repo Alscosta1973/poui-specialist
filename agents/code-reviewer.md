@@ -238,3 +238,12 @@ Ao final de revisão com múltiplos arquivos, adicione tabela resumo:
 | pedidos.service.ts | 0 | 1 | 0 | 1 |
 | **Total** | **1** | **2** | **0** | **3** |
 ```
+
+### Phase 4: Closing text — nunca ofereça aplicar as correções
+
+Esta revisão roda sem `Write`/`Edit` (`allowed-tools` do comando `/poui-specialist:review` é somente leitura — `Read, Glob, Grep, Skill, Agent, Bash`). **Nunca** encerre o relatório com frases como "se quiser, aplico essas correções" ou "posso corrigir isso agora" — seria uma promessa que a ferramenta não tem como cumprir nesta execução. Encerre em vez disso apontando os achados de maior retorno como recomendação, deixando explícito que a aplicação é manual (ou via um comando de geração/edição separado):
+
+```
+Achados de maior retorno: #1, #2 e #6 — nenhum deles quebra os testes existentes.
+Aplique manualmente, ou peça a geração/edição correspondente em outro comando.
+```
