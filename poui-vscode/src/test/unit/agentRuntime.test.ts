@@ -334,4 +334,60 @@ describe('runClaudeAgent', () => {
     const fs = await import('node:fs/promises');
     await assert.rejects(() => fs.access(promptFilePath as string));
   });
+
+  it('writes mcpConfig to a temp file, passes --mcp-config/--strict-mcp-config, and removes it afterward', async () => {
+    const sink = new RecordingSink();
+    let capturedArgs: string[] | undefined;
+    let mcpConfigFilePath: string | undefined;
+    let writtenAtSpawnTime: string | undefined;
+    const fsSync = await import('node:fs');
+    const spawnFn: SpawnFn = (_command, args) => {
+      capturedArgs = args;
+      const flagIndex = args.indexOf('--mcp-config');
+      mcpConfigFilePath = args[flagIndex + 1];
+      // O arquivo já foi escrito antes do spawn acontecer — lê aqui, síncrono,
+      // porque o `finally` do runClaudeAgent apaga o arquivo assim que o
+      // processo (falso, resolvido no mesmo tick) termina, antes do `await`
+      // devolver o controle pra este teste.
+      writtenAtSpawnTime = fsSync.readFileSync(mcpConfigFilePath as string, 'utf8');
+      return makeFakeProcess({ messages: [{ type: 'result', subtype: 'success', is_error: false, result: 'done' }] });
+    };
+
+    await runClaudeAgent(
+      {
+        cwd: '/tmp/workspace',
+        systemPrompt: 'system',
+        userPrompt: 'user',
+        mcpConfig: '{"mcpServers":{"playwright":{"command":"npx","args":["-y","@playwright/mcp@latest"]}}}',
+        allowedTools: 'mcp__playwright__browser_navigate',
+      },
+      sink,
+      spawnFn,
+    );
+
+    assert.ok(capturedArgs?.includes('--strict-mcp-config'));
+    assert.ok(capturedArgs?.includes('--allowedTools'));
+    const allowedIndex = capturedArgs?.indexOf('--allowedTools');
+    assert.strictEqual(capturedArgs?.[(allowedIndex ?? -1) + 1], 'mcp__playwright__browser_navigate');
+
+    assert.strictEqual(writtenAtSpawnTime, '{"mcpServers":{"playwright":{"command":"npx","args":["-y","@playwright/mcp@latest"]}}}');
+    assert.ok(mcpConfigFilePath);
+    const fs = await import('node:fs/promises');
+    await assert.rejects(() => fs.access(mcpConfigFilePath as string));
+  });
+
+  it('omits --mcp-config/--strict-mcp-config/--allowedTools when mcpConfig is not provided', async () => {
+    const sink = new RecordingSink();
+    let capturedArgs: string[] | undefined;
+    const spawnFn: SpawnFn = (_command, args) => {
+      capturedArgs = args;
+      return makeFakeProcess({ messages: [{ type: 'result', subtype: 'success', is_error: false, result: 'done' }] });
+    };
+
+    await runClaudeAgent({ cwd: '/tmp/workspace', systemPrompt: 'system', userPrompt: 'user' }, sink, spawnFn);
+
+    assert.ok(!capturedArgs?.includes('--mcp-config'));
+    assert.ok(!capturedArgs?.includes('--strict-mcp-config'));
+    assert.ok(!capturedArgs?.includes('--allowedTools'));
+  });
 });

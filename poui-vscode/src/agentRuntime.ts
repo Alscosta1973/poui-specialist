@@ -26,6 +26,17 @@ export interface RunAgentOptions {
    * `ALLOWED_TOOLS`. Usado por fluxos somente-leitura (ex: `review`) que
    * não devem poder escrever/editar arquivos. */
   tools?: string;
+  /** Conteúdo JSON de config de servidores MCP (ex: Playwright) — escrito
+   * num arquivo temporário e passado via `--mcp-config`/`--strict-mcp-config`.
+   * Usado por fluxos que precisam de ferramentas MCP (ex: `e2e`). */
+  mcpConfig?: string;
+  /** Lista de tools auto-aprovadas via `--allowedTools` — distinta de
+   * `tools`/`--tools`: `--tools` só restringe o conjunto disponível, não
+   * aprova ferramentas MCP automaticamente (confirmado por teste real —
+   * sem isso, toda chamada MCP fica bloqueada por permissão mesmo com
+   * `--permission-mode acceptEdits`). Necessário sempre que `mcpConfig`
+   * também for passado. */
+  allowedTools?: string;
 }
 
 export interface SpawnedProcess {
@@ -73,7 +84,7 @@ function buildSubprocessEnv(): NodeJS.ProcessEnv {
   return env;
 }
 
-function buildArgs(options: RunAgentOptions, systemPromptFile: string): string[] {
+function buildArgs(options: RunAgentOptions, systemPromptFile: string, mcpConfigFile?: string): string[] {
   const args = [
     '-p',
     options.userPrompt,
@@ -95,6 +106,12 @@ function buildArgs(options: RunAgentOptions, systemPromptFile: string): string[]
   if (options.effort) {
     args.push('--effort', options.effort);
   }
+  if (mcpConfigFile) {
+    args.push('--mcp-config', mcpConfigFile, '--strict-mcp-config');
+  }
+  if (options.allowedTools) {
+    args.push('--allowedTools', options.allowedTools);
+  }
   return args;
 }
 
@@ -114,11 +131,17 @@ export async function runClaudeAgent(
   const filesWritten: string[] = [];
   let isAuthError = false;
   const systemPromptFile = path.join(os.tmpdir(), `poui-system-prompt-${randomUUID()}.txt`);
+  const mcpConfigFile = options.mcpConfig
+    ? path.join(os.tmpdir(), `poui-mcp-config-${randomUUID()}.json`)
+    : undefined;
 
   try {
     await fs.writeFile(systemPromptFile, options.systemPrompt, 'utf8');
+    if (mcpConfigFile && options.mcpConfig) {
+      await fs.writeFile(mcpConfigFile, options.mcpConfig, 'utf8');
+    }
 
-    const args = buildArgs(options, systemPromptFile);
+    const args = buildArgs(options, systemPromptFile, mcpConfigFile);
     const child = spawnFn('claude', args, { cwd: options.cwd, env: buildSubprocessEnv() });
 
     let stderrOutput = '';
@@ -225,5 +248,8 @@ export async function runClaudeAgent(
     return { filesWritten, succeeded: false, errorMessage, isAuthError };
   } finally {
     await fs.rm(systemPromptFile, { force: true });
+    if (mcpConfigFile) {
+      await fs.rm(mcpConfigFile, { force: true });
+    }
   }
 }
