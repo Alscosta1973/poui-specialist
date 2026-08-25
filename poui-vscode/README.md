@@ -21,7 +21,11 @@ Também gera testes unitários Karma + Jasmine (`PO-UI: Gerar Teste
 Unitário`) para qualquer `.component.ts`/`.service.ts` do projeto —
 gerado pelo plugin ou legado — via um seletor de arquivo. Diferente da
 geração de componentes, não roda `ng test` automaticamente depois: o
-spec é escrito e cabe a você rodar `ng test` para verificar.
+spec é escrito e cabe a você rodar `ng test` para verificar. Antes de
+gerar, avisa (sem bloquear) se o projeto não tiver Karma configurado em
+`angular.json` — spec Jasmine não roda em projetos criados para Vitest
+ou sem test runner nenhum (achado testando em um Angular 21 real, ver
+`src/karmaCheck.ts`).
 
 `PO-UI: Lint de Componentes` e `PO-UI: Auditoria de Qualidade` **não
 usam o Claude Code CLI** — são só análise por regex/texto sobre arquivos
@@ -144,6 +148,11 @@ Com o Extension Development Host rodando (F5) e `examples/modulo-compras`
     gerado. Rode `ng test` manualmente..." (sem `ng test` rodando sozinho).
     Depois, rode `ng test --include="<specPath>" --watch=false` manualmente
     para confirmar que o spec compila e passa.
+11b. **Aviso de Karma ausente** — num projeto sem target `test` em
+     `angular.json` (ou renomeie temporariamente o `angular.json` do
+     `modulo-compras`), rode `PO-UI: Gerar Teste Unitário` → esperado: aviso
+     "este projeto não parece ter o Karma configurado..." antes do diálogo
+     de arquivo, geração prossegue normalmente (aviso não bloqueia).
 12. **Gerar teste para arquivo inválido** — rode `PO-UI: Gerar Teste
     Unitário` e tente selecionar algo que não seja `.component.ts`/
     `.service.ts` (ex: um `.html`) → esperado: como o diálogo já filtra por
