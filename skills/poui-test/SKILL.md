@@ -27,6 +27,59 @@ Gera `*.component.spec.ts` completo (Karma + Jasmine) para componentes gerados p
 
 ---
 
+## Passo 0 — Garantir Karma configurado no projeto
+
+Verificar se `angular.json` tem, em algum projeto, um target `test` com builder
+`@angular/build:karma` ou `@angular-devkit/build-angular:karma`.
+
+**Se não existir:** perguntar antes de configurar:
+```
+Este projeto ainda não tem Karma configurado — specs Jasmine não rodam sem ele
+(comum em projetos Angular 20+, que podem vir escafoldados para Vitest ou sem
+nenhum test runner). Deseja que eu configure agora — instala
+zone.js/karma/jasmine, cria karma.conf.js e adiciona o target "test" ao
+angular.json? [S/n]
+```
+Se confirmado, executar nesta ordem (parar e reportar o erro se algum passo falhar,
+sem tentar os seguintes):
+1. `npm install --save-dev zone.js karma karma-chrome-launcher karma-jasmine karma-coverage jasmine-core @types/jasmine`
+   — **não** instalar `karma-jasmine-html-reporter`: esse plugin conflita com o
+   builder esbuild `@angular/build:karma` do Angular 21+ (`Cannot assign to read
+   only property 'describe'`), confirmado em teste real.
+2. Criar `karma.conf.js` na raiz, com `frameworks: ['jasmine']`, `plugins` só com
+   `karma-jasmine`/`karma-chrome-launcher`/`karma-coverage`, `reporters: ['progress']`
+   (sem `kjhtml`).
+3. Adicionar em `angular.json`, no(s) projeto(s) que já tem `architect.build` mas
+   não tem `architect.test`, um target:
+   ```json
+   "test": {
+     "builder": "@angular/build:karma",
+     "options": {
+       "tsConfig": "tsconfig.spec.json",
+       "polyfills": ["zone.js"],
+       "karmaConfig": "karma.conf.js",
+       "assets": /* copiar de architect.build.options.assets */,
+       "styles": /* copiar de architect.build.options.styles */
+     }
+   }
+   ```
+4. Em `tsconfig.spec.json`, garantir `"types": ["jasmine"]` (substituir
+   `"vitest/globals"` se estiver lá — o Vitest raramente está instalado quando
+   isso acontece, então manter a referência é enganoso).
+5. Em `tsconfig.json`, garantir que `references` inclua
+   `{ "path": "./tsconfig.spec.json" }` (sem isso o editor não reconhece
+   `describe`/`it`/`expect` nos arquivos `.spec.ts`, mesmo com o Karma rodando
+   certo pela CLI).
+
+Confirmar ao final: `✅ Karma configurado — dependências instaladas, karma.conf.js
+criado, angular.json/tsconfig.spec.json/tsconfig.json ajustados.` Se recusado,
+encerrar com instrução: `Configure manualmente (ex: ng generate config karma) e
+tente novamente depois.`
+
+**Se já existir:** seguir para o Passo 1.
+
+---
+
 ## Passo 1 — Parse argumentos
 
 Extrair `ComponentClass` e `--module`.

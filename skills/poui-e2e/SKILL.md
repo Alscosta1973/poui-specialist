@@ -51,14 +51,24 @@ interação no Passo 6.
 
 Verificar se existe `playwright.config.ts` na raiz do projeto Angular.
 
-**Se não existir:** perguntar antes de criar:
+**Se não existir:** perguntar antes de configurar:
 ```
 Este projeto ainda não tem Playwright Test configurado para E2E.
-Deseja que eu crie um playwright.config.ts mínimo (baseURL dinâmica, pasta e2e/)? [S/n]
+Deseja que eu configure agora — instala @playwright/test, baixa o Chromium
+e cria um playwright.config.ts mínimo (baseURL dinâmica, pasta e2e/)? [S/n]
 ```
-Se confirmado, criar `playwright.config.ts` com `testDir: './e2e'` e `use: { baseURL: 'http://localhost:4200' }`
-(a baseURL real será sobrescrita por variável de ambiente no Passo 7). Se recusado, encerrar
-com instrução: `Rode: npm init playwright@latest` e tente novamente depois.
+Se confirmado, executar nesta ordem (parar e reportar o erro se algum passo falhar,
+sem tentar os seguintes):
+1. `npm install --save-dev @playwright/test`
+2. `npx playwright install chromium`
+3. Criar `playwright.config.ts` com `testDir: './e2e'` e `use: { baseURL: 'http://localhost:4200' }`
+   (a baseURL real será sobrescrita por variável de ambiente no Passo 7)
+
+Confirmar ao final: `✅ Playwright Test configurado — @playwright/test instalado, Chromium
+baixado, playwright.config.ts criado.` Se recusado, encerrar com instrução: `Rode: npm install
+--save-dev @playwright/test && npx playwright install chromium` e tente novamente depois — só
+criar o `playwright.config.ts` sem instalar o pacote deixa `npx playwright test` quebrado
+mesmo assim.
 
 **Se já existir:** seguir para o Passo 4.
 
