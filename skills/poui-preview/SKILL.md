@@ -75,7 +75,49 @@ Verificar se já existe uma entrada com `path: '<module>/<kebab-name>'`.
 
 ---
 
-## Passo 3 — Detectar porta livre
+## Passo 3 — Reaproveitar dev server já em execução (se houver)
+
+Antes de subir um `ng serve` novo, verificar se este comando já subiu um pra
+esse mesmo projeto numa execução anterior — sem isso, cada invocação sobe um
+processo novo em uma porta diferente e o anterior fica órfão pra sempre
+(achado real, QA manual 2026-08-25: 4 processos `ng serve` acumulados numa
+única sessão).
+
+```powershell
+$raizSanitizada = $raiz -replace '[:\\/]', '_'
+$arquivoEstado = Join-Path $env:TEMP "poui-devserver-$raizSanitizada.json"
+
+$portaReaproveitada = $null
+if (Test-Path $arquivoEstado) {
+    $estado = Get-Content $arquivoEstado -Raw | ConvertFrom-Json
+    $ok = Test-NetConnection -ComputerName localhost -Port $estado.port -WarningAction SilentlyContinue
+    if ($ok.TcpTestSucceeded) {
+        $portaReaproveitada = $estado.port
+    }
+}
+```
+
+**Se `$portaReaproveitada` tiver um valor:** usar essa porta diretamente,
+avisar `"Reaproveitando dev server já em execução na porta <porta>..."` e
+pular direto para o Passo 4.5 (não repetir os Passos 3-4 de detecção/subida).
+
+**Se `$portaReaproveitada` for nulo** (nunca rodou antes, ou o servidor
+daquela execução morreu): continuar para a detecção de porta livre abaixo, e
+ao final do Passo 4 (servidor respondendo), gravar o estado para reaproveitar
+na próxima vez:
+
+```powershell
+@{ port = $portaLivre; raiz = $raiz } | ConvertTo-Json | Set-Content $arquivoEstado
+```
+
+> `$env:TEMP` fica fora do repositório do projeto — nunca cria arquivo
+> versionado nem precisa de entrada no `.gitignore`. O campo `raiz` é só
+> informativo (não é lido de volta), útil se alguém for inspecionar a pasta
+> temp manualmente.
+
+---
+
+## Passo 3.5 — Detectar porta livre (só quando não houver reaproveitamento)
 
 Testar as portas 4200 a 4209 em ordem usando PowerShell:
 
@@ -89,6 +131,12 @@ for ($p = 4200; $p -le 4209; $p++) {
     }
 }
 ```
+
+> `netstat -ano` sem o filtro `-p TCP` — achado real (2026-08-25): com o
+> filtro, entradas IPv6 (`[::1]:<porta>`) somem silenciosamente da saída no
+> Windows, mesmo aparecendo como protocolo "TCP" no `netstat -ano` puro. Um
+> `ng serve` que bindou só em IPv6 loopback passaria despercebido como
+> "porta livre".
 
 **Cenários:**
 
@@ -150,6 +198,13 @@ Se timeout estourar sem o servidor responder:
 Verifique se há erros de compilação no terminal e tente novamente.
 ```
 
+**Servidor respondendo com sucesso:** gravar o estado para a próxima
+execução reaproveitar (ver Passo 3):
+
+```powershell
+@{ port = $portaLivre; raiz = $raiz } | ConvertTo-Json | Set-Content $arquivoEstado
+```
+
 ---
 
 ## Passo 4.5 — Verificar disponibilidade do Playwright
@@ -197,8 +252,14 @@ Após o screenshot, exibir:
 ```
 ✅ Preview disponível em: http://localhost:<portaLivre>/<module>/<kebab-name>
 
-O servidor Angular está rodando na porta <portaLivre>.
-Para encerrar, feche o terminal ou pressione Ctrl+C no processo do Angular.
+O servidor Angular está rodando na porta <portaLivre> e continuará rodando
+em background — a próxima vez que você pedir um preview (ou E2E) neste
+mesmo projeto, ele é reaproveitado automaticamente em vez de subir outro.
+
+Para encerrar de vez:
+  $linha = netstat -ano | Select-String "TCP6?\s+\S+:<portaLivre>\s.*LISTENING"
+  $pid = ($linha.ToString().Trim() -split '\s+')[-1]
+  Stop-Process -Id $pid -Force
 ```
 
 Se a API do Protheus (`/rest`) não estiver disponível, o componente exibirá
@@ -213,6 +274,10 @@ Localizar angular.json
       ↓
 Verificar/registrar rota em app.routes.ts
       ↓
+Checar arquivo de estado (%TEMP%\poui-devserver-<raiz>.json)
+  ├─ Porta rastreada ainda responde → reaproveitar, pular pra Playwright
+  └─ Sem estado ou porta morta → continuar abaixo
+      ↓
 Detectar porta livre (4200-4209)
   ├─ Todas ocupadas → abortar com instrução manual
   └─ Porta encontrada (≠4200 → avisar)
@@ -220,6 +285,8 @@ Detectar porta livre (4200-4209)
 ng serve --port <porta> (background)
       ↓
 Aguardar servidor responder (timeout 120s)
+      ↓
+Gravar porta no arquivo de estado (pra próxima execução reaproveitar)
       ↓
 Verificar Playwright disponível
   └─ Não disponível → exibir URL manual e encerrar

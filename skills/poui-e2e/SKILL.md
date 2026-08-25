@@ -76,9 +76,13 @@ mesmo assim.
 
 ## Passo 4 — Subir o app Angular
 
-Reutilizar exatamente a lógica de `skills/poui-preview/SKILL.md` Passos 1, 3 e 4 (localizar
-`angular.json`, detectar porta livre 4200–4209, iniciar `ng serve --port <porta>` em background,
-aguardar até 120s). Não repetir a rota de preview aqui — apenas garantir o servidor no ar.
+Reutilizar exatamente a lógica de `skills/poui-preview/SKILL.md` Passos 1, 3, 3.5 e 4 (localizar
+`angular.json`, checar o arquivo de estado e reaproveitar se já houver um dev server vivo pra esse
+projeto, senão detectar porta livre 4200–4209, iniciar `ng serve --port <porta>` em background,
+aguardar até 120s, e gravar o estado). Não repetir a rota de preview aqui — apenas garantir o
+servidor no ar. Como o `poui-preview` costuma rodar antes do `poui-e2e` no mesmo componente (a
+rota precisa já existir — ver "Quando NÃO usar"), na prática o servidor quase sempre já está de
+pé e é só reaproveitado aqui, sem gastar outros 5-10s de boot do Angular.
 
 Se o Playwright MCP não estiver disponível nesta sessão (mesma checagem do `poui-preview`
 Passo 4.5), abortar com a mesma mensagem orientando ativar o MCP.
@@ -158,11 +162,17 @@ npx playwright test e2e/<kebab-name>.e2e.spec.ts --reporter=list
 
 ## Passo 8 — Encerrar
 
-Deixar o dev server rodando (mesmo comportamento do `poui-preview` — não matar o processo).
-Informar:
+Deixar o dev server rodando (mesmo comportamento do `poui-preview` — não matar o processo; ele
+fica rastreado no arquivo de estado e é reaproveitado na próxima chamada de `poui-preview`/
+`poui-e2e` nesse projeto, em vez de subir outro). Informar:
 ```
 ✅ E2E gerado: e2e/<kebab-name>.e2e.spec.ts
-Dev server continua rodando em http://localhost:<porta>. Ctrl+C no terminal para encerrar.
+Dev server continua rodando em http://localhost:<porta> (reaproveitado nas próximas execuções).
+
+Para encerrar de vez:
+  $linha = netstat -ano | Select-String "TCP6?\s+\S+:<porta>\s.*LISTENING"
+  $pid = ($linha.ToString().Trim() -split '\s+')[-1]
+  Stop-Process -Id $pid -Force
 ```
 
 ---
