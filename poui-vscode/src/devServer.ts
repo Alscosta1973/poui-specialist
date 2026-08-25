@@ -12,18 +12,30 @@ export type SpawnDevServerFn = (cwd: string, port: number) => ChildProcess;
 export type SleepFn = (ms: number) => Promise<void>;
 export type ClockFn = () => number;
 
-function defaultCheckPortFree(port: number): Promise<boolean> {
+function checkHostFree(port: number, host: string): Promise<boolean> {
   return new Promise((resolve) => {
     const server = net.createServer();
     server.once('error', () => resolve(false));
     server.once('listening', () => server.close(() => resolve(true)));
-    server.listen(port, '127.0.0.1');
+    server.listen(port, host);
   });
+}
+
+/** Testa IPv4 (`127.0.0.1`) e IPv6 (`::1`) explicitamente — no Windows,
+ * vincular sem `host` (deixando o Node escolher) não detecta uma porta já
+ * ocupada só em IPv6, então checar um único bind "curinga" não é
+ * suficiente. Achado testando de verdade: um `ng serve` órfão de uma
+ * execução anterior ficou preso em `[::1]:4200`, a extensão relatou a
+ * porta como livre (só testava IPv4), e o `ng serve` seguinte falhou com
+ * "Port 4200 is already in use" — o próprio Angular CLI detecta esse tipo
+ * de ocupação. */
+export async function checkPortFree(port: number): Promise<boolean> {
+  return (await checkHostFree(port, '127.0.0.1')) && (await checkHostFree(port, '::1'));
 }
 
 function defaultProbePort(port: number): Promise<boolean> {
   return new Promise((resolve) => {
-    const socket = net.connect({ port, host: '127.0.0.1' });
+    const socket = net.connect({ port, host: 'localhost' });
     const finish = (result: boolean) => {
       socket.removeAllListeners();
       socket.destroy();
@@ -51,7 +63,7 @@ const defaultSleep: SleepFn = (ms) => new Promise((resolve) => setTimeout(resolv
 
 export async function findFreePort(
   range: PortRange = { start: 4200, end: 4209 },
-  checkFree: CheckPortFreeFn = defaultCheckPortFree,
+  checkFree: CheckPortFreeFn = checkPortFree,
 ): Promise<number | null> {
   for (let port = range.start; port <= range.end; port++) {
     if (await checkFree(port)) {
