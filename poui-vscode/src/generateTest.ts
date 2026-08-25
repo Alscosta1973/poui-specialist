@@ -3,6 +3,7 @@ import * as path from 'node:path';
 import { checkClaudeCliAvailable } from './cliCheck';
 import { runClaudeAgent } from './agentRuntime';
 import { buildTestSystemPrompt, buildTestUserPrompt } from './testPromptBuilder';
+import { isKarmaConfigured } from './karmaCheck';
 
 /** Arquivos elegíveis: qualquer `.component.ts` ou `.service.ts` do projeto —
  * gerado pelo plugin ou legado, seguindo o mesmo escopo do comando original. */
@@ -29,6 +30,14 @@ export function registerGenerateTestCommand(
         `PO-UI: CLI do Claude Code não encontrado ou não está no PATH — instale (https://code.claude.com) e faça login com \`claude\` antes de gerar código.${cliCheck.errorMessage ? ` (${cliCheck.errorMessage})` : ''}`,
       );
       return;
+    }
+
+    if (!(await isKarmaConfigured(workspaceFolder.uri.fsPath))) {
+      void vscode.window.showWarningMessage(
+        'PO-UI: este projeto não parece ter o Karma configurado (nenhum target `test` usando ' +
+          '@angular/build:karma em angular.json) — o spec será gerado, mas `ng test` não vai rodar ' +
+          'até você configurar um test runner (ex: `ng generate config karma`).',
+      );
     }
 
     const defaultDir = vscode.Uri.file(path.join(workspaceFolder.uri.fsPath, 'src', 'app'));
