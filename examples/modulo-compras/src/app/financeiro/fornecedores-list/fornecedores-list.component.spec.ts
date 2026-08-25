@@ -3,7 +3,7 @@
  * @author     Andre Costa <andre.andrelscosta@gmail.com>
  * @license    Uso permitido · redistribuição proibida sem autorização escrita
  * @see        https://github.com/Alscosta1973/poui-specialist
- * @node       not detected (>=18.19 required)
+ * @node       v24.18.1 (>=18.19 required)
  * @angular    ^21.2.0 (17-21+ supported)
  */
 
@@ -79,6 +79,20 @@ describe('FornecedoresListComponent', () => {
       fixture.detectChanges();
       expect(component).toBeTruthy();
       expect(component.title).toBe('Fornecedores');
+    });
+  }));
+
+  it('should expose the configured table columns', waitForAsync(() => {
+    fixture.detectChanges();
+    httpMock.expectOne(r => r.url.includes(apiPath)).flush(mockResponse);
+    return fixture.whenStable().then(() => {
+      fixture.detectChanges();
+      expect(component.columns.map(c => c.property)).toEqual([
+        'codigo', 'loja', 'nome', 'nomeFantasia', 'cnpj', 'municipio', 'estado', 'situacao',
+      ]);
+      const situacao = component.columns.find(c => c.property === 'situacao');
+      expect(situacao?.type).toBe('label');
+      expect(situacao?.labels?.map(l => l.value)).toEqual(['1', '2']);
     });
   }));
 
@@ -248,6 +262,7 @@ describe('FornecedoresListComponent', () => {
     }).then(() => {
       fixture.detectChanges();
       expect(notifSpy).toHaveBeenCalledWith('Erro ao carregar mais registros.');
+      // itens já carregados permanecem intactos quando a próxima página falha
       expect(component.items()).toEqual([mockItem]);
       expect(component.loading()).toBeFalse();
     });
@@ -294,6 +309,7 @@ describe('FornecedoresListComponent', () => {
       const args = confirmSpy.calls.mostRecent().args[0] as any;
       expect(args.title).toBe('Excluir fornecedor');
       expect(args.message).toContain(mockItem.codigo);
+      expect(args.message).toContain(mockItem.nome);
       // nenhuma request enquanto o usuário não confirmar
       httpMock.expectNone(r => r.method === 'DELETE');
     });
@@ -302,7 +318,9 @@ describe('FornecedoresListComponent', () => {
   it('should DELETE and remove item from list on confirm', waitForAsync(() => {
     let successSpy: jasmine.Spy;
     fixture.detectChanges();
-    httpMock.expectOne(r => r.url.includes(apiPath)).flush({ items: [mockItem, mockItem2], hasNext: false });
+    httpMock
+      .expectOne(r => r.url.includes(apiPath))
+      .flush({ items: [mockItem, mockItem2], hasNext: false });
     return fixture.whenStable().then(() => {
       fixture.detectChanges();
 
@@ -321,6 +339,32 @@ describe('FornecedoresListComponent', () => {
       expect(successSpy).toHaveBeenCalledWith('Fornecedor excluído com sucesso.');
       expect(component.items()).toEqual([mockItem2]);
       expect(component.loading()).toBeFalse();
+    });
+  }));
+
+  it('should encode the composite key in the DELETE url', waitForAsync(() => {
+    // chave composta legada do Protheus pode conter '/' ou espaço (A2_COD + A2_LOJA)
+    const legacyItem: Fornecedor = { ...mockItem, id: '00 03/A-01', codigo: '00 03/A' };
+    fixture.detectChanges();
+    httpMock.expectOne(r => r.url.includes(apiPath)).flush({ items: [legacyItem], hasNext: false });
+    return fixture.whenStable().then(() => {
+      fixture.detectChanges();
+
+      spyOn((component as any).notification, 'success');
+      spyOn((component as any).dialog, 'confirm').and.callFake((args: any) => args.confirm());
+
+      (component.tableActions[1].action as Function)(legacyItem);
+      fixture.detectChanges();
+
+      const req = httpMock.expectOne(
+        r => r.url === `${apiPath}/${encodeURIComponent(legacyItem.id)}`
+      );
+      expect(req.request.method).toBe('DELETE');
+      req.flush(null, { status: 204, statusText: 'No Content' });
+      return fixture.whenStable();
+    }).then(() => {
+      fixture.detectChanges();
+      expect(component.items()).toEqual([]);
     });
   }));
 
@@ -347,6 +391,31 @@ describe('FornecedoresListComponent', () => {
       expect(notifSpy).toHaveBeenCalledWith('Erro MA0001: Registro em uso — Bloqueado');
       // item permanece na lista quando a exclusão falha
       expect(component.items()).toEqual([mockItem]);
+      expect(component.loading()).toBeFalse();
+    });
+  }));
+
+  it('should keep the generic message when errorMessage is not valid JSON', waitForAsync(() => {
+    let notifSpy: jasmine.Spy;
+    fixture.detectChanges();
+    httpMock.expectOne(r => r.url.includes(apiPath)).flush(mockResponse);
+    return fixture.whenStable().then(() => {
+      fixture.detectChanges();
+
+      notifSpy = spyOn((component as any).notification, 'error');
+      spyOn((component as any).dialog, 'confirm').and.callFake((args: any) => args.confirm());
+
+      (component.tableActions[1].action as Function)(mockItem);
+      fixture.detectChanges();
+
+      httpMock.expectOne(r => r.url === `${apiPath}/${mockItem.id}`).flush(
+        { errorMessage: 'texto solto sem json' },
+        { status: 400, statusText: 'Bad Request' }
+      );
+      return fixture.whenStable();
+    }).then(() => {
+      fixture.detectChanges();
+      expect(notifSpy).toHaveBeenCalledWith('Erro ao processar a requisição.');
       expect(component.loading()).toBeFalse();
     });
   }));
@@ -418,6 +487,36 @@ describe('FornecedoresListComponent', () => {
       fixture.detectChanges();
       expect(component.items()).toEqual([]);
       expect(component.hasNext()).toBeFalse();
+    });
+  }));
+
+  it('should reset paging to page 1 on a new quick search', waitForAsync(() => {
+    fixture.detectChanges();
+    httpMock.expectOne(r => r.url.includes(apiPath)).flush({ items: [mockItem], hasNext: true });
+    return fixture.whenStable().then(() => {
+      fixture.detectChanges();
+
+      component.onShowMore();
+      fixture.detectChanges();
+      httpMock
+        .expectOne(r => r.url.includes(apiPath) && r.params.get('page') === '2')
+        .flush({ items: [mockItem2], hasNext: true });
+      return fixture.whenStable();
+    }).then(() => {
+      fixture.detectChanges();
+      expect(component.items().length).toBe(2);
+
+      component.onQuickSearch('teste');
+      fixture.detectChanges();
+
+      const req = httpMock.expectOne(r => r.url.includes(apiPath) && r.params.get('q') === 'teste');
+      expect(req.request.params.get('page')).toBe('1');
+      req.flush({ items: [mockItem], hasNext: false });
+      return fixture.whenStable();
+    }).then(() => {
+      fixture.detectChanges();
+      // load() usa items.set() — substitui o acumulado da paginação anterior
+      expect(component.items()).toEqual([mockItem]);
     });
   }));
 });
