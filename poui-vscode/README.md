@@ -55,6 +55,26 @@ abre a URL no browser padrão do sistema via `vscode.env.openExternal`.
 O dev server continua rodando em background depois — não há comando de
 "parar" nesta fatia.
 
+`PO-UI: Gerar Teste E2E (Playwright)` volta a usar o Claude Code CLI, e
+é o único fluxo que também usa **MCP** — diferente de `preview`, aqui o
+agente precisa controlar um browser de verdade *durante* a geração
+(navegar e inspecionar a árvore de acessibilidade real via
+`browser_snapshot`, pra descobrir seletores de verdade em vez de
+inventar). O comando: verifica se a rota do componente já está
+registrada em `app.routes.ts` (não registra sozinho — rode `PO-UI:
+Preview no Browser` primeiro se ainda não tiver rota), sobe o dev
+server (reaproveita `devServer.ts`, sem registrar rota), configura um
+servidor MCP do Playwright (`npx @playwright/mcp@latest --headless`)
+via `--mcp-config`, e gera `e2e/<nome>.e2e.spec.ts`. **Achado
+confirmado por teste real**: `--tools`/`--permission-mode acceptEdits`
+não auto-aprovam ferramentas MCP sozinhas — precisa também de
+`--allowedTools` com os nomes `mcp__playwright__*`, senão toda chamada
+MCP fica bloqueada por permissão. Não roda `npx playwright test`
+automaticamente (mesma decisão do `test`) — e assim como o Karma, o
+projeto alvo precisa ter `@playwright/test` configurado
+(`playwright.config.ts`) pra rodar o spec depois; o comando avisa (sem
+bloquear) quando não tiver.
+
 ## Rodando em desenvolvimento
 
 1. Tenha o [Claude Code CLI](https://code.claude.com) instalado e logado
@@ -83,6 +103,10 @@ O dev server continua rodando em background depois — não há comando de
    channel "PO-UI"
 10. Ou rode `PO-UI: Preview no Browser`, selecione um `.component.ts` já
     gerado e aguarde o browser abrir sozinho na rota do componente
+11. Ou rode `PO-UI: Gerar Teste E2E (Playwright)` (depois de já ter
+    rodado o Preview nesse componente pelo menos uma vez, pra rota
+    existir), selecione o `.component.ts` e aguarde
+    `e2e/<nome>.e2e.spec.ts` ser escrito
 
 ## Testes
 
@@ -201,6 +225,19 @@ Com o Extension Development Host rodando (F5) e `examples/modulo-compras`
     nela — limitação conhecida desta fatia (sem reaproveitar servidor
     já no ar), ok pra esse teste, mas encerre os processos `ng serve`
     manualmente no terminal ao final.
+20. **E2E sem rota registrada** — rode `PO-UI: Gerar Teste E2E
+    (Playwright)` num componente que nunca passou pelo Preview →
+    esperado: erro "a rota `<módulo>/<nome>` ainda não está registrada
+    em app.routes.ts — rode PO-UI: Preview no Browser neste componente
+    primeiro", sem subir dev server nem chamar o CLI.
+21. **E2E de verdade** — rode `PO-UI: Preview no Browser` no
+    `fornecedores-list` primeiro (garante a rota), depois `PO-UI: Gerar
+    Teste E2E (Playwright)` no mesmo componente → esperado: dev server
+    sobe, output channel narra o agente usando `browser_navigate`/
+    `browser_snapshot` (bloco `→ mcp__playwright__browser_...`),
+    `e2e/fornecedores-list.e2e.spec.ts` é escrito com seletores reais
+    (não genéricos) descobertos no snapshot, notificação final "teste
+    E2E gerado. Rode `npx playwright test` manualmente...".
 
 ## Escopo desta fase
 
@@ -253,6 +290,25 @@ PowerShell/netstat) e abre o browser padrão do sistema via
 já em execução, então rodar o comando duas vezes sobe dois `ng serve`
 em portas diferentes (ver cenário de QA 19).
 
+`PO-UI: Gerar Teste E2E (Playwright)` (`poui.generate.e2e`, equivalente
+a `/poui-specialist:e2e <ComponentClass> --module <module>`) é o único
+comando que combina Claude Code CLI **e** MCP. Não registra rota (exige
+que `PO-UI: Preview no Browser` já tenha rodado nesse componente antes
+— erro claro se a rota não existir), reaproveita `devServer.ts` pra
+subir o `ng serve`, e configura `@playwright/mcp` via
+`--mcp-config`/`--strict-mcp-config` (`agentRuntime.ts` ganhou os campos
+`mcpConfig`/`allowedTools` em `RunAgentOptions` pra isso). **Achado
+confirmado por spike real antes de implementar**: `--tools`/
+`--permission-mode acceptEdits` não auto-aprovam ferramentas MCP —
+precisa também de `--allowedTools` com os nomes
+`mcp__playwright__browser_navigate`/`browser_snapshot`/`browser_wait_for`,
+senão toda chamada MCP é bloqueada por permissão mesmo em modo
+não-interativo. Gera `e2e/<nome>.e2e.spec.ts` usando seletores reais
+descobertos via `browser_snapshot` (árvore de acessibilidade) contra o
+dev server já no ar — não roda `npx playwright test` automaticamente
+(mesma decisão do `test`), e avisa (sem bloquear) se o projeto não tiver
+`playwright.config.ts`/`.js` (`src/playwrightCheck.ts`).
+
 **Adiados deliberadamente** (não são bugs — decisão de escopo por
 orçamento de tempo/tokens da sessão, ver memória do projeto):
 `module` (cria um app inteiro do zero, semântica diferente dos demais
@@ -261,9 +317,10 @@ tipos), `refactor` (precisa de um passo de seleção de arquivo `.prw`/
 endpoint REST fazendo uma chamada HTTP real contra um backend Protheus —
 arquitetura bem diferente dos geradores). A correção automática de
 `H01`/`H02` no lint (ver acima), a sidebar tree view, um comando de
-"parar o dev server" para o preview, e `e2e` (o único item realmente
-restante do plugin original — precisa do agente controlando um browser
-ao vivo via Playwright/MCP dentro do CLI headless, uma peça de
-arquitetura nova que merece sua própria investigação) ficam para depois
-— ver
+"parar o dev server" (preview e e2e sobem servidores que ficam
+rodando), e rodar `npx playwright test`/`ng test` automaticamente
+depois de gerar (mesma decisão em ambos: gerar é útil mesmo antes do
+runner estar configurado) ficam para depois — ver
 `docs/superpowers/specs/2026-08-21-vscode-extension-phase0-design.md`.
+Com `e2e`, todos os comandos do `poui-specialist` original foram
+portados para a extensão VS Code.
