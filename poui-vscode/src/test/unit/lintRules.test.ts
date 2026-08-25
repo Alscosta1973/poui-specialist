@@ -114,6 +114,23 @@ describe('lintComponentPair — TS checks', () => {
     const findings = lintComponentPair({ tsPath: 'x.component.ts', tsContent: ts });
     assert.ok(!idsOf(findings).includes('L07'));
   });
+
+  it('L07: does not flag when loading is reset via .pipe(finalize(...)) before subscribe (real-world false positive)', () => {
+    const ts = [
+      'private load(q = \'\'): void {',
+      '  this.loading.set(true);',
+      '  this.service',
+      '    .getAll({ page: this.currentPage, pageSize: this.pageSize, q })',
+      '    .pipe(finalize(() => this.loading.set(false)), takeUntilDestroyed(this.destroyRef))',
+      '    .subscribe({',
+      '      next: (res) => { this.items.set(res.items); },',
+      "      error: () => this.notification.error('Erro ao carregar fornecedores.'),",
+      '    });',
+      '}',
+    ].join('\n');
+    const findings = lintComponentPair({ tsPath: 'x.component.ts', tsContent: ts });
+    assert.ok(!idsOf(findings).includes('L07'));
+  });
 });
 
 describe('lintComponentPair — HTML checks', () => {

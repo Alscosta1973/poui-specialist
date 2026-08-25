@@ -55,6 +55,23 @@ export function findSubscribeBlocks(content: string): { start: number; end: numb
   return blocks;
 }
 
+/** `.pipe(finalize(() => loading.set(false)), ...)` antes de um `.subscribe(`
+ * já garante o reset de loading em sucesso E erro — o padrão que o próprio
+ * gerador do plugin usa. Sem essa checagem, L07 falso-positivava em todo
+ * componente gerado com esse padrão (achado testando de verdade no VS
+ * Code). Olha só o `.pipe(` mais próximo antes do `.subscribe(` — se tiver
+ * `finalize(` com `.set(false)` dentro dessa janela, considera resolvido. */
+function hasFinalizeLoadingReset(tsContent: string, subscribeStart: number): boolean {
+  const windowStart = Math.max(0, subscribeStart - 500);
+  const prefix = tsContent.slice(windowStart, subscribeStart);
+  const pipeIndex = prefix.lastIndexOf('.pipe(');
+  if (pipeIndex === -1) {
+    return false;
+  }
+  const pipeSection = prefix.slice(pipeIndex);
+  return /finalize\s*\(/.test(pipeSection) && /\.set\(\s*false\s*\)/.test(pipeSection);
+}
+
 function lintTs(tsPath: string, tsContent: string, htmlContent: string | undefined): LintFinding[] {
   const findings: LintFinding[] = [];
 
@@ -145,7 +162,7 @@ function lintTs(tsPath: string, tsContent: string, htmlContent: string | undefin
     }
     const errorMatch = /error\s*:\s*\([^)]*\)\s*=>\s*\{/.exec(block.body);
     const errorBodyIsBlock = errorMatch !== null;
-    if (!/\.set\(\s*false\s*\)/.test(block.body)) {
+    if (!/\.set\(\s*false\s*\)/.test(block.body) && !hasFinalizeLoadingReset(tsContent, block.start)) {
       findings.push({
         id: 'L07',
         severity: 'ERROR',
