@@ -139,6 +139,9 @@ The inner string is JSON and the text is URI-encoded. Always use this decoder:
 ```typescript
 // In components that call create/update/delete
 private parseProtheusError(err: any): string {
+  if (!err.error?.errorMessage) {
+    return err.error?.message ?? 'Erro ao processar a requisição.';
+  }
   try {
     const errObj = JSON.parse(err.error?.errorMessage ?? '{}');
     const msg    = decodeURIComponent(escape(errObj.message ?? ''));

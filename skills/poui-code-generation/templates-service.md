@@ -79,6 +79,9 @@ O REST do Protheus retorna erros em um formato específico que requer decodifica
 ```typescript
 // Copie este helper em qualquer componente que realize operações de escrita (salvar/excluir)
 private parseProtheusError(err: any): string {
+  if (!err.error?.errorMessage) {
+    return err.error?.message ?? 'Erro ao processar a requisição.';
+  }
   try {
     const errObj = JSON.parse(err.error?.errorMessage ?? '{}');
     const msg    = decodeURIComponent(escape(errObj.message ?? ''));

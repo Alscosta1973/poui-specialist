@@ -141,6 +141,9 @@ export class PedidosEditComponent implements OnInit {
   }
 
   private parseProtheusError(err: any): string {
+    if (!err.error?.errorMessage) {
+      return err.error?.message ?? 'Erro ao processar a requisição.';
+    }
     try {
       const obj    = JSON.parse(err.error?.errorMessage ?? '{}');
       const msg    = decodeURIComponent(escape(obj.message ?? ''));
