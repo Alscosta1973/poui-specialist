@@ -1,6 +1,8 @@
 import * as vscode from 'vscode';
 import { registerGenerateComponentCommand } from './generateComponent';
 import { registerGenerateTestCommand } from './generateTest';
+import { registerLintCommand } from './generateLint';
+import { registerQualityCommand } from './generateQuality';
 
 export function activate(context: vscode.ExtensionContext): void {
   const outputChannel = vscode.window.createOutputChannel('PO-UI');
@@ -13,6 +15,8 @@ export function activate(context: vscode.ExtensionContext): void {
 
   context.subscriptions.push(registerGenerateComponentCommand(context, outputChannel));
   context.subscriptions.push(registerGenerateTestCommand(context, outputChannel));
+  context.subscriptions.push(registerLintCommand(context, outputChannel));
+  context.subscriptions.push(registerQualityCommand(context, outputChannel));
 }
 
 export function deactivate(): void {}
