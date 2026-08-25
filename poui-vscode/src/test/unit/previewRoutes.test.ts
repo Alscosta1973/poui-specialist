@@ -58,6 +58,51 @@ describe('insertRoute', () => {
       }),
     );
   });
+
+  it('adds a separating comma when the last existing entry has none (real-world app.routes.ts style, no wildcard)', () => {
+    const routesNoTrailingComma = `import { Routes } from '@angular/router';
+
+export const routes: Routes = [
+  { path: '', redirectTo: 'inicio', pathMatch: 'full' },
+  { path: 'inicio', loadComponent: () => import('./home/home.component').then(m => m.HomeComponent) }
+];
+`;
+    const updated = insertRoute(routesNoTrailingComma, {
+      routeSegment: 'financeiro/fornecedores-list',
+      importPath: './financeiro/fornecedores-list/fornecedores-list.component',
+      componentClass: 'FornecedoresListComponent',
+    });
+
+    assert.ok(
+      /HomeComponent\) \},\s*\n\s*\{/.test(updated),
+      'expected a comma to separate the last pre-existing entry from the new one',
+    );
+    assert.ok(updated.includes(`path: 'financeiro/fornecedores-list'`));
+  });
+
+  it('inserts before a trailing wildcard (**) route instead of after it — ** must stay last for Angular routing', () => {
+    const routesWithWildcard = `import { Routes } from '@angular/router';
+
+export const routes: Routes = [
+  { path: '', redirectTo: 'inicio', pathMatch: 'full' },
+  { path: 'inicio', loadComponent: () => import('./home/home.component').then(m => m.HomeComponent) },
+  { path: '**', redirectTo: 'inicio' }
+];
+`;
+    const updated = insertRoute(routesWithWildcard, {
+      routeSegment: 'financeiro/fornecedores-list',
+      importPath: './financeiro/fornecedores-list/fornecedores-list.component',
+      componentClass: 'FornecedoresListComponent',
+    });
+
+    const wildcardIndex = updated.indexOf(`path: '**'`);
+    const newRouteIndex = updated.indexOf(`path: 'financeiro/fornecedores-list'`);
+    assert.ok(newRouteIndex !== -1 && wildcardIndex !== -1);
+    assert.ok(newRouteIndex < wildcardIndex, 'expected the new route to be inserted before the ** wildcard');
+    // The wildcard entry must keep its own original indentation, not lose it
+    // to the newly inserted block above it.
+    assert.ok(updated.includes(`\n  { path: '**', redirectTo: 'inicio' }`));
+  });
 });
 
 describe('deriveRouteRegistration', () => {
