@@ -22,6 +22,10 @@ export interface RunAgentOptions {
   userPrompt: string;
   model?: string;
   effort?: 'low' | 'medium' | 'high' | 'xhigh' | 'max';
+  /** Lista de tools liberadas, separadas por vírgula — sobrescreve
+   * `ALLOWED_TOOLS`. Usado por fluxos somente-leitura (ex: `review`) que
+   * não devem poder escrever/editar arquivos. */
+  tools?: string;
 }
 
 export interface SpawnedProcess {
@@ -79,7 +83,7 @@ function buildArgs(options: RunAgentOptions, systemPromptFile: string): string[]
     'stream-json',
     '--verbose',
     '--tools',
-    ALLOWED_TOOLS,
+    options.tools ?? ALLOWED_TOOLS,
     '--permission-mode',
     'acceptEdits',
     '--setting-sources',

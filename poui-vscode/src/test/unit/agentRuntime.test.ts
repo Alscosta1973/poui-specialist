@@ -296,6 +296,25 @@ describe('runClaudeAgent', () => {
     assert.ok(!('ANTHROPIC_BASE_URL' in (capturedEnv ?? {})));
   });
 
+  it('overrides the default tool list when options.tools is provided', async () => {
+    const sink = new RecordingSink();
+    let capturedArgs: string[] | undefined;
+    const spawnFn: SpawnFn = (_command, args) => {
+      capturedArgs = args;
+      return makeFakeProcess({ messages: [{ type: 'result', subtype: 'success', is_error: false, result: 'done' }] });
+    };
+
+    await runClaudeAgent(
+      { cwd: '/tmp/workspace', systemPrompt: 'system', userPrompt: 'revise este código', tools: 'Read,Glob,Grep' },
+      sink,
+      spawnFn,
+    );
+
+    const toolsIndex = capturedArgs?.indexOf('--tools');
+    assert.strictEqual(capturedArgs?.[(toolsIndex ?? -1) + 1], 'Read,Glob,Grep');
+    assert.ok(!capturedArgs?.includes('Read,Write,Edit,Glob,Grep'));
+  });
+
   it('writes the system prompt to a temp file and removes it afterward', async () => {
     const sink = new RecordingSink();
     let promptFilePath: string | undefined;
