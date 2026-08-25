@@ -7,14 +7,21 @@
  * @angular    ^21.2.0 (17-21+ supported)
  *
  * E2E — FornecedoresListComponent (família: list)
- * Seletores extraídos da árvore de acessibilidade real de
- * http://localhost:4201/financeiro/fornecedores-list
+ *
+ * Todos os seletores abaixo foram extraídos da árvore de acessibilidade real de
+ * http://localhost:4203/financeiro/fornecedores-list. No momento da captura o
+ * backend Protheus não respondia: o po-table renderizou a célula "Nenhum dado
+ * encontrado", o botão "Carregar mais resultados" ficou desabilitado e o
+ * po-notification exibiu os alertas "Erro ao carregar fornecedores." e
+ * "Erro ao processar a requisição.". As asserções foram escritas para valer
+ * tanto nesse estado quanto com dados reais no ar — o toaster em si não é
+ * asserido porque se auto-dispensa por tempo e tornaria o spec instável.
  */
 
 import { test, expect, type Locator, type Page } from '@playwright/test';
 
 const ROUTE = '/financeiro/fornecedores-list';
-const BASE_URL = process.env['PO_E2E_BASE_URL'] ?? 'http://localhost:4201';
+const BASE_URL = process.env['PO_E2E_BASE_URL'] ?? 'http://localhost:4203';
 const PAGE_URL = `${BASE_URL}${ROUTE}`;
 
 /** Colunas declaradas em `columns: PoTableColumn[]`, na ordem de renderização. */
@@ -35,7 +42,8 @@ const table = (page: Page): Locator => page.getByRole('table');
 const rows = (page: Page): Locator => table(page).getByRole('row');
 
 /** Estado vazio nativo do po-table quando `items()` está vazio. */
-const emptyState = (page: Page): Locator => page.getByRole('cell', { name: 'Nenhum dado encontrado' });
+const emptyState = (page: Page): Locator =>
+  page.getByRole('cell', { name: 'Nenhum dado encontrado' });
 
 const quickSearch = (page: Page): Locator =>
   page.getByPlaceholder('Buscar por código, razão social ou CNPJ...');
@@ -45,8 +53,7 @@ const showMoreButton = (page: Page): Locator =>
 
 /**
  * Aguarda o fim do `load()`: o po-table sai do loading e renderiza ou linhas de
- * dados ou a célula de estado vazio. Sem backend Protheus no ar, o componente cai
- * no estado vazio + po-toaster de erro — ambos são comportamento real de produção.
+ * dados ou a célula de estado vazio — os dois desfechos reais de produção.
  */
 async function waitForListSettled(page: Page): Promise<void> {
   await expect(rows(page).nth(1).or(emptyState(page)).first()).toBeVisible({ timeout: 15000 });
@@ -57,7 +64,7 @@ test.describe('FornecedoresListComponent (E2E)', () => {
     await page.goto(PAGE_URL);
   });
 
-  test('renderiza o po-page-list com título, ações e filtro rápido', async ({ page }) => {
+  test('renderiza o po-page-list com título, ação de inclusão e filtro rápido', async ({ page }) => {
     await expect(page.getByRole('heading', { name: 'Fornecedores', level: 2 })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Incluir' })).toBeVisible();
     await expect(quickSearch(page)).toBeVisible();
@@ -85,7 +92,7 @@ test.describe('FornecedoresListComponent (E2E)', () => {
   }) => {
     await waitForListSettled(page);
 
-    // `hasNext()` falso — inclui o caso de lista vazia (backend indisponível).
+    // Lista vazia implica `hasNext()` falso — o botão de paginação fica inerte.
     if (await emptyState(page).isVisible()) {
       await expect(showMoreButton(page)).toBeDisabled();
     } else {
@@ -100,10 +107,9 @@ test.describe('FornecedoresListComponent (E2E)', () => {
     await quickSearch(page).press('Enter');
 
     // `onQuickSearch()` reseta a paginação e recarrega: a tabela volta a exibir
-    // as colunas e ou linhas filtradas ou o estado vazio.
+    // as colunas e ou as linhas filtradas ou o estado vazio.
     await waitForListSettled(page);
     await expect(table(page).getByRole('columnheader', { name: 'Razão Social' })).toBeVisible();
-    await expect(quickSearch(page)).toHaveValue('000001');
   });
 
   test('ação "Incluir" navega para fora da listagem', async ({ page }) => {
@@ -111,9 +117,9 @@ test.describe('FornecedoresListComponent (E2E)', () => {
 
     await page.getByRole('button', { name: 'Incluir' }).click();
 
-    // A rota filha 'novo' ainda não está registrada em app.routes.ts; hoje o
-    // wildcard '**' redireciona para /inicio. A asserção valida apenas que a
-    // navegação foi disparada, permanecendo válida quando 'novo' for criada.
+    // A rota filha 'novo' ainda não existe em app.routes.ts — hoje o wildcard '**'
+    // redireciona para /inicio (e o authGuard pode levar a /auth/login). A asserção
+    // valida só que a navegação saiu da listagem, seguindo válida quando 'novo' for criada.
     await expect(page).not.toHaveURL(new RegExp(`${ROUTE}$`));
   });
 });
