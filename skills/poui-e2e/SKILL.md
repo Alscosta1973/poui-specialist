@@ -61,8 +61,38 @@ Se confirmado, executar nesta ordem (parar e reportar o erro se algum passo falh
 sem tentar os seguintes):
 1. `npm install --save-dev @playwright/test`
 2. `npx playwright install chromium`
-3. Criar `playwright.config.ts` com `testDir: './e2e'` e `use: { baseURL: 'http://localhost:4200' }`
-   (a baseURL real será sobrescrita por variável de ambiente no Passo 7)
+3. Criar `playwright.config.ts`:
+   ```typescript
+   import { defineConfig } from '@playwright/test';
+
+   export default defineConfig({
+     testDir: './e2e',
+     use: {
+       baseURL: process.env['PO_E2E_BASE_URL'] ?? 'http://localhost:4200',
+     },
+     reporter: 'list',
+   });
+   ```
+   > **Achado real (2026-08-25):** uma versão anterior deste passo deixava a
+   > `baseURL` fixa em `'http://localhost:4200'` com a promessa de que seria
+   > "sobrescrita por variável de ambiente no Passo 7" — mas nenhum passo
+   > setava essa variável de fato, então todo spec gerado com o dev server
+   > numa porta diferente de 4200 (comum: portas 4200-4209 são alocadas
+   > dinamicamente, e desde o reaproveitamento de dev server — Passo 3 do
+   > `poui-preview` — a porta reaproveitada raramente é a 4200 "limpa") batia
+   > na URL errada e `npx playwright test` falhava sempre. O Passo 6 abaixo
+   > resolve isso de vez embutindo a porta real no próprio spec gerado, sem
+   > depender de env var nenhuma no momento de rodar — a `baseURL` dinâmica
+   > aqui é só uma rede de segurança pra quem rodar o spec manualmente.
+4. Adicionar ao `.gitignore` (se existir e ainda não tiver) os padrões dos
+   artefatos efêmeros do Playwright — evita commit acidental:
+   ```
+   /test-results
+   /playwright-report
+   /.playwright-mcp
+   /blob-report
+   /playwright/.cache
+   ```
 
 Confirmar ao final: `✅ Playwright Test configurado — @playwright/test instalado, Chromium
 baixado, playwright.config.ts criado.` Se recusado, encerrar com instrução: `Rode: npm install
@@ -91,7 +121,9 @@ Passo 4.5), abortar com a mesma mensagem orientando ativar o MCP.
 
 ## Passo 5 — Inspecionar o DOM real para descobrir seletores
 
-Navegar para `/<module>/<kebab-name>` com `browser_navigate` e capturar `browser_snapshot`
+Navegar para `http://localhost:<porta-real-do-Passo-4>/<module>/<kebab-name>` (URL absoluta —
+`browser_navigate` precisa do host completo, não só do caminho) com `browser_navigate` e capturar
+`browser_snapshot`
 (árvore de acessibilidade, não screenshot) para identificar os seletores reais a usar no spec:
 
 | Família | O que localizar no snapshot |
@@ -108,21 +140,31 @@ spec gerado, nunca inventar seletores genéricos que não existam na página rea
 
 ## Passo 6 — Gerar o spec E2E
 
-Escrever `e2e/<kebab-name>.e2e.spec.ts` usando `@playwright/test`, com roteiro por família:
+Escrever `e2e/<kebab-name>.e2e.spec.ts` usando `@playwright/test`. **Embutir a porta real usada
+no Passo 4** numa constante `BASE_URL` no topo do arquivo, sobrescrevível por `PO_E2E_BASE_URL` —
+o spec navega com URL **absoluta** (`PAGE_URL`), nunca relativa. Isso deixa o spec correto mesmo
+que a `baseURL` do `playwright.config.ts` aponte pra outra porta (ver achado no Passo 3):
 
-**`list`:**
 ```typescript
 import { test, expect } from '@playwright/test';
 
+const BASE_URL = process.env['PO_E2E_BASE_URL'] ?? 'http://localhost:<porta-real-do-Passo-4>';
+const PAGE_URL = `${BASE_URL}/<module>/<kebab-name>`;
+```
+
+Roteiro por família, sempre usando `page.goto(PAGE_URL)` em vez de caminho relativo:
+
+**`list`:**
+```typescript
 test.describe('<ComponentClass> (E2E)', () => {
   test('carrega a lista e exibe ao menos uma linha ou o estado vazio', async ({ page }) => {
-    await page.goto('/<module>/<kebab-name>');
+    await page.goto(PAGE_URL);
     const rows = page.getByRole('row');
     await expect(rows.first()).toBeVisible({ timeout: 10000 });
   });
 
   test('busca rápida filtra a lista', async ({ page }) => {
-    await page.goto('/<module>/<kebab-name>');
+    await page.goto(PAGE_URL);
     await page.getByPlaceholder(/pesquisar|buscar/i).fill('<termo-de-busca-real>');
     await page.keyboard.press('Enter');
     await expect(page.getByRole('row')).toHaveCount(1, { timeout: 10000 });
