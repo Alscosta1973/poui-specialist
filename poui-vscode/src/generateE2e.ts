@@ -5,6 +5,7 @@ import { checkClaudeCliAvailable } from './cliCheck';
 import { runClaudeAgent } from './agentRuntime';
 import { buildE2eSystemPrompt, buildE2eUserPrompt } from './e2ePromptBuilder';
 import { isPlaywrightConfigured } from './playwrightCheck';
+import { configurePlaywright } from './playwrightSetup';
 import { deriveRouteRegistration, routeExists } from './previewRoutes';
 import { findFreePort, spawnDevServer, waitForServerReady } from './devServer';
 
@@ -55,11 +56,40 @@ export function registerE2eCommand(
     }
 
     if (!(await isPlaywrightConfigured(workspaceRoot))) {
-      void vscode.window.showWarningMessage(
+      const choice = await vscode.window.showWarningMessage(
         'PO-UI: este projeto não parece ter o Playwright Test configurado (nenhum ' +
-          '`playwright.config.ts`/`.js` na raiz) — o spec será gerado, mas `npx playwright ' +
-          'test` não vai rodar até você configurar (ex: `npm init playwright@latest`).',
+          '`playwright.config.ts`/`.js` na raiz) — o spec ainda será gerado, mas `npx playwright ' +
+          'test` não vai rodar até configurar.',
+        'Configurar Playwright',
+        'Continuar sem configurar',
       );
+      if (choice === 'Configurar Playwright') {
+        outputChannel.clear();
+        outputChannel.show(true);
+        const setupResult = await vscode.window.withProgress(
+          {
+            location: vscode.ProgressLocation.Notification,
+            title: 'PO-UI: configurando Playwright (baixando o Chromium, pode demorar)...',
+          },
+          () => configurePlaywright(workspaceRoot, outputChannel),
+        );
+        for (const step of setupResult.steps) {
+          outputChannel.appendLine(`✓ ${step}`);
+        }
+        if (setupResult.success) {
+          void vscode.window.showInformationMessage(
+            'PO-UI: Playwright configurado! Rode `PO-UI: Gerar Teste E2E (Playwright)` de novo para gerar o teste.',
+          );
+        } else {
+          void vscode.window.showErrorMessage(
+            `PO-UI: falha ao configurar o Playwright — ${setupResult.errorMessage ?? 'erro desconhecido'}.`,
+          );
+        }
+        return;
+      }
+      if (choice !== 'Continuar sem configurar') {
+        return;
+      }
     }
 
     const defaultDir = vscode.Uri.file(path.join(workspaceRoot, 'src', 'app'));
