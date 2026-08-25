@@ -33,6 +33,14 @@ varre `src/app` inteiro procurando componentes gerados pelo plugin
 (marca `@generated  poui-specialist`) e classifica cada um em
 Aprovado/Atenção/Crítico — só leitura, nunca modifica nada.
 
+`PO-UI: Revisar Código` volta a usar o Claude Code CLI — pede um arquivo
+ou pasta e um foco (boas práticas, performance, acessibilidade,
+segurança, quirks PO-UI, qualidade, ou todas), e reporta os achados como
+texto no output channel. Diferente dos demais comandos que chamam o
+CLI, roda com um conjunto de ferramentas restrito a leitura
+(`Read,Glob,Grep` — sem `Write`/`Edit`), já que revisão nunca deve poder
+alterar código sozinha.
+
 ## Rodando em desenvolvimento
 
 1. Tenha o [Claude Code CLI](https://code.claude.com) instalado e logado
@@ -56,6 +64,9 @@ Aprovado/Atenção/Crítico — só leitura, nunca modifica nada.
    correções automáticas disponíveis
 8. Ou rode `PO-UI: Auditoria de Qualidade` (sem escolher nada) para ver o
    relatório de todos os componentes gerados pelo plugin em `src/app`
+9. Ou rode `PO-UI: Revisar Código`, selecione um arquivo ou pasta,
+   escolha o foco no `QuickPick` e veja o relatório de achados no output
+   channel "PO-UI"
 
 ## Testes
 
@@ -144,6 +155,15 @@ Com o Extension Development Host rodando (F5) e `examples/modulo-compras`
     marca `@generated  poui-specialist` em Aprovados/Atenção/Críticos,
     seção de rotas auditadas se `app.routes.ts` existir, notificação final
     com a contagem de cada categoria.
+16. **Revisar código** — rode `PO-UI: Revisar Código`, selecione uma pasta
+    (ex: `src/app/financeiro`), escolha o foco "Todas as categorias" →
+    esperado: relatório de achados por arquivo/severidade no output
+    channel "PO-UI", notificação final "revisão concluída", e nenhum
+    arquivo do projeto modificado (confira com `git status` depois).
+17. **Revisar com foco específico** — rode `PO-UI: Revisar Código` de novo
+    escolhendo "Segurança" → esperado: achados restritos à categoria
+    (`bypassSecurityTrust*`, URL hardcoded, concatenação em HTTP), sem
+    misturar com os das outras categorias.
 
 ## Escopo desta fase
 
@@ -175,6 +195,16 @@ versão (`L01`, `L02`, `L06`, `L07`, `H03`, `H04`, `H06`) — `H01`/`H02`
 reescrita seguraria exigiria balancear a tag de fechamento em HTML
 arbitrário, risco maior do que vale nesta fatia.
 
+`PO-UI: Revisar Código` (`poui.review`, equivalente a
+`/poui-specialist:review <file|directory> [--focus <categoria>]`) volta
+a usar o Claude Code CLI, mas com o conjunto de ferramentas restrito a
+`Read,Glob,Grep` (sem `Write`/`Edit`) via o novo campo opcional
+`RunAgentOptions.tools` de `agentRuntime.ts` — igual ao comando
+original, que também não inclui ferramentas de escrita. Cobre as mesmas
+6 categorias (boas práticas, performance, acessibilidade, segurança,
+quirks PO-UI, qualidade) via o único arquivo de referência
+`agents/code-reviewer.md`.
+
 **Adiados deliberadamente** (não são bugs — decisão de escopo por
 orçamento de tempo/tokens da sessão, ver memória do projeto):
 `module` (cria um app inteiro do zero, semântica diferente dos demais
@@ -183,6 +213,7 @@ tipos), `refactor` (precisa de um passo de seleção de arquivo `.prw`/
 endpoint REST fazendo uma chamada HTTP real contra um backend Protheus —
 arquitetura bem diferente dos geradores). A correção automática de
 `H01`/`H02` no lint (ver acima), a sidebar tree view e os demais
-comandos do plugin `poui-specialist` (`e2e`, `preview`, `review`) ficam
-para depois — ver
+comandos do plugin `poui-specialist` (`e2e`, `preview` — ambos dependem
+de Playwright + dev server real, uma peça de infraestrutura que a
+extensão ainda não tem) ficam para depois — ver
 `docs/superpowers/specs/2026-08-21-vscode-extension-phase0-design.md`.
