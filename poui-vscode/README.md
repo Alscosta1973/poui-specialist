@@ -25,7 +25,14 @@ spec é escrito e cabe a você rodar `ng test` para verificar. Antes de
 gerar, avisa (sem bloquear) se o projeto não tiver Karma configurado em
 `angular.json` — spec Jasmine não roda em projetos criados para Vitest
 ou sem test runner nenhum (achado testando em um Angular 21 real, ver
-`src/karmaCheck.ts`).
+`src/karmaCheck.ts`) — e oferece um botão **"Configurar Karma"** que
+instala as dependências, escreve `karma.conf.js`, adiciona o target
+`test` em `angular.json` e ajusta `tsconfig.spec.json`/`tsconfig.json`
+sozinho (`src/karmaSetup.ts`); depois de configurar, pede pra rodar o
+comando de novo em vez de continuar a geração na mesma execução.
+**Nada disso acontece automaticamente sem esse clique** — a extensão
+nunca mexe nas dependências do projeto do usuário sem confirmação
+explícita.
 
 `PO-UI: Lint de Componentes` e `PO-UI: Auditoria de Qualidade` **não
 usam o Claude Code CLI** — são só análise por regex/texto sobre arquivos
@@ -172,11 +179,23 @@ Com o Extension Development Host rodando (F5) e `examples/modulo-compras`
     gerado. Rode `ng test` manualmente..." (sem `ng test` rodando sozinho).
     Depois, rode `ng test --include="<specPath>" --watch=false` manualmente
     para confirmar que o spec compila e passa.
-11b. **Aviso de Karma ausente** — num projeto sem target `test` em
-     `angular.json` (ou renomeie temporariamente o `angular.json` do
-     `modulo-compras`), rode `PO-UI: Gerar Teste Unitário` → esperado: aviso
-     "este projeto não parece ter o Karma configurado..." antes do diálogo
-     de arquivo, geração prossegue normalmente (aviso não bloqueia).
+11b. **Aviso de Karma ausente — continuar sem configurar** — num projeto
+     sem target `test` em `angular.json` (ou renomeie temporariamente o
+     `angular.json` do `modulo-compras`), rode `PO-UI: Gerar Teste
+     Unitário` → esperado: aviso "este projeto não parece ter o Karma
+     configurado..." com dois botões, **"Configurar Karma"** e
+     **"Continuar sem configurar"** → clique no segundo → esperado: segue
+     normal pro diálogo de arquivo e gera o teste. Fechar o aviso sem
+     clicar em nenhum botão cancela o comando inteiro (decisão explícita
+     exigida, diferente das fases anteriores).
+11c. **Configurar Karma pelo botão** — mesmo cenário acima, mas clique em
+     **"Configurar Karma"** → esperado: barra de progresso "PO-UI:
+     configurando Karma...", output channel narrando cada passo (`npm
+     install`, `karma.conf.js`, `angular.json`, `tsconfig.spec.json`/
+     `tsconfig.json`), notificação final "Karma configurado! Rode... de
+     novo", e o comando encerra sem abrir o diálogo de arquivo (rode `PO-UI:
+     Gerar Teste Unitário` de novo pra confirmar que o aviso não aparece
+     mais).
 12. **Gerar teste para arquivo inválido** — rode `PO-UI: Gerar Teste
     Unitário` e tente selecionar algo que não seja `.component.ts`/
     `.service.ts` (ex: um `.html`) → esperado: como o diálogo já filtra por
@@ -238,6 +257,15 @@ Com o Extension Development Host rodando (F5) e `examples/modulo-compras`
     `e2e/fornecedores-list.e2e.spec.ts` é escrito com seletores reais
     (não genéricos) descobertos no snapshot, notificação final "teste
     E2E gerado. Rode `npx playwright test` manualmente...".
+22. **Configurar Playwright pelo botão** — num projeto sem
+    `playwright.config.ts`/`.js`, rode `PO-UI: Gerar Teste E2E
+    (Playwright)` → aviso com os botões **"Configurar Playwright"**/
+    **"Continuar sem configurar"** → clique em "Configurar Playwright" →
+    esperado: barra de progresso avisando que pode demorar (download do
+    Chromium), output channel narrando `npm install`, instalação do
+    Chromium e criação do `playwright.config.ts`, notificação final
+    "Playwright configurado! Rode... de novo". Rode o comando de novo
+    depois e confirme que o aviso não aparece mais.
 
 ## Escopo desta fase
 
@@ -307,7 +335,12 @@ não-interativo. Gera `e2e/<nome>.e2e.spec.ts` usando seletores reais
 descobertos via `browser_snapshot` (árvore de acessibilidade) contra o
 dev server já no ar — não roda `npx playwright test` automaticamente
 (mesma decisão do `test`), e avisa (sem bloquear) se o projeto não tiver
-`playwright.config.ts`/`.js` (`src/playwrightCheck.ts`).
+`playwright.config.ts`/`.js` (`src/playwrightCheck.ts`) — com um botão
+**"Configurar Playwright"** que instala `@playwright/test`, baixa o
+Chromium (`npx playwright install chromium`) e escreve
+`playwright.config.ts` sozinho (`src/playwrightSetup.ts`); mesma
+mecânica do "Configurar Karma": só roda com um clique explícito, nunca
+automaticamente.
 
 **Adiados deliberadamente** (não são bugs — decisão de escopo por
 orçamento de tempo/tokens da sessão, ver memória do projeto):
