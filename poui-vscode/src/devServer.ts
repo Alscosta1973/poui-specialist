@@ -33,7 +33,7 @@ export async function checkPortFree(port: number): Promise<boolean> {
   return (await checkHostFree(port, '127.0.0.1')) && (await checkHostFree(port, '::1'));
 }
 
-function defaultProbePort(port: number): Promise<boolean> {
+export function defaultProbePort(port: number): Promise<boolean> {
   return new Promise((resolve) => {
     const socket = net.connect({ port, host: 'localhost' });
     const finish = (result: boolean) => {

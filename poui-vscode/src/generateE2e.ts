@@ -7,7 +7,7 @@ import { buildE2eSystemPrompt, buildE2eUserPrompt } from './e2ePromptBuilder';
 import { isPlaywrightConfigured } from './playwrightCheck';
 import { configurePlaywright } from './playwrightSetup';
 import { deriveRouteRegistration, routeExists } from './previewRoutes';
-import { findFreePort, spawnDevServer, waitForServerReady } from './devServer';
+import { ensureDevServer } from './devServerRegistry';
 
 /** Ferramentas nativas + as 3 do MCP do Playwright que o `poui-e2e` original
  * também libera (`browser_navigate`, `browser_snapshot`, `browser_wait_for`)
@@ -142,31 +142,12 @@ export function registerE2eCommand(
     outputChannel.clear();
     outputChannel.show(true);
 
-    const port = await findFreePort();
-    if (port === null) {
-      void vscode.window.showErrorMessage(
-        'PO-UI: portas 4200-4209 estão todas em uso. Encerre um dos servidores em execução ou rode `ng serve --port 4210` manualmente.',
-      );
+    const devServerResult = await ensureDevServer(workspaceRoot, outputChannel);
+    if (!devServerResult.ok) {
+      void vscode.window.showErrorMessage(`PO-UI: ${devServerResult.errorMessage}`);
       return;
     }
-    if (port !== 4200) {
-      outputChannel.appendLine(`⚠ Porta 4200 em uso. Usando a porta ${port} para não interferir em outros projetos.`);
-    }
-
-    outputChannel.appendLine(`Iniciando dev server na porta ${port}...`);
-    const devServer = spawnDevServer(workspaceRoot, port);
-    let stderrTail = '';
-    devServer.stderr?.on('data', (chunk: Buffer) => {
-      stderrTail = (stderrTail + chunk.toString()).slice(-2000);
-    });
-
-    const ready = await waitForServerReady(port);
-    if (!ready) {
-      void vscode.window.showErrorMessage(
-        `PO-UI: o servidor Angular não respondeu em 120 segundos.${stderrTail ? ` Últimas linhas: ${stderrTail}` : ' Verifique se há erros de compilação.'}`,
-      );
-      return;
-    }
+    const { port } = devServerResult;
 
     const previewUrl = `http://localhost:${port}/${registration.routeSegment}`;
     outputChannel.appendLine(`Gerando teste E2E para ${relativePath} contra ${previewUrl}...`);
