@@ -23,6 +23,16 @@ gerado pelo plugin ou legado — via um seletor de arquivo. Diferente da
 geração de componentes, não roda `ng test` automaticamente depois: o
 spec é escrito e cabe a você rodar `ng test` para verificar.
 
+`PO-UI: Lint de Componentes` e `PO-UI: Auditoria de Qualidade` **não
+usam o Claude Code CLI** — são só análise por regex/texto sobre arquivos
+já no disco. O lint roda 14 verificações conhecidas (`ChangeDetectionStrategy.OnPush`
+ausente, `*ngIf`/`*ngFor` legados, `p-selected-rows`/`p-max-length`
+incorretos em `po-table`/`po-input`, etc.) numa pasta escolhida, com
+correção automática opcional para 7 delas; a auditoria de qualidade
+varre `src/app` inteiro procurando componentes gerados pelo plugin
+(marca `@generated  poui-specialist`) e classifica cada um em
+Aprovado/Atenção/Crítico — só leitura, nunca modifica nada.
+
 ## Rodando em desenvolvimento
 
 1. Tenha o [Claude Code CLI](https://code.claude.com) instalado e logado
@@ -41,6 +51,11 @@ spec é escrito e cabe a você rodar `ng test` para verificar.
 6. Ou rode `PO-UI: Gerar Teste Unitário` na paleta, selecione um
    `.component.ts`/`.service.ts` existente no diálogo de arquivo (começa
    em `src/app`) e aguarde o `.spec.ts` ser escrito ao lado
+7. Ou rode `PO-UI: Lint de Componentes`, selecione uma pasta, veja o
+   relatório no output channel "PO-UI" e escolha se quer aplicar as
+   correções automáticas disponíveis
+8. Ou rode `PO-UI: Auditoria de Qualidade` (sem escolher nada) para ver o
+   relatório de todos os componentes gerados pelo plugin em `src/app`
 
 ## Testes
 
@@ -112,6 +127,23 @@ Com o Extension Development Host rodando (F5) e `examples/modulo-compras`
     `.ts`, selecione um `.ts` que não seja componente/service (ex: um
     `.module.ts`) → erro "selecione um arquivo `.component.ts` ou
     `.service.ts`", sem chamar o CLI.
+13. **Lint com problemas corrigíveis** — introduza deliberadamente um
+    componente sem `OnPush` e com `p-max-length` no template, rode `PO-UI:
+    Lint de Componentes`, selecione a pasta → esperado: relatório no
+    output channel listando os achados por severidade, prompt "Aplicar as
+    correções automáticas disponíveis?" → escolha "Aplicar correções" →
+    esperado: os arquivos são reescritos (`OnPush` adicionado,
+    `p-max-length` virou `p-maxlength`), resumo de fixes aplicados +
+    pendências manuais, e `ng build --configuration development` continua
+    passando depois.
+14. **Lint sem problemas** — rode `PO-UI: Lint de Componentes` numa pasta
+    já limpa → esperado: "Nenhum problema encontrado." no relatório, sem
+    prompt de correção.
+15. **Auditoria de qualidade** — rode `PO-UI: Auditoria de Qualidade` (sem
+    escolher pasta) → esperado: relatório agrupando os componentes com a
+    marca `@generated  poui-specialist` em Aprovados/Atenção/Críticos,
+    seção de rotas auditadas se `app.routes.ts` existir, notificação final
+    com a contagem de cada categoria.
 
 ## Escopo desta fase
 
@@ -133,13 +165,24 @@ Karma + Jasmine (equivalente ao `/poui-specialist:test` do plugin
 original) para qualquer `.component.ts`/`.service.ts` do projeto,
 apontado via um diálogo de arquivo — não roda `ng test` automaticamente.
 
+`PO-UI: Lint de Componentes` (`poui.lint`, equivalente a
+`/poui-specialist:lint <path> [--fix]`) e `PO-UI: Auditoria de Qualidade`
+(`poui.quality`, equivalente à skill `poui-quality`) não usam o Claude
+Code CLI — são regex/texto puro sobre arquivos no disco. O lint cobre as
+14 verificações do plugin original; 7 têm correção automática nesta
+versão (`L01`, `L02`, `L06`, `L07`, `H03`, `H04`, `H06`) — `H01`/`H02`
+(`*ngIf`/`*ngFor` → `@if`/`@for`) ficam só como relatório porque a
+reescrita seguraria exigiria balancear a tag de fechamento em HTML
+arbitrário, risco maior do que vale nesta fatia.
+
 **Adiados deliberadamente** (não são bugs — decisão de escopo por
 orçamento de tempo/tokens da sessão, ver memória do projeto):
 `module` (cria um app inteiro do zero, semântica diferente dos demais
 tipos), `refactor` (precisa de um passo de seleção de arquivo `.prw`/
 `.tlpp` que a extensão ainda não tem) e a skill `discover` (analisa um
 endpoint REST fazendo uma chamada HTTP real contra um backend Protheus —
-arquitetura bem diferente dos geradores). A sidebar tree view e os demais
-comandos do plugin `poui-specialist` (`e2e`, `preview`, `lint`, `review`,
-`quality`) ficam para depois — ver
+arquitetura bem diferente dos geradores). A correção automática de
+`H01`/`H02` no lint (ver acima), a sidebar tree view e os demais
+comandos do plugin `poui-specialist` (`e2e`, `preview`, `review`) ficam
+para depois — ver
 `docs/superpowers/specs/2026-08-21-vscode-extension-phase0-design.md`.
