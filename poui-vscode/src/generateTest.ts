@@ -4,6 +4,7 @@ import { checkClaudeCliAvailable } from './cliCheck';
 import { runClaudeAgent } from './agentRuntime';
 import { buildTestSystemPrompt, buildTestUserPrompt } from './testPromptBuilder';
 import { isKarmaConfigured } from './karmaCheck';
+import { configureKarma } from './karmaSetup';
 
 /** Arquivos elegíveis: qualquer `.component.ts` ou `.service.ts` do projeto —
  * gerado pelo plugin ou legado, seguindo o mesmo escopo do comando original. */
@@ -33,11 +34,37 @@ export function registerGenerateTestCommand(
     }
 
     if (!(await isKarmaConfigured(workspaceFolder.uri.fsPath))) {
-      void vscode.window.showWarningMessage(
+      const choice = await vscode.window.showWarningMessage(
         'PO-UI: este projeto não parece ter o Karma configurado (nenhum target `test` usando ' +
-          '@angular/build:karma em angular.json) — o spec será gerado, mas `ng test` não vai rodar ' +
-          'até você configurar um test runner (ex: `ng generate config karma`).',
+          '@angular/build:karma em angular.json) — o spec ainda será gerado, mas `ng test` não vai rodar ' +
+          'até configurar um test runner.',
+        'Configurar Karma',
+        'Continuar sem configurar',
       );
+      if (choice === 'Configurar Karma') {
+        outputChannel.clear();
+        outputChannel.show(true);
+        const setupResult = await vscode.window.withProgress(
+          { location: vscode.ProgressLocation.Notification, title: 'PO-UI: configurando Karma...' },
+          () => configureKarma(workspaceFolder.uri.fsPath, outputChannel),
+        );
+        for (const step of setupResult.steps) {
+          outputChannel.appendLine(`✓ ${step}`);
+        }
+        if (setupResult.success) {
+          void vscode.window.showInformationMessage(
+            'PO-UI: Karma configurado! Rode `PO-UI: Gerar Teste Unitário` de novo para gerar o teste.',
+          );
+        } else {
+          void vscode.window.showErrorMessage(
+            `PO-UI: falha ao configurar o Karma — ${setupResult.errorMessage ?? 'erro desconhecido'}.`,
+          );
+        }
+        return;
+      }
+      if (choice !== 'Continuar sem configurar') {
+        return;
+      }
     }
 
     const defaultDir = vscode.Uri.file(path.join(workspaceFolder.uri.fsPath, 'src', 'app'));
