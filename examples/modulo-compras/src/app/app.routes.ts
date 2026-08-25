@@ -11,5 +11,11 @@ export const routes: Routes = [
   { path: 'compras/pedido-compra/:id/detalhe', loadComponent: () => import('./compras/pedido-compra-detalhe/pedido-compra-detalhe.component').then(m => m.PedidoCompraDetalheComponent) },
   { path: 'compras/aprovacao-pedido', loadComponent: () => import('./compras/aprovacao-pedido/aprovacao-pedido.component').then(m => m.AprovacaoPedidoComponent) },
   { path: 'compras/produto', loadComponent: () => import('./compras/produto/produto.component').then(m => m.ProdutoComponent) },
+  {
+    path: 'financeiro/fornecedores-list',
+    loadComponent: () =>
+      import('./financeiro/fornecedores-list/fornecedores-list.component')
+        .then(m => m.FornecedoresListComponent),
+  },
   { path: '**', redirectTo: 'inicio' }
 ];
