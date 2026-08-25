@@ -56,7 +56,7 @@ sem tentar os seguintes):
      "builder": "@angular/build:karma",
      "options": {
        "tsConfig": "tsconfig.spec.json",
-       "polyfills": ["zone.js"],
+       "polyfills": ["zone.js", "zone.js/testing"],
        "karmaConfig": "karma.conf.js",
        "assets": /* copiar de architect.build.options.assets */,
        "styles": /* copiar de architect.build.options.styles */

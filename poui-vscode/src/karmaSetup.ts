@@ -95,7 +95,7 @@ export function addKarmaTestTarget(angularJsonContent: string): string {
       builder: '@angular/build:karma',
       options: {
         tsConfig: 'tsconfig.spec.json',
-        polyfills: ['zone.js'],
+        polyfills: ['zone.js', 'zone.js/testing'],
         karmaConfig: 'karma.conf.js',
         assets: buildOptions.assets ?? [],
         styles: buildOptions.styles ?? [],

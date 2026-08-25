@@ -26,7 +26,7 @@ describe('addKarmaTestTarget', () => {
     assert.strictEqual(testTarget.builder, '@angular/build:karma');
     assert.strictEqual(testTarget.options.tsConfig, 'tsconfig.spec.json');
     assert.strictEqual(testTarget.options.karmaConfig, 'karma.conf.js');
-    assert.deepStrictEqual(testTarget.options.polyfills, ['zone.js']);
+    assert.deepStrictEqual(testTarget.options.polyfills, ['zone.js', 'zone.js/testing']);
     assert.deepStrictEqual(testTarget.options.assets, [{ glob: '**/*', input: 'public' }]);
     assert.deepStrictEqual(testTarget.options.styles, ['src/styles.scss']);
   });
