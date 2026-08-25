@@ -28,5 +28,9 @@ export function buildReviewUserPrompt(targetRelativePath: string, focus: ReviewF
     'Leia o contexto antes de apontar um problema — evite falsos positivos.',
     'Não modifique nenhum arquivo: esta é uma revisão somente leitura. Apresente o relatório',
     'completo como texto na sua resposta, agrupado por arquivo e severidade.',
+    'Não ofereça aplicar as correções você mesmo (ex: "se quiser, aplico isso agora") — você',
+    'está rodando sem acesso de escrita nesta execução, então essa oferta seria uma promessa',
+    'que não pode ser cumprida. Encerre indicando os achados de maior retorno como recomendação',
+    'para aplicação manual (ou via outro comando de geração/edição), sem se oferecer para fazê-lo.',
   ].join('\n');
 }
