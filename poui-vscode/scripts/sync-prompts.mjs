@@ -66,6 +66,9 @@ const sources = [
 
   // Fase 3 — /poui-specialist:review (agente code-reviewer)
   ['agents/code-reviewer.md', 'code-reviewer.md'],
+
+  // Fase 3 — /poui-specialist:e2e (skill poui-e2e; reaproveita poui-test-skill.md já sincronizado acima)
+  ['skills/poui-e2e/SKILL.md', 'poui-e2e-skill.md'],
 ];
 
 async function main() {
