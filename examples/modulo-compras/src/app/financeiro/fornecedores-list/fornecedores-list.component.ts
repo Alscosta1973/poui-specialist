@@ -20,6 +20,7 @@ import {
   signal,
 } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize } from 'rxjs/operators';
 import {
@@ -173,7 +174,10 @@ export class FornecedoresListComponent implements OnInit, AfterViewInit {
     this.loading.set(true);
     this.service
       .delete(row.id)
-      .pipe(finalize(() => this.loading.set(false)))
+      .pipe(
+        finalize(() => this.loading.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe({
         next: () => {
           this.notification.success('Fornecedor excluído com sucesso.');
@@ -184,18 +188,31 @@ export class FornecedoresListComponent implements OnInit, AfterViewInit {
   }
 
   private parseProtheusError(err: unknown): string {
-    if (!(err as any).error?.errorMessage) {
-      return (err as any).error?.message ?? 'Erro ao processar a requisição.';
+    const body = (err as HttpErrorResponse | undefined)?.error as ProtheusErrorBody | undefined;
+
+    if (!body?.errorMessage) {
+      return body?.message ?? 'Erro ao processar a requisição.';
     }
     try {
-      const errObj = JSON.parse((err as any).error?.errorMessage ?? '{}');
+      const errObj = JSON.parse(body.errorMessage) as ProtheusStructuredError;
       const decode = (s: string) =>
         new TextDecoder('iso-8859-1').decode(Uint8Array.from(s, (c) => c.charCodeAt(0)));
       const msg = decode(errObj.message ?? '');
       const detail = errObj.detailedMessage ? ` — ${decode(errObj.detailedMessage)}` : '';
       return `Erro ${errObj.code}: ${msg}${detail}`;
     } catch {
-      return (err as any).error?.message ?? 'Erro ao processar a requisição.';
+      return body.message ?? 'Erro ao processar a requisição.';
     }
   }
+}
+
+interface ProtheusErrorBody {
+  errorMessage?: string;
+  message?: string;
+}
+
+interface ProtheusStructuredError {
+  code?: string;
+  message?: string;
+  detailedMessage?: string;
 }

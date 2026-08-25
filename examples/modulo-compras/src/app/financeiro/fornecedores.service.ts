@@ -37,7 +37,7 @@ export class FornecedoresService {
   }
 
   getById(id: string): Observable<Fornecedor> {
-    return this.http.get<Fornecedor>(`${this.baseUrl}/${id}`);
+    return this.http.get<Fornecedor>(this.resourceUrl(id));
   }
 
   create(data: Partial<Fornecedor>): Observable<Fornecedor> {
@@ -45,11 +45,18 @@ export class FornecedoresService {
   }
 
   update(id: string, data: Partial<Fornecedor>): Observable<Fornecedor> {
-    return this.http.put<Fornecedor>(`${this.baseUrl}/${id}`, data);
+    return this.http.put<Fornecedor>(this.resourceUrl(id), data);
   }
 
   delete(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+    return this.http.delete<void>(this.resourceUrl(id));
+  }
+
+  /** `id` é uma chave composta vinda do Protheus (`A2_COD + A2_LOJA`, ex:
+   * `'000001-01'`) — código alfanumérico legado pode conter `/`, `?`, `#` ou
+   * espaço, então precisa de encoding antes de virar segmento de path. */
+  private resourceUrl(id: string): string {
+    return `${this.baseUrl}/${encodeURIComponent(id)}`;
   }
 
   private cleanParams(params: GetAllParams): Record<string, string> {
