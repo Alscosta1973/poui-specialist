@@ -6,6 +6,7 @@ import { runClaudeAgent } from './agentRuntime';
 import { runBuildFixLoop } from './buildFixLoop';
 import { deriveRouteRegistration } from './previewRoutes';
 import { readProjectName } from './packaging';
+import { findMockInterceptors } from './connectDiagnostics';
 import {
   buildBasicAuthHeader,
   buildProxyConfig,
@@ -158,17 +159,28 @@ export function registerConnectCommand(
     }
     const extraActions = extraActionsInput.trim() || undefined;
 
-    const interceptorChoice = await vscode.window.showQuickPick(
-      [
-        { label: 'Remover do app.config.ts (recomendado para produção)', value: 'remove' as const },
-        { label: 'Manter mas desativar (comentário — fácil rollback)', value: 'deactivate' as const },
-      ],
-      { placeHolder: 'Como tratar um interceptor de mock, se a extensão encontrar um para este componente?' },
-    );
-    if (!interceptorChoice) {
-      return;
+    // Só pergunta a preferência de tratamento se de fato houver um interceptor
+    // de mock pra este componente — evita uma pergunta sem sentido quando o
+    // componente já usa HTTP real (achado numa auditoria plugin×extensão).
+    const kebabName = path.basename(target.fsPath).replace(/\.component\.ts$/, '');
+    const foundInterceptors = await findMockInterceptors(workspaceRoot, kebabName);
+
+    let interceptorHandling: InterceptorHandling | undefined;
+    if (foundInterceptors.length > 0) {
+      const interceptorChoice = await vscode.window.showQuickPick(
+        [
+          { label: 'Remover do app.config.ts (recomendado para produção)', value: 'remove' as const },
+          { label: 'Manter mas desativar (comentário — fácil rollback)', value: 'deactivate' as const },
+        ],
+        {
+          placeHolder: `Como tratar o interceptor de mock encontrado (${path.basename(foundInterceptors[0])})?`,
+        },
+      );
+      if (!interceptorChoice) {
+        return;
+      }
+      interceptorHandling = interceptorChoice.value;
     }
-    const interceptorHandling: InterceptorHandling = interceptorChoice.value;
 
     // --- Parte determinística: proxy.conf.json nunca vê o CLI ---
     outputChannel.clear();

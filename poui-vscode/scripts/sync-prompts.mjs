@@ -102,6 +102,17 @@ const sources = [
 
   // Fase 4 — /poui-specialist:connect (skill poui-connect)
   ['skills/poui-connect/SKILL.md', 'poui-connect-skill.md'],
+
+  // /poui-specialist:docs (skill poui-components — arquivos ainda não sincronizados
+  // pelas outras fatias; table-components/form-fields/dynamic-form-fields/modal-dialog/
+  // dynamic-pages/navigation-components já foram sincronizados acima)
+  ['skills/poui-components/SKILL.md', 'poui-components-skill.md'],
+  ['skills/poui-components/page-components.md', 'page-components.md'],
+  ['skills/poui-components/feedback-components.md', 'feedback-components.md'],
+  ['skills/poui-components/layout-components.md', 'layout-components.md'],
+  ['skills/poui-components/utility-components.md', 'utility-components.md'],
+  ['skills/poui-components/table-templates.md', 'table-templates.md'],
+  ['skills/poui-components/ui-components.md', 'ui-components.md'],
 ];
 
 async function main() {

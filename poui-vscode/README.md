@@ -505,3 +505,35 @@ os arquivos gerados de verdade. Projeto de teste removido depois.
 plugin original (undo, screenshot, package, connect, scaffold) foram
 portados. `migrate` ficou de fora deliberadamente (coberto por
 `standalone-migrate`).
+
+## Pós-Fase 4 — achados da auditoria de paridade
+
+Uma auditoria plugin×extensão depois da Fase 4 achou dois itens reais:
+
+- **`/poui-specialist:docs` nunca tinha sido portado nem documentado
+  como decisão** (diferente de `discover`/`migrate`, que são
+  explicitamente fora de escopo). Portado agora: `PO-UI: Consultar
+  Documentação de Componente` (`poui.docs`). Como o CLI não consegue
+  ler dinamicamente os arquivos de referência da extensão (eles vivem
+  fora do `cwd` do agente), a extensão faz o roteamento ela mesma —
+  `docsPromptBuilder.ts` parseia a própria tabela "Component Reference
+  Files" de `poui-components/SKILL.md` (sem hardcodar a lista de
+  componentes) pra achar qual único arquivo de categoria carregar,
+  evitando concatenar as ~4300 linhas de todos os 11 arquivos de uma
+  vez. Só leitura (`tools: 'Read'`). Validado com uma consulta real
+  (`po-lookup` → roteado certo pra `form-fields.md`, resposta completa
+  e correta, zero arquivos escritos).
+- **`poui.connect` perguntava a preferência de tratamento de
+  interceptor mesmo quando o componente não tinha nenhum mock** —
+  cosmético, mas sem sentido. Corrigido: `connectDiagnostics.ts`
+  (`findMockInterceptors`) roda a mesma checagem do Passo 2b da skill
+  *antes* de perguntar — só mostra o `QuickPick` se achar de fato um
+  interceptor referenciando o componente. Confirmado contra um
+  componente real sem mock (`fornecedores-list` de
+  `examples/modulo-compras`): retorna vazio, pergunta não aparece.
+
+259 testes unitários (era 247) + TypeScript limpo. Suíte de
+integração não rodou nesta fatia (exige nenhuma instância do VS Code
+aberta — outras janelas reais do usuário estavam abertas); registro
+de comando/`package.json` seguem o mesmo padrão já coberto pelas 12
+outras entradas já testadas.

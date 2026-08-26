@@ -48,6 +48,11 @@ describe('buildConnectUserPrompt', () => {
     assert.notStrictEqual(removePrompt, deactivatePrompt);
   });
 
+  it('omits the "Ação de interceptor escolhida" instruction when none was found for this component (no unnecessary QuickPick answer to relay)', () => {
+    const prompt = buildConnectUserPrompt({ ...baseParams, interceptorHandling: undefined });
+    assert.ok(!prompt.includes('Ação de interceptor escolhida'));
+  });
+
   it('never accepts or includes credentials — the signature has no field for them', () => {
     // Compile-time guarantee: ConnectParams has no username/password/token/authHeader
     // field at all, so there is nothing a caller could pass through by mistake.

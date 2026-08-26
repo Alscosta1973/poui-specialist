@@ -16,7 +16,10 @@ export interface ConnectParams {
   apiPrefix: string;
   endpoint: EndpointInfo;
   extraActions?: string;
-  interceptorHandling: InterceptorHandling;
+  /** `undefined` quando o diagnóstico prévio (findMockInterceptors) não achou
+   * nenhum interceptor de mock pra este componente — nesse caso a instrução
+   * de tratamento de interceptor é omitida do prompt, sem pergunta ao usuário. */
+  interceptorHandling?: InterceptorHandling;
 }
 
 export async function buildConnectSystemPrompt(assetsDir: string, endpointIsNew: boolean): Promise<string> {
@@ -34,16 +37,24 @@ export function buildConnectUserPrompt(params: ConnectParams): string {
     'reescrita do service para HTTP real, tratamento do interceptor, atualização do spec).',
     '',
     `Prefixo da API Protheus: ${params.apiPrefix}`,
-    `Ação de interceptor escolhida pelo usuário: ${
-      params.interceptorHandling === 'remove'
-        ? 'Opção A — remover o registro do interceptor de mock em app.config.ts'
-        : 'Opção B — manter o arquivo do interceptor mas desativá-lo (comentário no topo, para rollback fácil)'
-    }.`,
+  ];
+
+  if (params.interceptorHandling) {
+    lines.push(
+      `Ação de interceptor escolhida pelo usuário: ${
+        params.interceptorHandling === 'remove'
+          ? 'Opção A — remover o registro do interceptor de mock em app.config.ts'
+          : 'Opção B — manter o arquivo do interceptor mas desativá-lo (comentário no topo, para rollback fácil)'
+      }.`,
+    );
+  }
+
+  lines.push(
     '',
     'IMPORTANTE: proxy.conf.json já foi configurado pela extensão antes desta chamada — não crie',
     'nem edite esse arquivo, e não pergunte por URL/credenciais do Protheus, elas já foram',
     'tratadas fora desta conversa.',
-  ];
+  );
 
   if (params.endpoint.kind === 'existing') {
     lines.push('', `O endpoint GET já existe no Protheus: ${params.endpoint.path}`);
