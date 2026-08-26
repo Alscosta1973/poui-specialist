@@ -52,6 +52,8 @@ Para cada item abaixo, registrar o que precisa mudar:
 | `*ngIf` / `*ngFor` | diretivas estruturais | `@if` / `@for` (Angular 17+) |
 | `ngOnInit` com chamada HTTP | `this.x = valor` | `this.x.set(valor)` |
 | `ChangeDetectorRef.detectChanges()` | inject via construtor | `inject(ChangeDetectorRef)` |
+| `ngOnDestroy + takeUntil(destroy$)` | `Subject` manual de cleanup | `takeUntilDestroyed(inject(DestroyRef))` — remove o `Subject`/`ngOnDestroy` inteiros |
+| Rota no `app.routes.ts` | `{ path: '...', component: X }` | `{ path: '...', loadComponent: () => import('./caminho/x.component').then(m => m.X) }` |
 
 ---
 
@@ -174,7 +176,28 @@ ngAfterViewInit(): void {
 
 ### 4.8 — Remover do NgModule
 
-Ler o arquivo de módulo (`*.module.ts`) e remover o componente de `declarations`.
+Ler o arquivo de módulo (`*.module.ts`) e remover o componente de `declarations`. Se o módulo só
+existia para declarar este componente, sugerir deletar o módulo inteiro e migrar as rotas que o
+usavam para `loadComponent` lazy routes (Passo 4.9). Se o módulo ainda é usado por outros
+componentes e este era exportado, mover para `imports: [...]` do módulo (componentes standalone
+entram em `imports`, não em `declarations`/`exports`).
+
+### 4.9 — Atualizar a rota para `loadComponent`
+
+Se o componente está registrado em `app.routes.ts` (ou outro arquivo de rotas) com `component:`,
+trocar para lazy loading:
+
+```typescript
+// Antes — componente em NgModule
+{ path: 'titulos', component: TitulosComponent }
+
+// Depois — lazy loadComponent standalone
+{
+  path: 'titulos',
+  loadComponent: () =>
+    import('./financeiro/titulos/titulos.component').then(m => m.TitulosComponent),
+}
+```
 
 ---
 
@@ -182,3 +205,14 @@ Ler o arquivo de módulo (`*.module.ts`) e remover o componente de `declarations
 
 Exibir lista de arquivos escritos com caminho absoluto.
 Sugerir: `ng build` para verificar compilação.
+
+---
+
+## Armadilhas comuns
+
+| Problema | Causa | Fix |
+|----------|-------|-----|
+| Tela em branco após migração | Faltou `ngAfterViewInit` + `setTimeout(() => cdr.detectChanges())` em componente com `po-page-*` | Adicionar o lifecycle hook (Passo 4.7) |
+| `NG0304: 'po-table' is not a known element` | O módulo PO-UI usado no template (`PoTableModule`, etc.) não está em `imports: []` do `@Component` | Adicionar ao array `imports` no decorator |
+| `input()` retorna `Signal<T>`, template ainda usa `titulo` sem parênteses | Template não foi atualizado para a sintaxe de signal | Atualizar template: `{{ titulo() }}` |
+| `output()` não emite | Confundido com mudança de API | Compatível — `output()` também usa `.emit(valor)`, nenhuma mudança de chamada necessária |

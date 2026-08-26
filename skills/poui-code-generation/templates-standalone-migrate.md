@@ -26,6 +26,28 @@ Before generating, read the existing `.component.ts` and identify:
 5. **Lifecycle hooks** — which interfaces are implemented
 6. **`ChangeDetectionStrategy`** — add `OnPush` if missing
 
+Present the plan as an enumerated checklist with counts before writing any file — e.g.:
+
+```
+Migrações identificadas em {{kebab-name}}.component.ts:
+
+✓ Adicionar standalone: true
+✓ Adicionar ChangeDetectionStrategy.OnPush
+✓ Migrar 3 propriedades @Input() para input()
+✓ Migrar 2 @Output() EventEmitter para output()
+✓ Migrar 4 variáveis de estado para signal()
+✓ Substituir *ngIf (2 ocorrências) por @if
+✓ Migrar ngOnDestroy + takeUntil para takeUntilDestroyed(DestroyRef)
+✓ Adicionar imports: [PoTableModule, PoPageModule]
+✓ Adicionar ngAfterViewInit com detectChanges() (Quirk #1)
+
+Arquivo afetado: src/app/{{moduleName}}/{{kebab-name}}/{{kebab-name}}.component.ts
+Módulo a atualizar: src/app/{{moduleName}}/{{moduleName}}.module.ts (remover da declarations)
+```
+
+Contar cada item (não só listar a categoria) — deixa claro pro usuário o tamanho real da mudança
+antes de confirmar.
+
 ---
 
 ## Transformation Map
