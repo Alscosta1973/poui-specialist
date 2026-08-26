@@ -315,6 +315,38 @@ describe('runClaudeAgent', () => {
     assert.ok(!capturedArgs?.includes('Read,Write,Edit,Glob,Grep'));
   });
 
+  it('passes --add-dir when addDir is provided (refactor reading a source file outside cwd)', async () => {
+    const sink = new RecordingSink();
+    let capturedArgs: string[] | undefined;
+    const spawnFn: SpawnFn = (_command, args) => {
+      capturedArgs = args;
+      return makeFakeProcess({ messages: [{ type: 'result', subtype: 'success', is_error: false, result: 'done' }] });
+    };
+
+    await runClaudeAgent(
+      { cwd: '/tmp/workspace', systemPrompt: 'system', userPrompt: 'user', addDir: 'C:\\totvs\\fontes' },
+      sink,
+      spawnFn,
+    );
+
+    const addDirIndex = capturedArgs?.indexOf('--add-dir');
+    assert.ok(addDirIndex !== undefined && addDirIndex >= 0);
+    assert.strictEqual(capturedArgs?.[(addDirIndex ?? -1) + 1], 'C:\\totvs\\fontes');
+  });
+
+  it('omits --add-dir when addDir is not provided', async () => {
+    const sink = new RecordingSink();
+    let capturedArgs: string[] | undefined;
+    const spawnFn: SpawnFn = (_command, args) => {
+      capturedArgs = args;
+      return makeFakeProcess({ messages: [{ type: 'result', subtype: 'success', is_error: false, result: 'done' }] });
+    };
+
+    await runClaudeAgent({ cwd: '/tmp/workspace', systemPrompt: 'system', userPrompt: 'user' }, sink, spawnFn);
+
+    assert.ok(!capturedArgs?.includes('--add-dir'));
+  });
+
   it('writes the system prompt to a temp file and removes it afterward', async () => {
     const sink = new RecordingSink();
     let promptFilePath: string | undefined;

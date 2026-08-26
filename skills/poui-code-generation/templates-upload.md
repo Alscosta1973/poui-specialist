@@ -32,6 +32,7 @@ import {
   PoNotificationService,
   PoPageModule,
   PoToolbarModule,
+  PoUploadFileRestrictions,
   PoUploadModule,
 } from '@po-ui/ng-components';
 
@@ -50,9 +51,13 @@ export class {{ComponentClass}} implements OnInit, AfterViewInit {
   // URL do endpoint Protheus que recebe o multipart/form-data
   readonly uploadUrl = '/rest/api/custom/v1/{{kebab-name}}/upload';
 
-  // Extensões e tamanho — ajustar conforme regra de negócio
-  readonly allowedExtensions = ['.pdf', '.png', '.jpg', '.jpeg'];
-  readonly maxFileSizeMb     = 5;   // interpretado em MB quando p-restrict-in-megabytes="true"
+  // Extensões e tamanho — ajustar conforme regra de negócio.
+  // `[p-restrictions]` é um único objeto — não existem `p-allowed-extensions`/
+  // `p-max-file-size`/`p-restrict-in-megabytes` como atributos soltos no po-upload.
+  readonly fileRestrictions: PoUploadFileRestrictions = {
+    allowedExtensions: ['.pdf', '.png', '.jpg', '.jpeg'],
+    maxFileSize: 5 * 1024 * 1024, // sempre em bytes — 5 MB
+  };
 
   readonly loading     = signal(false);
   readonly uploadDone  = signal(false);
@@ -94,9 +99,7 @@ export class {{ComponentClass}} implements OnInit, AfterViewInit {
     [p-url]="uploadUrl"
     [p-auto-upload]="true"
     [p-drag-drop]="true"
-    [p-allowed-extensions]="allowedExtensions"
-    [p-max-file-size]="maxFileSizeMb"
-    [p-restrict-in-megabytes]="true"
+    [p-restrictions]="fileRestrictions"
     [p-disabled]="loading()"
     (p-upload)="onUpload($event)"
     (p-success)="onUploadSuccess($event)"
@@ -135,6 +138,7 @@ import {
   PoTableColumn,
   PoTableModule,
   PoToolbarModule,
+  PoUploadFileRestrictions,
   PoUploadModule,
 } from '@po-ui/ng-components';
 
@@ -156,9 +160,12 @@ export class {{ComponentClass}} implements OnInit, AfterViewInit {
   private readonly notification = inject(PoNotificationService);
   private readonly cdr          = inject(ChangeDetectorRef);
 
-  readonly uploadUrl         = '/rest/api/custom/v1/{{kebab-name}}/upload';
-  readonly allowedExtensions = ['.pdf', '.xls', '.xlsx', '.csv'];
-  readonly maxFileSizeMb     = 10;
+  readonly uploadUrl = '/rest/api/custom/v1/{{kebab-name}}/upload';
+
+  readonly fileRestrictions: PoUploadFileRestrictions = {
+    allowedExtensions: ['.pdf', '.xls', '.xlsx', '.csv'],
+    maxFileSize: 10 * 1024 * 1024, // sempre em bytes — 10 MB
+  };
 
   readonly loading     = signal(false);
   readonly results     = signal<UploadResult[]>([]);
@@ -237,9 +244,7 @@ export class {{ComponentClass}} implements OnInit, AfterViewInit {
     [p-url]="uploadUrl"
     [p-multiple]="true"
     [p-drag-drop]="true"
-    [p-allowed-extensions]="allowedExtensions"
-    [p-max-file-size]="maxFileSizeMb"
-    [p-restrict-in-megabytes]="true"
+    [p-restrictions]="fileRestrictions"
     [p-disabled]="loading()"
     (p-upload)="onUpload($event)"
     (p-success)="onUploadSuccess($event)"
@@ -270,7 +275,7 @@ export class {{ComponentClass}} implements OnInit, AfterViewInit {
 ### {{kebab-name}}.component.ts (fragmento — integrar com page-edit ou modal-crud)
 
 ```typescript
-import { PoUploadFile, PoUploadModule } from '@po-ui/ng-components';
+import { PoUploadFile, PoUploadFileRestrictions, PoUploadModule } from '@po-ui/ng-components';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 // Dentro do componente:
@@ -278,8 +283,10 @@ readonly uploadUrl     = '';          // vazio = po-upload não envia automatica
 readonly pendingFile   = signal<File | null>(null);
 readonly uploading     = signal(false);
 
-readonly allowedExtensions = ['.pdf'];
-readonly maxFileSizeMb     = 5;
+readonly fileRestrictions: PoUploadFileRestrictions = {
+  allowedExtensions: ['.pdf'],
+  maxFileSize: 5 * 1024 * 1024, // sempre em bytes — 5 MB
+};
 
 onFileChange(files: PoUploadFile[]): void {
   const rawFile = files[0]?.rawFile ?? null;
@@ -328,9 +335,7 @@ private saveWithFile(formData: Record<string, unknown>): void {
   [p-url]="uploadUrl"
   [p-auto-upload]="false"
   [p-drag-drop]="true"
-  [p-allowed-extensions]="allowedExtensions"
-  [p-max-file-size]="maxFileSizeMb"
-  [p-restrict-in-megabytes]="true"
+  [p-restrictions]="fileRestrictions"
   [p-disabled]="uploading()"
   (p-file-change)="onFileChange($event)">
 </po-upload>
@@ -395,9 +400,7 @@ ngOnInit(): void {
 | `[p-auto-upload]` | `boolean` | `true` | Envia ao selecionar arquivo |
 | `[p-multiple]` | `boolean` | `false` | Permite múltiplos arquivos |
 | `[p-drag-drop]` | `boolean` | `false` | Habilita área drag-and-drop |
-| `[p-allowed-extensions]` | `string[]` | `[]` (todos) | Ex: `['.pdf', '.png']` |
-| `[p-max-file-size]` | `number` | `0` (ilimitado) | Bytes ou MB (ver restrict) |
-| `[p-restrict-in-megabytes]` | `boolean` | `false` | Interpreta `max-file-size` em MB |
+| `[p-restrictions]` | `PoUploadFileRestrictions` | — | `{ allowedExtensions?: string[], maxFileSize?: number, minFileSize?: number, maxFiles?: number }` — tamanhos sempre em bytes |
 | `[p-field-name]` | `string` | `'file'` | Nome do campo no multipart |
 | `[p-headers]` | `object` | `{}` | Cabeçalhos HTTP adicionais |
 | `[p-disabled]` | `boolean` | `false` | Desabilita o componente |

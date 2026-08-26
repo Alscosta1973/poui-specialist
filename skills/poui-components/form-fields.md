@@ -1,6 +1,11 @@
 # PO-UI Form Fields
 
-Todos os campos abaixo funcionam com Angular Reactive Forms (`formControlName`) e Template-driven Forms (`[(ngModel)]`).
+Todos os campos abaixo funcionam com Angular Reactive Forms (`formControlName`) e Template-driven Forms.
+Para Template-driven, use a forma separada `[ngModel]="valor()"` + `(ngModelChange)="onChange($event)"` —
+o açúcar `[(ngModel)]` (two-way binding automático) causa `NG8007: The property and event halves of the
+two-way binding 'ngModel' are not bound to the same target` nos componentes PO-UI baseados em signal
+inputs/outputs (confirmado em teste real). Ver `po-ui-patterns-search.md`/`po-ui-patterns-i18n.md` para
+exemplos já validados dessa forma separada.
 
 ## Quick Reference — Form Field Components
 

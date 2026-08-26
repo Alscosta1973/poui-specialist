@@ -160,43 +160,37 @@ export class {{ComponentClass}} implements OnInit, AfterViewInit, OnDestroy {
 
 <po-page-list
   p-title="{{PageTitle}}"
-  [p-search-placeholder]="'Buscar...'"
   (p-quick-search)="onQuickSearch($event)">
 
-  <!-- Estado: carregamento inicial -->
-  @if (loading()) {
-    <po-loading-overlay p-text="Carregando..."></po-loading-overlay>
+  <!-- `[p-loading]` já exibe o overlay de carregamento embutido no po-table —
+       não existe um elemento `<po-loading-overlay>` separado na API do PO-UI. -->
+  <po-table
+    [p-columns]="columns"
+    [p-items]="items()"
+    [p-loading]="loading()"
+    [p-striped]="true"
+    [p-hide-select-all]="true"
+    [p-show-more-disabled]="true">
+  </po-table>
+
+  <!-- Indicador de "carregando mais" -->
+  @if (loadingMore()) {
+    <div class="po-text-center po-mt-2 po-mb-2" style="color: var(--color-neutral-mid-60);">
+      <span class="po-icon po-icon-refresh"></span>
+      Carregando mais itens...
+    </div>
   }
 
-  <!-- Tabela com todos os itens acumulados -->
-  @if (!loading()) {
-    <po-table
-      [p-columns]="columns"
-      [p-items]="items()"
-      [p-striped]="true"
-      [p-hide-select-all]="true"
-      [p-show-more-disabled]="true">
-    </po-table>
-
-    <!-- Indicador de "carregando mais" -->
-    @if (loadingMore()) {
-      <div class="po-text-center po-mt-2 po-mb-2" style="color: var(--color-neutral-mid-60);">
-        <span class="po-icon po-icon-refresh"></span>
-        Carregando mais itens...
-      </div>
-    }
-
-    <!-- Fim da lista -->
-    @if (!hasNext() && items().length > 0) {
-      <div class="po-text-center po-mt-2 po-mb-2" style="color: var(--color-neutral-mid-40); font-size: 0.85rem;">
-        Todos os {{ items().length }} registros carregados.
-      </div>
-    }
-
-    <!-- Sentinel — elemento observado pelo IntersectionObserver -->
-    <!-- Deve ficar APÓS o último item visível, ANTES do fim do container rolável -->
-    <div #scrollSentinel style="height: 1px; visibility: hidden;" aria-hidden="true"></div>
+  <!-- Fim da lista -->
+  @if (!loading() && !hasNext() && items().length > 0) {
+    <div class="po-text-center po-mt-2 po-mb-2" style="color: var(--color-neutral-mid-40); font-size: 0.85rem;">
+      Todos os {{ items().length }} registros carregados.
+    </div>
   }
+
+  <!-- Sentinel — elemento observado pelo IntersectionObserver -->
+  <!-- Deve ficar APÓS o último item visível, ANTES do fim do container rolável -->
+  <div #scrollSentinel style="height: 1px; visibility: hidden;" aria-hidden="true"></div>
 
 </po-page-list>
 ```

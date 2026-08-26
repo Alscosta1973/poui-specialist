@@ -141,6 +141,7 @@ export function registerGenerateComponentCommand(
         cwd: workspaceFolder.uri.fsPath,
         systemPrompt,
         userPrompt,
+        addDir: sourceFilePath ? path.dirname(sourceFilePath) : undefined,
         model: vscode.workspace.getConfiguration('poui').get<string>('model'),
         effort: vscode.workspace
           .getConfiguration('poui')

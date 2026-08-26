@@ -37,6 +37,12 @@ export interface RunAgentOptions {
    * `--permission-mode acceptEdits`). Necessário sempre que `mcpConfig`
    * também for passado. */
   allowedTools?: string;
+  /** Diretório extra liberado para leitura/escrita fora de `cwd` via
+   * `--add-dir` — necessário para `refactor`, cujo arquivo `.prw`/`.tlpp`
+   * fonte normalmente vive fora do workspace Angular. Sem isso o CLI pede
+   * permissão interativa que o modo `-p` (stdin fechado) nunca recebe, e a
+   * execução "termina com sucesso" sem ler nem escrever nada. */
+  addDir?: string;
 }
 
 export interface SpawnedProcess {
@@ -100,6 +106,9 @@ function buildArgs(options: RunAgentOptions, systemPromptFile: string, mcpConfig
     '--setting-sources',
     '',
   ];
+  if (options.addDir) {
+    args.push('--add-dir', options.addDir);
+  }
   if (options.model) {
     args.push('--model', options.model);
   }

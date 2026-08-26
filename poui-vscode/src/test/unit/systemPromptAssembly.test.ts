@@ -16,4 +16,21 @@ describe('assembleSystemPrompt', () => {
       `expected the prompt to include the real Node.js version (${process.version})`,
     );
   });
+
+  it('explicitly instructs ignoring a "wait for yes/no" gate embedded in a reference file (real bug: refactor\'s template has its own confirmation step that overrode the generic non-interactive preamble)', async () => {
+    const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'poui-system-prompt-'));
+    await fs.writeFile(
+      path.join(tmpDir, 'ref.md'),
+      'Present the plan.\n\nConfirmar geração? (s/n)\n\nWait for a single yes/no.',
+      'utf8',
+    );
+
+    const prompt = await assembleSystemPrompt(['ref.md'], tmpDir);
+    const lower = prompt.toLowerCase();
+
+    assert.ok(
+      lower.includes('ignore') && lower.includes('confirma'),
+      'expected the preamble to explicitly tell the model to ignore any confirmation gate found in a reference file below',
+    );
+  });
 });
