@@ -215,7 +215,15 @@ export const routes: Routes = [
 ];
 ```
 
-### 6.3 — src/app/app.component.ts
+### 6.3 — src/app/app.ts
+
+> **Atenção:** o Angular CLI 21 atual (`ng new` do Passo 2) gera o componente raiz como
+> `src/app/app.ts` / `src/app/app.html` / `src/app/app.scss`, com a classe `App` — **não**
+> `app.component.ts`/`AppComponent` (convenção antiga). `src/main.ts` já importa `App` de
+> `./app/app`. Sobrescrever `app.ts`/`app.html` no lugar exato que `ng new` gerou — criar um
+> `app.component.ts` novo deixaria um arquivo órfão que ninguém importa, sem afetar a aplicação
+> de verdade. Confirme o nome real gerado (`ls src/app/app.*`) antes de escrever, já que essa
+> convenção pode mudar de novo em versões futuras do Angular CLI.
 
 ```typescript
 import { Component, ChangeDetectionStrategy } from '@angular/core';
@@ -225,13 +233,12 @@ import { ProAppConfigService } from '@totvs/protheus-lib-core';
 
 @Component({
   selector: 'app-root',
-  standalone: true,
   imports: [RouterOutlet, PoMenuModule, PoToolbarModule],
-  templateUrl: './app.component.html',
-  styleUrl: './app.component.scss',
+  templateUrl: './app.html',
+  styleUrl: './app.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AppComponent {
+export class App {
   constructor(private proAppConfigService: ProAppConfigService) {
     if (!this.proAppConfigService.insideProtheus()) {
       this.proAppConfigService.loadAppConfig();
@@ -250,7 +257,7 @@ export class AppComponent {
 }
 ```
 
-### 6.4 — src/app/app.component.html
+### 6.4 — src/app/app.html
 
 ```html
 <div class="po-wrapper">
@@ -383,7 +390,7 @@ export class HomeComponent {}
 { path: 'inicio', loadComponent: () => import('./home/home.component').then(m => m.HomeComponent) },
 ```
 
-### 8.3 — Adicionar item de menu em app.component.ts
+### 8.3 — Adicionar item de menu em app.ts
 
 ```typescript
 readonly menus: PoMenuItem[] = [
@@ -554,7 +561,7 @@ Exibir:
    {{projectName}}/
    ├── src/app/app.config.ts     — providers (HTTP, Router, Protheus)
    ├── src/app/app.routes.ts     — roteamento lazy
-   ├── src/app/app.component.*   — shell com po-toolbar + po-menu
+   ├── src/app/app.ts, app.html — shell com po-toolbar + po-menu
    ├── src/styles.scss           — Open Sans + Quirk #17 fix
    ├── proxy.conf.json           — proxy /rest → {{protheusUrl}}
    ├── angular.json              — estilos PO-UI + outputPath achatado (deploy Protheus)
