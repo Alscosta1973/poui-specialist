@@ -99,6 +99,9 @@ const sources = [
 
   // Fase 4 — /poui-specialist:screenshot (skill poui-screenshot)
   ['skills/poui-screenshot/SKILL.md', 'poui-screenshot-skill.md'],
+
+  // Fase 4 — /poui-specialist:connect (skill poui-connect)
+  ['skills/poui-connect/SKILL.md', 'poui-connect-skill.md'],
 ];
 
 async function main() {

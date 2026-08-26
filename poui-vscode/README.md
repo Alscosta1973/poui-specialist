@@ -420,5 +420,43 @@ zip → verificação → cópia) funcionou e o `.app` gerado foi conferido
 de forma independente com `7z l` — `modulo-compras/` confirmado como
 raiz do zip.
 
-**Restam da Fase 4:** `connect`, `scaffold` (nessa ordem, do mais
-simples pro mais arriscado).
+`PO-UI: Conectar ao Protheus` (`poui.connect`, equivalente à skill
+`poui-connect`) — a fatia mais arriscada da Fase 4: mexe em arquivos
+reais existentes (não cria novos) e envolve dados de conexão,
+possivelmente credenciais. **Desenho em duas partes, diferente do
+plugin original** por um motivo de segurança real: o modo `-p`
+não-interativo do CLI passa o prompt como argumento literal do
+processo — visível a qualquer processo na máquina que liste processos
+(Task Manager, WMI). O plugin original roda dentro do chat interativo,
+sem esse risco; a extensão precisa evitar introduzi-lo.
+- **Parte determinística** (`protheusProxy.ts`, sem CLI) — monta e
+  escreve `proxy.conf.json` localmente (URL + header `Authorization`
+  Basic/Bearer computado em Node puro), corrige `angular.json`
+  (`serve.options.proxyConfig`) e `.gitignore` (`proxy.conf.json` nunca
+  vai ao repo). A credencial nunca sai daqui.
+- **Parte agentiva** (`connectPromptBuilder.ts` + CLI) — recebe só
+  informação não-sensível (caminho do componente, prefixo da API,
+  endpoint ou regras de negócio pro contrato TLPP, ações extras,
+  preferência de tratamento do interceptor escolhida antes via
+  `QuickPick`) e reaproveita o mesmo pipeline de `runClaudeAgent`/
+  `runBuildFixLoop`. `ConnectParams` não tem nenhum campo de credencial
+  — garantia em tempo de compilação, reforçada por teste unitário que
+  varre o prompt gerado por palavras como "senha"/"token"/
+  "Authorization".
+- Seleção do componente via `showOpenDialog` em `*.component.ts`,
+  módulo/classe derivados automaticamente (reaproveita
+  `deriveRouteRegistration` do `poui.preview`). **Sem rodar `ng test`
+  automaticamente** — mesma política já usada em `poui.generate.test`.
+
+**Validado com uma chamada real e completa** contra um fixture
+propositalmente criado com mock (`of(MOCK_ITEMS).pipe(delay(700))` +
+interceptor mock registrado em `app.config.ts`) em
+`examples/modulo-compras`: o agente diagnosticou os dois mocks
+corretamente, reescreveu o service para `this.http.get(...)` real,
+removeu o import e o registro do interceptor de `app.config.ts`
+(Opção A, como pedido), nunca tocou em `proxy.conf.json` (instruído a
+não tocar), e o build passou de primeira. O prompt real enviado ao CLI
+foi inspecionado à mão — zero menção a credenciais. Fixture removido
+depois — `examples/modulo-compras` voltou limpo.
+
+**Restam da Fase 4:** `scaffold` (a última peça).
