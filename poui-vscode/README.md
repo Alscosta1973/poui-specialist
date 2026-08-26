@@ -356,17 +356,28 @@ mecânica do "Configurar Karma": só roda com um clique explícito, nunca
 automaticamente.
 
 **Adiados deliberadamente** (não são bugs — decisão de escopo por
-orçamento de tempo/tokens da sessão, ver memória do projeto):
-`module` (cria um app inteiro do zero, semântica diferente dos demais
-tipos), `refactor` (precisa de um passo de seleção de arquivo `.prw`/
-`.tlpp` que a extensão ainda não tem) e a skill `discover` (analisa um
-endpoint REST fazendo uma chamada HTTP real contra um backend Protheus —
-arquitetura bem diferente dos geradores). A correção automática de
-`H01`/`H02` no lint (ver acima), a sidebar tree view, um comando de
-"parar o dev server" (preview e e2e sobem servidores que ficam
-rodando), e rodar `npx playwright test`/`ng test` automaticamente
-depois de gerar (mesma decisão em ambos: gerar é útil mesmo antes do
-runner estar configurado) ficam para depois — ver
+orçamento de tempo/tokens da sessão, ver memória do projeto): a skill
+`discover` (analisa um endpoint REST fazendo uma chamada HTTP real
+contra um backend Protheus — arquitetura bem diferente dos geradores).
+A correção automática de `H01`/`H02` no lint (ver acima), a sidebar
+tree view, um comando de "parar o dev server" (preview e e2e sobem
+servidores que ficam rodando), e rodar `npx playwright test`/`ng test`
+automaticamente depois de gerar (mesma decisão em ambos: gerar é útil
+mesmo antes do runner estar configurado) ficam para depois — ver
 `docs/superpowers/specs/2026-08-21-vscode-extension-phase0-design.md`.
-Com `e2e`, todos os comandos do `poui-specialist` original foram
-portados para a extensão VS Code.
+
+## Fase 4 — em andamento
+
+`PO-UI: Reverter Componente Gerado` (`poui.undo`, equivalente à skill
+`poui-undo`) — igual a `poui.lint`/`poui.quality`, não usa o Claude Code
+CLI. Localiza todo arquivo com o marcador `@generated  poui-specialist`
+sob `src/app`, agrupa por diretório, mostra um `QuickPick` com os
+componentes gerados encontrados, confirma (modal, lista os arquivos)
+antes de remover a rota correspondente de `app.routes.ts` e apagar os
+arquivos — remove só os arquivos `@generated` do diretório escolhido,
+preserva o resto se o diretório for compartilhado com outros arquivos.
+
+`migrate` (comando separado do plugin) **não foi portado** — o caso de
+uso real já está coberto pelo tipo `standalone-migrate` de
+`poui.generate.component`. Restam da Fase 4: `screenshot`, `package`,
+`connect`, `scaffold` (nessa ordem, do mais simples pro mais arriscado).
