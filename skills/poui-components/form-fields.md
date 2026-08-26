@@ -457,11 +457,10 @@ drag-and-drop, e validação de extensão e tamanho.
 | Input | Type | Description |
 |-------|------|-------------|
 | `p-url` | `string` | URL de destino do upload (multipart/form-data) |
-| `p-allowed-extensions` | `string[]` | Extensões permitidas (ex: `['.pdf', '.jpg', '.png']`) |
+| `p-restrictions` | `PoUploadFileRestrictions` | Objeto único — `{ allowedExtensions?: string[], maxFileSize?: number, minFileSize?: number, maxFiles?: number }`, tamanhos sempre em bytes. **Não existem** `p-allowed-extensions`/`p-max-file-size`/`p-restrict-in-megabytes` como atributos soltos |
 | `p-auto-upload` | `boolean` | Inicia upload imediatamente ao selecionar o arquivo |
 | `p-drag-drop` | `boolean` | Habilita zona de drag-and-drop |
 | `p-multiple` | `boolean` | Permite selecionar múltiplos arquivos |
-| `p-max-file-size` | `number` | Tamanho máximo em bytes (ex: `5242880` = 5 MB) |
 | `p-required` | `boolean` | Campo obrigatório |
 | `p-disabled` | `boolean` | Desabilita o componente |
 | `p-label` | `string` | Rótulo exibido acima do componente |
@@ -478,8 +477,11 @@ drag-and-drop, e validação de extensão e tamanho.
 ### Exemplos
 
 ```typescript
-import { PoUploadModule } from '@po-ui/ng-components';
+import { PoUploadFileRestrictions, PoUploadModule } from '@po-ui/ng-components';
 // em imports do @Component: [PoUploadModule]
+
+readonly nfeRestrictions: PoUploadFileRestrictions = { allowedExtensions: ['.pdf'], maxFileSize: 10 * 1024 * 1024 };
+readonly docsRestrictions: PoUploadFileRestrictions = { allowedExtensions: ['.pdf', '.jpg', '.png', '.docx'], maxFileSize: 5 * 1024 * 1024 };
 ```
 
 ```html
@@ -487,9 +489,8 @@ import { PoUploadModule } from '@po-ui/ng-components';
 <po-upload
   p-label="Anexar NF-e (PDF)"
   p-url="/rest/api/custom/v1/documentos/upload"
-  [p-allowed-extensions]="['.pdf']"
+  [p-restrictions]="nfeRestrictions"
   [p-auto-upload]="true"
-  [p-max-file-size]="10485760"
   [p-required]="true"
   (p-success)="onUploadSuccess($event)"
   (p-error)="onUploadError($event)">
@@ -499,11 +500,9 @@ import { PoUploadModule } from '@po-ui/ng-components';
 <po-upload
   p-label="Documentos Complementares"
   p-url="/rest/api/custom/v1/documentos/upload"
-  [p-allowed-extensions]="['.pdf', '.jpg', '.png', '.docx']"
+  [p-restrictions]="docsRestrictions"
   [p-multiple]="true"
   [p-drag-drop]="true"
-  [p-max-file-size]="5242880"
-  (p-change)="onFilesSelected($event)"
   (p-upload)="onUploadComplete($event)">
 </po-upload>
 ```
@@ -515,11 +514,6 @@ onUploadSuccess(response: any): void {
 
 onUploadError(error: any): void {
   this.notification.error('Erro ao enviar arquivo. Verifique o formato e tamanho.');
-}
-
-onFilesSelected(files: PoUploadFile[]): void {
-  // chamado ao selecionar — antes do upload
-  this.selectedFiles = files;
 }
 ```
 
