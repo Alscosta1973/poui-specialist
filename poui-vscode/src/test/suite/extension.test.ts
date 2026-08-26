@@ -59,4 +59,11 @@ describe('extension packaging', () => {
     const commands = await vscode.commands.getCommands(true);
     assert.ok(commands.includes('poui.undo'));
   });
+
+  it('registers the poui.generate.screenshot command after activation', async () => {
+    const ext = vscode.extensions.getExtension('andre-costa.poui-vscode');
+    await ext?.activate();
+    const commands = await vscode.commands.getCommands(true);
+    assert.ok(commands.includes('poui.generate.screenshot'));
+  });
 });

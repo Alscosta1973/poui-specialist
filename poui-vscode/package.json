@@ -22,7 +22,8 @@
       { "command": "poui.review", "title": "PO-UI: Revisar Código" },
       { "command": "poui.preview", "title": "PO-UI: Preview no Browser" },
       { "command": "poui.generate.e2e", "title": "PO-UI: Gerar Teste E2E (Playwright)" },
-      { "command": "poui.undo", "title": "PO-UI: Reverter Componente Gerado" }
+      { "command": "poui.undo", "title": "PO-UI: Reverter Componente Gerado" },
+      { "command": "poui.generate.screenshot", "title": "PO-UI: Gerar a partir de Screenshot" }
     ],
     "configuration": {
       "title": "PO-UI Specialist",

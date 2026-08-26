@@ -96,6 +96,9 @@ const sources = [
 
   // Fase 3 — /poui-specialist:e2e (skill poui-e2e; reaproveita poui-test-skill.md já sincronizado acima)
   ['skills/poui-e2e/SKILL.md', 'poui-e2e-skill.md'],
+
+  // Fase 4 — /poui-specialist:screenshot (skill poui-screenshot)
+  ['skills/poui-screenshot/SKILL.md', 'poui-screenshot-skill.md'],
 ];
 
 async function main() {

@@ -379,5 +379,25 @@ preserva o resto se o diretório for compartilhado com outros arquivos.
 
 `migrate` (comando separado do plugin) **não foi portado** — o caso de
 uso real já está coberto pelo tipo `standalone-migrate` de
-`poui.generate.component`. Restam da Fase 4: `screenshot`, `package`,
-`connect`, `scaffold` (nessa ordem, do mais simples pro mais arriscado).
+`poui.generate.component`. Restam da Fase 4: `package`, `connect`,
+`scaffold` (nessa ordem, do mais simples pro mais arriscado).
+
+`PO-UI: Gerar a partir de Screenshot` (`poui.generate.screenshot`,
+equivalente à skill `poui-screenshot`) — diálogo de arquivo pra
+escolher uma imagem local (png/jpg/jpeg/gif/webp; **sem suporte a URL**
+nesta fatia — exigiria liberar `WebFetch` pro agente, hoje restrito a
+`Read,Write,Edit,Glob,Grep`). Em duas fases: (1) análise — chama o CLI
+só com a skill `poui-screenshot` como referência e `tools: 'Read,Glob'`
+(sem escrita), pedindo um manifesto estruturado (`TYPE:`/`MODULE:`/
+`ENTITY:`/`API_PATH:`/`FIELDS:`/`RULES:`) em vez do laudo em texto
+livre do plugin original; (2) confirmação real (mostra o manifesto,
+pergunta "Gerar agora?") seguida da geração propriamente dita,
+reaproveitando 100% o mesmo pipeline de `poui.generate.component`
+(`buildGeneratorSystemPrompt`/`buildGeneratorUserPrompt`/
+`runClaudeAgent`/`runBuildFixLoop`) com o tipo/nome/módulo/campos
+vindos da análise em vez de digitados. **Sem `generate-batch`** — gera
+só o componente principal (+ service, se o tipo pedir), não múltiplos
+componentes de um manifesto. Validado com um teste real de visão
+(`login-preview.png` de `examples/modulo-compras`): o Read leu a
+imagem e o modelo devolveu o manifesto exato esperado (`page-edit`,
+campos `usuario`/`senha`, regra do ícone de mostrar/ocultar senha).
