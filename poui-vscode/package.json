@@ -25,7 +25,8 @@
       { "command": "poui.undo", "title": "PO-UI: Reverter Componente Gerado" },
       { "command": "poui.generate.screenshot", "title": "PO-UI: Gerar a partir de Screenshot" },
       { "command": "poui.package", "title": "PO-UI: Empacotar Projeto (.app)" },
-      { "command": "poui.connect", "title": "PO-UI: Conectar ao Protheus" }
+      { "command": "poui.connect", "title": "PO-UI: Conectar ao Protheus" },
+      { "command": "poui.scaffold", "title": "PO-UI: Criar Novo Projeto (Scaffold)" }
     ],
     "configuration": {
       "title": "PO-UI Specialist",

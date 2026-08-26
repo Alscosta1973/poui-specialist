@@ -1,4 +1,4 @@
-# PO-UI Specialist — extensão VS Code (Fase 3)
+# PO-UI Specialist — extensão VS Code (paridade completa com o plugin)
 
 Gera componentes Angular PO-UI de 3 famílias diretamente do VS Code —
 **Lista/Browse** (`page-list`, `page-dynamic-search`, `stacked-browse`,
@@ -459,4 +459,49 @@ não tocar), e o build passou de primeira. O prompt real enviado ao CLI
 foi inspecionado à mão — zero menção a credenciais. Fixture removido
 depois — `examples/modulo-compras` voltou limpo.
 
-**Restam da Fase 4:** `scaffold` (a última peça).
+`PO-UI: Criar Novo Projeto (Scaffold)` (`poui.scaffold`, equivalente a
+`/poui-specialist:scaffold`) — a última peça da Fase 4, e a maior
+(706 linhas no comando original). **Inteiramente determinístico**,
+sem CLI do Claude — `ng new` + dois `ng add` + `npm install` +
+edições de `angular.json`/`tsconfig.json` + escrita do shell da
+aplicação + `proxy.conf.json` + `git init`/commit + verificação de
+build. Diferente de todos os outros comandos, **não exige workspace
+aberto** — pergunta a pasta-pai via diálogo de pasta, roda `ng new`
+lá dentro, e ao final oferece abrir a pasta nova no VS Code ou iniciar
+o servidor (reaproveitando `ensureDevServer` do `poui.preview`/
+`poui.generate.e2e`). **Cortes de escopo**: sem `--with-dark-mode`/
+`--with-i18n`; sem `--skip-install` (sempre instala); `--demo` virou
+uma pergunta sim/não.
+
+**3 bugs reais achados e corrigidos rodando o scaffold de ponta a
+ponta de verdade** (não só testes unitários — `ng new`/`ng add`/
+`npm install`/`ng build` reais, repetido a cada correção):
+1. `tsconfig.json` gerado por `ng new` tem comentários de bloco no
+   topo — `JSON.parse` quebra nisso. Corrigido pra busca-e-substituição
+   em texto puro (`fixTsconfigStrictness`), igual ao Passo 5 do
+   comando original — que já usava texto, não JSON, por esse motivo.
+2. **Achado de escopo mais importante**: o Angular CLI 21 atual gera o
+   componente raiz como `app.ts`/`app.html`/`app.scss` com a classe
+   `App` — não mais `app.component.ts`/`AppComponent` (convenção
+   antiga que tanto minha primeira tentativa quanto o
+   `commands/scaffold.md` original do plugin assumiam).
+   `main.ts` já importa `App` de `./app/app`. Corrigido pra escrever
+   nos arquivos certos com o nome de classe certo — **vale propagar
+   essa correção pro `commands/scaffold.md` do plugin também**, é o
+   mesmo bug lá.
+3. `git init`/`add`/`commit` falhava com "Author identity unknown"
+   nesta máquina (sem `user.name`/`user.email` configurados
+   globalmente) e derrubava o scaffold inteiro por causa disso.
+   Corrigido pra melhor-esforço — avisa e continua; o projeto em si
+   (o que realmente importa) já estava pronto e não deveria ser
+   reportado como falha por uma configuração de git não relacionada.
+
+Validado com 4 execuções reais completas (`qa-scaffold-teste`, com
+demo) numa pasta isolada — a última terminou `success: true`, com
+`ng build` limpo e `angular.json`/rotas conferidos manualmente contra
+os arquivos gerados de verdade. Projeto de teste removido depois.
+
+**Com isso, a Fase 4 está completa** — os 5 comandos restantes do
+plugin original (undo, screenshot, package, connect, scaffold) foram
+portados. `migrate` ficou de fora deliberadamente (coberto por
+`standalone-migrate`).
