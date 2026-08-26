@@ -377,11 +377,6 @@ antes de remover a rota correspondente de `app.routes.ts` e apagar os
 arquivos — remove só os arquivos `@generated` do diretório escolhido,
 preserva o resto se o diretório for compartilhado com outros arquivos.
 
-`migrate` (comando separado do plugin) **não foi portado** — o caso de
-uso real já está coberto pelo tipo `standalone-migrate` de
-`poui.generate.component`. Restam da Fase 4: `package`, `connect`,
-`scaffold` (nessa ordem, do mais simples pro mais arriscado).
-
 `PO-UI: Gerar a partir de Screenshot` (`poui.generate.screenshot`,
 equivalente à skill `poui-screenshot`) — diálogo de arquivo pra
 escolher uma imagem local (png/jpg/jpeg/gif/webp; **sem suporte a URL**
@@ -401,3 +396,29 @@ componentes de um manifesto. Validado com um teste real de visão
 (`login-preview.png` de `examples/modulo-compras`): o Read leu a
 imagem e o modelo devolveu o manifesto exato esperado (`page-edit`,
 campos `usuario`/`senha`, regra do ícone de mostrar/ocultar senha).
+
+`PO-UI: Empacotar Projeto (.app)` (`poui.package`, equivalente a
+`/poui-specialist:package`) — também não usa o Claude Code CLI, é 100%
+determinístico (mesmo padrão de `poui.undo`): corrige o `outputPath` do
+`angular.json` se necessário (`{ base: "dist/<projeto>", browser: "" }`
+— sem isso o Protheus falha com "Falha ao Ajustar os arquivos Index"),
+roda `ng build --configuration production`, compacta `dist/<projeto>`
+com 7-Zip preservando `<projeto>/` como raiz do zip (**nunca**
+`Compress-Archive` do PowerShell silenciosamente — conhecido por gerar
+um `.app` que o Protheus falha ao extrair; se o 7-Zip não for
+encontrado, avisa e pede confirmação explícita antes desse fallback
+arriscado), verifica a estrutura de verdade (não declara sucesso sem
+confirmar `<projeto>/` como raiz via `7z l`), copia para
+`Resource/<projeto>.app` e atualiza o `.gitignore`. **Corte de
+escopo:** sem `--skip-build`/caminho de projeto externo — sempre builda
+fresco no workspace aberto. Validado de ponta a ponta contra
+`examples/modulo-compras` de verdade: build (achou e reportou
+corretamente uma falha real de orçamento de bundle na primeira
+tentativa — comportamento correto, não um bug), depois com orçamento
+temporariamente relaxado só para o teste, o caminho completo (build →
+zip → verificação → cópia) funcionou e o `.app` gerado foi conferido
+de forma independente com `7z l` — `modulo-compras/` confirmado como
+raiz do zip.
+
+**Restam da Fase 4:** `connect`, `scaffold` (nessa ordem, do mais
+simples pro mais arriscado).
