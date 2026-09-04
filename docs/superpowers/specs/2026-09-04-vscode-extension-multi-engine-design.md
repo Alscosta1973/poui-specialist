@@ -200,6 +200,74 @@ viram comentários/TODOs rastreáveis no código apontando pra esta seção,
 e a validação real acontece assim que houver acesso a uma conta Codex
 e/ou Gemini.
 
+## Documentação in-app (walkthrough nativo do VS Code)
+
+Requisito adicionado pelo usuário na mesma sessão: usuários precisam
+conseguir ver, dentro do próprio VS Code, o que cada comando faz, exemplos
+de uso, a versão instalada e — ponto que conecta direto com o motor
+plugável — as limitações conhecidas de cada motor de IA (a seção acima).
+Hoje isso só existe no `README.md` (visível na aba de detalhes da
+extensão) e nos textos de commit/memória, nada apresentado de forma
+guiada dentro do editor.
+
+**Mecanismo escolhido: `contributes.walkthroughs`** (nativo do VS Code —
+aparece na tela "Get Started"/Bem-vindo, cada passo em Markdown, com
+suporte a botões `command:` inline e passos marcados como concluídos
+automaticamente). Rejeitado um painel `webview` próprio (mais controle
+visual, mas exige manter HTML/CSS/JS de UI só pra isso — esforço sem
+benefício real aqui) e rejeitado ficar só no `README.md` (não é
+descoberto por quem já instalou a extensão sem procurar ativamente).
+
+### Estrutura de passos
+
+Conteúdo em `assets/walkthrough/*.md`, sincronizado pelo mesmo mecanismo
+de arquivo-de-referência que `assets/agent-prompts/` já usa
+(`scripts/sync-prompts.mjs`, generalizado para copiar também esta pasta).
+
+1. **Bem-vindo / Sobre** — versão da extensão lida de `package.json` em
+   runtime (nunca hardcoded — evita o texto ficar desatualizado a cada
+   release), motor de IA configurado no momento (`poui.aiEngine`), link
+   pro `README.md` completo.
+2. **Configurar o motor de IA** — o que cada motor exige pra funcionar
+   (Claude: CLI logado via OAuth; Codex: `codex login --device-auth`;
+   Gemini: variável de ambiente com API key, ver risco 3 acima) + botão
+   que abre a configuração `poui.aiEngine` direto.
+3. **Comandos por família** — um passo por família (Lista/Browse,
+   Formulários, Infraestrutura, Qualidade/Teste, Utilitários), cada
+   comando com 1-2 frases do que faz + botão "Rodar" via `command:`
+   quando fizer sentido (ex: abrir `poui.generate.component` direto).
+4. **Limitações conhecidas por motor** — mesmo conteúdo da seção "Riscos
+   e pontos de validação pendentes" acima, em linguagem voltada ao
+   usuário final (não a linguagem técnica de spec). **Fonte única**: o
+   texto deste passo deve derivar do mesmo lugar que a seção de riscos
+   deste documento, pra não divergir conforme a validação real for
+   confirmando/refutando cada ponto — na implementação, revisar os dois
+   juntos sempre que um mudar.
+
+### Internacionalização (PT/EN) — uma extensão só, não duas
+
+Decisão confirmada com o usuário: **não** criar duas extensões
+separadas (uma PT, uma EN) — duplicaria os 13 comandos/~260 testes/~55
+templates pela segunda vez, pelo mesmo motivo já usado pra rejeitar
+"uma extensão por motor de IA" (ver seção "Contexto" acima). Em vez
+disso, usa o mecanismo nativo de i18n do VS Code:
+
+- **Strings estáticas** (títulos de comando, descrições de configuração
+  em `package.json`) — `package.nls.json` (default, hoje em português) +
+  `package.nls.en.json` (tradução), resolvidos automaticamente pelo
+  `Display Language` configurado no VS Code do usuário.
+- **Strings dinâmicas** (mensagens narradas no output channel durante
+  execução, textos de erro) — API `vscode.l10n`, `l10n.t('chave', ...)`
+  no código + `l10n/bundle.l10n.json` (default) e
+  `l10n/bundle.l10n.en.json` (tradução).
+- **Walkthrough**: cada `assets/walkthrough/*.md` ganha uma variante
+  `*.en.md`; a entrada em `contributes.walkthroughs` referencia o
+  arquivo certo por locale (mecanismo padrão do próprio contribution
+  point, sem código extra).
+
+Zero duplicação de extensão, zero decisão do usuário sobre "qual
+instalar" — o idioma segue o VS Code, automaticamente.
+
 ## Fora de escopo (explícito)
 
 - Motor plugável no plugin `poui-specialist` (Claude Code) — não se
