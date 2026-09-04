@@ -401,7 +401,7 @@ Expected: PASS — 14 testes verdes.
 
 - [ ] **Step 6: Atualizar `agentRuntime.ts` para importar os tipos de `engineTypes.ts`**
 
-Remova de `agentRuntime.ts` as declarações de `RunAgentOptions`/`OutputSink`/`GenerateResult`/`SpawnedProcess`/`SpawnFn`/`ALLOWED_TOOLS`/`buildArgs`/`describeResultFailure` (linhas 8-133 do arquivo atual) e substitua o topo do arquivo por:
+**Remova só as 5 declarações de tipo puro** — `RunAgentOptions`/`OutputSink`/`GenerateResult`/`SpawnedProcess`/`SpawnFn` (as `interface`/`type` isoladas, não as funções) — e substitua o topo do arquivo (até a linha que declara `ALLOWED_TOOLS`) por:
 
 ```ts
 import { spawn } from 'node:child_process';
@@ -410,12 +410,12 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import * as readline from 'node:readline';
 import { randomUUID } from 'node:crypto';
-import { EngineAdapter, GenerateResult, OutputSink, RunAgentOptions, SpawnedProcess, SpawnFn } from './engineTypes';
+import { GenerateResult, OutputSink, RunAgentOptions, SpawnedProcess, SpawnFn } from './engineTypes';
 
 export type { GenerateResult, OutputSink, RunAgentOptions, SpawnedProcess, SpawnFn } from './engineTypes';
 ```
 
-O `export type { ... }` preserva `import { OutputSink } from './agentRuntime'` funcionando sem alterar nenhum dos 8 arquivos que já importam esses tipos de lá — só a Task 6 vai mudar o resto do corpo de `agentRuntime.ts` (a função em si). Deixe `runClaudeAgent` como está por enquanto (ainda vai ser usada — a troca pra `runAgent` acontece na Task 6).
+**Não remova** `ALLOWED_TOOLS`, `defaultSpawn`, `buildSubprocessEnv`, `buildArgs`, `describeResultFailure` nem `runClaudeAgent` — todos ficam exatamente como estão, logo depois desse bloco de imports. Isso é proposital: `runClaudeAgent` (deixado como está por enquanto — a troca pra `runAgent` só acontece na Task 6) ainda chama `buildArgs`/`defaultSpawn`/`buildSubprocessEnv` pelo nome no mesmo arquivo; removê-los agora quebraria a compilação antes da hora. O `export type { ... }` preserva `import { OutputSink } from './agentRuntime'` funcionando sem alterar nenhum dos 8 arquivos que já importam esses tipos de lá. Não importe `EngineAdapter` aqui — nada neste arquivo o usa até a Task 6.
 
 - [ ] **Step 7: Compilar e confirmar que nada quebrou**
 
@@ -1420,7 +1420,7 @@ Expected: PASS — 7 testes verdes.
 - [ ] **Step 5: Compilar**
 
 Run: `cd poui-vscode && npm run compile`
-Expected: os mesmos erros de "checkClaudeCliAvailable ausente" da Task 5 continuam (esperado — resolvidos nas Tasks 8-10), mas agora **também** aparecem erros de "`runClaudeAgent` não é exportado por `./agentRuntime`" nos mesmos 8 arquivos. Confirme que nenhum outro tipo de erro aparece.
+Expected: os mesmos erros de "checkClaudeCliAvailable ausente" da Task 5 continuam (esperado — resolvidos nas Tasks 9-10), mas agora **também** aparecem erros de "`runClaudeAgent` não é exportado por `./agentRuntime`" nos mesmos 8 arquivos de comando **e em `buildFixLoop.ts`** (que também importa `runClaudeAgent` hoje — resolvido na Task 8). Confirme que nenhum outro tipo de erro aparece.
 
 - [ ] **Step 6: Commit**
 
