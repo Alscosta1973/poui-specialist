@@ -51,7 +51,7 @@ describe('claudeAdapter.parseLine', () => {
   it('falls back to a generic message when both result and errors are absent', () => {
     const events = claudeAdapter.parseLine(line({ type: 'result', subtype: 'error', is_error: true }));
     assert.deepStrictEqual(events, [
-      { kind: 'result', success: false, errorMessage: 'o agente terminou com erro.' },
+      { kind: 'result', success: false, errorMessage: 'error' },
     ]);
   });
 

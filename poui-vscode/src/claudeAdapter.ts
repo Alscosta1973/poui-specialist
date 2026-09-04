@@ -41,10 +41,10 @@ function buildCommand(
 }
 
 function describeResultFailure(message: { subtype: string; result?: string; errors?: string[] }): string {
-  if (Array.isArray(message.errors)) {
-    return message.errors.length > 0 ? message.errors.join('; ') : message.subtype;
+  if (message.subtype === 'success') {
+    return message.result || 'o agente terminou com erro.';
   }
-  return message.result || 'o agente terminou com erro.';
+  return message.errors && message.errors.length > 0 ? message.errors.join('; ') : message.subtype;
 }
 
 function parseLine(line: string): NormalizedEvent[] {
