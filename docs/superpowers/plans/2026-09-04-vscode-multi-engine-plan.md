@@ -1117,7 +1117,7 @@ Substitua o conteúdo de `poui-vscode/src/test/unit/agentRuntime.test.ts` por:
 import * as assert from 'node:assert';
 import { EventEmitter } from 'node:events';
 import { Readable } from 'node:stream';
-import { runAgent, OutputSink, SpawnFn, SpawnedProcess } from '../../agentRuntime';
+import { runAgent, runAgentWithAdapter, OutputSink, SpawnFn, SpawnedProcess } from '../../agentRuntime';
 import { EngineAdapter, NormalizedEvent } from '../../engineTypes';
 
 class RecordingSink implements OutputSink {
