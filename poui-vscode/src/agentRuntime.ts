@@ -4,23 +4,16 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import * as readline from 'node:readline';
 import { randomUUID } from 'node:crypto';
-import { GenerateResult, OutputSink, RunAgentOptions, SpawnedProcess, SpawnFn } from './engineTypes';
+import { EngineAdapter, EngineId, GenerateResult, OutputSink, RunAgentOptions, SpawnedProcess, SpawnFn } from './engineTypes';
+import { getEngineAdapter } from './engineRegistry';
 
 export type { GenerateResult, OutputSink, RunAgentOptions, SpawnedProcess, SpawnFn } from './engineTypes';
-
-/** Ferramentas nativas liberadas para o agente — sem `Bash`/`WebFetch`/`WebSearch`,
- * de modo que `cwd` seja de fato a fronteira de segurança da geração. */
-const ALLOWED_TOOLS = 'Read,Write,Edit,Glob,Grep';
 
 function defaultSpawn(
   command: string,
   args: string[],
   options: { cwd: string; env: NodeJS.ProcessEnv },
 ): SpawnedProcess {
-  // `stdio: ['ignore', ...]` faz o filho ver stdin já fechado. Sem isso o
-  // Node abre um pipe de stdin que ninguém escreve nem fecha, e o CLI espera
-  // ~3s por dados antes de desistir — atrasando toda execução e emitindo
-  // "Warning: no stdin data received in 3s" no stderr.
   return spawn(command, args, {
     cwd: options.cwd,
     env: options.env,
@@ -28,10 +21,6 @@ function defaultSpawn(
   }) as unknown as SpawnedProcess;
 }
 
-/** Remove do env herdado as variáveis que dariam prioridade a uma API key
- * paga sobre a sessão OAuth do claude.ai já logada — se `ANTHROPIC_API_KEY`
- * estiver setada por qualquer motivo no processo do VS Code, ela venceria a
- * sessão OAuth na resolução de credenciais do CLI. */
 function buildSubprocessEnv(): NodeJS.ProcessEnv {
   const env = { ...process.env };
   delete env.ANTHROPIC_API_KEY;
@@ -40,49 +29,11 @@ function buildSubprocessEnv(): NodeJS.ProcessEnv {
   return env;
 }
 
-function buildArgs(options: RunAgentOptions, systemPromptFile: string, mcpConfigFile?: string): string[] {
-  const args = [
-    '-p',
-    options.userPrompt,
-    '--append-system-prompt-file',
-    systemPromptFile,
-    '--output-format',
-    'stream-json',
-    '--verbose',
-    '--tools',
-    options.tools ?? ALLOWED_TOOLS,
-    '--permission-mode',
-    'acceptEdits',
-    '--setting-sources',
-    '',
-  ];
-  if (options.addDir) {
-    args.push('--add-dir', options.addDir);
-  }
-  if (options.model) {
-    args.push('--model', options.model);
-  }
-  if (options.effort) {
-    args.push('--effort', options.effort);
-  }
-  if (mcpConfigFile) {
-    args.push('--mcp-config', mcpConfigFile, '--strict-mcp-config');
-  }
-  if (options.allowedTools) {
-    args.push('--allowedTools', options.allowedTools);
-  }
-  return args;
-}
-
-/** Extrai uma mensagem legível de um `result` que terminou em erro. */
-function describeResultFailure(message: { subtype: string; result?: string; errors?: string[] }): string {
-  if (message.subtype === 'success') {
-    return message.result || 'o agente terminou com erro.';
-  }
-  return message.errors && message.errors.length > 0 ? message.errors.join('; ') : message.subtype;
-}
-
-export async function runClaudeAgent(
+/** Núcleo da orquestração — recebe o adapter já resolvido, pra permitir
+ * testar com um fake sem depender do registry real. `runAgent` (abaixo) é a
+ * função pública que os comandos chamam; ela só resolve o adapter e delega. */
+export async function runAgentWithAdapter(
+  adapter: EngineAdapter,
   options: RunAgentOptions,
   sink: OutputSink,
   spawnFn: SpawnFn = defaultSpawn,
@@ -100,8 +51,8 @@ export async function runClaudeAgent(
       await fs.writeFile(mcpConfigFile, options.mcpConfig, 'utf8');
     }
 
-    const args = buildArgs(options, systemPromptFile, mcpConfigFile);
-    const child = spawnFn('claude', args, { cwd: options.cwd, env: buildSubprocessEnv() });
+    const { command, args } = adapter.buildCommand(options, systemPromptFile, mcpConfigFile);
+    const child = spawnFn(command, args, { cwd: options.cwd, env: buildSubprocessEnv() });
 
     let stderrOutput = '';
     child.stderr.on('data', (chunk: Buffer | string) => {
@@ -123,56 +74,25 @@ export async function runClaudeAgent(
         if (!line.trim()) {
           return;
         }
-        let message: Record<string, unknown>;
-        try {
-          message = JSON.parse(line);
-        } catch {
-          return;
-        }
-
-        if (message.type === 'assistant') {
-          const assistantMessage = message as {
-            error?: string;
-            message: { content: Array<{ type: string; text?: string; name?: string; input?: unknown }> };
-          };
-          if (
-            assistantMessage.error === 'authentication_failed' ||
-            assistantMessage.error === 'oauth_org_not_allowed'
-          ) {
-            isAuthError = true;
-          }
-          for (const block of assistantMessage.message.content) {
-            if (block.type === 'text' && typeof block.text === 'string') {
-              sink.appendLine(block.text);
-            } else if (block.type === 'tool_use') {
-              sink.appendLine(`→ ${block.name} ${JSON.stringify(block.input)}`);
-              const input = block.input as { file_path?: unknown } | null | undefined;
-              if (
-                (block.name === 'Write' || block.name === 'Edit') &&
-                typeof input?.file_path === 'string'
-              ) {
-                filesWritten.push(input.file_path);
-              }
+        for (const event of adapter.parseLine(line)) {
+          if (event.kind === 'text') {
+            sink.appendLine(event.text);
+          } else if (event.kind === 'tool_use') {
+            sink.appendLine(`→ ${event.name} ${JSON.stringify(event.input)}`);
+            const input = event.input as { file_path?: unknown } | null | undefined;
+            if ((event.name === 'Write' || event.name === 'Edit') && typeof input?.file_path === 'string') {
+              filesWritten.push(input.file_path);
             }
-          }
-        } else if (message.type === 'result') {
-          const resultMessage = message as {
-            subtype: string;
-            is_error: boolean;
-            result?: string;
-            errors?: string[];
-            api_error_status?: number | null;
-          };
-          if (resultMessage.api_error_status === 401 || resultMessage.api_error_status === 403) {
+          } else if (event.kind === 'auth_error') {
             isAuthError = true;
-          }
-          if (resultMessage.is_error) {
-            const errorMessage = describeResultFailure(resultMessage);
-            isAuthError = isAuthError || /authentication|unauthorized|401|403/i.test(errorMessage);
-            sink.appendLine(`✗ falha ao executar o agente: ${errorMessage}`);
-            finish({ filesWritten, succeeded: false, errorMessage, isAuthError });
-          } else {
-            finish({ filesWritten, succeeded: true });
+          } else if (event.kind === 'result') {
+            if (event.success) {
+              finish({ filesWritten, succeeded: true });
+            } else {
+              isAuthError = isAuthError || /authentication|unauthorized|401|403/i.test(event.errorMessage);
+              sink.appendLine(`✗ falha ao executar o agente: ${event.errorMessage}`);
+              finish({ filesWritten, succeeded: false, errorMessage: event.errorMessage, isAuthError });
+            }
           }
         }
       });
@@ -187,15 +107,8 @@ export async function runClaudeAgent(
 
       child.on('close', () => {
         if (finished) {
-          // A execução já foi resolvida por uma mensagem `result` — nada a
-          // reportar aqui, nem sequer uma linha no output.
           return;
         }
-        // Fallback: o processo encerrou sem nunca emitir uma mensagem
-        // `result` (crash, kill, etc.) — o código de saída em si não é
-        // sinal confiável de sucesso/falha da tarefa (confirmado
-        // empiricamente: uma falha reportada via `result.is_error` ainda
-        // sai com código 0), então só chegamos aqui como fallback.
         const errorMessage = stderrOutput.trim() || 'o processo encerrou sem retornar um resultado.';
         sink.appendLine(`✗ falha ao executar o agente: ${errorMessage}`);
         finish({ filesWritten, succeeded: false, errorMessage, isAuthError });
@@ -211,4 +124,13 @@ export async function runClaudeAgent(
       await fs.rm(mcpConfigFile, { force: true });
     }
   }
+}
+
+export async function runAgent(
+  options: RunAgentOptions,
+  sink: OutputSink,
+  engineId: EngineId,
+  spawnFn: SpawnFn = defaultSpawn,
+): Promise<GenerateResult> {
+  return runAgentWithAdapter(getEngineAdapter(engineId), options, sink, spawnFn);
 }
