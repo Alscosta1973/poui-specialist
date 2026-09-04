@@ -1,6 +1,7 @@
 import * as path from 'node:path';
 import { runBuild, parseBuildErrors, BuildError, RunBuildFn } from './buildVerify';
-import { runClaudeAgent, GenerateResult, OutputSink, RunAgentOptions } from './agentRuntime';
+import { runAgent, GenerateResult, OutputSink, RunAgentOptions } from './agentRuntime';
+import { EngineId } from './engineTypes';
 
 const MAX_FIX_ATTEMPTS = 3;
 
@@ -12,6 +13,7 @@ export interface BuildFixOptions {
   /** Mesmo system prompt usado na geração original — já carrega as regras/
    * quirks certas do tipo, reaproveitadas para a correção. */
   systemPrompt: string;
+  engineId: EngineId;
   model?: string;
   effort?: 'low' | 'medium' | 'high' | 'xhigh' | 'max';
 }
@@ -25,7 +27,7 @@ export interface BuildFixResult {
   preexistingErrors: BuildError[];
 }
 
-type AgentRunner = (options: RunAgentOptions, sink: OutputSink) => Promise<GenerateResult>;
+type AgentRunner = (options: RunAgentOptions, sink: OutputSink, engineId: EngineId) => Promise<GenerateResult>;
 
 function normalize(cwd: string, file: string): string {
   return path.resolve(cwd, file).toLowerCase();
@@ -50,7 +52,7 @@ export async function runBuildFixLoop(
   options: BuildFixOptions,
   sink: OutputSink,
   buildRunner: RunBuildFn = runBuild,
-  agentRunner: AgentRunner = runClaudeAgent,
+  agentRunner: AgentRunner = runAgent,
 ): Promise<BuildFixResult> {
   const writtenSet = new Set(options.filesWritten.map((f) => normalize(options.cwd, f)));
   const fixedFiles: string[] = [];
@@ -90,6 +92,7 @@ export async function runBuildFixLoop(
         effort: options.effort,
       },
       sink,
+      options.engineId,
     );
 
     for (const file of filesToFix) {

@@ -42,7 +42,7 @@ describe('runBuildFixLoop', () => {
     };
 
     const result = await runBuildFixLoop(
-      { cwd: CWD, filesWritten: WRITTEN, systemPrompt: 'sys' },
+      { cwd: CWD, filesWritten: WRITTEN, systemPrompt: 'sys', engineId: 'claude' },
       sink,
       buildRunner,
       agentRunner,
@@ -70,7 +70,7 @@ describe('runBuildFixLoop', () => {
     };
 
     const result = await runBuildFixLoop(
-      { cwd: CWD, filesWritten: WRITTEN, systemPrompt: 'sys' },
+      { cwd: CWD, filesWritten: WRITTEN, systemPrompt: 'sys', engineId: 'claude' },
       sink,
       buildRunner,
       agentRunner,
@@ -92,7 +92,7 @@ describe('runBuildFixLoop', () => {
     };
 
     const result = await runBuildFixLoop(
-      { cwd: CWD, filesWritten: WRITTEN, systemPrompt: 'sys' },
+      { cwd: CWD, filesWritten: WRITTEN, systemPrompt: 'sys', engineId: 'claude' },
       sink,
       buildRunner,
       agentRunner,
@@ -114,7 +114,7 @@ describe('runBuildFixLoop', () => {
     };
 
     const result = await runBuildFixLoop(
-      { cwd: CWD, filesWritten: WRITTEN, systemPrompt: 'sys' },
+      { cwd: CWD, filesWritten: WRITTEN, systemPrompt: 'sys', engineId: 'claude' },
       sink,
       buildRunner,
       agentRunner,
@@ -140,7 +140,7 @@ describe('runBuildFixLoop', () => {
     };
 
     const result = await runBuildFixLoop(
-      { cwd: CWD, filesWritten: WRITTEN, systemPrompt: 'sys' },
+      { cwd: CWD, filesWritten: WRITTEN, systemPrompt: 'sys', engineId: 'claude' },
       sink,
       buildRunner,
       agentRunner,
