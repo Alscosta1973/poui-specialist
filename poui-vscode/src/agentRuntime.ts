@@ -4,59 +4,9 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import * as readline from 'node:readline';
 import { randomUUID } from 'node:crypto';
+import { GenerateResult, OutputSink, RunAgentOptions, SpawnedProcess, SpawnFn } from './engineTypes';
 
-export interface OutputSink {
-  appendLine(value: string): void;
-}
-
-export interface GenerateResult {
-  filesWritten: string[];
-  succeeded: boolean;
-  errorMessage?: string;
-  isAuthError?: boolean;
-}
-
-export interface RunAgentOptions {
-  cwd: string;
-  systemPrompt: string;
-  userPrompt: string;
-  model?: string;
-  effort?: 'low' | 'medium' | 'high' | 'xhigh' | 'max';
-  /** Lista de tools liberadas, separadas por vírgula — sobrescreve
-   * `ALLOWED_TOOLS`. Usado por fluxos somente-leitura (ex: `review`) que
-   * não devem poder escrever/editar arquivos. */
-  tools?: string;
-  /** Conteúdo JSON de config de servidores MCP (ex: Playwright) — escrito
-   * num arquivo temporário e passado via `--mcp-config`/`--strict-mcp-config`.
-   * Usado por fluxos que precisam de ferramentas MCP (ex: `e2e`). */
-  mcpConfig?: string;
-  /** Lista de tools auto-aprovadas via `--allowedTools` — distinta de
-   * `tools`/`--tools`: `--tools` só restringe o conjunto disponível, não
-   * aprova ferramentas MCP automaticamente (confirmado por teste real —
-   * sem isso, toda chamada MCP fica bloqueada por permissão mesmo com
-   * `--permission-mode acceptEdits`). Necessário sempre que `mcpConfig`
-   * também for passado. */
-  allowedTools?: string;
-  /** Diretório extra liberado para leitura/escrita fora de `cwd` via
-   * `--add-dir` — necessário para `refactor`, cujo arquivo `.prw`/`.tlpp`
-   * fonte normalmente vive fora do workspace Angular. Sem isso o CLI pede
-   * permissão interativa que o modo `-p` (stdin fechado) nunca recebe, e a
-   * execução "termina com sucesso" sem ler nem escrever nada. */
-  addDir?: string;
-}
-
-export interface SpawnedProcess {
-  stdout: NodeJS.ReadableStream;
-  stderr: NodeJS.ReadableStream;
-  on(event: 'error', listener: (err: Error) => void): unknown;
-  on(event: 'close', listener: (code: number | null) => void): unknown;
-}
-
-export type SpawnFn = (
-  command: string,
-  args: string[],
-  options: { cwd: string; env: NodeJS.ProcessEnv },
-) => SpawnedProcess;
+export type { GenerateResult, OutputSink, RunAgentOptions, SpawnedProcess, SpawnFn } from './engineTypes';
 
 /** Ferramentas nativas liberadas para o agente — sem `Bash`/`WebFetch`/`WebSearch`,
  * de modo que `cwd` seja de fato a fronteira de segurança da geração. */
