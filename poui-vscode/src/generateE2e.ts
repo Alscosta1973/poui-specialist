@@ -187,7 +187,7 @@ export function registerE2eCommand(
       const message = `PO-UI: falha ao gerar teste E2E — ${result.errorMessage ?? 'erro desconhecido'}.`;
       if (result.isAuthError) {
         void vscode.window.showErrorMessage(
-          `${message} Rode \`claude\` em um terminal para fazer login novamente.`,
+          `${message} Rode \`${engineId}\` em um terminal para fazer login novamente.`,
         );
         return;
       }

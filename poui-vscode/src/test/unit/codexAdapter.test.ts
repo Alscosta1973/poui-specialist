@@ -20,16 +20,38 @@ describe('codexAdapter.parseLine', () => {
     assert.deepStrictEqual(events, [{ kind: 'text', text: 'Planejando arquivos...' }]);
   });
 
-  it('emits tool_use for an item.completed file_change/command_execution item', () => {
+  it('emits tool_use with name normalized to Write for a file_change item (real codex shape has no name field)', () => {
     const events = codexAdapter.parseLine(
       line({
         type: 'item.completed',
-        item: { type: 'file_change', name: 'Write', path: 'src/app/a/a.component.ts' },
+        item: { type: 'file_change', path: 'src/app/a/a.component.ts' },
       }),
     );
     assert.deepStrictEqual(events, [
       { kind: 'tool_use', name: 'Write', input: { file_path: 'src/app/a/a.component.ts' } },
     ]);
+  });
+
+  it('emits tool_use for a command_execution item (unchanged: still requires name and path)', () => {
+    const events = codexAdapter.parseLine(
+      line({
+        type: 'item.completed',
+        item: { type: 'command_execution', name: 'Shell', path: 'ng build' },
+      }),
+    );
+    assert.deepStrictEqual(events, [
+      { kind: 'tool_use', name: 'Shell', input: { file_path: 'ng build' } },
+    ]);
+  });
+
+  it('emits nothing for a command_execution item missing name (unchanged behavior)', () => {
+    const events = codexAdapter.parseLine(
+      line({
+        type: 'item.completed',
+        item: { type: 'command_execution', path: 'ng build' },
+      }),
+    );
+    assert.deepStrictEqual(events, []);
   });
 
   it('emits a successful result on turn.completed', () => {

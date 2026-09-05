@@ -11,5 +11,12 @@ export function getEngineAdapter(id: EngineId): EngineAdapter {
       return codexAdapter;
     case 'gemini':
       return geminiAdapter;
+    default:
+      // Fallback seguro para um EngineId inválido em runtime (ex.: usuário
+      // editou .vscode/settings.json à mão com um valor fora do enum do
+      // schema, que só é validado no editor, não em runtime). Mantém
+      // getEngineAdapter como uma função total, sem lançar exceção — o
+      // default documentado de poui.aiEngine é 'claude'.
+      return claudeAdapter;
   }
 }

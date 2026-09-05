@@ -24,12 +24,12 @@ describe('geminiAdapter.parseLine', () => {
     );
   });
 
-  it('emits tool_use for a tool_use event with a Write/Edit call', () => {
+  it('emits tool_use with the name normalized to Write for a file-writing tool call', () => {
     const events = geminiAdapter.parseLine(
       line({ type: 'tool_use', name: 'write_file', args: { file_path: 'src/app/a/a.component.ts' } }),
     );
     assert.deepStrictEqual(events, [
-      { kind: 'tool_use', name: 'write_file', input: { file_path: 'src/app/a/a.component.ts' } },
+      { kind: 'tool_use', name: 'Write', input: { file_path: 'src/app/a/a.component.ts' } },
     ]);
   });
 

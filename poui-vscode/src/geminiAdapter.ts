@@ -42,7 +42,12 @@ function parseLine(line: string): NormalizedEvent[] {
   if (message.type === 'tool_use') {
     const call = message as { name?: string; args?: { file_path?: string } };
     if (typeof call.name === 'string' && typeof call.args?.file_path === 'string') {
-      return [{ kind: 'tool_use', name: call.name, input: { file_path: call.args.file_path } }];
+      // Normalização deliberada: gemini reporta o nome bruto da ferramenta
+      // (ex.: 'write_file'); traduzimos para o vocabulário compartilhado
+      // 'Write'/'Edit' que agentRuntime.ts usa para popular filesWritten.
+      // Gemini não distingue write/edit nesse nível — 'Write' é o mapeamento
+      // correto para todas as chamadas de escrita de arquivo.
+      return [{ kind: 'tool_use', name: 'Write', input: { file_path: call.args.file_path } }];
     }
     return [];
   }

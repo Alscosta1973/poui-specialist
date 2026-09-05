@@ -247,7 +247,7 @@ export function registerConnectCommand(
     if (!result.succeeded) {
       const message = `PO-UI: falha ao conectar — ${result.errorMessage ?? 'erro desconhecido'}.`;
       if (result.isAuthError) {
-        void vscode.window.showErrorMessage(`${message} Rode \`claude\` em um terminal para fazer login novamente.`);
+        void vscode.window.showErrorMessage(`${message} Rode \`${engineId}\` em um terminal para fazer login novamente.`);
         return;
       }
       void vscode.window.showErrorMessage(message);

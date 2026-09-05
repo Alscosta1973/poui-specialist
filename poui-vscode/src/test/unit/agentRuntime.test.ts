@@ -147,4 +147,141 @@ describe('runAgent', () => {
 
     assert.strictEqual(result.succeeded, true);
   });
+
+  // Os 4 testes abaixo restauram cobertura de orquestração que existia no
+  // agentRuntime.test.ts pré-refactor (runClaudeAgent) e não foi carregada
+  // pra este suite genérico — ver Finding 3 do final review do plano
+  // 2026-09-04-vscode-multi-engine-plan.
+
+  it('scrubs ANTHROPIC_* env vars from the env passed to spawnFn (buildSubprocessEnv)', async () => {
+    const sink = new RecordingSink();
+    const adapter = makeFakeAdapter({ L1: [{ kind: 'result', success: true }] });
+    let capturedEnv: NodeJS.ProcessEnv | undefined;
+    const spawnFn: SpawnFn = (_command, _args, options) => {
+      capturedEnv = options.env;
+      return makeFakeProcess({ lines: ['L1'] });
+    };
+
+    process.env.ANTHROPIC_API_KEY = 'sk-ant-should-be-removed';
+    process.env.ANTHROPIC_AUTH_TOKEN = 'oauth-should-be-removed';
+    process.env.ANTHROPIC_BASE_URL = 'https://evil.example';
+
+    try {
+      await runAgentWithAdapter(adapter, { cwd: '/tmp/workspace', systemPrompt: 'sys', userPrompt: 'u' }, sink, spawnFn);
+    } finally {
+      delete process.env.ANTHROPIC_API_KEY;
+      delete process.env.ANTHROPIC_AUTH_TOKEN;
+      delete process.env.ANTHROPIC_BASE_URL;
+    }
+
+    assert.ok(capturedEnv);
+    assert.ok(!('ANTHROPIC_API_KEY' in (capturedEnv ?? {})));
+    assert.ok(!('ANTHROPIC_AUTH_TOKEN' in (capturedEnv ?? {})));
+    assert.ok(!('ANTHROPIC_BASE_URL' in (capturedEnv ?? {})));
+  });
+
+  it('writes systemPrompt/mcpConfig temp files before spawn and removes them after — success path', async () => {
+    const sink = new RecordingSink();
+    const fsSync = await import('node:fs');
+    const fs = await import('node:fs/promises');
+    let capturedSystemPromptFile: string | undefined;
+    let capturedMcpConfigFile: string | undefined;
+    let systemPromptContentsDuringRun: string | undefined;
+    let mcpConfigContentsDuringRun: string | undefined;
+
+    const adapter: EngineAdapter = {
+      id: 'claude',
+      binaryName: 'fake-cli',
+      buildCommand: (_options, systemPromptFile, mcpConfigFile) => {
+        capturedSystemPromptFile = systemPromptFile;
+        capturedMcpConfigFile = mcpConfigFile;
+        // Lê de forma síncrona aqui dentro de buildCommand — que roda antes
+        // do spawn — pra confirmar que o arquivo já existe com o conteúdo
+        // certo nesse ponto do fluxo (antes do processo ser criado).
+        systemPromptContentsDuringRun = fsSync.readFileSync(systemPromptFile, 'utf8');
+        if (mcpConfigFile) {
+          mcpConfigContentsDuringRun = fsSync.readFileSync(mcpConfigFile, 'utf8');
+        }
+        return { command: 'fake-cli', args: [] };
+      },
+      parseLine: (line: string) => (line === 'L1' ? [{ kind: 'result', success: true }] : []),
+    };
+    const spawnFn: SpawnFn = () => makeFakeProcess({ lines: ['L1'] });
+
+    await runAgentWithAdapter(
+      adapter,
+      { cwd: '/tmp/workspace', systemPrompt: 'conteúdo do prompt de sistema', userPrompt: 'u', mcpConfig: '{"a":1}' },
+      sink,
+      spawnFn,
+    );
+
+    assert.ok(capturedSystemPromptFile);
+    assert.strictEqual(systemPromptContentsDuringRun, 'conteúdo do prompt de sistema');
+    assert.ok(capturedMcpConfigFile);
+    assert.strictEqual(mcpConfigContentsDuringRun, '{"a":1}');
+
+    await assert.rejects(() => fs.access(capturedSystemPromptFile as string));
+    await assert.rejects(() => fs.access(capturedMcpConfigFile as string));
+  });
+
+  it('removes the systemPrompt temp file after a failed run too', async () => {
+    const sink = new RecordingSink();
+    const fs = await import('node:fs/promises');
+    let capturedSystemPromptFile: string | undefined;
+
+    const adapter: EngineAdapter = {
+      id: 'claude',
+      binaryName: 'fake-cli',
+      buildCommand: (_options, systemPromptFile) => {
+        capturedSystemPromptFile = systemPromptFile;
+        return { command: 'fake-cli', args: [] };
+      },
+      parseLine: (line: string) =>
+        line === 'L1' ? [{ kind: 'result', success: false, errorMessage: 'boom' }] : [],
+    };
+    const spawnFn: SpawnFn = () => makeFakeProcess({ lines: ['L1'] });
+
+    const result = await runAgentWithAdapter(
+      adapter,
+      { cwd: '/tmp/workspace', systemPrompt: 'sys', userPrompt: 'u' },
+      sink,
+      spawnFn,
+    );
+
+    assert.strictEqual(result.succeeded, false);
+    assert.ok(capturedSystemPromptFile);
+    await assert.rejects(() => fs.access(capturedSystemPromptFile as string));
+  });
+
+  it('resolves succeeded:false with a fallback message when the process closes with no result event', async () => {
+    const sink = new RecordingSink();
+    const adapter = makeFakeAdapter({ L1: [{ kind: 'text', text: 'oi' }] });
+    const spawnFn: SpawnFn = () => makeFakeProcess({ lines: ['L1'], exitCode: 0 });
+
+    const result = await runAgentWithAdapter(
+      adapter,
+      { cwd: '/tmp/workspace', systemPrompt: 'sys', userPrompt: 'u' },
+      sink,
+      spawnFn,
+    );
+
+    assert.strictEqual(result.succeeded, false);
+    assert.strictEqual(result.errorMessage, 'o processo encerrou sem retornar um resultado.');
+  });
+
+  it('keeps a successful result even if the process later closes with a nonzero exit code', async () => {
+    const sink = new RecordingSink();
+    const adapter = makeFakeAdapter({ L1: [{ kind: 'result', success: true }] });
+    const spawnFn: SpawnFn = () => makeFakeProcess({ lines: ['L1'], exitCode: 1 });
+
+    const result = await runAgentWithAdapter(
+      adapter,
+      { cwd: '/tmp/workspace', systemPrompt: 'sys', userPrompt: 'u' },
+      sink,
+      spawnFn,
+    );
+
+    assert.strictEqual(result.succeeded, true);
+    assert.ok(!sink.lines.some((l) => l.includes('falha ao executar o agente')));
+  });
 });

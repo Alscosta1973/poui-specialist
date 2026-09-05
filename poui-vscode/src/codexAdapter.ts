@@ -31,11 +31,14 @@ function parseLine(line: string): NormalizedEvent[] {
     if (item?.type === 'agent_message' && typeof item.text === 'string') {
       return [{ kind: 'text', text: item.text }];
     }
-    if (
-      (item?.type === 'file_change' || item?.type === 'command_execution') &&
-      typeof item.name === 'string' &&
-      typeof item.path === 'string'
-    ) {
+    if (item?.type === 'file_change' && typeof item.path === 'string') {
+      // Normalização deliberada: o schema real de 'file_change' do codex não
+      // carrega um campo 'name' e não distingue write de edit nesse nível —
+      // traduzimos para 'Write', o vocabulário compartilhado que
+      // agentRuntime.ts usa para popular filesWritten.
+      return [{ kind: 'tool_use', name: 'Write', input: { file_path: item.path } }];
+    }
+    if (item?.type === 'command_execution' && typeof item.name === 'string' && typeof item.path === 'string') {
       return [{ kind: 'tool_use', name: item.name, input: { file_path: item.path } }];
     }
     return [];
