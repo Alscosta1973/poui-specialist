@@ -7,6 +7,7 @@ import { buildScreenshotSystemPrompt, buildScreenshotUserPrompt, parseScreenshot
 import { runAgent, OutputSink } from './agentRuntime';
 import { runBuildFixLoop } from './buildFixLoop';
 import { EngineId } from './engineTypes';
+import { getEngineAdapter } from './engineRegistry';
 
 export function registerScreenshotCommand(
   context: vscode.ExtensionContext,
@@ -39,6 +40,12 @@ export function registerScreenshotCommand(
       .getConfiguration('poui')
       .get<'low' | 'medium' | 'high' | 'xhigh' | 'max'>('effort');
     const engineId = vscode.workspace.getConfiguration('poui').get<EngineId>('aiEngine', 'claude');
+
+    if (!getEngineAdapter(engineId).capabilities.supportsVision) {
+      outputChannel.appendLine(
+        `⚠ o motor "${engineId}" pode não suportar entrada de imagem — a análise do screenshot pode falhar ou ignorar a imagem enviada.`,
+      );
+    }
 
     let analysisSystemPrompt: string;
     try {
