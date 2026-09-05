@@ -309,4 +309,36 @@ describe('runAgent', () => {
     assert.strictEqual(result.succeeded, true);
     assert.ok(sink.lines.some((l) => l.includes('linha malformada')));
   });
+
+  it("merges the adapter's buildCommand env into what's passed to spawnFn, without dropping buildSubprocessEnv's scrubbing", async () => {
+    const sink = new RecordingSink();
+    const adapter: EngineAdapter = {
+      id: 'gemini',
+      binaryName: 'fake-cli',
+      capabilities: { restrictsTools: false, supportsMcp: false, supportsVision: false },
+      buildCommand: (_options, systemPromptFile) => ({
+        command: 'fake-cli',
+        args: [],
+        env: { GEMINI_SYSTEM_MD: systemPromptFile },
+      }),
+      parseLine: (line: string) => (line === 'L1' ? [{ kind: 'result', success: true }] : []),
+    };
+    let capturedEnv: NodeJS.ProcessEnv | undefined;
+    const spawnFn: SpawnFn = (_command, _args, options) => {
+      capturedEnv = options.env;
+      return makeFakeProcess({ lines: ['L1'] });
+    };
+
+    process.env.ANTHROPIC_API_KEY = 'sk-ant-should-be-removed';
+    try {
+      await runAgentWithAdapter(adapter, { cwd: '/tmp/workspace', systemPrompt: 'sys', userPrompt: 'u' }, sink, spawnFn);
+    } finally {
+      delete process.env.ANTHROPIC_API_KEY;
+    }
+
+    assert.ok(capturedEnv);
+    assert.ok(!('ANTHROPIC_API_KEY' in (capturedEnv ?? {})));
+    const systemMdPath = (capturedEnv ?? {}).GEMINI_SYSTEM_MD;
+    assert.ok(typeof systemMdPath === 'string' && systemMdPath.includes('poui-system-prompt-'));
+  });
 });

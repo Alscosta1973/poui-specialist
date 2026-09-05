@@ -51,8 +51,8 @@ export async function runAgentWithAdapter(
       await fs.writeFile(mcpConfigFile, options.mcpConfig, 'utf8');
     }
 
-    const { command, args } = adapter.buildCommand(options, systemPromptFile, mcpConfigFile);
-    const child = spawnFn(command, args, { cwd: options.cwd, env: buildSubprocessEnv() });
+    const { command, args, env } = adapter.buildCommand(options, systemPromptFile, mcpConfigFile);
+    const child = spawnFn(command, args, { cwd: options.cwd, env: { ...buildSubprocessEnv(), ...env } });
 
     let stderrOutput = '';
     child.stderr.on('data', (chunk: Buffer | string) => {

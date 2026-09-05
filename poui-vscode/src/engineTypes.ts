@@ -70,7 +70,15 @@ export interface EngineAdapter {
     options: RunAgentOptions,
     systemPromptFile: string,
     mcpConfigFile?: string,
-  ): { command: string; args: string[] };
+  ): {
+    command: string;
+    args: string[];
+    /** Variáveis de ambiente extras a mesclar por cima de
+     * `buildSubprocessEnv()` antes do spawn — usado por motores que
+     * configuram algo (ex: o prompt de sistema do gemini) via env var em
+     * vez de argumento de CLI. */
+    env?: Record<string, string>;
+  };
   /** Função pura — uma linha de stdout vira 0+ eventos normalizados. Nunca
    * lança: JSON inválido ou tipo de mensagem desconhecido devolve []. */
   parseLine(line: string): NormalizedEvent[];

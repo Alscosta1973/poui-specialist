@@ -1,15 +1,17 @@
 import { EngineAdapter, NormalizedEvent, RunAgentOptions } from './engineTypes';
 
-// TODO(gemini): --system-prompt-file/--add-dir equivalentes não confirmados
-// publicamente (ver spec, seção "Riscos", item 2). Doc oficial confirma
-// GEMINI_API_KEY/GOOGLE_API_KEY como exigência de auth headless (item 3) —
-// diferente de Claude/Codex, não reaproveita sessão pessoal. Validar com
-// `gemini --help` numa máquina real antes de considerar pronto.
+// TODO(gemini): --add-dir equivalente ainda não confirmado/testado (talvez
+// --include-directories, visto em `gemini --help`, mas nenhum comando desta
+// extensão exercitou esse caminho ainda). Doc oficial confirma
+// GEMINI_API_KEY/GOOGLE_API_KEY como exigência de auth headless — diferente
+// de Claude/Codex, não reaproveita sessão pessoal. `--skip-trust` e o
+// mecanismo de prompt de sistema (`GEMINI_SYSTEM_MD`, ver buildCommand
+// abaixo) já validados via teste manual real nesta sessão.
 function buildCommand(
   options: RunAgentOptions,
   systemPromptFile: string,
   _mcpConfigFile?: string,
-): { command: string; args: string[] } {
+): { command: string; args: string[]; env?: Record<string, string> } {
   const args = [
     '-p',
     options.userPrompt,
@@ -26,10 +28,17 @@ function buildCommand(
     // automaticamente é seguro; sem isso, todo comando com o motor gemini
     // falharia para qualquer usuário na primeira execução.
     '--skip-trust',
-    '--system-prompt-file',
-    systemPromptFile,
   ];
-  return { command: 'gemini', args };
+  // Achado confirmado via teste manual real: `--system-prompt-file` NÃO
+  // existe no Gemini CLI (rejeitado com "Unknown arguments" — o
+  // buildCommand anterior quebrava TODO comando com este motor). O
+  // mecanismo real é a env var `GEMINI_SYSTEM_MD`: quando aponta pra um
+  // arquivo, o Gemini CLI SUBSTITUI seu prompt de sistema padrão pelo
+  // conteúdo do arquivo — diferente do Claude, que só ANEXA
+  // (`--append-system-prompt-file`). Aceitável aqui porque os prompts de
+  // sistema desta extensão já são instruções completas por si só, não um
+  // complemento ao comportamento padrão do motor.
+  return { command: 'gemini', args, env: { GEMINI_SYSTEM_MD: systemPromptFile } };
 }
 
 function parseLine(line: string): NormalizedEvent[] {

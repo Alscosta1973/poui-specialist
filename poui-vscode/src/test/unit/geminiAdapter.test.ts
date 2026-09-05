@@ -78,8 +78,8 @@ describe('geminiAdapter.parseLine', () => {
 });
 
 describe('geminiAdapter.buildCommand', () => {
-  it('builds -p with stream-json output and the confirmed auto-approve flag', () => {
-    const { command, args } = geminiAdapter.buildCommand(
+  it('builds -p with stream-json output and the confirmed auto-approve/skip-trust flags, passing the system prompt via GEMINI_SYSTEM_MD env var', () => {
+    const { command, args, env } = geminiAdapter.buildCommand(
       { cwd: '/tmp/workspace', systemPrompt: 'sys', userPrompt: 'gera um componente' },
       '/tmp/system-prompt.txt',
     );
@@ -92,8 +92,7 @@ describe('geminiAdapter.buildCommand', () => {
       '--approval-mode',
       'yolo',
       '--skip-trust',
-      '--system-prompt-file',
-      '/tmp/system-prompt.txt',
     ]);
+    assert.deepStrictEqual(env, { GEMINI_SYSTEM_MD: '/tmp/system-prompt.txt' });
   });
 });
