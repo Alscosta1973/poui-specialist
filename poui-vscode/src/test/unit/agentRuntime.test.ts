@@ -42,6 +42,7 @@ function makeFakeAdapter(eventsByLine: Record<string, NormalizedEvent[]>): Engin
   return {
     id: 'claude',
     binaryName: 'fake-cli',
+    capabilities: { restrictsTools: true, supportsMcp: true, supportsVision: true },
     buildCommand: () => ({ command: 'fake-cli', args: [] }),
     parseLine: (line: string) => eventsByLine[line] ?? [],
   };
@@ -192,6 +193,7 @@ describe('runAgent', () => {
     const adapter: EngineAdapter = {
       id: 'claude',
       binaryName: 'fake-cli',
+      capabilities: { restrictsTools: true, supportsMcp: true, supportsVision: true },
       buildCommand: (_options, systemPromptFile, mcpConfigFile) => {
         capturedSystemPromptFile = systemPromptFile;
         capturedMcpConfigFile = mcpConfigFile;
@@ -232,6 +234,7 @@ describe('runAgent', () => {
     const adapter: EngineAdapter = {
       id: 'claude',
       binaryName: 'fake-cli',
+      capabilities: { restrictsTools: true, supportsMcp: true, supportsVision: true },
       buildCommand: (_options, systemPromptFile) => {
         capturedSystemPromptFile = systemPromptFile;
         return { command: 'fake-cli', args: [] };

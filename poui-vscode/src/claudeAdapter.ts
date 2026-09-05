@@ -100,6 +100,7 @@ function parseLine(line: string): NormalizedEvent[] {
 export const claudeAdapter: EngineAdapter = {
   id: 'claude',
   binaryName: 'claude',
+  capabilities: { restrictsTools: true, supportsMcp: true, supportsVision: true },
   buildCommand,
   parseLine,
 };

@@ -43,11 +43,29 @@ export type SpawnFn = (
   options: { cwd: string; env: NodeJS.ProcessEnv },
 ) => SpawnedProcess;
 
+export interface EngineCapabilities {
+  /** Se true, o motor respeita `RunAgentOptions.tools`/`allowedTools` para
+   * restringir quais ferramentas o agente pode usar — usado por comandos
+   * como `poui.review` que dependem de rodar sem Write/Edit. */
+  restrictsTools: boolean;
+  /** Se true, o motor suporta `RunAgentOptions.mcpConfig` — usado hoje só
+   * por `poui.generate.e2e` para dar acesso ao MCP do Playwright. */
+  supportsMcp: boolean;
+  /** Se true, o motor pode processar uma imagem enviada no prompt — usado
+   * por `poui.generate.screenshot`. */
+  supportsVision: boolean;
+}
+
 export interface EngineAdapter {
   id: EngineId;
   /** Nome do binário — usado tanto para checagem de disponibilidade
    * (`<binaryName> --version`) quanto como `command` de spawn. */
   binaryName: string;
+  /** O que este motor garante ou não garante hoje — usado pelos comandos
+   * que dependem de uma garantia específica (restrição de ferramentas,
+   * MCP, visão) pra avisar o usuário em vez de assumir silenciosamente
+   * que a garantia vale pra qualquer motor selecionado. */
+  capabilities: EngineCapabilities;
   buildCommand(
     options: RunAgentOptions,
     systemPromptFile: string,

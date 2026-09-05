@@ -67,6 +67,14 @@ describe('geminiAdapter.parseLine', () => {
     assert.strictEqual(geminiAdapter.id, 'gemini');
     assert.strictEqual(geminiAdapter.binaryName, 'gemini');
   });
+
+  it('exposes capabilities: no tool restriction, no MCP, no vision (documented gap)', () => {
+    assert.deepStrictEqual(geminiAdapter.capabilities, {
+      restrictsTools: false,
+      supportsMcp: false,
+      supportsVision: false,
+    });
+  });
 });
 
 describe('geminiAdapter.buildCommand', () => {

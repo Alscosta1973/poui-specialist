@@ -80,6 +80,12 @@ function parseLine(line: string): NormalizedEvent[] {
 export const geminiAdapter: EngineAdapter = {
   id: 'gemini',
   binaryName: 'gemini',
+  // TODO(gemini): restrictsTools/supportsMcp confirmados como false porque
+  // buildCommand acima não usa options.tools/allowedTools/mcpConfig hoje —
+  // não há flag documentada publicamente pra isso ainda (ver spec, seção
+  // "Riscos", item 2). supportsVision é false porque o gap de visão do
+  // Gemini CLI está confirmado e documentado no spec (seção "Riscos").
+  capabilities: { restrictsTools: false, supportsMcp: false, supportsVision: false },
   buildCommand,
   parseLine,
 };

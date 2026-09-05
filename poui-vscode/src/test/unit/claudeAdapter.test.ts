@@ -100,6 +100,14 @@ describe('claudeAdapter.parseLine', () => {
     assert.strictEqual(claudeAdapter.id, 'claude');
     assert.strictEqual(claudeAdapter.binaryName, 'claude');
   });
+
+  it('exposes capabilities: full support (tools restriction, MCP, vision)', () => {
+    assert.deepStrictEqual(claudeAdapter.capabilities, {
+      restrictsTools: true,
+      supportsMcp: true,
+      supportsVision: true,
+    });
+  });
 });
 
 describe('claudeAdapter.buildCommand', () => {

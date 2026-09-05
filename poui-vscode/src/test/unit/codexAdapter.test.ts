@@ -86,6 +86,14 @@ describe('codexAdapter.parseLine', () => {
     assert.strictEqual(codexAdapter.id, 'codex');
     assert.strictEqual(codexAdapter.binaryName, 'codex');
   });
+
+  it('exposes capabilities: no tool restriction, no MCP, vision unconfirmed but assumed supported', () => {
+    assert.deepStrictEqual(codexAdapter.capabilities, {
+      restrictsTools: false,
+      supportsMcp: false,
+      supportsVision: true,
+    });
+  });
 });
 
 describe('codexAdapter.buildCommand', () => {

@@ -65,6 +65,14 @@ function parseLine(line: string): NormalizedEvent[] {
 export const codexAdapter: EngineAdapter = {
   id: 'codex',
   binaryName: 'codex',
+  // TODO(codex): restrictsTools/supportsMcp confirmados como false porque
+  // buildCommand acima não usa options.tools/allowedTools/mcpConfig hoje —
+  // não há flag documentada publicamente pra isso ainda (ver spec, seção
+  // "Riscos", itens 1-2). supportsVision fica true por falta de evidência
+  // em contrário — nenhuma pesquisa encontrou um gap de visão documentado
+  // pro Codex (diferente do Gemini); validar quando houver acesso real a
+  // uma conta Codex.
+  capabilities: { restrictsTools: false, supportsMcp: false, supportsVision: true },
   buildCommand,
   parseLine,
 };
