@@ -174,21 +174,25 @@ export function registerE2eCommand(
     }
     const userPrompt = buildE2eUserPrompt(relativePath, previewUrl);
 
-    const result = await runAgent(
-      {
-        cwd: workspaceRoot,
-        systemPrompt,
-        userPrompt,
-        tools: E2E_TOOLS,
-        allowedTools: E2E_MCP_ALLOWED_TOOLS,
-        mcpConfig: buildPlaywrightMcpConfig(),
-        model: vscode.workspace.getConfiguration('poui').get<string>('model'),
-        effort: vscode.workspace
-          .getConfiguration('poui')
-          .get<'low' | 'medium' | 'high' | 'xhigh' | 'max'>('effort'),
-      },
-      outputChannel,
-      engineId,
+    const result = await vscode.window.withProgress(
+      { location: vscode.ProgressLocation.Notification, title: `PO-UI: gerando teste E2E para ${relativePath}...` },
+      () =>
+        runAgent(
+          {
+            cwd: workspaceRoot,
+            systemPrompt,
+            userPrompt,
+            tools: E2E_TOOLS,
+            allowedTools: E2E_MCP_ALLOWED_TOOLS,
+            mcpConfig: buildPlaywrightMcpConfig(),
+            model: vscode.workspace.getConfiguration('poui').get<string>('model'),
+            effort: vscode.workspace
+              .getConfiguration('poui')
+              .get<'low' | 'medium' | 'high' | 'xhigh' | 'max'>('effort'),
+          },
+          outputChannel,
+          engineId,
+        ),
     );
 
     if (!result.succeeded) {

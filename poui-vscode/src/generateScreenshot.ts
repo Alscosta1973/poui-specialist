@@ -70,17 +70,21 @@ export function registerScreenshotCommand(
       },
     };
 
-    const analysisResult = await runAgent(
-      {
-        cwd: workspaceFolder.uri.fsPath,
-        systemPrompt: analysisSystemPrompt,
-        userPrompt: buildScreenshotUserPrompt(imagePath),
-        tools: 'Read,Glob',
-        model,
-        effort,
-      },
-      sink,
-      engineId,
+    const analysisResult = await vscode.window.withProgress(
+      { location: vscode.ProgressLocation.Notification, title: 'PO-UI: analisando imagem...' },
+      () =>
+        runAgent(
+          {
+            cwd: workspaceFolder.uri.fsPath,
+            systemPrompt: analysisSystemPrompt,
+            userPrompt: buildScreenshotUserPrompt(imagePath),
+            tools: 'Read,Glob',
+            model,
+            effort,
+          },
+          sink,
+          engineId,
+        ),
     );
 
     if (!analysisResult.succeeded) {
@@ -152,16 +156,20 @@ export function registerScreenshotCommand(
       genUserPromptLines.push(`Regras adicionais identificadas na imagem: ${manifest.rules}`);
     }
 
-    const result = await runAgent(
-      {
-        cwd: workspaceFolder.uri.fsPath,
-        systemPrompt: genSystemPrompt,
-        userPrompt: genUserPromptLines.join('\n'),
-        model,
-        effort,
-      },
-      sink,
-      engineId,
+    const result = await vscode.window.withProgress(
+      { location: vscode.ProgressLocation.Notification, title: `PO-UI: gerando ${type.id} para ${naming.entityPascal}...` },
+      () =>
+        runAgent(
+          {
+            cwd: workspaceFolder.uri.fsPath,
+            systemPrompt: genSystemPrompt,
+            userPrompt: genUserPromptLines.join('\n'),
+            model,
+            effort,
+          },
+          sink,
+          engineId,
+        ),
     );
 
     if (!result.succeeded) {
@@ -180,16 +188,20 @@ export function registerScreenshotCommand(
     }
 
     outputChannel.appendLine('Verificando o build...');
-    const buildFix = await runBuildFixLoop(
-      {
-        cwd: workspaceFolder.uri.fsPath,
-        filesWritten: result.filesWritten,
-        systemPrompt: genSystemPrompt,
-        engineId,
-        model,
-        effort,
-      },
-      sink,
+    const buildFix = await vscode.window.withProgress(
+      { location: vscode.ProgressLocation.Notification, title: 'PO-UI: verificando o build...' },
+      () =>
+        runBuildFixLoop(
+          {
+            cwd: workspaceFolder.uri.fsPath,
+            filesWritten: result.filesWritten,
+            systemPrompt: genSystemPrompt,
+            engineId,
+            model,
+            effort,
+          },
+          sink,
+        ),
     );
 
     const summary = `PO-UI: ${result.filesWritten.length} arquivo(s) gerado(s)${

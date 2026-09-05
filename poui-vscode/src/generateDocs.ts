@@ -65,19 +65,23 @@ export function registerDocsCommand(
       return;
     }
 
-    const result = await runAgent(
-      {
-        cwd: workspaceFolder.uri.fsPath,
-        systemPrompt,
-        userPrompt: buildDocsUserPrompt(componentName),
-        tools: 'Read',
-        model: vscode.workspace.getConfiguration('poui').get<string>('model'),
-        effort: vscode.workspace
-          .getConfiguration('poui')
-          .get<'low' | 'medium' | 'high' | 'xhigh' | 'max'>('effort'),
-      },
-      outputChannel,
-      engineId,
+    const result = await vscode.window.withProgress(
+      { location: vscode.ProgressLocation.Notification, title: `PO-UI: consultando documentação de ${componentName}...` },
+      () =>
+        runAgent(
+          {
+            cwd: workspaceFolder.uri.fsPath,
+            systemPrompt,
+            userPrompt: buildDocsUserPrompt(componentName),
+            tools: 'Read',
+            model: vscode.workspace.getConfiguration('poui').get<string>('model'),
+            effort: vscode.workspace
+              .getConfiguration('poui')
+              .get<'low' | 'medium' | 'high' | 'xhigh' | 'max'>('effort'),
+          },
+          outputChannel,
+          engineId,
+        ),
     );
 
     if (!result.succeeded) {

@@ -243,7 +243,10 @@ export function registerConnectCommand(
       .getConfiguration('poui')
       .get<'low' | 'medium' | 'high' | 'xhigh' | 'max'>('effort');
 
-    const result = await runAgent({ cwd: workspaceRoot, systemPrompt, userPrompt, model, effort }, outputChannel, engineId);
+    const result = await vscode.window.withProgress(
+      { location: vscode.ProgressLocation.Notification, title: `PO-UI: conectando ${componentClass}...` },
+      () => runAgent({ cwd: workspaceRoot, systemPrompt, userPrompt, model, effort }, outputChannel, engineId),
+    );
 
     if (!result.succeeded) {
       const message = `PO-UI: falha ao conectar — ${result.errorMessage ?? 'erro desconhecido'}.`;
@@ -261,9 +264,13 @@ export function registerConnectCommand(
     }
 
     outputChannel.appendLine('Verificando o build...');
-    const buildFix = await runBuildFixLoop(
-      { cwd: workspaceRoot, filesWritten: result.filesWritten, systemPrompt, engineId, model, effort },
-      outputChannel,
+    const buildFix = await vscode.window.withProgress(
+      { location: vscode.ProgressLocation.Notification, title: 'PO-UI: verificando o build...' },
+      () =>
+        runBuildFixLoop(
+          { cwd: workspaceRoot, filesWritten: result.filesWritten, systemPrompt, engineId, model, effort },
+          outputChannel,
+        ),
     );
 
     const summary = `PO-UI: ${componentClass} conectado (${result.filesWritten.length} arquivo(s) alterado(s))${

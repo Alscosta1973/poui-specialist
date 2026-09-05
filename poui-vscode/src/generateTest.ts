@@ -108,18 +108,22 @@ export function registerGenerateTestCommand(
     }
     const userPrompt = buildTestUserPrompt(relativePath);
 
-    const result = await runAgent(
-      {
-        cwd: workspaceFolder.uri.fsPath,
-        systemPrompt,
-        userPrompt,
-        model: vscode.workspace.getConfiguration('poui').get<string>('model'),
-        effort: vscode.workspace
-          .getConfiguration('poui')
-          .get<'low' | 'medium' | 'high' | 'xhigh' | 'max'>('effort'),
-      },
-      outputChannel,
-      engineId,
+    const result = await vscode.window.withProgress(
+      { location: vscode.ProgressLocation.Notification, title: `PO-UI: gerando teste para ${relativePath}...` },
+      () =>
+        runAgent(
+          {
+            cwd: workspaceFolder.uri.fsPath,
+            systemPrompt,
+            userPrompt,
+            model: vscode.workspace.getConfiguration('poui').get<string>('model'),
+            effort: vscode.workspace
+              .getConfiguration('poui')
+              .get<'low' | 'medium' | 'high' | 'xhigh' | 'max'>('effort'),
+          },
+          outputChannel,
+          engineId,
+        ),
     );
 
     if (!result.succeeded) {

@@ -89,19 +89,23 @@ export function registerReviewCommand(
     }
     const userPrompt = buildReviewUserPrompt(relativePath, focusChoice.focus);
 
-    const result = await runAgent(
-      {
-        cwd: workspaceFolder.uri.fsPath,
-        systemPrompt,
-        userPrompt,
-        tools: REVIEW_TOOLS,
-        model: vscode.workspace.getConfiguration('poui').get<string>('model'),
-        effort: vscode.workspace
-          .getConfiguration('poui')
-          .get<'low' | 'medium' | 'high' | 'xhigh' | 'max'>('effort'),
-      },
-      outputChannel,
-      engineId,
+    const result = await vscode.window.withProgress(
+      { location: vscode.ProgressLocation.Notification, title: `PO-UI: revisando ${relativePath}...` },
+      () =>
+        runAgent(
+          {
+            cwd: workspaceFolder.uri.fsPath,
+            systemPrompt,
+            userPrompt,
+            tools: REVIEW_TOOLS,
+            model: vscode.workspace.getConfiguration('poui').get<string>('model'),
+            effort: vscode.workspace
+              .getConfiguration('poui')
+              .get<'low' | 'medium' | 'high' | 'xhigh' | 'max'>('effort'),
+          },
+          outputChannel,
+          engineId,
+        ),
     );
 
     if (!result.succeeded) {

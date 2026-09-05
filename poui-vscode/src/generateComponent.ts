@@ -139,19 +139,23 @@ export function registerGenerateComponentCommand(
     }
     const userPrompt = buildGeneratorUserPrompt(type, naming, moduleName, resolvedApiPath, sourceFilePath);
 
-    const result = await runAgent(
-      {
-        cwd: workspaceFolder.uri.fsPath,
-        systemPrompt,
-        userPrompt,
-        addDir: sourceFilePath ? path.dirname(sourceFilePath) : undefined,
-        model: vscode.workspace.getConfiguration('poui').get<string>('model'),
-        effort: vscode.workspace
-          .getConfiguration('poui')
-          .get<'low' | 'medium' | 'high' | 'xhigh' | 'max'>('effort'),
-      },
-      outputChannel,
-      engineId,
+    const result = await vscode.window.withProgress(
+      { location: vscode.ProgressLocation.Notification, title: `PO-UI: gerando ${type.id} para ${naming.entityPascal}...` },
+      () =>
+        runAgent(
+          {
+            cwd: workspaceFolder.uri.fsPath,
+            systemPrompt,
+            userPrompt,
+            addDir: sourceFilePath ? path.dirname(sourceFilePath) : undefined,
+            model: vscode.workspace.getConfiguration('poui').get<string>('model'),
+            effort: vscode.workspace
+              .getConfiguration('poui')
+              .get<'low' | 'medium' | 'high' | 'xhigh' | 'max'>('effort'),
+          },
+          outputChannel,
+          engineId,
+        ),
     );
 
     if (!result.succeeded) {
@@ -172,18 +176,22 @@ export function registerGenerateComponentCommand(
     }
 
     outputChannel.appendLine('Verificando o build...');
-    const buildFix = await runBuildFixLoop(
-      {
-        cwd: workspaceFolder.uri.fsPath,
-        filesWritten: result.filesWritten,
-        systemPrompt,
-        engineId,
-        model: vscode.workspace.getConfiguration('poui').get<string>('model'),
-        effort: vscode.workspace
-          .getConfiguration('poui')
-          .get<'low' | 'medium' | 'high' | 'xhigh' | 'max'>('effort'),
-      },
-      outputChannel,
+    const buildFix = await vscode.window.withProgress(
+      { location: vscode.ProgressLocation.Notification, title: 'PO-UI: verificando o build...' },
+      () =>
+        runBuildFixLoop(
+          {
+            cwd: workspaceFolder.uri.fsPath,
+            filesWritten: result.filesWritten,
+            systemPrompt,
+            engineId,
+            model: vscode.workspace.getConfiguration('poui').get<string>('model'),
+            effort: vscode.workspace
+              .getConfiguration('poui')
+              .get<'low' | 'medium' | 'high' | 'xhigh' | 'max'>('effort'),
+          },
+          outputChannel,
+        ),
     );
 
     const summary = `PO-UI: ${result.filesWritten.length} arquivo(s) gerado(s)${
