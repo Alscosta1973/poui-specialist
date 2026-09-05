@@ -58,14 +58,19 @@ function parseLine(line: string): NormalizedEvent[] {
   }
 
   if (message.type === 'tool_use') {
-    const call = message as { name?: string; args?: { file_path?: string } };
-    if (typeof call.name === 'string' && typeof call.args?.file_path === 'string') {
+    // Achado confirmado via teste manual real: os campos são `tool_name`/
+    // `parameters` (ex.: {"tool_name":"write_file","parameters":{"file_path":
+    // "...","content":"..."}}) — NÃO `name`/`args` como assumido antes (essa
+    // suposição errada significava que filesWritten nunca populava pro
+    // gemini, mesmo depois da normalização de nome já existente aqui).
+    const call = message as { tool_name?: string; parameters?: { file_path?: string } };
+    if (typeof call.tool_name === 'string' && typeof call.parameters?.file_path === 'string') {
       // Normalização deliberada: gemini reporta o nome bruto da ferramenta
       // (ex.: 'write_file'); traduzimos para o vocabulário compartilhado
       // 'Write'/'Edit' que agentRuntime.ts usa para popular filesWritten.
       // Gemini não distingue write/edit nesse nível — 'Write' é o mapeamento
       // correto para todas as chamadas de escrita de arquivo.
-      return [{ kind: 'tool_use', name: 'Write', input: { file_path: call.args.file_path } }];
+      return [{ kind: 'tool_use', name: 'Write', input: { file_path: call.parameters.file_path } }];
     }
     return [];
   }

@@ -24,13 +24,30 @@ describe('geminiAdapter.parseLine', () => {
     );
   });
 
-  it('emits tool_use with the name normalized to Write for a file-writing tool call', () => {
+  it('emits tool_use with the name normalized to Write for a file-writing tool call (real tool_name/parameters shape, confirmed via manual test)', () => {
     const events = geminiAdapter.parseLine(
-      line({ type: 'tool_use', name: 'write_file', args: { file_path: 'src/app/a/a.component.ts' } }),
+      line({
+        type: 'tool_use',
+        tool_name: 'write_file',
+        tool_id: 'write_file__call_1',
+        parameters: { content: 'oi', file_path: 'src/app/a/a.component.ts' },
+      }),
     );
     assert.deepStrictEqual(events, [
       { kind: 'tool_use', name: 'Write', input: { file_path: 'src/app/a/a.component.ts' } },
     ]);
+  });
+
+  it('ignores a tool_use event with no file_path parameter (e.g. a non-file internal tool)', () => {
+    const events = geminiAdapter.parseLine(
+      line({
+        type: 'tool_use',
+        tool_name: 'update_topic',
+        tool_id: 'update_topic__call_1',
+        parameters: { strategic_intent: 'Respond to the greeting briefly.' },
+      }),
+    );
+    assert.deepStrictEqual(events, []);
   });
 
   it('emits auth_error for a dedicated error event mentioning authentication', () => {
