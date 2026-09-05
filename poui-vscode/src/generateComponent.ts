@@ -2,8 +2,8 @@ import * as vscode from 'vscode';
 import * as path from 'node:path';
 import { deriveEntityNaming, isValidModuleName, resolveFixedModuleName } from './naming';
 import { buildGeneratorSystemPrompt, buildGeneratorUserPrompt } from './promptBuilder';
-import { checkClaudeCliAvailable } from './cliCheck';
-import { runClaudeAgent } from './agentRuntime';
+import { checkEngineAvailable } from './cliCheck';
+import { runAgent } from './agentRuntime';
 import { runBuildFixLoop } from './buildFixLoop';
 import { GENERATOR_TYPES, GeneratorType } from './generatorTypes';
 
@@ -42,10 +42,12 @@ export function registerGenerateComponentCommand(
       return;
     }
 
-    const cliCheck = await checkClaudeCliAvailable();
+    const engineId = vscode.workspace.getConfiguration('poui').get<'claude' | 'codex' | 'gemini'>('aiEngine', 'claude');
+
+    const cliCheck = await checkEngineAvailable(engineId);
     if (!cliCheck.available) {
       void vscode.window.showErrorMessage(
-        `PO-UI: CLI do Claude Code não encontrado ou não está no PATH — instale (https://code.claude.com) e faça login com \`claude\` antes de gerar código.${cliCheck.errorMessage ? ` (${cliCheck.errorMessage})` : ''}`,
+        `PO-UI: CLI do motor "${engineId}" não encontrado ou não está no PATH — instale e faça login antes de gerar código.${cliCheck.errorMessage ? ` (${cliCheck.errorMessage})` : ''}`,
       );
       return;
     }
@@ -136,7 +138,7 @@ export function registerGenerateComponentCommand(
     }
     const userPrompt = buildGeneratorUserPrompt(type, naming, moduleName, resolvedApiPath, sourceFilePath);
 
-    const result = await runClaudeAgent(
+    const result = await runAgent(
       {
         cwd: workspaceFolder.uri.fsPath,
         systemPrompt,
@@ -148,6 +150,7 @@ export function registerGenerateComponentCommand(
           .get<'low' | 'medium' | 'high' | 'xhigh' | 'max'>('effort'),
       },
       outputChannel,
+      engineId,
     );
 
     if (!result.succeeded) {
@@ -173,6 +176,7 @@ export function registerGenerateComponentCommand(
         cwd: workspaceFolder.uri.fsPath,
         filesWritten: result.filesWritten,
         systemPrompt,
+        engineId,
         model: vscode.workspace.getConfiguration('poui').get<string>('model'),
         effort: vscode.workspace
           .getConfiguration('poui')

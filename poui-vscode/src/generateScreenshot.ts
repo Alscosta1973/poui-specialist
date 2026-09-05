@@ -4,7 +4,8 @@ import { deriveEntityNaming, resolveFixedModuleName } from './naming';
 import { getGeneratorType } from './generatorTypes';
 import { buildGeneratorSystemPrompt, buildGeneratorUserPrompt } from './promptBuilder';
 import { buildScreenshotSystemPrompt, buildScreenshotUserPrompt, parseScreenshotManifest } from './screenshotPromptBuilder';
-import { runClaudeAgent, OutputSink } from './agentRuntime';
+import { checkEngineAvailable } from './cliCheck';
+import { runAgent, OutputSink } from './agentRuntime';
 import { runBuildFixLoop } from './buildFixLoop';
 
 export function registerScreenshotCommand(
@@ -37,6 +38,7 @@ export function registerScreenshotCommand(
     const effort = vscode.workspace
       .getConfiguration('poui')
       .get<'low' | 'medium' | 'high' | 'xhigh' | 'max'>('effort');
+    const engineId = vscode.workspace.getConfiguration('poui').get<'claude' | 'codex' | 'gemini'>('aiEngine', 'claude');
 
     let analysisSystemPrompt: string;
     try {
@@ -55,7 +57,7 @@ export function registerScreenshotCommand(
       },
     };
 
-    const analysisResult = await runClaudeAgent(
+    const analysisResult = await runAgent(
       {
         cwd: workspaceFolder.uri.fsPath,
         systemPrompt: analysisSystemPrompt,
@@ -65,6 +67,7 @@ export function registerScreenshotCommand(
         effort,
       },
       sink,
+      engineId,
     );
 
     if (!analysisResult.succeeded) {
@@ -136,7 +139,7 @@ export function registerScreenshotCommand(
       genUserPromptLines.push(`Regras adicionais identificadas na imagem: ${manifest.rules}`);
     }
 
-    const result = await runClaudeAgent(
+    const result = await runAgent(
       {
         cwd: workspaceFolder.uri.fsPath,
         systemPrompt: genSystemPrompt,
@@ -145,6 +148,7 @@ export function registerScreenshotCommand(
         effort,
       },
       sink,
+      engineId,
     );
 
     if (!result.succeeded) {
@@ -168,6 +172,7 @@ export function registerScreenshotCommand(
         cwd: workspaceFolder.uri.fsPath,
         filesWritten: result.filesWritten,
         systemPrompt: genSystemPrompt,
+        engineId,
         model,
         effort,
       },
