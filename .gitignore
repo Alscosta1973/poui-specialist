@@ -23,4 +23,5 @@ examples/modulo-compras/.vscode/
 poui-vscode/out/
 poui-vscode/.vscode-test/
 poui-vscode/assets/agent-prompts/
+poui-vscode/*.vsix
 !poui-vscode/package-lock.json
