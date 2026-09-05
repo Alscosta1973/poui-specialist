@@ -17,6 +17,15 @@ function buildCommand(
     'stream-json',
     '--approval-mode',
     'yolo',
+    // Achado confirmado via teste manual real (não estava documentado nem
+    // previsto na pesquisa original): o Gemini CLI recusa rodar em modo
+    // headless numa pasta que o usuário nunca "confiou" interativamente,
+    // travando com "Gemini CLI is not running in a trusted directory".
+    // A extensão só roda dentro de workspaceFolder.uri.fsPath — a pasta
+    // que o próprio usuário já abriu no VS Code — então confiar
+    // automaticamente é seguro; sem isso, todo comando com o motor gemini
+    // falharia para qualquer usuário na primeira execução.
+    '--skip-trust',
     '--system-prompt-file',
     systemPromptFile,
   ];

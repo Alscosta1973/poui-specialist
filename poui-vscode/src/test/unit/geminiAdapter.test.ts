@@ -91,6 +91,7 @@ describe('geminiAdapter.buildCommand', () => {
       'stream-json',
       '--approval-mode',
       'yolo',
+      '--skip-trust',
       '--system-prompt-file',
       '/tmp/system-prompt.txt',
     ]);
