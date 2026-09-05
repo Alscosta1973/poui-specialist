@@ -2,6 +2,7 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { EngineId } from './engineTypes';
 import { getEngineAdapter } from './engineRegistry';
+import { buildWindowsCommandLine } from './windowsShell';
 
 const execFileAsync = promisify(execFile);
 
@@ -14,12 +15,15 @@ export interface CliCheckResult {
 export type RunVersionCheck = (command: string, args: string[]) => Promise<{ stdout: string }>;
 
 async function defaultRunVersionCheck(command: string, args: string[]): Promise<{ stdout: string }> {
-  // Achado confirmado via teste manual real + reprodução isolada: no
-  // Windows, codex/gemini são instalados pelo npm como shims .cmd/.ps1 (não
-  // .exe nativo) — execFile() sem shell:true falha com "spawn <cmd> ENOENT"
-  // pra eles (mesma causa raiz do fix em agentRuntime.ts:defaultSpawn).
-  // Escopado só pro Windows — macOS/Linux não precisam disso.
-  const { stdout } = await execFileAsync(command, args, { shell: process.platform === 'win32' });
+  // Mesma causa raiz e mesma correção do fix em agentRuntime.ts:
+  // defaultSpawn — ver o comentário lá pro achado completo (ENOENT em
+  // codex/gemini no Windows, e por que shell:true sozinho com
+  // command+args separados corrompe argumento com espaço via o `%*` do
+  // shim .cmd). Escopado só pro Windows.
+  const isWindows = process.platform === 'win32';
+  const { stdout } = isWindows
+    ? await execFileAsync(buildWindowsCommandLine(command, args), [], { shell: true })
+    : await execFileAsync(command, args);
   return { stdout };
 }
 

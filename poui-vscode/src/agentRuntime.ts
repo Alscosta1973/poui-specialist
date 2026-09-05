@@ -6,6 +6,7 @@ import * as readline from 'node:readline';
 import { randomUUID } from 'node:crypto';
 import { EngineAdapter, EngineId, GenerateResult, OutputSink, RunAgentOptions, SpawnedProcess, SpawnFn } from './engineTypes';
 import { getEngineAdapter } from './engineRegistry';
+import { buildWindowsCommandLine } from './windowsShell';
 
 export type { GenerateResult, OutputSink, RunAgentOptions, SpawnedProcess, SpawnFn } from './engineTypes';
 
@@ -14,20 +15,24 @@ function defaultSpawn(
   args: string[],
   options: { cwd: string; env: NodeJS.ProcessEnv },
 ): SpawnedProcess {
-  return spawn(command, args, {
+  // Achado confirmado via teste manual real + reprodução isolada: no
+  // Windows, codex/gemini são instalados pelo npm como shims .cmd/.ps1 (não
+  // .exe nativo) — spawn() sem shell:true falha com "spawn <cmd> ENOENT"
+  // pra eles (claude não é afetado porque seu instalador gera um .exe
+  // nativo). shell:true sozinho não basta, porém: passar `command`+`args`
+  // separados com shell:true faz o Node escapar cada argumento, e o script
+  // de shim (`%*` dentro do `.cmd`) reprocessa isso e corrompe fronteiras
+  // de argumento com espaço (confirmado: um prompt com espaço virava
+  // "positional prompt" duplicado junto com `-p`). Por isso montamos a
+  // linha de comando inteira nós mesmos (`buildWindowsCommandLine`, com a
+  // escapagem correta) só no Windows — em macOS/Linux nada muda, os
+  // binários já são executáveis diretos e não passam por shell nenhum.
+  const isWindows = process.platform === 'win32';
+  return spawn(isWindows ? buildWindowsCommandLine(command, args) : command, isWindows ? [] : args, {
     cwd: options.cwd,
     env: options.env,
     stdio: ['ignore', 'pipe', 'pipe'],
-    // Achado confirmado via teste manual real + reprodução isolada: no
-    // Windows, codex/gemini são instalados pelo npm como shims .cmd/.ps1
-    // (não .exe nativo) — spawn() sem shell:true falha com "spawn <cmd>
-    // ENOENT" pra eles (claude não é afetado porque seu instalador gera um
-    // .exe nativo). shell:true só no Windows resolve, sem mudar nada em
-    // macOS/Linux (onde os binários já são executáveis diretos). O Node
-    // escapa cada elemento de `args` automaticamente quando passado como
-    // array com shell:true, então isso não abre injeção de shell a partir
-    // de userPrompt/systemPrompt.
-    shell: process.platform === 'win32',
+    shell: isWindows,
   }) as unknown as SpawnedProcess;
 }
 
