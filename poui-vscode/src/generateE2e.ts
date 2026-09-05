@@ -9,6 +9,7 @@ import { configurePlaywright } from './playwrightSetup';
 import { deriveRouteRegistration, routeExists } from './previewRoutes';
 import { ensureDevServer } from './devServerRegistry';
 import { EngineId } from './engineTypes';
+import { getEngineAdapter } from './engineRegistry';
 
 /** Ferramentas nativas + as 3 do MCP do Playwright que o `poui-e2e` original
  * também libera (`browser_navigate`, `browser_snapshot`, `browser_wait_for`)
@@ -153,6 +154,12 @@ export function registerE2eCommand(
 
     const previewUrl = `http://localhost:${port}/${registration.routeSegment}`;
     outputChannel.appendLine(`Gerando teste E2E para ${relativePath} contra ${previewUrl}...`);
+
+    if (!getEngineAdapter(engineId).capabilities.supportsMcp) {
+      outputChannel.appendLine(
+        `⚠ o motor "${engineId}" não suporta MCP — o agente não terá acesso às ferramentas do Playwright (browser_navigate/browser_snapshot/browser_wait_for) e a geração do teste E2E pode falhar ou ficar incompleta.`,
+      );
+    }
 
     const assetsDir = path.join(context.extensionUri.fsPath, 'assets', 'agent-prompts');
     let systemPrompt: string;
