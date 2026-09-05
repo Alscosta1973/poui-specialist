@@ -6,6 +6,7 @@ import { buildGeneratorSystemPrompt, buildGeneratorUserPrompt } from './promptBu
 import { buildScreenshotSystemPrompt, buildScreenshotUserPrompt, parseScreenshotManifest } from './screenshotPromptBuilder';
 import { runAgent, OutputSink } from './agentRuntime';
 import { runBuildFixLoop } from './buildFixLoop';
+import { EngineId } from './engineTypes';
 
 export function registerScreenshotCommand(
   context: vscode.ExtensionContext,
@@ -37,7 +38,7 @@ export function registerScreenshotCommand(
     const effort = vscode.workspace
       .getConfiguration('poui')
       .get<'low' | 'medium' | 'high' | 'xhigh' | 'max'>('effort');
-    const engineId = vscode.workspace.getConfiguration('poui').get<'claude' | 'codex' | 'gemini'>('aiEngine', 'claude');
+    const engineId = vscode.workspace.getConfiguration('poui').get<EngineId>('aiEngine', 'claude');
 
     let analysisSystemPrompt: string;
     try {

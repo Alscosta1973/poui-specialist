@@ -3,6 +3,7 @@ import * as path from 'node:path';
 import { checkEngineAvailable } from './cliCheck';
 import { runAgent } from './agentRuntime';
 import { buildReviewSystemPrompt, buildReviewUserPrompt, ReviewFocus } from './reviewPromptBuilder';
+import { EngineId } from './engineTypes';
 
 /** Somente leitura — o `code-reviewer` original também não inclui Write/Edit
  * entre suas ferramentas: revisão nunca deve poder alterar o código sozinha. */
@@ -31,7 +32,7 @@ export function registerReviewCommand(
       return;
     }
 
-    const engineId = vscode.workspace.getConfiguration('poui').get<'claude' | 'codex' | 'gemini'>('aiEngine', 'claude');
+    const engineId = vscode.workspace.getConfiguration('poui').get<EngineId>('aiEngine', 'claude');
     const cliCheck = await checkEngineAvailable(engineId);
     if (!cliCheck.available) {
       void vscode.window.showErrorMessage(

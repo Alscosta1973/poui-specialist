@@ -8,6 +8,7 @@ import { isPlaywrightConfigured } from './playwrightCheck';
 import { configurePlaywright } from './playwrightSetup';
 import { deriveRouteRegistration, routeExists } from './previewRoutes';
 import { ensureDevServer } from './devServerRegistry';
+import { EngineId } from './engineTypes';
 
 /** Ferramentas nativas + as 3 do MCP do Playwright que o `poui-e2e` original
  * também libera (`browser_navigate`, `browser_snapshot`, `browser_wait_for`)
@@ -47,7 +48,7 @@ export function registerE2eCommand(
     }
     const workspaceRoot = workspaceFolder.uri.fsPath;
 
-    const engineId = vscode.workspace.getConfiguration('poui').get<'claude' | 'codex' | 'gemini'>('aiEngine', 'claude');
+    const engineId = vscode.workspace.getConfiguration('poui').get<EngineId>('aiEngine', 'claude');
     const cliCheck = await checkEngineAvailable(engineId);
     if (!cliCheck.available) {
       void vscode.window.showErrorMessage(

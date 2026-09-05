@@ -5,6 +5,7 @@ import { runAgent } from './agentRuntime';
 import { buildTestSystemPrompt, buildTestUserPrompt } from './testPromptBuilder';
 import { isKarmaConfigured } from './karmaCheck';
 import { configureKarma } from './karmaSetup';
+import { EngineId } from './engineTypes';
 
 /** Arquivos elegíveis: qualquer `.component.ts` ou `.service.ts` do projeto —
  * gerado pelo plugin ou legado, seguindo o mesmo escopo do comando original. */
@@ -25,7 +26,7 @@ export function registerGenerateTestCommand(
       return;
     }
 
-    const engineId = vscode.workspace.getConfiguration('poui').get<'claude' | 'codex' | 'gemini'>('aiEngine', 'claude');
+    const engineId = vscode.workspace.getConfiguration('poui').get<EngineId>('aiEngine', 'claude');
     const cliCheck = await checkEngineAvailable(engineId);
     if (!cliCheck.available) {
       void vscode.window.showErrorMessage(

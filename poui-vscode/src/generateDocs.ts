@@ -4,6 +4,7 @@ import * as path from 'node:path';
 import { checkEngineAvailable } from './cliCheck';
 import { runAgent } from './agentRuntime';
 import { parseComponentCategories, findComponentReferenceFile, buildDocsSystemPrompt, buildDocsUserPrompt } from './docsPromptBuilder';
+import { EngineId } from './engineTypes';
 
 export function registerDocsCommand(
   context: vscode.ExtensionContext,
@@ -16,7 +17,7 @@ export function registerDocsCommand(
       return;
     }
 
-    const engineId = vscode.workspace.getConfiguration('poui').get<'claude' | 'codex' | 'gemini'>('aiEngine', 'claude');
+    const engineId = vscode.workspace.getConfiguration('poui').get<EngineId>('aiEngine', 'claude');
     const cliCheck = await checkEngineAvailable(engineId);
     if (!cliCheck.available) {
       void vscode.window.showErrorMessage(

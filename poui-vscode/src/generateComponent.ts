@@ -6,6 +6,7 @@ import { checkEngineAvailable } from './cliCheck';
 import { runAgent } from './agentRuntime';
 import { runBuildFixLoop } from './buildFixLoop';
 import { GENERATOR_TYPES, GeneratorType } from './generatorTypes';
+import { EngineId } from './engineTypes';
 
 /** Nome de entidade aceitável: começa por letra e usa apenas letras, dígitos,
  * espaço, hífen ou underscore — evita entradas como `---` ou `123`, que
@@ -42,7 +43,7 @@ export function registerGenerateComponentCommand(
       return;
     }
 
-    const engineId = vscode.workspace.getConfiguration('poui').get<'claude' | 'codex' | 'gemini'>('aiEngine', 'claude');
+    const engineId = vscode.workspace.getConfiguration('poui').get<EngineId>('aiEngine', 'claude');
 
     const cliCheck = await checkEngineAvailable(engineId);
     if (!cliCheck.available) {

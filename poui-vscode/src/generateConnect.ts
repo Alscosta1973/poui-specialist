@@ -16,6 +16,7 @@ import {
   buildConnectGitignoreAdditions,
 } from './protheusProxy';
 import { buildConnectSystemPrompt, buildConnectUserPrompt, ConnectParams, EndpointInfo, InterceptorHandling } from './connectPromptBuilder';
+import { EngineId } from './engineTypes';
 
 export function registerConnectCommand(
   context: vscode.ExtensionContext,
@@ -29,7 +30,7 @@ export function registerConnectCommand(
     }
     const workspaceRoot = workspaceFolder.uri.fsPath;
 
-    const engineId = vscode.workspace.getConfiguration('poui').get<'claude' | 'codex' | 'gemini'>('aiEngine', 'claude');
+    const engineId = vscode.workspace.getConfiguration('poui').get<EngineId>('aiEngine', 'claude');
     const cliCheck = await checkEngineAvailable(engineId);
     if (!cliCheck.available) {
       void vscode.window.showErrorMessage(
