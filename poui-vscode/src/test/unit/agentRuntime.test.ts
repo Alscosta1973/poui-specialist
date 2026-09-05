@@ -287,4 +287,26 @@ describe('runAgent', () => {
     assert.strictEqual(result.succeeded, true);
     assert.ok(!sink.lines.some((l) => l.includes('falha ao executar o agente')));
   });
+
+  it('logs a warning and keeps processing when parseLine throws on a malformed line', async () => {
+    const sink = new RecordingSink();
+    const adapter: EngineAdapter = {
+      id: 'claude',
+      binaryName: 'fake-cli',
+      capabilities: { restrictsTools: true, supportsMcp: true, supportsVision: true },
+      buildCommand: () => ({ command: 'fake-cli', args: [] }),
+      parseLine: (line: string) => {
+        if (line === 'L1') {
+          throw new Error('linha malformada');
+        }
+        return line === 'L2' ? [{ kind: 'result', success: true }] : [];
+      },
+    };
+    const spawnFn: SpawnFn = () => makeFakeProcess({ lines: ['L1', 'L2'] });
+
+    const result = await runAgentWithAdapter(adapter, { cwd: '/tmp/workspace', systemPrompt: 'sys', userPrompt: 'u' }, sink, spawnFn);
+
+    assert.strictEqual(result.succeeded, true);
+    assert.ok(sink.lines.some((l) => l.includes('linha malformada')));
+  });
 });

@@ -74,7 +74,15 @@ export async function runAgentWithAdapter(
         if (!line.trim()) {
           return;
         }
-        for (const event of adapter.parseLine(line)) {
+        let events: ReturnType<typeof adapter.parseLine>;
+        try {
+          events = adapter.parseLine(line);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          sink.appendLine(`⚠ linha de saída do agente ignorada (parse falhou): ${message}`);
+          return;
+        }
+        for (const event of events) {
           if (event.kind === 'text') {
             sink.appendLine(event.text);
           } else if (event.kind === 'tool_use') {
