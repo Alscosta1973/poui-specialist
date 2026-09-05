@@ -47,6 +47,12 @@ export function registerScreenshotCommand(
       );
     }
 
+    if (!getEngineAdapter(engineId).capabilities.restrictsTools) {
+      outputChannel.appendLine(
+        `⚠ o motor "${engineId}" não garante que a análise da imagem seja somente-leitura (restrição de ferramentas não suportada) — o agente pode escrever no workspace durante a análise.`,
+      );
+    }
+
     let analysisSystemPrompt: string;
     try {
       analysisSystemPrompt = await buildScreenshotSystemPrompt(assetsDir);

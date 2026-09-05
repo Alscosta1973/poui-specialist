@@ -5,6 +5,7 @@ import { checkEngineAvailable } from './cliCheck';
 import { runAgent } from './agentRuntime';
 import { parseComponentCategories, findComponentReferenceFile, buildDocsSystemPrompt, buildDocsUserPrompt } from './docsPromptBuilder';
 import { EngineId } from './engineTypes';
+import { getEngineAdapter } from './engineRegistry';
 
 export function registerDocsCommand(
   context: vscode.ExtensionContext,
@@ -48,6 +49,12 @@ export function registerDocsCommand(
     outputChannel.clear();
     outputChannel.show(true);
     outputChannel.appendLine(`Consultando documentação de ${componentName}...`);
+
+    if (!getEngineAdapter(engineId).capabilities.restrictsTools) {
+      outputChannel.appendLine(
+        `⚠ o motor "${engineId}" não garante que a consulta seja somente-leitura (restrição de ferramentas não suportada) — o agente pode escrever no workspace durante a consulta.`,
+      );
+    }
 
     let systemPrompt: string;
     try {
