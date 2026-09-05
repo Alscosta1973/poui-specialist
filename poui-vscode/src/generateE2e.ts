@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
-import { checkClaudeCliAvailable } from './cliCheck';
-import { runClaudeAgent } from './agentRuntime';
+import { checkEngineAvailable } from './cliCheck';
+import { runAgent } from './agentRuntime';
 import { buildE2eSystemPrompt, buildE2eUserPrompt } from './e2ePromptBuilder';
 import { isPlaywrightConfigured } from './playwrightCheck';
 import { configurePlaywright } from './playwrightSetup';
@@ -47,10 +47,11 @@ export function registerE2eCommand(
     }
     const workspaceRoot = workspaceFolder.uri.fsPath;
 
-    const cliCheck = await checkClaudeCliAvailable();
+    const engineId = vscode.workspace.getConfiguration('poui').get<'claude' | 'codex' | 'gemini'>('aiEngine', 'claude');
+    const cliCheck = await checkEngineAvailable(engineId);
     if (!cliCheck.available) {
       void vscode.window.showErrorMessage(
-        `PO-UI: CLI do Claude Code não encontrado ou não está no PATH — instale (https://code.claude.com) e faça login com \`claude\` antes de gerar código.${cliCheck.errorMessage ? ` (${cliCheck.errorMessage})` : ''}`,
+        `PO-UI: CLI do motor "${engineId}" não encontrado ou não está no PATH — instale e faça login antes de gerar código.${cliCheck.errorMessage ? ` (${cliCheck.errorMessage})` : ''}`,
       );
       return;
     }
@@ -165,7 +166,7 @@ export function registerE2eCommand(
     }
     const userPrompt = buildE2eUserPrompt(relativePath, previewUrl);
 
-    const result = await runClaudeAgent(
+    const result = await runAgent(
       {
         cwd: workspaceRoot,
         systemPrompt,
@@ -179,6 +180,7 @@ export function registerE2eCommand(
           .get<'low' | 'medium' | 'high' | 'xhigh' | 'max'>('effort'),
       },
       outputChannel,
+      engineId,
     );
 
     if (!result.succeeded) {

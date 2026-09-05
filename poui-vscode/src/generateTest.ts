@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'node:path';
-import { checkClaudeCliAvailable } from './cliCheck';
-import { runClaudeAgent } from './agentRuntime';
+import { checkEngineAvailable } from './cliCheck';
+import { runAgent } from './agentRuntime';
 import { buildTestSystemPrompt, buildTestUserPrompt } from './testPromptBuilder';
 import { isKarmaConfigured } from './karmaCheck';
 import { configureKarma } from './karmaSetup';
@@ -25,10 +25,11 @@ export function registerGenerateTestCommand(
       return;
     }
 
-    const cliCheck = await checkClaudeCliAvailable();
+    const engineId = vscode.workspace.getConfiguration('poui').get<'claude' | 'codex' | 'gemini'>('aiEngine', 'claude');
+    const cliCheck = await checkEngineAvailable(engineId);
     if (!cliCheck.available) {
       void vscode.window.showErrorMessage(
-        `PO-UI: CLI do Claude Code não encontrado ou não está no PATH — instale (https://code.claude.com) e faça login com \`claude\` antes de gerar código.${cliCheck.errorMessage ? ` (${cliCheck.errorMessage})` : ''}`,
+        `PO-UI: CLI do motor "${engineId}" não encontrado ou não está no PATH — instale e faça login antes de gerar código.${cliCheck.errorMessage ? ` (${cliCheck.errorMessage})` : ''}`,
       );
       return;
     }
@@ -106,7 +107,7 @@ export function registerGenerateTestCommand(
     }
     const userPrompt = buildTestUserPrompt(relativePath);
 
-    const result = await runClaudeAgent(
+    const result = await runAgent(
       {
         cwd: workspaceFolder.uri.fsPath,
         systemPrompt,
@@ -117,6 +118,7 @@ export function registerGenerateTestCommand(
           .get<'low' | 'medium' | 'high' | 'xhigh' | 'max'>('effort'),
       },
       outputChannel,
+      engineId,
     );
 
     if (!result.succeeded) {
