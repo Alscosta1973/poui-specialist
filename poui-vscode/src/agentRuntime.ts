@@ -18,6 +18,16 @@ function defaultSpawn(
     cwd: options.cwd,
     env: options.env,
     stdio: ['ignore', 'pipe', 'pipe'],
+    // Achado confirmado via teste manual real + reprodução isolada: no
+    // Windows, codex/gemini são instalados pelo npm como shims .cmd/.ps1
+    // (não .exe nativo) — spawn() sem shell:true falha com "spawn <cmd>
+    // ENOENT" pra eles (claude não é afetado porque seu instalador gera um
+    // .exe nativo). shell:true só no Windows resolve, sem mudar nada em
+    // macOS/Linux (onde os binários já são executáveis diretos). O Node
+    // escapa cada elemento de `args` automaticamente quando passado como
+    // array com shell:true, então isso não abre injeção de shell a partir
+    // de userPrompt/systemPrompt.
+    shell: process.platform === 'win32',
   }) as unknown as SpawnedProcess;
 }
 
