@@ -12,6 +12,12 @@ Roda o Claude Code CLI (`claude`) como subprocesso, reaproveitando a
 sessão já autenticada no claude.ai — sem API key separada, mas
 dependente do CLI instalado na máquina.
 
+A partir da versão com motor plugável, o CLI usado é escolhido pelo setting
+`poui.aiEngine` (`claude`/`codex`/`gemini`, default `claude`) — Codex e
+Gemini ainda são suporte experimental, ver
+`docs/superpowers/specs/2026-09-04-vscode-extension-multi-engine-design.md`
+para as limitações conhecidas de cada um.
+
 Após gerar os arquivos com sucesso, a extensão roda `ng build
 --configuration development` automaticamente para verificar o
 resultado. Se o build falhar com erros localizados nos arquivos que ela

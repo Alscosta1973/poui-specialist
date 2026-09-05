@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
-import { checkClaudeCliAvailable } from './cliCheck';
-import { runClaudeAgent } from './agentRuntime';
+import { checkEngineAvailable } from './cliCheck';
+import { runAgent } from './agentRuntime';
 import { runBuildFixLoop } from './buildFixLoop';
 import { deriveRouteRegistration } from './previewRoutes';
 import { readProjectName } from './packaging';
@@ -29,10 +29,11 @@ export function registerConnectCommand(
     }
     const workspaceRoot = workspaceFolder.uri.fsPath;
 
-    const cliCheck = await checkClaudeCliAvailable();
+    const engineId = vscode.workspace.getConfiguration('poui').get<'claude' | 'codex' | 'gemini'>('aiEngine', 'claude');
+    const cliCheck = await checkEngineAvailable(engineId);
     if (!cliCheck.available) {
       void vscode.window.showErrorMessage(
-        `PO-UI: CLI do Claude Code não encontrado ou não está no PATH — instale (https://code.claude.com) e faça login com \`claude\` antes de conectar.${cliCheck.errorMessage ? ` (${cliCheck.errorMessage})` : ''}`,
+        `PO-UI: CLI do motor "${engineId}" não encontrado ou não está no PATH — instale e faça login antes de conectar.${cliCheck.errorMessage ? ` (${cliCheck.errorMessage})` : ''}`,
       );
       return;
     }
@@ -241,15 +242,12 @@ export function registerConnectCommand(
       .getConfiguration('poui')
       .get<'low' | 'medium' | 'high' | 'xhigh' | 'max'>('effort');
 
-    const result = await runClaudeAgent(
-      { cwd: workspaceRoot, systemPrompt, userPrompt, model, effort },
-      outputChannel,
-    );
+    const result = await runAgent({ cwd: workspaceRoot, systemPrompt, userPrompt, model, effort }, outputChannel, engineId);
 
     if (!result.succeeded) {
       const message = `PO-UI: falha ao conectar — ${result.errorMessage ?? 'erro desconhecido'}.`;
       if (result.isAuthError) {
-        void vscode.window.showErrorMessage(`${message} Rode \`claude\` em um terminal para fazer login novamente.`);
+        void vscode.window.showErrorMessage(`${message} Rode \`${engineId}\` em um terminal para fazer login novamente.`);
         return;
       }
       void vscode.window.showErrorMessage(message);
@@ -263,7 +261,7 @@ export function registerConnectCommand(
 
     outputChannel.appendLine('Verificando o build...');
     const buildFix = await runBuildFixLoop(
-      { cwd: workspaceRoot, filesWritten: result.filesWritten, systemPrompt, model, effort },
+      { cwd: workspaceRoot, filesWritten: result.filesWritten, systemPrompt, engineId, model, effort },
       outputChannel,
     );
 

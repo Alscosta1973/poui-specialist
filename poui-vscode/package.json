@@ -42,6 +42,17 @@
           "enum": ["low", "medium", "high", "xhigh", "max"],
           "default": "high",
           "description": "Nível de esforço/raciocínio do modelo."
+        },
+        "poui.aiEngine": {
+          "type": "string",
+          "enum": ["claude", "codex", "gemini"],
+          "enumDescriptions": [
+            "Claude Code CLI — motor padrão, validado de ponta a ponta.",
+            "Codex CLI (OpenAI) — suporte experimental, alguns flags ainda não confirmados em execução real.",
+            "Gemini CLI (Google) — suporte experimental; exige GEMINI_API_KEY/GOOGLE_API_KEY no ambiente."
+          ],
+          "default": "claude",
+          "description": "Motor de IA usado pelos comandos que dependem de raciocínio (gerar, revisar, conectar, etc)."
         }
       }
     }

@@ -1,7 +1,8 @@
 import * as assert from 'node:assert';
 import { EventEmitter } from 'node:events';
 import { Readable } from 'node:stream';
-import { runClaudeAgent, OutputSink, SpawnFn, SpawnedProcess } from '../../agentRuntime';
+import { runAgent, runAgentWithAdapter, OutputSink, SpawnFn, SpawnedProcess } from '../../agentRuntime';
+import { EngineAdapter, NormalizedEvent } from '../../engineTypes';
 
 class RecordingSink implements OutputSink {
   readonly lines: string[] = [];
@@ -10,22 +11,12 @@ class RecordingSink implements OutputSink {
   }
 }
 
-/**
- * Fake `child_process`-like objeto. `lines` são serializadas como JSON e
- * emitidas via `stdout`, uma por linha — o mesmo formato que
- * `claude --output-format stream-json --verbose` produz de verdade. Depois
- * que `stdout` termina, emite `close(exitCode)` (padrão 0) num
- * `setImmediate`, a menos que `spawnError` seja passado — nesse caso emite
- * só `error` (simulando `ENOENT`, binário não encontrado).
- */
-function makeFakeProcess(options: {
-  messages?: unknown[];
-  exitCode?: number | null;
-  spawnError?: Error;
-}): SpawnedProcess {
+/** Fake `child_process`-like objeto — cada `lines[i]` já é o texto bruto de
+ * uma linha de stdout (o fake adapter abaixo devolve os eventos certos pra
+ * cada uma via um mapa, sem precisar reimplementar JSON de verdade). */
+function makeFakeProcess(options: { lines?: string[]; exitCode?: number | null; spawnError?: Error }): SpawnedProcess {
   const emitter = new EventEmitter();
-  const lines = (options.messages ?? []).map((message) => `${JSON.stringify(message)}\n`);
-  const stdout = Readable.from(lines);
+  const stdout = Readable.from((options.lines ?? []).map((l) => `${l}\n`));
   const stderr = new Readable({ read() { this.push(null); } });
 
   if (options.spawnError) {
@@ -43,252 +34,145 @@ function makeFakeProcess(options: {
   } as unknown as SpawnedProcess;
 }
 
-function assistantMessage(content: unknown[], error?: string) {
-  return { type: 'assistant', error, message: { role: 'assistant', content } };
+/** Adapter fake — mapeia cada linha bruta (ex: "L1") para uma lista de
+ * NormalizedEvent pré-definida, sem parsear JSON de verdade. Testa só a
+ * orquestração do runAgent (sink, filesWritten, isAuthError, finish),
+ * não a lógica de um adapter real (já coberta em claudeAdapter.test.ts). */
+function makeFakeAdapter(eventsByLine: Record<string, NormalizedEvent[]>): EngineAdapter {
+  return {
+    id: 'claude',
+    binaryName: 'fake-cli',
+    buildCommand: () => ({ command: 'fake-cli', args: [] }),
+    parseLine: (line: string) => eventsByLine[line] ?? [],
+  };
 }
 
-describe('runClaudeAgent', () => {
-  it('streams assistant content blocks to the sink and collects written files', async () => {
+describe('runAgent', () => {
+  it('streams text to the sink and collects files from Write/Edit tool_use events', async () => {
     const sink = new RecordingSink();
-    const spawnFn: SpawnFn = () =>
-      makeFakeProcess({
-        messages: [
-          assistantMessage([
-            { type: 'text', text: 'Planejando arquivos...' },
-            {
-              type: 'tool_use',
-              name: 'Write',
-              input: { file_path: 'src/app/financeiro/pedidos-list/pedidos-list.component.ts' },
-            },
-          ]),
-          assistantMessage([
-            { type: 'tool_use', name: 'Edit', input: { file_path: 'src/app/app.routes.ts' } },
-            { type: 'tool_use', name: 'Read', input: { file_path: 'package.json' } },
-          ]),
-          { type: 'result', subtype: 'success', is_error: false, result: 'done' },
-        ],
-      });
+    const adapter = makeFakeAdapter({
+      L1: [
+        { kind: 'text', text: 'Planejando arquivos...' },
+        { kind: 'tool_use', name: 'Write', input: { file_path: 'src/app/a/a.component.ts' } },
+      ],
+      L2: [
+        { kind: 'tool_use', name: 'Edit', input: { file_path: 'src/app/app.routes.ts' } },
+        { kind: 'tool_use', name: 'Read', input: { file_path: 'package.json' } },
+      ],
+      L3: [{ kind: 'result', success: true }],
+    });
+    const spawnFn: SpawnFn = () => makeFakeProcess({ lines: ['L1', 'L2', 'L3'] });
 
-    const result = await runClaudeAgent(
-      { cwd: '/tmp/workspace', systemPrompt: 'system', userPrompt: 'user' },
-      sink,
-      spawnFn,
-    );
+    const result = await runAgentWithAdapter(adapter, { cwd: '/tmp/workspace', systemPrompt: 'sys', userPrompt: 'u' }, sink, spawnFn);
 
     assert.strictEqual(result.succeeded, true);
     assert.ok(!result.isAuthError);
-    assert.deepStrictEqual(result.filesWritten, [
-      'src/app/financeiro/pedidos-list/pedidos-list.component.ts',
-      'src/app/app.routes.ts',
-    ]);
-    assert.ok(sink.lines.some((line) => line.includes('Planejando arquivos')));
-    assert.ok(sink.lines.some((line) => line.includes('Write')));
-    assert.ok(sink.lines.some((line) => line.includes('Read')));
-    // Regressão: o `close` que chega depois de um `result` de sucesso não
-    // pode injetar uma linha de falha no output.
-    assert.ok(!sink.lines.some((line) => line.includes('falha ao executar')));
+    assert.deepStrictEqual(result.filesWritten, ['src/app/a/a.component.ts', 'src/app/app.routes.ts']);
+    assert.ok(sink.lines.some((l) => l.includes('Planejando arquivos')));
+    assert.ok(sink.lines.some((l) => l.includes('→ Write')));
   });
 
-  it('returns succeeded: false when the result message reports an error, even with exit code 0', async () => {
+  it('reports failure with the error message from a failed result event', async () => {
     const sink = new RecordingSink();
-    const spawnFn: SpawnFn = () =>
-      makeFakeProcess({
-        exitCode: 0,
-        messages: [
-          assistantMessage([{ type: 'text', text: 'tentando...' }]),
-          { type: 'result', subtype: 'error_during_execution', is_error: true, errors: ['tool execution failed', 'aborted'] },
-        ],
-      });
+    const adapter = makeFakeAdapter({
+      L1: [{ kind: 'result', success: false, errorMessage: 'tool execution failed; aborted' }],
+    });
+    const spawnFn: SpawnFn = () => makeFakeProcess({ lines: ['L1'] });
 
-    const result = await runClaudeAgent(
-      { cwd: '/tmp/workspace', systemPrompt: 'system', userPrompt: 'user' },
-      sink,
-      spawnFn,
-    );
+    const result = await runAgentWithAdapter(adapter, { cwd: '/tmp/workspace', systemPrompt: 'sys', userPrompt: 'u' }, sink, spawnFn);
 
     assert.strictEqual(result.succeeded, false);
     assert.strictEqual(result.errorMessage, 'tool execution failed; aborted');
-    assert.ok(sink.lines.some((line) => line.includes('falha ao executar o agente')));
+    assert.ok(sink.lines.some((l) => l.includes('falha ao executar o agente')));
   });
 
-  it('falls back to the result subtype when the error list is empty', async () => {
+  it('flags isAuthError when an auth_error event precedes the failed result', async () => {
     const sink = new RecordingSink();
-    const spawnFn: SpawnFn = () =>
-      makeFakeProcess({ messages: [{ type: 'result', subtype: 'error_max_turns', is_error: true, errors: [] }] });
+    const adapter = makeFakeAdapter({
+      L1: [{ kind: 'auth_error' }, { kind: 'result', success: false, errorMessage: 'invalid x-api-key' }],
+    });
+    const spawnFn: SpawnFn = () => makeFakeProcess({ lines: ['L1'] });
 
-    const result = await runClaudeAgent(
-      { cwd: '/tmp/workspace', systemPrompt: 'system', userPrompt: 'user' },
-      sink,
-      spawnFn,
-    );
-
-    assert.strictEqual(result.succeeded, false);
-    assert.strictEqual(result.errorMessage, 'error_max_turns');
-  });
-
-  it('flags isAuthError when an assistant message reports authentication_failed', async () => {
-    const sink = new RecordingSink();
-    const spawnFn: SpawnFn = () =>
-      makeFakeProcess({
-        messages: [
-          assistantMessage([{ type: 'text', text: 'sem acesso' }], 'authentication_failed'),
-          { type: 'result', subtype: 'error_during_execution', is_error: true, errors: ['authentication failed'] },
-        ],
-      });
-
-    const result = await runClaudeAgent(
-      { cwd: '/tmp/workspace', systemPrompt: 'system', userPrompt: 'user' },
-      sink,
-      spawnFn,
-    );
+    const result = await runAgentWithAdapter(adapter, { cwd: '/tmp/workspace', systemPrompt: 'sys', userPrompt: 'u' }, sink, spawnFn);
 
     assert.strictEqual(result.succeeded, false);
     assert.strictEqual(result.isAuthError, true);
   });
 
-  it('flags isAuthError when the result carries api_error_status 401', async () => {
+  it('flags isAuthError when an auth_error event arrives on an earlier line than the result', async () => {
     const sink = new RecordingSink();
-    const spawnFn: SpawnFn = () =>
-      makeFakeProcess({
-        messages: [
-          { type: 'result', subtype: 'success', is_error: true, api_error_status: 401, result: 'invalid x-api-key' },
-        ],
-      });
+    const adapter = makeFakeAdapter({
+      L1: [{ kind: 'auth_error' }],
+      L2: [{ kind: 'result', success: false, errorMessage: 'blocked' }],
+    });
+    const spawnFn: SpawnFn = () => makeFakeProcess({ lines: ['L1', 'L2'] });
 
-    const result = await runClaudeAgent(
-      { cwd: '/tmp/workspace', systemPrompt: 'system', userPrompt: 'user' },
-      sink,
-      spawnFn,
-    );
+    const result = await runAgentWithAdapter(adapter, { cwd: '/tmp/workspace', systemPrompt: 'sys', userPrompt: 'u' }, sink, spawnFn);
 
-    assert.strictEqual(result.succeeded, false);
-    assert.strictEqual(result.isAuthError, true);
-    assert.strictEqual(result.errorMessage, 'invalid x-api-key');
-  });
-
-  it('flags isAuthError when an error-subtype result carries api_error_status 403', async () => {
-    const sink = new RecordingSink();
-    const spawnFn: SpawnFn = () =>
-      makeFakeProcess({
-        messages: [
-          {
-            type: 'result',
-            subtype: 'error_during_execution',
-            is_error: true,
-            api_error_status: 403,
-            errors: ['forbidden'],
-          },
-        ],
-      });
-
-    const result = await runClaudeAgent(
-      { cwd: '/tmp/workspace', systemPrompt: 'system', userPrompt: 'user' },
-      sink,
-      spawnFn,
-    );
-
-    assert.strictEqual(result.succeeded, false);
     assert.strictEqual(result.isAuthError, true);
   });
 
-  it('flags isAuthError when the failure text mentions an auth problem in free form', async () => {
+  it('falls back to a text-based auth pattern in the error message when no auth_error event fired', async () => {
     const sink = new RecordingSink();
-    const spawnFn: SpawnFn = () =>
-      makeFakeProcess({
-        messages: [
-          {
-            type: 'result',
-            subtype: 'error_during_execution',
-            is_error: true,
-            errors: ['Unauthorized: please run `claude` to log in again'],
-          },
-        ],
-      });
+    const adapter = makeFakeAdapter({
+      L1: [{ kind: 'result', success: false, errorMessage: 'request failed: 401 unauthorized' }],
+    });
+    const spawnFn: SpawnFn = () => makeFakeProcess({ lines: ['L1'] });
 
-    const result = await runClaudeAgent(
-      { cwd: '/tmp/workspace', systemPrompt: 'system', userPrompt: 'user' },
-      sink,
-      spawnFn,
-    );
+    const result = await runAgentWithAdapter(adapter, { cwd: '/tmp/workspace', systemPrompt: 'sys', userPrompt: 'u' }, sink, spawnFn);
 
-    assert.strictEqual(result.succeeded, false);
     assert.strictEqual(result.isAuthError, true);
   });
 
-  it('treats a clean exit with no result message as a failure (fallback signal)', async () => {
+  it('reports failure when the spawned process errors before emitting any line', async () => {
     const sink = new RecordingSink();
-    const spawnFn: SpawnFn = () => makeFakeProcess({ messages: [assistantMessage([{ type: 'text', text: 'oi' }])], exitCode: 0 });
+    const adapter = makeFakeAdapter({});
+    const spawnFn: SpawnFn = () => makeFakeProcess({ spawnError: new Error('spawn fake-cli ENOENT') });
 
-    const result = await runClaudeAgent(
-      { cwd: '/tmp/workspace', systemPrompt: 'system', userPrompt: 'user' },
-      sink,
-      spawnFn,
-    );
+    const result = await runAgentWithAdapter(adapter, { cwd: '/tmp/workspace', systemPrompt: 'sys', userPrompt: 'u' }, sink, spawnFn);
 
     assert.strictEqual(result.succeeded, false);
-    assert.ok(result.errorMessage);
+    assert.strictEqual(result.errorMessage, 'spawn fake-cli ENOENT');
   });
 
-  it('returns succeeded: false and records the error when the process fails to spawn', async () => {
+  it('picks the adapter matching the engineId via the real registry', async () => {
     const sink = new RecordingSink();
-    const spawnFn: SpawnFn = () => makeFakeProcess({ spawnError: new Error('spawn claude ENOENT') });
+    // claude é o default do registry — confirma que runAgent(..., 'claude', ...)
+    // realmente delega pro claudeAdapter real (não a um fake), sem precisar
+    // duplicar os testes de parsing já cobertos em claudeAdapter.test.ts.
+    const spawnFn: SpawnFn = () =>
+      makeFakeProcess({ lines: [JSON.stringify({ type: 'result', subtype: 'success', is_error: false })] });
 
-    const result = await runClaudeAgent(
-      { cwd: '/tmp/workspace', systemPrompt: 'system', userPrompt: 'user' },
-      sink,
-      spawnFn,
-    );
+    const result = await runAgent({ cwd: '/tmp/workspace', systemPrompt: 'sys', userPrompt: 'u' }, sink, 'claude', spawnFn);
 
-    assert.strictEqual(result.succeeded, false);
-    assert.strictEqual(result.errorMessage, 'spawn claude ENOENT');
-    assert.ok(sink.lines.some((line) => line.includes('falha ao executar o agente')));
+    assert.strictEqual(result.succeeded, true);
   });
 
-  it('builds the expected CLI arguments, scrubbing API-key env vars from the child env', async () => {
+  // Os 4 testes abaixo restauram cobertura de orquestração que existia no
+  // agentRuntime.test.ts pré-refactor (runClaudeAgent) e não foi carregada
+  // pra este suite genérico — ver Finding 3 do final review do plano
+  // 2026-09-04-vscode-multi-engine-plan.
+
+  it('scrubs ANTHROPIC_* env vars from the env passed to spawnFn (buildSubprocessEnv)', async () => {
     const sink = new RecordingSink();
-    let capturedArgs: string[] | undefined;
+    const adapter = makeFakeAdapter({ L1: [{ kind: 'result', success: true }] });
     let capturedEnv: NodeJS.ProcessEnv | undefined;
+    const spawnFn: SpawnFn = (_command, _args, options) => {
+      capturedEnv = options.env;
+      return makeFakeProcess({ lines: ['L1'] });
+    };
+
     process.env.ANTHROPIC_API_KEY = 'sk-ant-should-be-removed';
     process.env.ANTHROPIC_AUTH_TOKEN = 'oauth-should-be-removed';
     process.env.ANTHROPIC_BASE_URL = 'https://evil.example';
 
-    const spawnFn: SpawnFn = (_command, args, options) => {
-      capturedArgs = args;
-      capturedEnv = options.env;
-      return makeFakeProcess({ messages: [{ type: 'result', subtype: 'success', is_error: false, result: 'done' }] });
-    };
-
     try {
-      await runClaudeAgent(
-        { cwd: '/tmp/workspace', systemPrompt: 'system', userPrompt: 'gere um componente', model: 'claude-opus-5', effort: 'max' },
-        sink,
-        spawnFn,
-      );
+      await runAgentWithAdapter(adapter, { cwd: '/tmp/workspace', systemPrompt: 'sys', userPrompt: 'u' }, sink, spawnFn);
     } finally {
       delete process.env.ANTHROPIC_API_KEY;
       delete process.env.ANTHROPIC_AUTH_TOKEN;
       delete process.env.ANTHROPIC_BASE_URL;
     }
-
-    assert.ok(capturedArgs);
-    assert.ok(capturedArgs?.includes('-p'));
-    assert.ok(capturedArgs?.includes('gere um componente'));
-    assert.ok(capturedArgs?.includes('--output-format'));
-    assert.ok(capturedArgs?.includes('stream-json'));
-    assert.ok(!capturedArgs?.includes('--include-partial-messages'));
-    assert.ok(!capturedArgs?.includes('--bare'));
-    assert.ok(capturedArgs?.includes('--tools'));
-    assert.ok(capturedArgs?.includes('Read,Write,Edit,Glob,Grep'));
-    assert.ok(capturedArgs?.includes('--permission-mode'));
-    assert.ok(capturedArgs?.includes('acceptEdits'));
-    assert.ok(capturedArgs?.includes('--setting-sources'));
-    const settingSourcesIndex = capturedArgs?.indexOf('--setting-sources');
-    assert.strictEqual(capturedArgs?.[(settingSourcesIndex ?? -1) + 1], '');
-    assert.ok(capturedArgs?.includes('--model'));
-    assert.ok(capturedArgs?.includes('claude-opus-5'));
-    assert.ok(capturedArgs?.includes('--effort'));
-    assert.ok(capturedArgs?.includes('max'));
-    assert.ok(capturedArgs?.includes('--append-system-prompt-file'));
 
     assert.ok(capturedEnv);
     assert.ok(!('ANTHROPIC_API_KEY' in (capturedEnv ?? {})));
@@ -296,130 +180,108 @@ describe('runClaudeAgent', () => {
     assert.ok(!('ANTHROPIC_BASE_URL' in (capturedEnv ?? {})));
   });
 
-  it('overrides the default tool list when options.tools is provided', async () => {
+  it('writes systemPrompt/mcpConfig temp files before spawn and removes them after — success path', async () => {
     const sink = new RecordingSink();
-    let capturedArgs: string[] | undefined;
-    const spawnFn: SpawnFn = (_command, args) => {
-      capturedArgs = args;
-      return makeFakeProcess({ messages: [{ type: 'result', subtype: 'success', is_error: false, result: 'done' }] });
-    };
-
-    await runClaudeAgent(
-      { cwd: '/tmp/workspace', systemPrompt: 'system', userPrompt: 'revise este código', tools: 'Read,Glob,Grep' },
-      sink,
-      spawnFn,
-    );
-
-    const toolsIndex = capturedArgs?.indexOf('--tools');
-    assert.strictEqual(capturedArgs?.[(toolsIndex ?? -1) + 1], 'Read,Glob,Grep');
-    assert.ok(!capturedArgs?.includes('Read,Write,Edit,Glob,Grep'));
-  });
-
-  it('passes --add-dir when addDir is provided (refactor reading a source file outside cwd)', async () => {
-    const sink = new RecordingSink();
-    let capturedArgs: string[] | undefined;
-    const spawnFn: SpawnFn = (_command, args) => {
-      capturedArgs = args;
-      return makeFakeProcess({ messages: [{ type: 'result', subtype: 'success', is_error: false, result: 'done' }] });
-    };
-
-    await runClaudeAgent(
-      { cwd: '/tmp/workspace', systemPrompt: 'system', userPrompt: 'user', addDir: 'C:\\totvs\\fontes' },
-      sink,
-      spawnFn,
-    );
-
-    const addDirIndex = capturedArgs?.indexOf('--add-dir');
-    assert.ok(addDirIndex !== undefined && addDirIndex >= 0);
-    assert.strictEqual(capturedArgs?.[(addDirIndex ?? -1) + 1], 'C:\\totvs\\fontes');
-  });
-
-  it('omits --add-dir when addDir is not provided', async () => {
-    const sink = new RecordingSink();
-    let capturedArgs: string[] | undefined;
-    const spawnFn: SpawnFn = (_command, args) => {
-      capturedArgs = args;
-      return makeFakeProcess({ messages: [{ type: 'result', subtype: 'success', is_error: false, result: 'done' }] });
-    };
-
-    await runClaudeAgent({ cwd: '/tmp/workspace', systemPrompt: 'system', userPrompt: 'user' }, sink, spawnFn);
-
-    assert.ok(!capturedArgs?.includes('--add-dir'));
-  });
-
-  it('writes the system prompt to a temp file and removes it afterward', async () => {
-    const sink = new RecordingSink();
-    let promptFilePath: string | undefined;
-    const spawnFn: SpawnFn = (_command, args) => {
-      const flagIndex = args.indexOf('--append-system-prompt-file');
-      promptFilePath = args[flagIndex + 1];
-      return makeFakeProcess({ messages: [{ type: 'result', subtype: 'success', is_error: false, result: 'done' }] });
-    };
-
-    await runClaudeAgent(
-      { cwd: '/tmp/workspace', systemPrompt: 'conteúdo do prompt de sistema', userPrompt: 'user' },
-      sink,
-      spawnFn,
-    );
-
-    assert.ok(promptFilePath);
-    const fs = await import('node:fs/promises');
-    await assert.rejects(() => fs.access(promptFilePath as string));
-  });
-
-  it('writes mcpConfig to a temp file, passes --mcp-config/--strict-mcp-config, and removes it afterward', async () => {
-    const sink = new RecordingSink();
-    let capturedArgs: string[] | undefined;
-    let mcpConfigFilePath: string | undefined;
-    let writtenAtSpawnTime: string | undefined;
     const fsSync = await import('node:fs');
-    const spawnFn: SpawnFn = (_command, args) => {
-      capturedArgs = args;
-      const flagIndex = args.indexOf('--mcp-config');
-      mcpConfigFilePath = args[flagIndex + 1];
-      // O arquivo já foi escrito antes do spawn acontecer — lê aqui, síncrono,
-      // porque o `finally` do runClaudeAgent apaga o arquivo assim que o
-      // processo (falso, resolvido no mesmo tick) termina, antes do `await`
-      // devolver o controle pra este teste.
-      writtenAtSpawnTime = fsSync.readFileSync(mcpConfigFilePath as string, 'utf8');
-      return makeFakeProcess({ messages: [{ type: 'result', subtype: 'success', is_error: false, result: 'done' }] });
-    };
+    const fs = await import('node:fs/promises');
+    let capturedSystemPromptFile: string | undefined;
+    let capturedMcpConfigFile: string | undefined;
+    let systemPromptContentsDuringRun: string | undefined;
+    let mcpConfigContentsDuringRun: string | undefined;
 
-    await runClaudeAgent(
-      {
-        cwd: '/tmp/workspace',
-        systemPrompt: 'system',
-        userPrompt: 'user',
-        mcpConfig: '{"mcpServers":{"playwright":{"command":"npx","args":["-y","@playwright/mcp@latest"]}}}',
-        allowedTools: 'mcp__playwright__browser_navigate',
+    const adapter: EngineAdapter = {
+      id: 'claude',
+      binaryName: 'fake-cli',
+      buildCommand: (_options, systemPromptFile, mcpConfigFile) => {
+        capturedSystemPromptFile = systemPromptFile;
+        capturedMcpConfigFile = mcpConfigFile;
+        // Lê de forma síncrona aqui dentro de buildCommand — que roda antes
+        // do spawn — pra confirmar que o arquivo já existe com o conteúdo
+        // certo nesse ponto do fluxo (antes do processo ser criado).
+        systemPromptContentsDuringRun = fsSync.readFileSync(systemPromptFile, 'utf8');
+        if (mcpConfigFile) {
+          mcpConfigContentsDuringRun = fsSync.readFileSync(mcpConfigFile, 'utf8');
+        }
+        return { command: 'fake-cli', args: [] };
       },
+      parseLine: (line: string) => (line === 'L1' ? [{ kind: 'result', success: true }] : []),
+    };
+    const spawnFn: SpawnFn = () => makeFakeProcess({ lines: ['L1'] });
+
+    await runAgentWithAdapter(
+      adapter,
+      { cwd: '/tmp/workspace', systemPrompt: 'conteúdo do prompt de sistema', userPrompt: 'u', mcpConfig: '{"a":1}' },
       sink,
       spawnFn,
     );
 
-    assert.ok(capturedArgs?.includes('--strict-mcp-config'));
-    assert.ok(capturedArgs?.includes('--allowedTools'));
-    const allowedIndex = capturedArgs?.indexOf('--allowedTools');
-    assert.strictEqual(capturedArgs?.[(allowedIndex ?? -1) + 1], 'mcp__playwright__browser_navigate');
+    assert.ok(capturedSystemPromptFile);
+    assert.strictEqual(systemPromptContentsDuringRun, 'conteúdo do prompt de sistema');
+    assert.ok(capturedMcpConfigFile);
+    assert.strictEqual(mcpConfigContentsDuringRun, '{"a":1}');
 
-    assert.strictEqual(writtenAtSpawnTime, '{"mcpServers":{"playwright":{"command":"npx","args":["-y","@playwright/mcp@latest"]}}}');
-    assert.ok(mcpConfigFilePath);
-    const fs = await import('node:fs/promises');
-    await assert.rejects(() => fs.access(mcpConfigFilePath as string));
+    await assert.rejects(() => fs.access(capturedSystemPromptFile as string));
+    await assert.rejects(() => fs.access(capturedMcpConfigFile as string));
   });
 
-  it('omits --mcp-config/--strict-mcp-config/--allowedTools when mcpConfig is not provided', async () => {
+  it('removes the systemPrompt temp file after a failed run too', async () => {
     const sink = new RecordingSink();
-    let capturedArgs: string[] | undefined;
-    const spawnFn: SpawnFn = (_command, args) => {
-      capturedArgs = args;
-      return makeFakeProcess({ messages: [{ type: 'result', subtype: 'success', is_error: false, result: 'done' }] });
+    const fs = await import('node:fs/promises');
+    let capturedSystemPromptFile: string | undefined;
+
+    const adapter: EngineAdapter = {
+      id: 'claude',
+      binaryName: 'fake-cli',
+      buildCommand: (_options, systemPromptFile) => {
+        capturedSystemPromptFile = systemPromptFile;
+        return { command: 'fake-cli', args: [] };
+      },
+      parseLine: (line: string) =>
+        line === 'L1' ? [{ kind: 'result', success: false, errorMessage: 'boom' }] : [],
     };
+    const spawnFn: SpawnFn = () => makeFakeProcess({ lines: ['L1'] });
 
-    await runClaudeAgent({ cwd: '/tmp/workspace', systemPrompt: 'system', userPrompt: 'user' }, sink, spawnFn);
+    const result = await runAgentWithAdapter(
+      adapter,
+      { cwd: '/tmp/workspace', systemPrompt: 'sys', userPrompt: 'u' },
+      sink,
+      spawnFn,
+    );
 
-    assert.ok(!capturedArgs?.includes('--mcp-config'));
-    assert.ok(!capturedArgs?.includes('--strict-mcp-config'));
-    assert.ok(!capturedArgs?.includes('--allowedTools'));
+    assert.strictEqual(result.succeeded, false);
+    assert.ok(capturedSystemPromptFile);
+    await assert.rejects(() => fs.access(capturedSystemPromptFile as string));
+  });
+
+  it('resolves succeeded:false with a fallback message when the process closes with no result event', async () => {
+    const sink = new RecordingSink();
+    const adapter = makeFakeAdapter({ L1: [{ kind: 'text', text: 'oi' }] });
+    const spawnFn: SpawnFn = () => makeFakeProcess({ lines: ['L1'], exitCode: 0 });
+
+    const result = await runAgentWithAdapter(
+      adapter,
+      { cwd: '/tmp/workspace', systemPrompt: 'sys', userPrompt: 'u' },
+      sink,
+      spawnFn,
+    );
+
+    assert.strictEqual(result.succeeded, false);
+    assert.strictEqual(result.errorMessage, 'o processo encerrou sem retornar um resultado.');
+  });
+
+  it('keeps a successful result even if the process later closes with a nonzero exit code', async () => {
+    const sink = new RecordingSink();
+    const adapter = makeFakeAdapter({ L1: [{ kind: 'result', success: true }] });
+    const spawnFn: SpawnFn = () => makeFakeProcess({ lines: ['L1'], exitCode: 1 });
+
+    const result = await runAgentWithAdapter(
+      adapter,
+      { cwd: '/tmp/workspace', systemPrompt: 'sys', userPrompt: 'u' },
+      sink,
+      spawnFn,
+    );
+
+    assert.strictEqual(result.succeeded, true);
+    assert.ok(!sink.lines.some((l) => l.includes('falha ao executar o agente')));
   });
 });
