@@ -6,6 +6,7 @@
   "publisher": "andre-costa",
   "private": true,
   "license": "MIT",
+  "icon": "assets/icon.png",
   "engines": {
     "vscode": "^1.90.0",
     "node": ">=18.19.0"
