@@ -4,6 +4,7 @@ import { checkEngineAvailable } from './cliCheck';
 import { runAgent } from './agentRuntime';
 import { buildReviewSystemPrompt, buildReviewUserPrompt, ReviewFocus } from './reviewPromptBuilder';
 import { EngineId } from './engineTypes';
+import { getEngineAdapter } from './engineRegistry';
 
 /** Somente leitura — o `code-reviewer` original também não inclui Write/Edit
  * entre suas ferramentas: revisão nunca deve poder alterar o código sozinha. */
@@ -68,6 +69,12 @@ export function registerReviewCommand(
     outputChannel.clear();
     outputChannel.show(true);
     outputChannel.appendLine(`Revisando ${relativePath} (foco: ${focusChoice.label})...`);
+
+    if (!getEngineAdapter(engineId).capabilities.restrictsTools) {
+      outputChannel.appendLine(
+        `⚠ o motor "${engineId}" não garante que a revisão seja somente-leitura (restrição de ferramentas não suportada) — o agente pode escrever no workspace durante a revisão.`,
+      );
+    }
 
     const assetsDir = path.join(context.extensionUri.fsPath, 'assets', 'agent-prompts');
     let systemPrompt: string;
