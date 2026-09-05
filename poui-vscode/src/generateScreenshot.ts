@@ -4,7 +4,6 @@ import { deriveEntityNaming, resolveFixedModuleName } from './naming';
 import { getGeneratorType } from './generatorTypes';
 import { buildGeneratorSystemPrompt, buildGeneratorUserPrompt } from './promptBuilder';
 import { buildScreenshotSystemPrompt, buildScreenshotUserPrompt, parseScreenshotManifest } from './screenshotPromptBuilder';
-import { checkEngineAvailable } from './cliCheck';
 import { runAgent, OutputSink } from './agentRuntime';
 import { runBuildFixLoop } from './buildFixLoop';
 
