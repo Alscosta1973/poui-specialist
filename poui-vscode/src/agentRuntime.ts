@@ -6,7 +6,7 @@ import * as readline from 'node:readline';
 import { randomUUID } from 'node:crypto';
 import { EngineAdapter, EngineId, GenerateResult, OutputSink, RunAgentOptions, SpawnedProcess, SpawnFn } from './engineTypes';
 import { getEngineAdapter } from './engineRegistry';
-import { buildWindowsCommandLine } from './windowsShell';
+import { buildPowerShellInvocation } from './windowsShell';
 
 export type { GenerateResult, OutputSink, RunAgentOptions, SpawnedProcess, SpawnFn } from './engineTypes';
 
@@ -15,24 +15,31 @@ function defaultSpawn(
   args: string[],
   options: { cwd: string; env: NodeJS.ProcessEnv },
 ): SpawnedProcess {
-  // Achado confirmado via teste manual real + reprodução isolada: no
-  // Windows, codex/gemini são instalados pelo npm como shims .cmd/.ps1 (não
-  // .exe nativo) — spawn() sem shell:true falha com "spawn <cmd> ENOENT"
-  // pra eles (claude não é afetado porque seu instalador gera um .exe
-  // nativo). shell:true sozinho não basta, porém: passar `command`+`args`
-  // separados com shell:true faz o Node escapar cada argumento, e o script
-  // de shim (`%*` dentro do `.cmd`) reprocessa isso e corrompe fronteiras
-  // de argumento com espaço (confirmado: um prompt com espaço virava
-  // "positional prompt" duplicado junto com `-p`). Por isso montamos a
-  // linha de comando inteira nós mesmos (`buildWindowsCommandLine`, com a
-  // escapagem correta) só no Windows — em macOS/Linux nada muda, os
-  // binários já são executáveis diretos e não passam por shell nenhum.
-  const isWindows = process.platform === 'win32';
-  return spawn(isWindows ? buildWindowsCommandLine(command, args) : command, isWindows ? [] : args, {
+  // Achado confirmado via teste manual real, em duas rodadas: (1) no
+  // Windows, codex/gemini são instalados pelo npm como shims .cmd/.ps1
+  // (não .exe nativo) — spawn() direto falha com "spawn <cmd> ENOENT" pra
+  // eles (claude não é afetado, seu instalador gera um .exe nativo);
+  // (2) uma primeira correção via `cmd.exe` (`shell: true` + escapagem
+  // manual de linha de comando) resolveu o ENOENT mas quebrava com
+  // prompts multi-linha — `cmd.exe` não aceita quebra de linha literal
+  // dentro de UM comando, cortando o texto (e os argumentos que viriam
+  // depois, como `--skip-trust`) no meio. Solução: invocar via
+  // `powershell.exe` (um .exe nativo, sem o problema do shim) com
+  // `-Command`, montando o script nós mesmos (`buildPowerShellInvocation`)
+  // — aspas simples de PowerShell aceitam quebra de linha embutida sem
+  // tratamento especial. Em macOS/Linux nada muda, os binários já são
+  // executáveis diretos.
+  if (process.platform === 'win32') {
+    return spawn('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', buildPowerShellInvocation(command, args)], {
+      cwd: options.cwd,
+      env: options.env,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    }) as unknown as SpawnedProcess;
+  }
+  return spawn(command, args, {
     cwd: options.cwd,
     env: options.env,
     stdio: ['ignore', 'pipe', 'pipe'],
-    shell: isWindows,
   }) as unknown as SpawnedProcess;
 }
 

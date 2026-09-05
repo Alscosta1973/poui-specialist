@@ -1,45 +1,29 @@
-/** Escapa um único argumento seguindo a regra do runtime C da Microsoft (a
- * mesma que `CommandLineToArgvW` espera) — trata sequências de barras
- * invertidas consecutivas antes de uma aspas de forma especial. Devolve o
- * argumento sem aspas quando ele não contém espaço/tab/aspas (nenhuma
- * escapagem necessária). */
-function quoteWindowsArg(arg: string): string {
-  if (arg.length > 0 && !/[ \t"]/.test(arg)) {
-    return arg;
-  }
-  let result = '"';
-  for (let i = 0; i <= arg.length; i++) {
-    let backslashCount = 0;
-    while (i < arg.length && arg[i] === '\\') {
-      backslashCount++;
-      i++;
-    }
-    if (i === arg.length) {
-      result += '\\'.repeat(backslashCount * 2);
-      break;
-    } else if (arg[i] === '"') {
-      result += '\\'.repeat(backslashCount * 2 + 1) + '"';
-    } else {
-      result += '\\'.repeat(backslashCount) + arg[i];
-    }
-  }
-  return result + '"';
+/** Escapa um argumento pra uma string literal de PowerShell de aspas
+ * simples — só precisa dobrar aspas simples internas. Diferente de
+ * `cmd.exe`, aceita quebra de linha literal dentro da string sem quebrar
+ * o comando, o que é crítico aqui: os prompts desta extensão são
+ * frequentemente multi-linha. */
+function quotePowerShellArg(arg: string): string {
+  return `'${arg.replace(/'/g, "''")}'`;
 }
 
-/** Monta uma única string de linha de comando, com cada argumento
+/** Monta um script PowerShell de uma linha (`& <comando> <args...>`) que
+ * invoca o binário via o operador de chamada `&`, com cada argumento
  * corretamente escapado.
  *
- * Necessário no Windows quando `shell: true` é usado pra invocar um shim
- * `.cmd`/`.ps1` do npm (ex.: os binários de codex/gemini, que não são
- * `.exe` nativos — ver `agentRuntime.ts`/`cliCheck.ts`): passar
- * `command`+`args` separadamente pro `spawn`/`execFile` com `shell: true`
- * deixa o Node fazer sua própria escapagem por argumento, que o script de
- * shim (`%*` dentro do `.cmd`) reprocessa e corrompe fronteiras de
- * argumento em valores com espaço — achado confirmado via teste manual
- * real (um prompt com espaço virava "positional prompt" duplicado junto
- * com o `-p`). Montar a linha inteira nós mesmos, com a escapagem correta,
- * e mandar pro spawn/execFile como uma string única (sem `args` separado)
- * evita essa dupla reinterpretação. */
-export function buildWindowsCommandLine(command: string, args: string[]): string {
-  return [command, ...args].map(quoteWindowsArg).join(' ');
+ * Necessário no Windows por dois motivos, ambos confirmados via teste
+ * manual real nesta sessão: (1) codex/gemini são instalados pelo npm
+ * como shims `.cmd`/`.ps1` (não `.exe` nativo) — `spawn()` sem uma
+ * camada de shell falha com "spawn <cmd> ENOENT" pra eles; (2) uma
+ * tentativa anterior de corrigir isso invocando via `cmd.exe`
+ * (`shell: true` + escapagem manual de linha de comando) quebrava com
+ * prompts multi-linha — `cmd.exe` não aceita quebra de linha literal
+ * dentro de UM comando, cortando o texto (e os argumentos que viriam
+ * depois, como `--skip-trust`) no meio. PowerShell aceita uma string de
+ * aspas simples com quebra de linha embutida sem nenhum tratamento
+ * especial, e `spawn('powershell.exe', [...])` sem `shell:true`
+ * funciona sem o problema do shim porque `powershell.exe` em si é um
+ * `.exe` nativo. */
+export function buildPowerShellInvocation(command: string, args: string[]): string {
+  return ['&', quotePowerShellArg(command), ...args.map(quotePowerShellArg)].join(' ');
 }
