@@ -3,7 +3,7 @@ import * as path from 'node:path';
 import { deriveEntityNaming, isValidModuleName, resolveFixedModuleName } from './naming';
 import { buildGeneratorSystemPrompt, buildGeneratorUserPrompt } from './promptBuilder';
 import { checkEngineAvailable } from './cliCheck';
-import { runAgentForCommand } from './runAgentForCommand';
+import { runAgentForCommand, createAgentRunner } from './runAgentForCommand';
 import { runBuildFixLoop } from './buildFixLoop';
 import { GENERATOR_TYPES, GeneratorType } from './generatorTypes';
 import { EngineId } from './engineTypes';
@@ -192,6 +192,8 @@ export function registerGenerateComponentCommand(
               .get<'low' | 'medium' | 'high' | 'xhigh' | 'max'>('effort'),
           },
           outputChannel,
+          undefined,
+          createAgentRunner(context),
         ),
     );
 

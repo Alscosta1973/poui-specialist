@@ -5,7 +5,7 @@ import { getGeneratorType } from './generatorTypes';
 import { buildGeneratorSystemPrompt, buildGeneratorUserPrompt } from './promptBuilder';
 import { buildScreenshotSystemPrompt, buildScreenshotUserPrompt, parseScreenshotManifest } from './screenshotPromptBuilder';
 import { OutputSink } from './agentRuntime';
-import { runAgentForCommand } from './runAgentForCommand';
+import { runAgentForCommand, createAgentRunner } from './runAgentForCommand';
 import { runBuildFixLoop } from './buildFixLoop';
 import { EngineId } from './engineTypes';
 import { getEngineAdapter } from './engineRegistry';
@@ -204,6 +204,8 @@ export function registerScreenshotCommand(
             effort,
           },
           sink,
+          undefined,
+          createAgentRunner(context),
         ),
     );
 

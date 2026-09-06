@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { checkEngineAvailable } from './cliCheck';
-import { runAgentForCommand } from './runAgentForCommand';
+import { runAgentForCommand, createAgentRunner } from './runAgentForCommand';
 import { runBuildFixLoop } from './buildFixLoop';
 import { deriveRouteRegistration } from './previewRoutes';
 import { readProjectName } from './packaging';
@@ -270,6 +270,8 @@ export function registerConnectCommand(
         runBuildFixLoop(
           { cwd: workspaceRoot, filesWritten: result.filesWritten, systemPrompt, engineId, model, effort },
           outputChannel,
+          undefined,
+          createAgentRunner(context),
         ),
     );
 
