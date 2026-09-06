@@ -10,14 +10,9 @@ import {
   getValidationTimeoutMs,
   interpretValidationResult,
   CredentialAction,
+  ENGINE_LABELS,
 } from './configureEngineLogic';
 import { EngineId } from './engineTypes';
-
-const ENGINE_LABELS: Record<EngineId, string> = {
-  claude: 'Claude',
-  codex: 'Codex',
-  gemini: 'Gemini',
-};
 
 /** Comando de terminal pra disparar o login OAuth de cada motor. Codex:
  * `codex login` (assunção já existente em `codexAdapter.ts`, não

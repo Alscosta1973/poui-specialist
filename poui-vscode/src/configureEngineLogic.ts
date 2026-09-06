@@ -6,7 +6,7 @@ export interface EngineChoice {
   engineId: EngineId;
 }
 
-const ENGINE_LABELS: Record<EngineId, string> = {
+export const ENGINE_LABELS: Record<EngineId, string> = {
   claude: 'Claude',
   codex: 'Codex',
   gemini: 'Gemini',
