@@ -61,7 +61,7 @@ Isso abre o navegador pra autorizar a CLI. Esperar o usuário completar o fluxo 
     "test": "mocha --require ts-node/register --timeout 15000 \"test/**/*.test.ts\""
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20250101.0",
+    "@cloudflare/workers-types": "^5.20250101.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "^22.0.0",
     "mocha": "^11.8.0",
@@ -142,7 +142,7 @@ Expected: `{"ok":true,"note":"stub — Task 3 substitui isto"}`
 No ledger da execução (se estiver rodando via `subagent-driven-development`),
 registrar a URL exata e o `id` do KV. **Editar a seção da Task 4 abaixo
 neste mesmo arquivo de plano**, substituindo o placeholder
-`https://poui-license.SUBSTITUIR-PELA-URL-REAL.workers.dev` (no bloco de
+`https://poui-license.alscosta.workers.dev` (no bloco de
 código de `licenseCheck.ts`) pela URL real obtida no Step 5 — antes de
 despachar a Task 4, pra que o subagent implementador nunca veja um
 placeholder.
@@ -473,7 +473,7 @@ git commit -m "feat(license-worker): implement the real trial/status/activate HT
 
 **⚠️ Antes de despachar esta task**: confirmar que a Task 1 já rodou e
 que a URL real do Worker está disponível. Substituir
-`https://poui-license.SUBSTITUIR-PELA-URL-REAL.workers.dev` no código
+`https://poui-license.alscosta.workers.dev` no código
 abaixo pela URL exata obtida na Task 1, Step 5, **antes** de repassar
 este texto pra quem for implementar.
 
@@ -636,7 +636,7 @@ export interface ActivationResult {
  * Fixa no código de propósito, nunca um setting `poui.*` — se fosse
  * configurável, qualquer um apontaria pra um servidor falso que sempre
  * aprova a licença. */
-export const WORKER_BASE_URL = 'https://poui-license.SUBSTITUIR-PELA-URL-REAL.workers.dev';
+export const WORKER_BASE_URL = 'https://poui-license.alscosta.workers.dev';
 
 const MACHINE_ID_SALT = 'poui-vscode-license-v1';
 const KNOWN_PLACEHOLDER_MACHINE_ID = 'someValue.machineId';
@@ -1104,7 +1104,7 @@ na Task 2 (`resolveStatus` com `boundMachineHash` diferente) e validada
 manualmente na Task 9.
 
 **Placeholders**: o único "placeholder" no sentido literal
-(`https://poui-license.SUBSTITUIR-PELA-URL-REAL.workers.dev`) é um valor
+(`https://poui-license.alscosta.workers.dev`) é um valor
 de infraestrutura que só existe depois que a Task 1 roda de verdade — a
 Task 4 já traz a instrução explícita de substituí-lo pela URL real antes
 de ser despachada, não é uma lacuna de design deixada em aberto.

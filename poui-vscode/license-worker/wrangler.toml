@@ -1,0 +1,7 @@
+name = "poui-license"
+main = "src/worker.ts"
+compatibility_date = "2026-09-06"
+
+[[kv_namespaces]]
+binding = "LICENSES"
+id = "a8065c15257c447f9ffe1663dd5326c4"
