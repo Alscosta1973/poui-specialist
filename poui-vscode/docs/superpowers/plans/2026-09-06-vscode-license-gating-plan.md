@@ -1024,7 +1024,7 @@ Mesmo padrão dos outros 15 casos já existentes:
 - [ ] **Step 2: Rodar a suíte de integração**
 
 Run: `cd poui-vscode && npm run test`
-Expected: `16 passing` (15 já existentes + este novo caso).
+Expected: `15 passing` (14 já existentes, confirmado por grep em `extension.test.ts` + este novo caso).
 
 - [ ] **Step 3: Commit**
 
