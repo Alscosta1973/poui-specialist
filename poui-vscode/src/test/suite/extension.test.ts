@@ -101,4 +101,11 @@ describe('extension packaging', () => {
     const commands = await vscode.commands.getCommands(true);
     assert.ok(commands.includes('poui.configureEngine'));
   });
+
+  it('registers the poui.activateLicense command after activation', async () => {
+    const ext = vscode.extensions.getExtension('andre-costa.poui-vscode');
+    await ext?.activate();
+    const commands = await vscode.commands.getCommands(true);
+    assert.ok(commands.includes('poui.activateLicense'));
+  });
 });
