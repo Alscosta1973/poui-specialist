@@ -88,12 +88,33 @@ antes de confirmar, e definindo o motor escolhido como ativo
   - `runAgentForCommand(context: vscode.ExtensionContext, engineId: EngineId, options: RunAgentOptions, sink: OutputSink, spawnFn?: SpawnFn): Promise<GenerateResult>`
   - Resolve `getCredentialEnv(context, engineId)` e delega para
     `runAgent(options, sink, engineId, spawnFn, credentialEnv)`.
-  - Os 8 arquivos de comando (`generateComponent.ts`,
+  - Os 8 arquivos que hoje importam `runAgent` de `agentRuntime.ts`
+    (confirmado por grep em 2026-09-06): `generateComponent.ts`,
     `generateConnect.ts`, `generateDocs.ts`, `generateE2e.ts`,
-    `generateReview.ts`, `generateScreenshot.ts`, `generateTest.ts` e
-    qualquer outro que chame `runAgent` diretamente hoje) trocam a
-    chamada de `runAgent(...)` para `runAgentForCommand(context, ...)`
-    — troca de uma linha, sem lógica nova em cada arquivo.
+    `generateReview.ts`, `generateScreenshot.ts`, `generateTest.ts` **e
+    `buildFixLoop.ts`**. Os 7 primeiros trocam a chamada de
+    `runAgent(...)` para `runAgentForCommand(context, ...)` — troca de
+    uma linha, sem lógica nova em cada arquivo.
+  - **`buildFixLoop.ts` precisa de um tratamento diferente, não coberto
+    pela troca simples acima**: `runBuildFixLoop(options, sink,
+    buildRunner?, agentRunner?)` recebe `agentRunner` como parâmetro
+    opcional que cai em `runAgent` puro (sem credencial) quando omitido.
+    Hoje os três chamadores — `generateComponent.ts:182`,
+    `generateConnect.ts:270`, `generateScreenshot.ts:194` — invocam
+    `runBuildFixLoop` sem informar `agentRunner`. Se só os 7 arquivos
+    acima forem ajustados, a chamada *inicial* de geração usaria a
+    credencial salva corretamente, mas qualquer tentativa de correção
+    automática de build (`buildFixLoop`) cairia de volta no `runAgent`
+    sem credencial — falhando por erro de autenticação silenciosamente
+    pra quem configurou Codex/Gemini via API key salva (não via
+    variável de ambiente do SO). **Correção necessária**: esses três
+    call sites passam um `agentRunner` amarrado ao
+    `runAgentForCommand`, ex.: `(o, s, e) => runAgentForCommand(context,
+    e, o, s)` — note que a ordem dos parâmetros é diferente
+    (`runAgentForCommand` espera `context, engineId, options, sink`,
+    enquanto o tipo `AgentRunner` de `buildFixLoop.ts` espera `options,
+    sink, engineId`), por isso precisa de uma closure adaptadora, não
+    uma referência direta à função.
 
 - **`src/configureEngine.ts`** (novo comando `poui.configureEngine`)
   - Orquestra o fluxo descrito abaixo. A lógica pura (montar opções do
@@ -219,6 +240,13 @@ visíveis — mesmo princípio já usado no indicador de progresso da Fase
   credencial antes de delegar pro `runAgent` (com fake de
   `engineCredentials`), e o comportamento de timeout com fake
   timers (Sinon/Mocha) — nunca com `setTimeout` real de 30s na suíte.
+- **`generateComponent.test.ts` / `generateConnect.test.ts` /
+  `generateScreenshot.test.ts`** (estendem arquivos existentes): novo
+  caso garantindo que a chamada a `runBuildFixLoop` passa um
+  `agentRunner` amarrado a `runAgentForCommand` (não o `runAgent` cru
+  default) — regressão direta do gap descrito em "Componentes" acima
+  (credencial some na retentativa de correção de build se esse
+  `agentRunner` não for passado).
 - **`configureEngine.test.ts`** (novo): cobre só a lógica pura extraída
   (montagem das opções do QuickPick dado o estado de `secrets`,
   montagem do `RunAgentOptions` de teste, interpretação de
