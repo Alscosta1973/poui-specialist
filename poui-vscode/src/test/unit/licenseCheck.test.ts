@@ -1,0 +1,125 @@
+// poui-vscode/src/test/unit/licenseCheck.test.ts
+import * as assert from 'node:assert';
+import {
+  computeMachineHash,
+  isPlaceholderMachineId,
+  isAccessAllowed,
+  isCacheFresh,
+  fetchTrialStart,
+  fetchLicenseStatus,
+  activateLicenseKey,
+} from '../../licenseCheck';
+
+describe('computeMachineHash', () => {
+  it('is deterministic for the same machineId', () => {
+    assert.strictEqual(computeMachineHash('abc'), computeMachineHash('abc'));
+  });
+
+  it('produces different hashes for different machineIds', () => {
+    assert.notStrictEqual(computeMachineHash('abc'), computeMachineHash('xyz'));
+  });
+});
+
+describe('isPlaceholderMachineId', () => {
+  it('recognizes the known VS Code placeholder value', () => {
+    assert.strictEqual(isPlaceholderMachineId('someValue.machineId'), true);
+  });
+
+  it('returns false for a real-looking machineId', () => {
+    assert.strictEqual(isPlaceholderMachineId('a1b2c3d4e5f6'), false);
+  });
+});
+
+describe('isAccessAllowed', () => {
+  it('allows trial', () => {
+    assert.strictEqual(isAccessAllowed({ tier: 'trial', daysLeft: 5 }), true);
+  });
+
+  it('allows paid', () => {
+    assert.strictEqual(isAccessAllowed({ tier: 'paid' }), true);
+  });
+
+  it('blocks expired', () => {
+    assert.strictEqual(isAccessAllowed({ tier: 'expired' }), false);
+  });
+
+  it('blocks unknown', () => {
+    assert.strictEqual(isAccessAllowed({ tier: 'unknown' }), false);
+  });
+
+  it('blocks when no status has been fetched yet', () => {
+    assert.strictEqual(isAccessAllowed(undefined), false);
+  });
+});
+
+describe('isCacheFresh', () => {
+  it('is fresh right after fetching', () => {
+    const now = Date.parse('2026-09-06T12:00:00.000Z');
+    assert.strictEqual(isCacheFresh('2026-09-06T12:00:00.000Z', now, 3 * 24 * 60 * 60 * 1000), true);
+  });
+
+  it('is stale past the grace window', () => {
+    const now = Date.parse('2026-09-10T12:00:01.000Z');
+    assert.strictEqual(isCacheFresh('2026-09-06T12:00:00.000Z', now, 3 * 24 * 60 * 60 * 1000), false);
+  });
+});
+
+describe('fetchTrialStart', () => {
+  it('posts the machineHash and returns the parsed status', async () => {
+    let capturedUrl: string | undefined;
+    let capturedBody: string | undefined;
+    const fetchFn = (async (url: string, init?: { body?: string }) => {
+      capturedUrl = url;
+      capturedBody = init?.body;
+      return { ok: true, status: 200, json: async () => ({ tier: 'trial', daysLeft: 14 }) };
+    }) as unknown as typeof fetch;
+
+    const result = await fetchTrialStart('https://example.workers.dev', 'hash123', fetchFn);
+
+    assert.strictEqual(capturedUrl, 'https://example.workers.dev/trial/start');
+    assert.deepStrictEqual(JSON.parse(capturedBody ?? '{}'), { machineHash: 'hash123' });
+    assert.deepStrictEqual(result, { tier: 'trial', daysLeft: 14 });
+  });
+});
+
+describe('fetchLicenseStatus', () => {
+  it('gets the status with the machineHash as a query param', async () => {
+    let capturedUrl: string | undefined;
+    const fetchFn = (async (url: string) => {
+      capturedUrl = url;
+      return { ok: true, status: 200, json: async () => ({ tier: 'paid' }) };
+    }) as unknown as typeof fetch;
+
+    const result = await fetchLicenseStatus('https://example.workers.dev', 'hash123', fetchFn);
+
+    assert.strictEqual(capturedUrl, 'https://example.workers.dev/license/status?machineHash=hash123');
+    assert.deepStrictEqual(result, { tier: 'paid' });
+  });
+});
+
+describe('activateLicenseKey', () => {
+  it('posts the machineHash and licenseKey and returns the parsed result', async () => {
+    let capturedBody: string | undefined;
+    const fetchFn = (async (_url: string, init?: { body?: string }) => {
+      capturedBody = init?.body;
+      return { ok: true, status: 200, json: async () => ({ ok: true, tier: 'paid' }) };
+    }) as unknown as typeof fetch;
+
+    const result = await activateLicenseKey('https://example.workers.dev', 'hash123', 'POUI-KEY', fetchFn);
+
+    assert.deepStrictEqual(JSON.parse(capturedBody ?? '{}'), { machineHash: 'hash123', licenseKey: 'POUI-KEY' });
+    assert.deepStrictEqual(result, { ok: true, tier: 'paid' });
+  });
+
+  it('surfaces a failed activation', async () => {
+    const fetchFn = (async () => ({
+      ok: false,
+      status: 400,
+      json: async () => ({ ok: false, reason: 'invalid_key' }),
+    })) as unknown as typeof fetch;
+
+    const result = await activateLicenseKey('https://example.workers.dev', 'hash123', 'BAD-KEY', fetchFn);
+
+    assert.deepStrictEqual(result, { ok: false, reason: 'invalid_key' });
+  });
+});
