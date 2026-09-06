@@ -29,7 +29,8 @@
       { "command": "poui.connect", "title": "PO-UI: Conectar ao Protheus" },
       { "command": "poui.scaffold", "title": "PO-UI: Criar Novo Projeto (Scaffold)" },
       { "command": "poui.docs", "title": "PO-UI: Consultar Documentação de Componente" },
-      { "command": "poui.configureEngine", "title": "PO-UI: Configurar Motor de IA" }
+      { "command": "poui.configureEngine", "title": "PO-UI: Configurar Motor de IA" },
+      { "command": "poui.activateLicense", "title": "PO-UI: Ativar Licença" }
     ],
     "configuration": {
       "title": "PO-UI Specialist",

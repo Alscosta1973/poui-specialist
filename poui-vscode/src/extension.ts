@@ -13,6 +13,8 @@ import { registerConnectCommand } from './generateConnect';
 import { registerScaffoldCommand } from './generateScaffold';
 import { registerDocsCommand } from './generateDocs';
 import { registerConfigureEngineCommand } from './configureEngine';
+import { registerActivateLicenseCommand } from './activateLicense';
+import { initializeLicenseStatus } from './requireLicense';
 import { stopTrackedServer } from './devServerRegistry';
 
 export function activate(context: vscode.ExtensionContext): void {
@@ -23,6 +25,8 @@ export function activate(context: vscode.ExtensionContext): void {
   // atualiza de uma versão anterior não fica com a chave órfã no SecretStorage.
   // `delete` numa chave inexistente é no-op, então é fire-and-forget.
   void context.secrets.delete('poui.anthropicApiKey');
+
+  void initializeLicenseStatus(context);
 
   context.subscriptions.push(registerGenerateComponentCommand(context, outputChannel));
   context.subscriptions.push(registerGenerateTestCommand(context, outputChannel));
@@ -38,6 +42,7 @@ export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(registerScaffoldCommand(context, outputChannel));
   context.subscriptions.push(registerDocsCommand(context, outputChannel));
   context.subscriptions.push(registerConfigureEngineCommand(context, outputChannel));
+  context.subscriptions.push(registerActivateLicenseCommand(context, outputChannel));
 
   // Preview/E2E deixam um `ng serve` rodando em background (reaproveitado
   // entre execuções via devServerRegistry). Ao fechar esta janela/desativar
