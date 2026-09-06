@@ -12,6 +12,7 @@ import { registerPackageCommand } from './generatePackage';
 import { registerConnectCommand } from './generateConnect';
 import { registerScaffoldCommand } from './generateScaffold';
 import { registerDocsCommand } from './generateDocs';
+import { registerConfigureEngineCommand } from './configureEngine';
 import { stopTrackedServer } from './devServerRegistry';
 
 export function activate(context: vscode.ExtensionContext): void {
@@ -36,6 +37,7 @@ export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(registerConnectCommand(context, outputChannel));
   context.subscriptions.push(registerScaffoldCommand(context, outputChannel));
   context.subscriptions.push(registerDocsCommand(context, outputChannel));
+  context.subscriptions.push(registerConfigureEngineCommand(context, outputChannel));
 
   // Preview/E2E deixam um `ng serve` rodando em background (reaproveitado
   // entre execuções via devServerRegistry). Ao fechar esta janela/desativar
