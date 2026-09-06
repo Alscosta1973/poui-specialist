@@ -17,12 +17,16 @@ import {
 } from './protheusProxy';
 import { buildConnectSystemPrompt, buildConnectUserPrompt, ConnectParams, EndpointInfo, InterceptorHandling } from './connectPromptBuilder';
 import { EngineId } from './engineTypes';
+import { requireLicense } from './requireLicense';
 
 export function registerConnectCommand(
   context: vscode.ExtensionContext,
   outputChannel: vscode.OutputChannel,
 ): vscode.Disposable {
   return vscode.commands.registerCommand('poui.connect', async () => {
+    if (!requireLicense(context, outputChannel)) {
+      return;
+    }
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
     if (!workspaceFolder) {
       void vscode.window.showErrorMessage('PO-UI: abra uma pasta de projeto Angular antes de conectar ao Protheus.');

@@ -5,6 +5,7 @@ import { runAgentForCommand } from './runAgentForCommand';
 import { buildReviewSystemPrompt, buildReviewUserPrompt, ReviewFocus } from './reviewPromptBuilder';
 import { EngineId } from './engineTypes';
 import { getEngineAdapter } from './engineRegistry';
+import { requireLicense } from './requireLicense';
 
 /** Somente leitura — o `code-reviewer` original também não inclui Write/Edit
  * entre suas ferramentas: revisão nunca deve poder alterar o código sozinha. */
@@ -25,6 +26,9 @@ export function registerReviewCommand(
   outputChannel: vscode.OutputChannel,
 ): vscode.Disposable {
   return vscode.commands.registerCommand('poui.review', async () => {
+    if (!requireLicense(context, outputChannel)) {
+      return;
+    }
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
     if (!workspaceFolder) {
       void vscode.window.showErrorMessage(

@@ -1,12 +1,16 @@
 import * as vscode from 'vscode';
 import { scaffoldProject } from './scaffolding';
 import { ensureDevServer } from './devServerRegistry';
+import { requireLicense } from './requireLicense';
 
 export function registerScaffoldCommand(
   context: vscode.ExtensionContext,
   outputChannel: vscode.OutputChannel,
 ): vscode.Disposable {
   return vscode.commands.registerCommand('poui.scaffold', async () => {
+    if (!requireLicense(context, outputChannel)) {
+      return;
+    }
     const projectName = await vscode.window.showInputBox({
       prompt: 'Nome do novo projeto Angular',
       placeHolder: 'meu-projeto',

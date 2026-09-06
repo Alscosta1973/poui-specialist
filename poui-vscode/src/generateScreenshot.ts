@@ -9,12 +9,16 @@ import { runAgentForCommand, createAgentRunner } from './runAgentForCommand';
 import { runBuildFixLoop } from './buildFixLoop';
 import { EngineId } from './engineTypes';
 import { getEngineAdapter } from './engineRegistry';
+import { requireLicense } from './requireLicense';
 
 export function registerScreenshotCommand(
   context: vscode.ExtensionContext,
   outputChannel: vscode.OutputChannel,
 ): vscode.Disposable {
   return vscode.commands.registerCommand('poui.generate.screenshot', async () => {
+    if (!requireLicense(context, outputChannel)) {
+      return;
+    }
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
     if (!workspaceFolder) {
       void vscode.window.showErrorMessage('PO-UI: abra uma pasta de projeto Angular antes de gerar a partir de uma imagem.');

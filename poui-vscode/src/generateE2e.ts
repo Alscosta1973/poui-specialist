@@ -10,6 +10,7 @@ import { deriveRouteRegistration, routeExists } from './previewRoutes';
 import { ensureDevServer } from './devServerRegistry';
 import { EngineId } from './engineTypes';
 import { getEngineAdapter } from './engineRegistry';
+import { requireLicense } from './requireLicense';
 
 /** Ferramentas nativas + as 3 do MCP do Playwright que o `poui-e2e` original
  * também libera (`browser_navigate`, `browser_snapshot`, `browser_wait_for`)
@@ -40,6 +41,9 @@ export function registerE2eCommand(
   outputChannel: vscode.OutputChannel,
 ): vscode.Disposable {
   return vscode.commands.registerCommand('poui.generate.e2e', async () => {
+    if (!requireLicense(context, outputChannel)) {
+      return;
+    }
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
     if (!workspaceFolder) {
       void vscode.window.showErrorMessage(

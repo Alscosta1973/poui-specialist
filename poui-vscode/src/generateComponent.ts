@@ -7,6 +7,7 @@ import { runAgentForCommand, createAgentRunner } from './runAgentForCommand';
 import { runBuildFixLoop } from './buildFixLoop';
 import { GENERATOR_TYPES, GeneratorType } from './generatorTypes';
 import { EngineId } from './engineTypes';
+import { requireLicense } from './requireLicense';
 
 /** Nome de entidade aceitável: começa por letra e usa apenas letras, dígitos,
  * espaço, hífen ou underscore — evita entradas como `---` ou `123`, que
@@ -35,6 +36,9 @@ export function registerGenerateComponentCommand(
   outputChannel: vscode.OutputChannel,
 ): vscode.Disposable {
   return vscode.commands.registerCommand('poui.generate.component', async () => {
+    if (!requireLicense(context, outputChannel)) {
+      return;
+    }
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
     if (!workspaceFolder) {
       void vscode.window.showErrorMessage(

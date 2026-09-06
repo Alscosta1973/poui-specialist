@@ -3,12 +3,16 @@ import * as fs from 'node:fs/promises';
 import { accessSync } from 'node:fs';
 import * as path from 'node:path';
 import { findSevenZip, packageProject } from './packaging';
+import { requireLicense } from './requireLicense';
 
 export function registerPackageCommand(
   context: vscode.ExtensionContext,
   outputChannel: vscode.OutputChannel,
 ): vscode.Disposable {
   return vscode.commands.registerCommand('poui.package', async () => {
+    if (!requireLicense(context, outputChannel)) {
+      return;
+    }
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
     if (!workspaceFolder) {
       void vscode.window.showErrorMessage('PO-UI: abra uma pasta de projeto Angular antes de empacotar.');

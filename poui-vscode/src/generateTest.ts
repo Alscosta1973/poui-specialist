@@ -6,6 +6,7 @@ import { buildTestSystemPrompt, buildTestUserPrompt } from './testPromptBuilder'
 import { isKarmaConfigured } from './karmaCheck';
 import { configureKarma } from './karmaSetup';
 import { EngineId } from './engineTypes';
+import { requireLicense } from './requireLicense';
 
 /** Arquivos elegíveis: qualquer `.component.ts` ou `.service.ts` do projeto —
  * gerado pelo plugin ou legado, seguindo o mesmo escopo do comando original. */
@@ -18,6 +19,9 @@ export function registerGenerateTestCommand(
   outputChannel: vscode.OutputChannel,
 ): vscode.Disposable {
   return vscode.commands.registerCommand('poui.generate.test', async () => {
+    if (!requireLicense(context, outputChannel)) {
+      return;
+    }
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
     if (!workspaceFolder) {
       void vscode.window.showErrorMessage(
