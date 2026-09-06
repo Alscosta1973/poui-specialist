@@ -57,11 +57,24 @@ antes de confirmar, e definindo o motor escolhido como ativo
 
 ## Componentes
 
-- **`src/engineCredentials.ts`** (novo, vscode-aware)
+- **`src/engineCredentials.ts`** (novo, **não** importa `vscode` —
+  corrigido em 2026-09-06 pra seguir a convenção já estabelecida no
+  projeto: nenhum módulo puro/testável via `mocha`+`ts-node` importa
+  `vscode` diretamente hoje, só os arquivos `generate*.ts`/`extension.ts`
+  fazem isso, porque o pacote `vscode` só existe de verdade dentro do
+  Extension Development Host — importar `import * as vscode from
+  'vscode'` aqui quebraria `npm run test:unit`. Define uma interface
+  local mínima em vez de `vscode.ExtensionContext`:
+  `interface SecretStorage { get(key): Thenable<string|undefined>;
+  store(key, value): Thenable<void>; delete(key): Thenable<void>; }` e
+  `interface CredentialContext { secrets: SecretStorage; }` — um
+  `vscode.ExtensionContext` real satisfaz essa interface estruturalmente
+  (TypeScript duck typing), então os `generate*.ts` continuam passando
+  `context` normalmente sem cast.
   - Mapa fixo engine → nome de env var:
     `{ codex: 'OPENAI_API_KEY', gemini: 'GEMINI_API_KEY' }`. Claude não
     entra neste mapa (não tem credencial gerenciada pela extensão).
-  - `getCredentialEnv(context: vscode.ExtensionContext, engineId: EngineId): Promise<Record<string,string>>`
+  - `getCredentialEnv(context: CredentialContext, engineId: EngineId): Promise<Record<string,string>>`
     — lê `context.secrets.get('poui.credential.<engineId>')`; se não
     houver nada salvo, devolve `{}` (fallback: comportamento atual via
     env var do SO continua valendo, nada quebra pra quem já configurou
@@ -83,11 +96,23 @@ antes de confirmar, e definindo o motor escolhido como ativo
   - Nenhuma outra mudança: a função continua pura/testável sem
     importar `vscode`.
 
-- **`src/runAgentForCommand.ts`** (novo, vscode-aware — Abordagem B
-  aprovada)
-  - `runAgentForCommand(context: vscode.ExtensionContext, engineId: EngineId, options: RunAgentOptions, sink: OutputSink, spawnFn?: SpawnFn): Promise<GenerateResult>`
+- **`src/runAgentForCommand.ts`** (novo — mesma convenção acima, usa
+  `CredentialContext` de `engineCredentials.ts`, não `vscode` direto)
+  - `runAgentForCommand(context: CredentialContext, engineId: EngineId, options: RunAgentOptions, sink: OutputSink, spawnFn?: SpawnFn, timeoutMs?: number): Promise<GenerateResult>`
+    — `timeoutMs` opcional e **sem default** (ver seção "Validação"
+    abaixo pra por quê: só `poui.configureEngine` passa um valor).
   - Resolve `getCredentialEnv(context, engineId)` e delega para
-    `runAgent(options, sink, engineId, spawnFn, credentialEnv)`.
+    `runAgent(options, sink, engineId, spawnFn, credentialEnv)`; se
+    `timeoutMs` for informado, corre em `Promise.race` contra um timer.
+  - Também exporta `createAgentRunner(context: CredentialContext, spawnFn?: SpawnFn): (options: RunAgentOptions, sink: OutputSink, engineId: EngineId) => Promise<GenerateResult>`
+    — devolve uma função no formato exato do tipo `AgentRunner` de
+    `buildFixLoop.ts` (`(options, sink, engineId) => Promise<GenerateResult>`,
+    ordem de parâmetros diferente da de `runAgentForCommand`), fechando
+    sobre `context`/`spawnFn` e delegando pra `runAgentForCommand` sem
+    `timeoutMs` (geração real não deve ter teto de 30s). Existe
+    separada de `runAgentForCommand` especificamente pra ficar
+    testável sem depender de `vscode` nem duplicar a lógica de
+    resolução de credencial — ver uso em `buildFixLoop.ts` abaixo.
   - Os 8 arquivos que hoje importam `runAgent` de `agentRuntime.ts`
     (confirmado por grep em 2026-09-06): `generateComponent.ts`,
     `generateConnect.ts`, `generateDocs.ts`, `generateE2e.ts`,
@@ -108,13 +133,10 @@ antes de confirmar, e definindo o motor escolhido como ativo
     sem credencial — falhando por erro de autenticação silenciosamente
     pra quem configurou Codex/Gemini via API key salva (não via
     variável de ambiente do SO). **Correção necessária**: esses três
-    call sites passam um `agentRunner` amarrado ao
-    `runAgentForCommand`, ex.: `(o, s, e) => runAgentForCommand(context,
-    e, o, s)` — note que a ordem dos parâmetros é diferente
-    (`runAgentForCommand` espera `context, engineId, options, sink`,
-    enquanto o tipo `AgentRunner` de `buildFixLoop.ts` espera `options,
-    sink, engineId`), por isso precisa de uma closure adaptadora, não
-    uma referência direta à função.
+    call sites passam `createAgentRunner(context)` (de
+    `runAgentForCommand.ts`, ver acima) como quarto argumento de
+    `runBuildFixLoop` — nenhuma lógica nova nesses três arquivos, só a
+    troca de "nenhum quarto argumento" pra "`createAgentRunner(context)`".
 
 - **`src/configureEngine.ts`** (novo comando `poui.configureEngine`)
   - Orquestra o fluxo descrito abaixo. A lógica pura (montar opções do
@@ -186,14 +208,32 @@ antes de confirmar, e definindo o motor escolhido como ativo
     permissão, tente de novo".
   - `succeeded: false` (outro motivo — rede, CLI não encontrada) →
     mostra o erro cru, mesma oferta de tentar de novo.
-- **Timeout de 30s**: chamada real de rede a um LLM precisa de um teto
-  para não deixar o fluxo pendurado indefinidamente. Implementado em
-  `runAgentForCommand` (não no core `agentRuntime.ts`) via
-  `Promise.race` entre o resultado real e um timer; ao estourar, trata
-  como `{ succeeded: false, errorMessage: 'tempo esgotado aguardando resposta do motor.' }`
+- **Timeout de 30s — só nesta chamada de validação, não em toda chamada
+  do wrapper** (correção achada em 2026-09-06 ao levantar as
+  assinaturas reais pra escrever o plano): `runAgentForCommand` também é
+  o mesmo wrapper que substitui `runAgent` puro nos 7 comandos já
+  existentes (`generate.component`, `connect`, `docs`, `e2e`, `review`,
+  `screenshot`, `test`) — geração real e o loop de correção de build já
+  levam bem mais que 30s hoje. Um timeout fixo de 30s dentro do wrapper
+  abortaria esses comandos no meio, quebrando o que já funciona.
+  **Correção**: `runAgentForCommand` ganha um parâmetro opcional
+  `timeoutMs?: number` (assinatura completa:
+  `runAgentForCommand(context, engineId, options, sink, spawnFn?, timeoutMs?)`),
+  **sem valor default** — omitido, o wrapper só espera `runAgent`
+  normalmente (comportamento idêntico ao `runAgent` puro pros 7
+  comandos existentes). Só `poui.configureEngine` passa
+  `timeoutMs: 30000` explicitamente na chamada de validação. Implementado
+  via `Promise.race` entre o resultado real e um timer (só quando
+  `timeoutMs` é informado); ao estourar, trata como
+  `{ succeeded: false, errorMessage: 'tempo esgotado aguardando resposta do motor.' }`
   e (importante, requisito do usuário) o `withProgress` que envolve a
   chamada já está mostrando ao usuário que algo está em andamento
-  durante esses até 30s — nunca uma tela parada sem indicação.
+  durante esses até 30s — nunca uma tela parada sem indicação. O
+  processo filho não é morto ao estourar o timeout (fora de escopo desta
+  spec — o `Promise.race` só libera quem está esperando na UI; o CLI
+  externo pode continuar rodando em segundo plano até terminar ou
+  falhar sozinho), aceitável porque a chamada de validação é curta
+  (prompt "Responda apenas OK.") e não escreve arquivos.
 
 ## Feedback visual (requisito transversal)
 
@@ -241,12 +281,17 @@ visíveis — mesmo princípio já usado no indicador de progresso da Fase
   `engineCredentials`), e o comportamento de timeout com fake
   timers (Sinon/Mocha) — nunca com `setTimeout` real de 30s na suíte.
 - **`generateComponent.test.ts` / `generateConnect.test.ts` /
-  `generateScreenshot.test.ts`** (estendem arquivos existentes): novo
-  caso garantindo que a chamada a `runBuildFixLoop` passa um
-  `agentRunner` amarrado a `runAgentForCommand` (não o `runAgent` cru
-  default) — regressão direta do gap descrito em "Componentes" acima
-  (credencial some na retentativa de correção de build se esse
-  `agentRunner` não for passado).
+  `generateScreenshot.test.ts` NÃO existem hoje** (correção em
+  2026-09-06: esses três arquivos de comando importam `vscode`
+  diretamente, seguindo a mesma convenção do resto do projeto de só
+  testar a camada fina de orquestração via o suite de integração em
+  `src/test/suite/`, nunca via `mocha`+`ts-node`). A regressão do gap
+  descrito em "Componentes" acima é coberta em
+  `runAgentForCommand.test.ts` (acima), testando `createAgentRunner`
+  diretamente — não precisa de teste novo nos três arquivos de comando.
+  `src/test/suite/extension.test.ts` (estende arquivo existente) ganha
+  um caso confirmando que `poui.configureEngine` é registrado após a
+  ativação, mesmo padrão já usado pros outros 13 comandos.
 - **`configureEngine.test.ts`** (novo): cobre só a lógica pura extraída
   (montagem das opções do QuickPick dado o estado de `secrets`,
   montagem do `RunAgentOptions` de teste, interpretação de
