@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { checkEngineAvailable } from './cliCheck';
-import { runAgent } from './agentRuntime';
+import { runAgentForCommand } from './runAgentForCommand';
 import { parseComponentCategories, findComponentReferenceFile, buildDocsSystemPrompt, buildDocsUserPrompt } from './docsPromptBuilder';
 import { EngineId } from './engineTypes';
 import { getEngineAdapter } from './engineRegistry';
@@ -68,7 +68,9 @@ export function registerDocsCommand(
     const result = await vscode.window.withProgress(
       { location: vscode.ProgressLocation.Notification, title: `PO-UI: consultando documentação de ${componentName}...` },
       () =>
-        runAgent(
+        runAgentForCommand(
+          context,
+          engineId,
           {
             cwd: workspaceFolder.uri.fsPath,
             systemPrompt,
@@ -80,7 +82,6 @@ export function registerDocsCommand(
               .get<'low' | 'medium' | 'high' | 'xhigh' | 'max'>('effort'),
           },
           outputChannel,
-          engineId,
         ),
     );
 

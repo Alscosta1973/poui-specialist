@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { checkEngineAvailable } from './cliCheck';
-import { runAgent } from './agentRuntime';
+import { runAgentForCommand } from './runAgentForCommand';
 import { runBuildFixLoop } from './buildFixLoop';
 import { deriveRouteRegistration } from './previewRoutes';
 import { readProjectName } from './packaging';
@@ -245,7 +245,7 @@ export function registerConnectCommand(
 
     const result = await vscode.window.withProgress(
       { location: vscode.ProgressLocation.Notification, title: `PO-UI: conectando ${componentClass}...` },
-      () => runAgent({ cwd: workspaceRoot, systemPrompt, userPrompt, model, effort }, outputChannel, engineId),
+      () => runAgentForCommand(context, engineId, { cwd: workspaceRoot, systemPrompt, userPrompt, model, effort }, outputChannel),
     );
 
     if (!result.succeeded) {

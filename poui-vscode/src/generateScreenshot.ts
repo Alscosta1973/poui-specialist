@@ -4,7 +4,8 @@ import { deriveEntityNaming, resolveFixedModuleName } from './naming';
 import { getGeneratorType } from './generatorTypes';
 import { buildGeneratorSystemPrompt, buildGeneratorUserPrompt } from './promptBuilder';
 import { buildScreenshotSystemPrompt, buildScreenshotUserPrompt, parseScreenshotManifest } from './screenshotPromptBuilder';
-import { runAgent, OutputSink } from './agentRuntime';
+import { OutputSink } from './agentRuntime';
+import { runAgentForCommand } from './runAgentForCommand';
 import { runBuildFixLoop } from './buildFixLoop';
 import { EngineId } from './engineTypes';
 import { getEngineAdapter } from './engineRegistry';
@@ -73,7 +74,9 @@ export function registerScreenshotCommand(
     const analysisResult = await vscode.window.withProgress(
       { location: vscode.ProgressLocation.Notification, title: 'PO-UI: analisando imagem...' },
       () =>
-        runAgent(
+        runAgentForCommand(
+          context,
+          engineId,
           {
             cwd: workspaceFolder.uri.fsPath,
             systemPrompt: analysisSystemPrompt,
@@ -83,7 +86,6 @@ export function registerScreenshotCommand(
             effort,
           },
           sink,
-          engineId,
         ),
     );
 
@@ -159,7 +161,9 @@ export function registerScreenshotCommand(
     const result = await vscode.window.withProgress(
       { location: vscode.ProgressLocation.Notification, title: `PO-UI: gerando ${type.id} para ${naming.entityPascal}...` },
       () =>
-        runAgent(
+        runAgentForCommand(
+          context,
+          engineId,
           {
             cwd: workspaceFolder.uri.fsPath,
             systemPrompt: genSystemPrompt,
@@ -168,7 +172,6 @@ export function registerScreenshotCommand(
             effort,
           },
           sink,
-          engineId,
         ),
     );
 

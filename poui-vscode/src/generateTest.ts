@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'node:path';
 import { checkEngineAvailable } from './cliCheck';
-import { runAgent } from './agentRuntime';
+import { runAgentForCommand } from './runAgentForCommand';
 import { buildTestSystemPrompt, buildTestUserPrompt } from './testPromptBuilder';
 import { isKarmaConfigured } from './karmaCheck';
 import { configureKarma } from './karmaSetup';
@@ -111,7 +111,9 @@ export function registerGenerateTestCommand(
     const result = await vscode.window.withProgress(
       { location: vscode.ProgressLocation.Notification, title: `PO-UI: gerando teste para ${relativePath}...` },
       () =>
-        runAgent(
+        runAgentForCommand(
+          context,
+          engineId,
           {
             cwd: workspaceFolder.uri.fsPath,
             systemPrompt,
@@ -122,7 +124,6 @@ export function registerGenerateTestCommand(
               .get<'low' | 'medium' | 'high' | 'xhigh' | 'max'>('effort'),
           },
           outputChannel,
-          engineId,
         ),
     );
 

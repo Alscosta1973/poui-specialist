@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'node:path';
 import { checkEngineAvailable } from './cliCheck';
-import { runAgent } from './agentRuntime';
+import { runAgentForCommand } from './runAgentForCommand';
 import { buildReviewSystemPrompt, buildReviewUserPrompt, ReviewFocus } from './reviewPromptBuilder';
 import { EngineId } from './engineTypes';
 import { getEngineAdapter } from './engineRegistry';
@@ -92,7 +92,9 @@ export function registerReviewCommand(
     const result = await vscode.window.withProgress(
       { location: vscode.ProgressLocation.Notification, title: `PO-UI: revisando ${relativePath}...` },
       () =>
-        runAgent(
+        runAgentForCommand(
+          context,
+          engineId,
           {
             cwd: workspaceFolder.uri.fsPath,
             systemPrompt,
@@ -104,7 +106,6 @@ export function registerReviewCommand(
               .get<'low' | 'medium' | 'high' | 'xhigh' | 'max'>('effort'),
           },
           outputChannel,
-          engineId,
         ),
     );
 

@@ -3,7 +3,7 @@ import * as path from 'node:path';
 import { deriveEntityNaming, isValidModuleName, resolveFixedModuleName } from './naming';
 import { buildGeneratorSystemPrompt, buildGeneratorUserPrompt } from './promptBuilder';
 import { checkEngineAvailable } from './cliCheck';
-import { runAgent } from './agentRuntime';
+import { runAgentForCommand } from './runAgentForCommand';
 import { runBuildFixLoop } from './buildFixLoop';
 import { GENERATOR_TYPES, GeneratorType } from './generatorTypes';
 import { EngineId } from './engineTypes';
@@ -142,7 +142,9 @@ export function registerGenerateComponentCommand(
     const result = await vscode.window.withProgress(
       { location: vscode.ProgressLocation.Notification, title: `PO-UI: gerando ${type.id} para ${naming.entityPascal}...` },
       () =>
-        runAgent(
+        runAgentForCommand(
+          context,
+          engineId,
           {
             cwd: workspaceFolder.uri.fsPath,
             systemPrompt,
@@ -154,7 +156,6 @@ export function registerGenerateComponentCommand(
               .get<'low' | 'medium' | 'high' | 'xhigh' | 'max'>('effort'),
           },
           outputChannel,
-          engineId,
         ),
     );
 

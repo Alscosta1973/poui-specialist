@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { checkEngineAvailable } from './cliCheck';
-import { runAgent } from './agentRuntime';
+import { runAgentForCommand } from './runAgentForCommand';
 import { buildE2eSystemPrompt, buildE2eUserPrompt } from './e2ePromptBuilder';
 import { isPlaywrightConfigured } from './playwrightCheck';
 import { configurePlaywright } from './playwrightSetup';
@@ -177,7 +177,9 @@ export function registerE2eCommand(
     const result = await vscode.window.withProgress(
       { location: vscode.ProgressLocation.Notification, title: `PO-UI: gerando teste E2E para ${relativePath}...` },
       () =>
-        runAgent(
+        runAgentForCommand(
+          context,
+          engineId,
           {
             cwd: workspaceRoot,
             systemPrompt,
@@ -191,7 +193,6 @@ export function registerE2eCommand(
               .get<'low' | 'medium' | 'high' | 'xhigh' | 'max'>('effort'),
           },
           outputChannel,
-          engineId,
         ),
     );
 
