@@ -341,4 +341,31 @@ describe('runAgent', () => {
     const systemMdPath = (capturedEnv ?? {}).GEMINI_SYSTEM_MD;
     assert.ok(typeof systemMdPath === 'string' && systemMdPath.includes('poui-system-prompt-'));
   });
+
+  it('merges credentialEnv into the spawned process env, without overriding the adapter env', async () => {
+    const sink = new RecordingSink();
+    let capturedEnv: NodeJS.ProcessEnv | undefined;
+    const adapter: EngineAdapter = {
+      id: 'gemini',
+      binaryName: 'gemini',
+      capabilities: { restrictsTools: false, supportsMcp: false, supportsVision: false },
+      buildCommand: () => ({ command: 'gemini', args: [], env: { GEMINI_SYSTEM_MD: '/tmp/sys.txt' } }),
+      parseLine: (line: string) => (line === 'L1' ? [{ kind: 'result', success: true }] : []),
+    };
+    const spawnFn: SpawnFn = (command, args, options) => {
+      capturedEnv = options.env;
+      return makeFakeProcess({ lines: ['L1'] });
+    };
+
+    await runAgentWithAdapter(
+      adapter,
+      { cwd: '/tmp/workspace', systemPrompt: 'sys', userPrompt: 'u' },
+      sink,
+      spawnFn,
+      { GEMINI_API_KEY: 'gk-123' },
+    );
+
+    assert.strictEqual(capturedEnv?.GEMINI_API_KEY, 'gk-123');
+    assert.strictEqual(capturedEnv?.GEMINI_SYSTEM_MD, '/tmp/sys.txt');
+  });
 });

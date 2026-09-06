@@ -59,6 +59,7 @@ export async function runAgentWithAdapter(
   options: RunAgentOptions,
   sink: OutputSink,
   spawnFn: SpawnFn = defaultSpawn,
+  credentialEnv: Record<string, string> = {},
 ): Promise<GenerateResult> {
   const filesWritten: string[] = [];
   let isAuthError = false;
@@ -74,7 +75,10 @@ export async function runAgentWithAdapter(
     }
 
     const { command, args, env } = adapter.buildCommand(options, systemPromptFile, mcpConfigFile);
-    const child = spawnFn(command, args, { cwd: options.cwd, env: { ...buildSubprocessEnv(), ...env } });
+    const child = spawnFn(command, args, {
+      cwd: options.cwd,
+      env: { ...buildSubprocessEnv(), ...credentialEnv, ...env },
+    });
 
     let stderrOutput = '';
     child.stderr.on('data', (chunk: Buffer | string) => {
@@ -161,6 +165,7 @@ export async function runAgent(
   sink: OutputSink,
   engineId: EngineId,
   spawnFn: SpawnFn = defaultSpawn,
+  credentialEnv: Record<string, string> = {},
 ): Promise<GenerateResult> {
-  return runAgentWithAdapter(getEngineAdapter(engineId), options, sink, spawnFn);
+  return runAgentWithAdapter(getEngineAdapter(engineId), options, sink, spawnFn, credentialEnv);
 }
