@@ -1,5 +1,7 @@
 import * as vscode from 'vscode';
 import { CatalogEntry } from './templateCatalog';
+import { getCachedLicenseStatus } from './requireLicense';
+import { formatPaidBadge } from './licenseCheck';
 
 function escapeHtml(text: string): string {
   return text.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c] ?? c);
@@ -9,6 +11,8 @@ function buildHtml(entry: CatalogEntry, webview: vscode.Webview, extensionUri: v
   const preview = entry.previewAsset
     ? `<img class="preview" src="${webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, 'media', 'previews', entry.previewAsset)).toString()}" alt="Exemplo da tela gerada por ${escapeHtml(entry.title)}" />`
     : `<p class="no-preview">Este tipo não gera uma tela — não há exemplo visual, só a descrição acima.</p>`;
+  const badge = formatPaidBadge(getCachedLicenseStatus());
+  const badgeHtml = badge ? `<span class="badge">${escapeHtml(badge)}</span>` : '';
   return `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -18,15 +22,20 @@ function buildHtml(entry: CatalogEntry, webview: vscode.Webview, extensionUri: v
   p.description { font-size: 14px; opacity: 0.85; margin-bottom: 20px; }
   .preview { max-width: 100%; border-radius: 6px; border: 1px solid var(--vscode-widget-border, #444); display: block; margin-bottom: 20px; }
   .no-preview { font-style: italic; opacity: 0.7; }
+  .actions { display: flex; align-items: center; gap: 10px; }
   button { background: var(--vscode-button-background); color: var(--vscode-button-foreground); border: none; padding: 8px 16px; border-radius: 3px; cursor: pointer; font-size: 13px; }
   button:hover { background: var(--vscode-button-hoverBackground); }
+  .badge { font-size: 12px; opacity: 0.85; }
 </style>
 </head>
 <body>
   <h1>${escapeHtml(entry.title)}</h1>
   <p class="description">${escapeHtml(entry.description)}</p>
   ${preview}
-  <button id="generate">Gerar Componente</button>
+  <div class="actions">
+    <button id="generate">Gerar Componente</button>
+    ${badgeHtml}
+  </div>
 <script>
   const vscode = acquireVsCodeApi();
   document.getElementById('generate').addEventListener('click', () => {

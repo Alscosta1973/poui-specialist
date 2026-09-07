@@ -6,6 +6,7 @@ import {
   isAccessAllowed,
   isCacheFresh,
   shouldShowExpiryWarning,
+  formatPaidBadge,
   fetchTrialStart,
   fetchLicenseStatus,
   activateLicenseKey,
@@ -81,6 +82,26 @@ describe('shouldShowExpiryWarning', () => {
 
   it('does not warn when there is no status yet', () => {
     assert.strictEqual(shouldShowExpiryWarning(undefined, 3), false);
+  });
+});
+
+describe('formatPaidBadge', () => {
+  it('shows no badge for a paid license', () => {
+    assert.strictEqual(formatPaidBadge({ tier: 'paid' }), '');
+  });
+
+  it('shows days left for a trial', () => {
+    assert.strictEqual(formatPaidBadge({ tier: 'trial', daysLeft: 5 }), '🔒 trial — 5 dia(s)');
+  });
+
+  it('falls back to a generic lock badge for a trial with no daysLeft', () => {
+    assert.strictEqual(formatPaidBadge({ tier: 'trial' }), '🔒 requer licença');
+  });
+
+  it('shows the generic lock badge for expired, unknown or missing status', () => {
+    assert.strictEqual(formatPaidBadge({ tier: 'expired' }), '🔒 requer licença');
+    assert.strictEqual(formatPaidBadge({ tier: 'unknown' }), '🔒 requer licença');
+    assert.strictEqual(formatPaidBadge(undefined), '🔒 requer licença');
   });
 });
 

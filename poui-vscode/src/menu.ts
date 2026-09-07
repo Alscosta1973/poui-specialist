@@ -1,24 +1,14 @@
 import * as vscode from 'vscode';
 import { getCachedLicenseStatus } from './requireLicense';
+import { formatPaidBadge } from './licenseCheck';
 import { GROUPS, sortedGroupEntries } from './menuLogic';
 
 interface MenuQuickPickItem extends vscode.QuickPickItem {
   commandId?: string;
 }
 
-function buildPaidBadge(): string {
-  const status = getCachedLicenseStatus();
-  if (status?.tier === 'paid') {
-    return '';
-  }
-  if (status?.tier === 'trial' && typeof status.daysLeft === 'number') {
-    return `🔒 trial — ${status.daysLeft} dia(s)`;
-  }
-  return '🔒 requer licença';
-}
-
 export function buildMenuItems(): MenuQuickPickItem[] {
-  const paidBadge = buildPaidBadge();
+  const paidBadge = formatPaidBadge(getCachedLicenseStatus());
   const items: MenuQuickPickItem[] = [];
   for (const group of GROUPS) {
     items.push({ label: group.label, kind: vscode.QuickPickItemKind.Separator });

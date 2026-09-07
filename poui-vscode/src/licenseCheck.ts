@@ -43,6 +43,19 @@ export function shouldShowExpiryWarning(status: LicenseStatus | undefined, thres
   return status?.tier === 'trial' && typeof status.daysLeft === 'number' && status.daysLeft <= thresholdDays;
 }
 
+/** Rótulo curto pra sinalizar, em qualquer UI (QuickPick, webview), que um
+ * comando é pago — mesmo texto usado no badge do `poui.menu` e no painel de
+ * detalhe da galeria de templates, pra não ter duas variações do aviso. */
+export function formatPaidBadge(status: LicenseStatus | undefined): string {
+  if (status?.tier === 'paid') {
+    return '';
+  }
+  if (status?.tier === 'trial' && typeof status.daysLeft === 'number') {
+    return `🔒 trial — ${status.daysLeft} dia(s)`;
+  }
+  return '🔒 requer licença';
+}
+
 async function postJson(fetchFn: typeof fetch, url: string, body: unknown): Promise<unknown> {
   const response = await fetchFn(url, {
     method: 'POST',
