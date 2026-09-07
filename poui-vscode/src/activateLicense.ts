@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { computeMachineHash, activateLicenseKey, WORKER_BASE_URL } from './licenseCheck';
-import { setSessionStatus } from './requireLicense';
+import { persistConfirmedStatus } from './requireLicense';
 
 export function registerActivateLicenseCommand(
   context: vscode.ExtensionContext,
@@ -16,10 +16,17 @@ export function registerActivateLicenseCommand(
     }
 
     const machineHash = computeMachineHash(vscode.env.machineId);
-    const result = await vscode.window.withProgress(
-      { location: vscode.ProgressLocation.Notification, title: 'PO-UI: ativando licença...' },
-      () => activateLicenseKey(WORKER_BASE_URL, machineHash, licenseKey.trim()),
-    );
+    let result;
+    try {
+      result = await vscode.window.withProgress(
+        { location: vscode.ProgressLocation.Notification, title: 'PO-UI: ativando licença...' },
+        () => activateLicenseKey(WORKER_BASE_URL, machineHash, licenseKey.trim()),
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      void vscode.window.showErrorMessage(`PO-UI: falha ao ativar a licença — verifique sua conexão e tente novamente. (${message})`);
+      return;
+    }
 
     if (!result.ok) {
       void vscode.window.showErrorMessage(`PO-UI: falha ao ativar a licença (${result.reason ?? 'erro desconhecido'}).`);
@@ -27,7 +34,7 @@ export function registerActivateLicenseCommand(
     }
 
     await context.secrets.store('poui.licenseKey', licenseKey.trim());
-    setSessionStatus({ tier: 'paid', licenseKey: licenseKey.trim() });
+    await persistConfirmedStatus(context, { tier: 'paid', licenseKey: licenseKey.trim() });
     outputChannel.appendLine('PO-UI: licença ativada com sucesso.');
     void vscode.window.showInformationMessage('PO-UI: licença ativada com sucesso.');
   });
