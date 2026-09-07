@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="480" viewBox="0 0 800 480">
+  <!-- Background -->
+  <rect width="800" height="480" fill="#1a1a1a"/>
+
+  <!-- Toolbar -->
+  <rect width="800" height="52" fill="#2c6fad"/>
+  <text x="20" y="33" fill="white" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="600">Lista de Pedidos</text>
+  <rect x="696" y="13" width="88" height="28" rx="4" fill="white" fill-opacity="0.15" stroke="white" stroke-opacity="0.35" stroke-width="1"/>
+  <text x="740" y="32" fill="white" font-family="Segoe UI,Arial,sans-serif" font-size="13" text-anchor="middle">+ Novo</text>
+
+  <!-- Page body -->
+  <rect x="0" y="52" width="800" height="368" fill="#1e1e1e"/>
+
+  <!-- Quick search -->
+  <rect x="16" y="72" width="300" height="34" rx="4" fill="#252525" stroke="#353535" stroke-width="1"/>
+  <text x="32" y="94" fill="#555" font-family="Segoe UI,Arial,sans-serif" font-size="13">Pesquisa rápida...</text>
+  <circle cx="296" cy="89" r="6" fill="none" stroke="#555" stroke-width="1.5"/>
+  <line x1="300" y1="94" x2="305" y2="99" stroke="#555" stroke-width="1.5" stroke-linecap="round"/>
+
+  <!-- Table header -->
+  <rect x="16" y="122" width="768" height="36" rx="3" fill="#252525"/>
+  <text x="30"  y="145" fill="#999" font-family="Segoe UI,Arial,sans-serif" font-size="12" font-weight="600">Código</text>
+  <text x="120" y="145" fill="#999" font-family="Segoe UI,Arial,sans-serif" font-size="12" font-weight="600">Nome</text>
+  <text x="410" y="145" fill="#999" font-family="Segoe UI,Arial,sans-serif" font-size="12" font-weight="600">Status</text>
+  <text x="540" y="145" fill="#999" font-family="Segoe UI,Arial,sans-serif" font-size="12" font-weight="600">Data</text>
+  <text x="690" y="145" fill="#999" font-family="Segoe UI,Arial,sans-serif" font-size="12" font-weight="600">Ações</text>
+
+  <!-- Row 1 -->
+  <rect x="16" y="158" width="768" height="40" fill="#1e1e1e"/>
+  <line x1="16" y1="198" x2="784" y2="198" stroke="#2a2a2a" stroke-width="1"/>
+  <text x="30"  y="183" fill="#e0e0e0" font-family="Segoe UI,Arial,sans-serif" font-size="13">000001</text>
+  <text x="120" y="183" fill="#e0e0e0" font-family="Segoe UI,Arial,sans-serif" font-size="13">Pedido Outubro</text>
+  <circle cx="420" cy="178" r="5" fill="#4caf50"/>
+  <text x="433" y="183" fill="#4caf50" font-family="Segoe UI,Arial,sans-serif" font-size="12">Ativo</text>
+  <text x="540" y="183" fill="#e0e0e0" font-family="Segoe UI,Arial,sans-serif" font-size="13">15/10/2025</text>
+  <rect x="682" y="165" width="28" height="22" rx="3" fill="#252525" stroke="#353535" stroke-width="1"/>
+  <text x="696" y="181" fill="#888" font-family="Segoe UI,Arial,sans-serif" font-size="14" text-anchor="middle">✎</text>
+  <rect x="718" y="165" width="28" height="22" rx="3" fill="#252525" stroke="#353535" stroke-width="1"/>
+  <text x="732" y="181" fill="#e57373" font-family="Segoe UI,Arial,sans-serif" font-size="13" text-anchor="middle">✕</text>
+
+  <!-- Row 2 -->
+  <rect x="16" y="198" width="768" height="40" fill="#222"/>
+  <line x1="16" y1="238" x2="784" y2="238" stroke="#2a2a2a" stroke-width="1"/>
+  <text x="30"  y="223" fill="#e0e0e0" font-family="Segoe UI,Arial,sans-serif" font-size="13">000002</text>
+  <text x="120" y="223" fill="#e0e0e0" font-family="Segoe UI,Arial,sans-serif" font-size="13">Pedido Novembro</text>
+  <circle cx="420" cy="218" r="5" fill="#ff9800"/>
+  <text x="433" y="223" fill="#ff9800" font-family="Segoe UI,Arial,sans-serif" font-size="12">Pendente</text>
+  <text x="540" y="223" fill="#e0e0e0" font-family="Segoe UI,Arial,sans-serif" font-size="13">03/11/2025</text>
+  <rect x="682" y="205" width="28" height="22" rx="3" fill="#252525" stroke="#353535" stroke-width="1"/>
+  <text x="696" y="221" fill="#888" font-family="Segoe UI,Arial,sans-serif" font-size="14" text-anchor="middle">✎</text>
+  <rect x="718" y="205" width="28" height="22" rx="3" fill="#252525" stroke="#353535" stroke-width="1"/>
+  <text x="732" y="221" fill="#e57373" font-family="Segoe UI,Arial,sans-serif" font-size="13" text-anchor="middle">✕</text>
+
+  <!-- Row 3 -->
+  <rect x="16" y="238" width="768" height="40" fill="#1e1e1e"/>
+  <line x1="16" y1="278" x2="784" y2="278" stroke="#2a2a2a" stroke-width="1"/>
+  <text x="30"  y="263" fill="#e0e0e0" font-family="Segoe UI,Arial,sans-serif" font-size="13">000003</text>
+  <text x="120" y="263" fill="#e0e0e0" font-family="Segoe UI,Arial,sans-serif" font-size="13">Pedido Dezembro</text>
+  <circle cx="420" cy="258" r="5" fill="#4caf50"/>
+  <text x="433" y="263" fill="#4caf50" font-family="Segoe UI,Arial,sans-serif" font-size="12">Ativo</text>
+  <text x="540" y="263" fill="#e0e0e0" font-family="Segoe UI,Arial,sans-serif" font-size="13">10/12/2025</text>
+  <rect x="682" y="245" width="28" height="22" rx="3" fill="#252525" stroke="#353535" stroke-width="1"/>
+  <text x="696" y="261" fill="#888" font-family="Segoe UI,Arial,sans-serif" font-size="14" text-anchor="middle">✎</text>
+  <rect x="718" y="245" width="28" height="22" rx="3" fill="#252525" stroke="#353535" stroke-width="1"/>
+  <text x="732" y="261" fill="#e57373" font-family="Segoe UI,Arial,sans-serif" font-size="13" text-anchor="middle">✕</text>
+
+  <!-- Row 4 -->
+  <rect x="16" y="278" width="768" height="40" fill="#222"/>
+  <line x1="16" y1="318" x2="784" y2="318" stroke="#2a2a2a" stroke-width="1"/>
+  <text x="30"  y="303" fill="#e0e0e0" font-family="Segoe UI,Arial,sans-serif" font-size="13">000004</text>
+  <text x="120" y="303" fill="#e0e0e0" font-family="Segoe UI,Arial,sans-serif" font-size="13">Pedido Janeiro</text>
+  <circle cx="420" cy="298" r="5" fill="#f44336"/>
+  <text x="433" y="303" fill="#f44336" font-family="Segoe UI,Arial,sans-serif" font-size="12">Inativo</text>
+  <text x="540" y="303" fill="#e0e0e0" font-family="Segoe UI,Arial,sans-serif" font-size="13">07/01/2026</text>
+  <rect x="682" y="285" width="28" height="22" rx="3" fill="#252525" stroke="#353535" stroke-width="1"/>
+  <text x="696" y="301" fill="#888" font-family="Segoe UI,Arial,sans-serif" font-size="14" text-anchor="middle">✎</text>
+  <rect x="718" y="285" width="28" height="22" rx="3" fill="#252525" stroke="#353535" stroke-width="1"/>
+  <text x="732" y="301" fill="#e57373" font-family="Segoe UI,Arial,sans-serif" font-size="13" text-anchor="middle">✕</text>
+
+  <!-- Row 5 -->
+  <rect x="16" y="318" width="768" height="40" fill="#1e1e1e"/>
+  <line x1="16" y1="358" x2="784" y2="358" stroke="#2a2a2a" stroke-width="1"/>
+  <text x="30"  y="343" fill="#e0e0e0" font-family="Segoe UI,Arial,sans-serif" font-size="13">000005</text>
+  <text x="120" y="343" fill="#e0e0e0" font-family="Segoe UI,Arial,sans-serif" font-size="13">Pedido Fevereiro</text>
+  <circle cx="420" cy="338" r="5" fill="#ff9800"/>
+  <text x="433" y="343" fill="#ff9800" font-family="Segoe UI,Arial,sans-serif" font-size="12">Pendente</text>
+  <text x="540" y="343" fill="#e0e0e0" font-family="Segoe UI,Arial,sans-serif" font-size="13">20/02/2026</text>
+  <rect x="682" y="325" width="28" height="22" rx="3" fill="#252525" stroke="#353535" stroke-width="1"/>
+  <text x="696" y="341" fill="#888" font-family="Segoe UI,Arial,sans-serif" font-size="14" text-anchor="middle">✎</text>
+  <rect x="718" y="325" width="28" height="22" rx="3" fill="#252525" stroke="#353535" stroke-width="1"/>
+  <text x="732" y="341" fill="#e57373" font-family="Segoe UI,Arial,sans-serif" font-size="13" text-anchor="middle">✕</text>
+
+  <!-- Pagination -->
+  <rect x="0" y="420" width="800" height="60" fill="#1a1a1a"/>
+  <line x1="0" y1="420" x2="800" y2="420" stroke="#353535" stroke-width="1"/>
+  <text x="30" y="457" fill="#666" font-family="Segoe UI,Arial,sans-serif" font-size="13">1 - 5 de 20 itens</text>
+  <rect x="624" y="436" width="32" height="26" rx="4" fill="#252525" stroke="#353535" stroke-width="1"/>
+  <text x="640" y="454" fill="#888" font-family="Segoe UI,Arial,sans-serif" font-size="14" text-anchor="middle">‹</text>
+  <rect x="662" y="436" width="32" height="26" rx="4" fill="#2c6fad"/>
+  <text x="678" y="454" fill="white" font-family="Segoe UI,Arial,sans-serif" font-size="13" text-anchor="middle">1</text>
+  <rect x="700" y="436" width="32" height="26" rx="4" fill="#252525" stroke="#353535" stroke-width="1"/>
+  <text x="716" y="454" fill="#888" font-family="Segoe UI,Arial,sans-serif" font-size="13" text-anchor="middle">2</text>
+  <rect x="738" y="436" width="32" height="26" rx="4" fill="#252525" stroke="#353535" stroke-width="1"/>
+  <text x="754" y="454" fill="#888" font-family="Segoe UI,Arial,sans-serif" font-size="14" text-anchor="middle">›</text>
+</svg>

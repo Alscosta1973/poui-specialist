@@ -2,36 +2,91 @@
   "name": "poui-vscode",
   "displayName": "PO-UI Specialist",
   "description": "Gera componentes Angular PO-UI integrados ao Protheus REST diretamente no VS Code, usando o Claude Code CLI já autenticado — sem API key separada.",
-  "version": "0.0.1",
+  "version": "1.1.0",
   "publisher": "andre-costa",
   "private": true,
-  "license": "MIT",
+  "license": "SEE LICENSE IN LICENSE",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Alscosta1973/poui-specialist.git",
+    "directory": "poui-vscode"
+  },
   "icon": "assets/icon.png",
   "engines": {
     "vscode": "^1.90.0",
     "node": ">=18.19.0"
   },
-  "categories": ["Other"],
+  "categories": [
+    "Other"
+  ],
   "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
-      { "command": "poui.menu", "title": "PO-UI: Menu" },
-      { "command": "poui.generate.component", "title": "PO-UI: Gerar Componente" },
-      { "command": "poui.generate.test", "title": "PO-UI: Gerar Teste Unitário" },
-      { "command": "poui.lint", "title": "PO-UI: Lint de Componentes" },
-      { "command": "poui.quality", "title": "PO-UI: Auditoria de Qualidade" },
-      { "command": "poui.review", "title": "PO-UI: Revisar Código" },
-      { "command": "poui.preview", "title": "PO-UI: Preview no Browser" },
-      { "command": "poui.generate.e2e", "title": "PO-UI: Gerar Teste E2E (Playwright)" },
-      { "command": "poui.undo", "title": "PO-UI: Reverter Componente Gerado" },
-      { "command": "poui.generate.screenshot", "title": "PO-UI: Gerar a partir de Screenshot" },
-      { "command": "poui.package", "title": "PO-UI: Empacotar Projeto (.app)" },
-      { "command": "poui.connect", "title": "PO-UI: Conectar ao Protheus" },
-      { "command": "poui.scaffold", "title": "PO-UI: Criar Novo Projeto (Scaffold)" },
-      { "command": "poui.docs", "title": "PO-UI: Consultar Documentação de Componente" },
-      { "command": "poui.configureEngine", "title": "PO-UI: Configurar Motor de IA" },
-      { "command": "poui.activateLicense", "title": "PO-UI: Ativar Licença" }
+      {
+        "command": "poui.menu",
+        "title": "PO-UI: Menu"
+      },
+      {
+        "command": "poui.generate.component",
+        "title": "PO-UI: Gerar Componente"
+      },
+      {
+        "command": "poui.generate.test",
+        "title": "PO-UI: Gerar Teste Unitário"
+      },
+      {
+        "command": "poui.lint",
+        "title": "PO-UI: Lint de Componentes"
+      },
+      {
+        "command": "poui.quality",
+        "title": "PO-UI: Auditoria de Qualidade"
+      },
+      {
+        "command": "poui.review",
+        "title": "PO-UI: Revisar Código"
+      },
+      {
+        "command": "poui.preview",
+        "title": "PO-UI: Preview no Browser"
+      },
+      {
+        "command": "poui.generate.e2e",
+        "title": "PO-UI: Gerar Teste E2E (Playwright)"
+      },
+      {
+        "command": "poui.undo",
+        "title": "PO-UI: Reverter Componente Gerado"
+      },
+      {
+        "command": "poui.generate.screenshot",
+        "title": "PO-UI: Gerar a partir de Screenshot"
+      },
+      {
+        "command": "poui.package",
+        "title": "PO-UI: Empacotar Projeto (.app)"
+      },
+      {
+        "command": "poui.connect",
+        "title": "PO-UI: Conectar ao Protheus"
+      },
+      {
+        "command": "poui.scaffold",
+        "title": "PO-UI: Criar Novo Projeto (Scaffold)"
+      },
+      {
+        "command": "poui.docs",
+        "title": "PO-UI: Consultar Documentação de Componente"
+      },
+      {
+        "command": "poui.configureEngine",
+        "title": "PO-UI: Configurar Motor de IA"
+      },
+      {
+        "command": "poui.activateLicense",
+        "title": "PO-UI: Ativar Licença"
+      }
     ],
     "configuration": {
       "title": "PO-UI Specialist",
@@ -43,13 +98,23 @@
         },
         "poui.effort": {
           "type": "string",
-          "enum": ["low", "medium", "high", "xhigh", "max"],
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "xhigh",
+            "max"
+          ],
           "default": "high",
           "description": "Nível de esforço/raciocínio do modelo."
         },
         "poui.aiEngine": {
           "type": "string",
-          "enum": ["claude", "codex", "gemini"],
+          "enum": [
+            "claude",
+            "codex",
+            "gemini"
+          ],
           "enumDescriptions": [
             "Claude Code CLI — motor padrão, validado de ponta a ponta.",
             "Codex CLI (OpenAI) — suporte experimental, alguns flags ainda não confirmados em execução real.",
@@ -59,6 +124,51 @@
           "description": "Motor de IA usado pelos comandos que dependem de raciocínio (gerar, revisar, conectar, etc)."
         }
       }
+    },
+    "walkthroughs": [
+      {
+        "id": "poui.gettingStarted",
+        "title": "PO-UI Specialist — Exemplos de Comandos",
+        "description": "[SPIKE] Veja um exemplo rápido de cada comando principal antes de rodar.",
+        "steps": [
+          {
+            "id": "generateComponent",
+            "title": "Gerar Componente",
+            "description": "Cria uma página PO-UI Angular a partir de um manifesto — campos, ações e módulo Protheus. 22 tipos disponíveis (lista completa no painel PO-UI da activity bar).\nExemplo de um tipo `page-list`:\n[▶ Rodar agora](command:poui.generate.component)",
+            "media": { "image": "media/previews/templates-page-list.svg", "altText": "Exemplo de lista PO-UI gerada pela extensão" }
+          },
+          {
+            "id": "review",
+            "title": "Revisar Código",
+            "description": "",
+            "media": { "markdown": "media/walkthrough/review.md" }
+          },
+          {
+            "id": "lint",
+            "title": "Lint de Componentes",
+            "description": "",
+            "media": { "markdown": "media/walkthrough/lint.md" }
+          }
+        ]
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "pouiSpike",
+          "title": "PO-UI",
+          "icon": "assets/poui-icon-p.svg"
+        }
+      ]
+    },
+    "views": {
+      "pouiSpike": [
+        {
+          "id": "poui.examplesView",
+          "name": "Exemplos de Comandos",
+          "type": "webview"
+        }
+      ]
     }
   },
   "scripts": {
@@ -67,13 +177,15 @@
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile",
     "test": "node ./out/test/runTest.js",
-    "test:unit": "mocha --require ts-node/register --timeout 15000 \"src/test/unit/**/*.test.ts\""
+    "test:unit": "mocha --require ts-node/register --timeout 15000 \"src/test/unit/**/*.test.ts\"",
+    "package": "npm run compile && vsce package"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",
     "@types/node": "^22.0.0",
     "@types/vscode": "^1.90.0",
     "@vscode/test-electron": "^3.1.0",
+    "@vscode/vsce": "^3.9.2",
     "glob": "^11.0.0",
     "mocha": "^11.8.0",
     "ts-node": "^10.9.2",

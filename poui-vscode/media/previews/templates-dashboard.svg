@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="510" viewBox="0 0 800 510">
+  <defs>
+    <clipPath id="rf-dash">
+      <rect width="800" height="510" rx="8"/>
+    </clipPath>
+    <linearGradient id="area-fill" x1="0" y1="250" x2="0" y2="470" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0C6C94" stop-opacity="0.40"/>
+      <stop offset="100%" stop-color="#0C6C94" stop-opacity="0.02"/>
+    </linearGradient>
+  </defs>
+
+  <g clip-path="url(#rf-dash)">
+
+    <!-- Background -->
+    <rect width="800" height="510" fill="#141414"/>
+
+    <!-- ── Toolbar ── -->
+    <rect x="0" y="0" width="800" height="50" fill="#0C6C94"/>
+    <text x="20" y="20" font-family="system-ui,sans-serif" font-size="11" fill="rgba(255,255,255,0.65)">Início / Dashboard</text>
+    <text x="20" y="40" font-family="system-ui,sans-serif" font-size="17" font-weight="600" fill="#ffffff">Dashboard</text>
+    <!-- Atualizar button -->
+    <rect x="688" y="14" width="96" height="26" rx="4" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.45)" stroke-width="1"/>
+    <text x="736" y="31" font-family="system-ui,sans-serif" font-size="12" font-weight="500" fill="#ffffff" text-anchor="middle">↻ Atualizar</text>
+
+    <!-- ── Page header ── -->
+    <rect x="0" y="50" width="800" height="46" fill="#141414"/>
+    <text x="20" y="78" font-family="system-ui,sans-serif" font-size="18" font-weight="600" fill="#e0e0e0">Análise de Dados</text>
+
+    <!-- ── KPI Cards row ── -->
+    <rect x="0" y="96" width="800" height="114" fill="#141414"/>
+
+    <!-- Card 1: Faturamento -->
+    <rect x="20" y="100" width="244" height="102" rx="6" fill="#1e1e1e" stroke="#2a2a2a" stroke-width="1"/>
+    <rect x="20" y="100" width="244" height="4" rx="6" fill="#0C6C94"/>
+    <rect x="20" y="102" width="244" height="2" fill="#0C6C94"/>
+    <text x="32" y="120" font-family="system-ui,sans-serif" font-size="11" fill="#777">Faturamento</text>
+    <text x="32" y="152" font-family="system-ui,sans-serif" font-size="21" font-weight="700" fill="#e0e0e0">R$ 1.247.890</text>
+    <text x="32" y="174" font-family="system-ui,sans-serif" font-size="11" fill="#555">Total do mês</text>
+    <text x="232" y="125" font-family="system-ui,sans-serif" font-size="11" fill="#4CAF50" text-anchor="end">↑ 12,4%</text>
+
+    <!-- Card 2: Pedidos -->
+    <rect x="278" y="100" width="244" height="102" rx="6" fill="#1e1e1e" stroke="#2a2a2a" stroke-width="1"/>
+    <rect x="278" y="100" width="244" height="4" rx="6" fill="#4CAF50"/>
+    <rect x="278" y="102" width="244" height="2" fill="#4CAF50"/>
+    <text x="290" y="120" font-family="system-ui,sans-serif" font-size="11" fill="#777">Pedidos</text>
+    <text x="290" y="152" font-family="system-ui,sans-serif" font-size="21" font-weight="700" fill="#e0e0e0">342</text>
+    <text x="290" y="174" font-family="system-ui,sans-serif" font-size="11" fill="#555">Este mês</text>
+    <text x="490" y="125" font-family="system-ui,sans-serif" font-size="11" fill="#4CAF50" text-anchor="end">↑ 8,1%</text>
+
+    <!-- Card 3: Clientes Ativos -->
+    <rect x="536" y="100" width="244" height="102" rx="6" fill="#1e1e1e" stroke="#2a2a2a" stroke-width="1"/>
+    <rect x="536" y="100" width="244" height="4" rx="6" fill="#FF9800"/>
+    <rect x="536" y="102" width="244" height="2" fill="#FF9800"/>
+    <text x="548" y="120" font-family="system-ui,sans-serif" font-size="11" fill="#777">Clientes Ativos</text>
+    <text x="548" y="152" font-family="system-ui,sans-serif" font-size="21" font-weight="700" fill="#e0e0e0">87</text>
+    <text x="548" y="174" font-family="system-ui,sans-serif" font-size="11" fill="#555">Base ativa</text>
+    <text x="748" y="125" font-family="system-ui,sans-serif" font-size="11" fill="#E57373" text-anchor="end">↓ 2,3%</text>
+
+    <!-- ── Chart container ── -->
+    <rect x="20" y="224" width="760" height="272" rx="6" fill="#1e1e1e" stroke="#2a2a2a" stroke-width="1"/>
+    <text x="36" y="248" font-family="system-ui,sans-serif" font-size="13" font-weight="600" fill="#ccc">Evolução</text>
+    <!-- legend -->
+    <line x1="700" y1="243" x2="720" y2="243" stroke="#0C6C94" stroke-width="2"/>
+    <circle cx="710" cy="243" r="3" fill="#0C6C94"/>
+    <text x="724" y="247" font-family="system-ui,sans-serif" font-size="10" fill="#666">Faturamento</text>
+
+    <!-- Chart inner area background -->
+    <rect x="76" y="258" width="688" height="208" fill="none"/>
+
+    <!-- Grid lines (horizontal, subtle) -->
+    <line x1="76" y1="295" x2="764" y2="295" stroke="#252525" stroke-width="1" stroke-dasharray="4 4"/>
+    <line x1="76" y1="330" x2="764" y2="330" stroke="#252525" stroke-width="1" stroke-dasharray="4 4"/>
+    <line x1="76" y1="365" x2="764" y2="365" stroke="#252525" stroke-width="1" stroke-dasharray="4 4"/>
+    <line x1="76" y1="400" x2="764" y2="400" stroke="#252525" stroke-width="1" stroke-dasharray="4 4"/>
+    <line x1="76" y1="435" x2="764" y2="435" stroke="#252525" stroke-width="1" stroke-dasharray="4 4"/>
+    <line x1="76" y1="466" x2="764" y2="466" stroke="#2a2a2a" stroke-width="1"/>
+
+    <!-- Y axis labels -->
+    <text x="70" y="298" font-family="system-ui,sans-serif" font-size="10" fill="#555" text-anchor="end">1.2M</text>
+    <text x="70" y="368" font-family="system-ui,sans-serif" font-size="10" fill="#555" text-anchor="end">700k</text>
+    <text x="70" y="438" font-family="system-ui,sans-serif" font-size="10" fill="#555" text-anchor="end">200k</text>
+
+    <!-- Area fill under the line -->
+    <path d="M 76,430 L 228,410 L 380,418 L 532,372 L 686,330 L 764,295 L 764,466 L 76,466 Z"
+          fill="url(#area-fill)"/>
+
+    <!-- Line chart -->
+    <polyline
+      points="76,430 228,410 380,418 532,372 686,330 764,295"
+      fill="none"
+      stroke="#0C6C94"
+      stroke-width="2.5"
+      stroke-linejoin="round"
+      stroke-linecap="round"/>
+
+    <!-- Data point dots -->
+    <circle cx="76"  cy="430" r="4" fill="#1e1e1e" stroke="#0C6C94" stroke-width="2"/>
+    <circle cx="228" cy="410" r="4" fill="#1e1e1e" stroke="#0C6C94" stroke-width="2"/>
+    <circle cx="380" cy="418" r="4" fill="#1e1e1e" stroke="#0C6C94" stroke-width="2"/>
+    <circle cx="532" cy="372" r="4" fill="#1e1e1e" stroke="#0C6C94" stroke-width="2"/>
+    <circle cx="686" cy="330" r="4" fill="#1e1e1e" stroke="#0C6C94" stroke-width="2"/>
+    <circle cx="764" cy="295" r="4" fill="#0C6C94" stroke="#0C6C94" stroke-width="2"/>
+
+    <!-- X axis labels -->
+    <text x="76"  y="484" font-family="system-ui,sans-serif" font-size="11" fill="#555" text-anchor="middle">Jan</text>
+    <text x="228" y="484" font-family="system-ui,sans-serif" font-size="11" fill="#555" text-anchor="middle">Fev</text>
+    <text x="380" y="484" font-family="system-ui,sans-serif" font-size="11" fill="#555" text-anchor="middle">Mar</text>
+    <text x="532" y="484" font-family="system-ui,sans-serif" font-size="11" fill="#555" text-anchor="middle">Abr</text>
+    <text x="686" y="484" font-family="system-ui,sans-serif" font-size="11" fill="#555" text-anchor="middle">Mai</text>
+    <text x="764" y="484" font-family="system-ui,sans-serif" font-size="11" fill="#9e9e9e" text-anchor="middle">Jun</text>
+
+  </g>
+
+  <!-- Border -->
+  <rect x="0.5" y="0.5" width="799" height="509" rx="7.5" fill="none" stroke="#2a2a2a" stroke-width="1"/>
+</svg>

@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="480" viewBox="0 0 800 480">
+  <rect width="800" height="480" fill="#1a1a1a"/>
+
+  <!-- Background image area -->
+  <rect width="800" height="480" fill="#0d1a2e"/>
+  <line x1="0" y1="120" x2="800" y2="120" stroke="#1a2a3a" stroke-width="1"/>
+  <line x1="0" y1="240" x2="800" y2="240" stroke="#1a2a3a" stroke-width="1"/>
+  <line x1="0" y1="360" x2="800" y2="360" stroke="#1a2a3a" stroke-width="1"/>
+  <line x1="200" y1="0" x2="200" y2="480" stroke="#1a2a3a" stroke-width="1"/>
+  <line x1="400" y1="0" x2="400" y2="480" stroke="#1a2a3a" stroke-width="1"/>
+  <line x1="600" y1="0" x2="600" y2="480" stroke="#1a2a3a" stroke-width="1"/>
+
+  <!-- Login card (centered) -->
+  <rect x="270" y="60" width="260" height="360" rx="8" fill="#1e1e1e" stroke="#2a2a2a" stroke-width="1"/>
+
+  <!-- Logo area -->
+  <rect x="310" y="84" width="180" height="48" rx="4" fill="#2c2c2c"/>
+  <text x="400" y="115" fill="#5b9bd5" font-family="Segoe UI,Arial,sans-serif" font-size="18" text-anchor="middle" font-weight="700">⬡ MeuApp</text>
+
+  <!-- Welcome text -->
+  <text x="400" y="154" fill="#e0e0e0" font-family="Segoe UI,Arial,sans-serif" font-size="14" text-anchor="middle" font-weight="600">Bem-vindo</text>
+  <text x="400" y="170" fill="#888" font-family="Segoe UI,Arial,sans-serif" font-size="11" text-anchor="middle">Acesse com suas credenciais Protheus</text>
+
+  <!-- Login field -->
+  <text x="290" y="200" fill="#888" font-family="Segoe UI,Arial,sans-serif" font-size="11">Usuário</text>
+  <rect x="290" y="206" width="220" height="32" rx="4" fill="#242424" stroke="#353535" stroke-width="1"/>
+  <text x="306" y="226" fill="#555" font-family="Segoe UI,Arial,sans-serif" font-size="12">usuario@empresa.com</text>
+
+  <!-- Password field -->
+  <text x="290" y="252" fill="#888" font-family="Segoe UI,Arial,sans-serif" font-size="11">Senha</text>
+  <rect x="290" y="258" width="220" height="32" rx="4" fill="#242424" stroke="#2c6fad" stroke-width="1.5"/>
+  <text x="306" y="278" fill="#e0e0e0" font-family="Segoe UI,Arial,sans-serif" font-size="14">••••••••</text>
+  <text x="494" y="278" fill="#888" font-family="Segoe UI,Arial,sans-serif" font-size="14" text-anchor="end">👁</text>
+
+  <!-- Remember me -->
+  <rect x="292" y="302" width="14" height="14" rx="2" fill="#2c6fad"/>
+  <text x="299" y="313" fill="white" font-family="Segoe UI,Arial,sans-serif" font-size="9" text-anchor="middle">✓</text>
+  <text x="312" y="313" fill="#888" font-family="Segoe UI,Arial,sans-serif" font-size="11">Lembrar usuário</text>
+
+  <!-- Login button -->
+  <rect x="290" y="328" width="220" height="36" rx="4" fill="#2c6fad"/>
+  <text x="400" y="350" fill="white" font-family="Segoe UI,Arial,sans-serif" font-size="14" text-anchor="middle" font-weight="600">Entrar</text>
+
+  <!-- Forgot password -->
+  <text x="400" y="382" fill="#5b9bd5" font-family="Segoe UI,Arial,sans-serif" font-size="11" text-anchor="middle" text-decoration="underline">Esqueci minha senha</text>
+</svg>

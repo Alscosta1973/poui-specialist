@@ -1,0 +1,35 @@
+Copyright (c) 2025–2026 Andre Costa
+Todos os direitos reservados.
+
+LICENÇA DE USO RESTRITO — PO-UI Specialist (extensão VS Code)
+================================================================
+
+Esta extensão é um produto pago, licenciado por dispositivo/assinatura
+(trial de 14 dias seguido de licença paga). O acesso aos comandos que
+dependem de motor de IA é controlado por um serviço de licenciamento
+próprio do autor.
+
+PERMITIDO:
+  • Instalar e usar esta extensão em projetos pessoais ou comerciais,
+    respeitando os termos da licença (trial ou paga) ativa no
+    dispositivo.
+  • Utilizar e adaptar o código gerado pela extensão nos seus projetos.
+
+PROIBIDO sem autorização escrita prévia do autor:
+  • Copiar, modificar, descompilar ou redistribuir os arquivos desta
+    extensão (o pacote .vsix ou seu conteúdo).
+  • Publicar esta extensão ou derivados em marketplaces, repositórios
+    públicos ou privados, pagos ou gratuitos.
+  • Contornar, remover ou burlar o mecanismo de licenciamento (trial
+    ou chave paga).
+  • Remover ou alterar avisos de autoria presentes nos arquivos.
+  • Sublicenciar, vender ou transferir direitos sobre esta extensão.
+
+LICENCIAMENTO COMERCIAL:
+  Para adquirir uma licença paga ou solicitar uso além dos termos
+  acima, entre em contato: andre.andrelscosta@gmail.com
+
+ISENÇÃO DE GARANTIAS:
+  ESTE SOFTWARE É FORNECIDO "NO ESTADO EM QUE SE ENCONTRA", SEM
+  GARANTIAS DE QUALQUER TIPO, EXPRESSAS OU IMPLÍCITAS. O AUTOR NÃO SE
+  RESPONSABILIZA POR DANOS DECORRENTES DO USO DESTE SOFTWARE.

@@ -1,9 +1,11 @@
 .vscode/**
 src/**
 scripts/**
+docs/**
 .gitignore
 tsconfig.json
 **/*.map
 node_modules/**
 license-worker/**
 .vscode-test/**
+*.vsix

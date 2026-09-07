@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="480" viewBox="0 0 800 480">
+  <rect width="800" height="480" fill="#1a1a1a"/>
+
+  <!-- Toolbar -->
+  <rect width="800" height="52" fill="#2c6fad"/>
+  <text x="20" y="33" fill="white" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="600">Visualizar Produto</text>
+
+  <!-- Page body -->
+  <rect x="0" y="52" width="800" height="428" fill="#1e1e1e"/>
+
+  <!-- Action bar -->
+  <rect x="0" y="52" width="800" height="48" fill="#252525"/>
+  <line x1="0" y1="100" x2="800" y2="100" stroke="#353535" stroke-width="1"/>
+  <rect x="656" y="62" width="56" height="28" rx="4" fill="transparent" stroke="#353535" stroke-width="1"/>
+  <text x="684" y="81" fill="#aaa" font-family="Segoe UI,Arial,sans-serif" font-size="13" text-anchor="middle">Voltar</text>
+  <rect x="720" y="62" width="64" height="28" rx="4" fill="#2c6fad"/>
+  <text x="752" y="81" fill="white" font-family="Segoe UI,Arial,sans-serif" font-size="13" text-anchor="middle">Editar</text>
+
+  <!-- Section: Dados Gerais -->
+  <text x="24" y="130" fill="#7ab3d4" font-family="Segoe UI,Arial,sans-serif" font-size="13" font-weight="600">Dados Gerais</text>
+  <line x1="24" y1="135" x2="776" y2="135" stroke="#2c6fad" stroke-width="1" opacity="0.4"/>
+
+  <!-- Field grid row 1 -->
+  <text x="24"  y="158" fill="#666" font-family="Segoe UI,Arial,sans-serif" font-size="11">Código</text>
+  <text x="24"  y="176" fill="#e0e0e0" font-family="Segoe UI,Arial,sans-serif" font-size="14" font-weight="500">PRD-0042</text>
+
+  <text x="200" y="158" fill="#666" font-family="Segoe UI,Arial,sans-serif" font-size="11">Descrição</text>
+  <text x="200" y="176" fill="#e0e0e0" font-family="Segoe UI,Arial,sans-serif" font-size="14" font-weight="500">Monitor Ultrawide 34"</text>
+
+  <text x="530" y="158" fill="#666" font-family="Segoe UI,Arial,sans-serif" font-size="11">Status</text>
+  <rect x="530" y="163" width="52" height="20" rx="10" fill="#1b3a1f"/>
+  <circle cx="542" cy="173" r="4" fill="#4caf50"/>
+  <text x="550" y="178" fill="#4caf50" font-family="Segoe UI,Arial,sans-serif" font-size="12">Ativo</text>
+
+  <!-- Field grid row 2 -->
+  <text x="24"  y="206" fill="#666" font-family="Segoe UI,Arial,sans-serif" font-size="11">Grupo</text>
+  <text x="24"  y="224" fill="#e0e0e0" font-family="Segoe UI,Arial,sans-serif" font-size="14" font-weight="500">Informática</text>
+
+  <text x="200" y="206" fill="#666" font-family="Segoe UI,Arial,sans-serif" font-size="11">Unidade</text>
+  <text x="200" y="224" fill="#e0e0e0" font-family="Segoe UI,Arial,sans-serif" font-size="14" font-weight="500">UN</text>
+
+  <text x="330" y="206" fill="#666" font-family="Segoe UI,Arial,sans-serif" font-size="11">Tipo</text>
+  <text x="330" y="224" fill="#e0e0e0" font-family="Segoe UI,Arial,sans-serif" font-size="14" font-weight="500">Mercadoria</text>
+
+  <!-- Divider -->
+  <line x1="24" y1="244" x2="776" y2="244" stroke="#2a2a2a" stroke-width="1"/>
+
+  <!-- Section: Valores -->
+  <text x="24" y="268" fill="#7ab3d4" font-family="Segoe UI,Arial,sans-serif" font-size="13" font-weight="600">Valores</text>
+  <line x1="24" y1="273" x2="776" y2="273" stroke="#2c6fad" stroke-width="1" opacity="0.4"/>
+
+  <text x="24"  y="296" fill="#666" font-family="Segoe UI,Arial,sans-serif" font-size="11">Preço de Custo</text>
+  <text x="24"  y="314" fill="#e0e0e0" font-family="Segoe UI,Arial,sans-serif" font-size="14" font-weight="500">R$ 1.200,00</text>
+
+  <text x="200" y="296" fill="#666" font-family="Segoe UI,Arial,sans-serif" font-size="11">Preço de Venda</text>
+  <text x="200" y="314" fill="#e0e0e0" font-family="Segoe UI,Arial,sans-serif" font-size="14" font-weight="500">R$ 1.899,90</text>
+
+  <text x="380" y="296" fill="#666" font-family="Segoe UI,Arial,sans-serif" font-size="11">Margem</text>
+  <text x="380" y="314" fill="#4caf50" font-family="Segoe UI,Arial,sans-serif" font-size="14" font-weight="600">58,3%</text>
+
+  <!-- Section: Observações -->
+  <text x="24" y="350" fill="#7ab3d4" font-family="Segoe UI,Arial,sans-serif" font-size="13" font-weight="600">Observações</text>
+  <line x1="24" y1="355" x2="776" y2="355" stroke="#2c6fad" stroke-width="1" opacity="0.4"/>
+  <text x="24" y="378" fill="#aaa" font-family="Segoe UI,Arial,sans-serif" font-size="13">Produto importado. Verificar disponibilidade antes de confirmar pedido.</text>
+
+  <!-- footer breadcrumb -->
+  <line x1="0" y1="440" x2="800" y2="440" stroke="#252525" stroke-width="1"/>
+  <text x="24" y="462" fill="#444" font-family="Segoe UI,Arial,sans-serif" font-size="12">Produtos › PRD-0042 — Monitor Ultrawide 34"</text>
+</svg>

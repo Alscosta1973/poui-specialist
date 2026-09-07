@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="480" viewBox="0 0 800 480">
+  <rect width="800" height="480" fill="#1a1a1a"/>
+
+  <!-- Toolbar -->
+  <rect width="800" height="52" fill="#2c6fad"/>
+  <text x="20" y="33" fill="white" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="600">Pedidos e Itens</text>
+
+  <!-- Page body -->
+  <rect x="0" y="52" width="800" height="428" fill="#1e1e1e"/>
+
+  <!-- === MASTER BROWSE (top) === -->
+  <text x="16" y="78" fill="#888" font-family="Segoe UI,Arial,sans-serif" font-size="11" font-weight="600" letter-spacing="1">PEDIDOS</text>
+
+  <!-- Filter bar -->
+  <rect x="16" y="84" width="210" height="28" rx="4" fill="#252525" stroke="#353535" stroke-width="1"/>
+  <text x="28" y="103" fill="#555" font-family="Segoe UI,Arial,sans-serif" font-size="12">Filtrar...</text>
+  <rect x="234" y="84" width="100" height="28" rx="4" fill="transparent" stroke="#353535" stroke-width="1"/>
+  <text x="284" y="103" fill="#666" font-family="Segoe UI,Arial,sans-serif" font-size="12" text-anchor="middle">Remover Filtro</text>
+
+  <!-- Master table header -->
+  <rect x="16" y="118" width="768" height="30" rx="2" fill="#252525"/>
+  <text x="30"  y="138" fill="#999" font-family="Segoe UI,Arial,sans-serif" font-size="11" font-weight="600">Pedido</text>
+  <text x="130" y="138" fill="#999" font-family="Segoe UI,Arial,sans-serif" font-size="11" font-weight="600">Cliente</text>
+  <text x="420" y="138" fill="#999" font-family="Segoe UI,Arial,sans-serif" font-size="11" font-weight="600">Data</text>
+  <text x="560" y="138" fill="#999" font-family="Segoe UI,Arial,sans-serif" font-size="11" font-weight="600">Total</text>
+  <text x="680" y="138" fill="#999" font-family="Segoe UI,Arial,sans-serif" font-size="11" font-weight="600">Status</text>
+
+  <!-- Master Row 1 — SELECTED -->
+  <rect x="16" y="148" width="768" height="34" fill="#1b2d3f"/>
+  <line x1="16" y1="182" x2="784" y2="182" stroke="#2c6fad" stroke-width="1" opacity="0.5"/>
+  <text x="30"  y="170" fill="#7ab3d4" font-family="Segoe UI,Arial,sans-serif" font-size="13" font-weight="600">PED-001</text>
+  <text x="130" y="170" fill="#c0d8e8" font-family="Segoe UI,Arial,sans-serif" font-size="13">Empresa Alpha Ltda</text>
+  <text x="420" y="170" fill="#c0d8e8" font-family="Segoe UI,Arial,sans-serif" font-size="13">15/01/2026</text>
+  <text x="560" y="170" fill="#c0d8e8" font-family="Segoe UI,Arial,sans-serif" font-size="13">R$ 4.250,00</text>
+  <circle cx="688" cy="165" r="4" fill="#4caf50"/>
+  <text x="700" y="170" fill="#4caf50" font-family="Segoe UI,Arial,sans-serif" font-size="12">Ativo</text>
+
+  <!-- Master Row 2 -->
+  <rect x="16" y="182" width="768" height="34" fill="#222"/>
+  <line x1="16" y1="216" x2="784" y2="216" stroke="#2a2a2a" stroke-width="1"/>
+  <text x="30"  y="204" fill="#e0e0e0" font-family="Segoe UI,Arial,sans-serif" font-size="13">PED-002</text>
+  <text x="130" y="204" fill="#e0e0e0" font-family="Segoe UI,Arial,sans-serif" font-size="13">Distribuidora Beta S/A</text>
+  <text x="420" y="204" fill="#e0e0e0" font-family="Segoe UI,Arial,sans-serif" font-size="13">22/01/2026</text>
+  <text x="560" y="204" fill="#e0e0e0" font-family="Segoe UI,Arial,sans-serif" font-size="13">R$ 1.080,00</text>
+  <circle cx="688" cy="199" r="4" fill="#ff9800"/>
+  <text x="700" y="204" fill="#ff9800" font-family="Segoe UI,Arial,sans-serif" font-size="12">Pendente</text>
+
+  <!-- Separator -->
+  <line x1="0" y1="226" x2="800" y2="226" stroke="#353535" stroke-width="2"/>
+
+  <!-- === DETAIL BROWSE (bottom) === -->
+  <text x="16" y="248" fill="#888" font-family="Segoe UI,Arial,sans-serif" font-size="11" font-weight="600" letter-spacing="1">ITENS DO PEDIDO PED-001</text>
+
+  <!-- Detail table header -->
+  <rect x="16" y="254" width="768" height="30" rx="2" fill="#252525"/>
+  <!-- checkbox -->
+  <rect x="26" y="263" width="12" height="12" rx="2" fill="none" stroke="#555" stroke-width="1.5"/>
+  <text x="48"  y="274" fill="#999" font-family="Segoe UI,Arial,sans-serif" font-size="11" font-weight="600">Produto</text>
+  <text x="260" y="274" fill="#999" font-family="Segoe UI,Arial,sans-serif" font-size="11" font-weight="600">Qtd</text>
+  <text x="360" y="274" fill="#999" font-family="Segoe UI,Arial,sans-serif" font-size="11" font-weight="600">Unitário</text>
+  <text x="500" y="274" fill="#999" font-family="Segoe UI,Arial,sans-serif" font-size="11" font-weight="600">Subtotal</text>
+  <text x="640" y="274" fill="#999" font-family="Segoe UI,Arial,sans-serif" font-size="11" font-weight="600">Situação</text>
+
+  <!-- Detail Row 1 — checked -->
+  <rect x="16" y="284" width="768" height="34" fill="#1e1e1e"/>
+  <line x1="16" y1="318" x2="784" y2="318" stroke="#2a2a2a" stroke-width="1"/>
+  <rect x="26" y="293" width="12" height="12" rx="2" fill="#2c6fad"/>
+  <text x="30" y="302" fill="white" font-family="Segoe UI,Arial,sans-serif" font-size="7">✓</text>
+  <text x="48"  y="306" fill="#e0e0e0" font-family="Segoe UI,Arial,sans-serif" font-size="12">Notebook Pro 15"</text>
+  <text x="260" y="306" fill="#e0e0e0" font-family="Segoe UI,Arial,sans-serif" font-size="12">2</text>
+  <text x="360" y="306" fill="#e0e0e0" font-family="Segoe UI,Arial,sans-serif" font-size="12">R$ 1.800,00</text>
+  <text x="500" y="306" fill="#e0e0e0" font-family="Segoe UI,Arial,sans-serif" font-size="12">R$ 3.600,00</text>
+  <circle cx="648" cy="301" r="4" fill="#4caf50"/>
+  <text x="660" y="306" fill="#4caf50" font-family="Segoe UI,Arial,sans-serif" font-size="12">Entregue</text>
+
+  <!-- Detail Row 2 -->
+  <rect x="16" y="318" width="768" height="34" fill="#222"/>
+  <line x1="16" y1="352" x2="784" y2="352" stroke="#2a2a2a" stroke-width="1"/>
+  <rect x="26" y="327" width="12" height="12" rx="2" fill="none" stroke="#555" stroke-width="1.5"/>
+  <text x="48"  y="340" fill="#e0e0e0" font-family="Segoe UI,Arial,sans-serif" font-size="12">Mouse Sem Fio</text>
+  <text x="260" y="340" fill="#e0e0e0" font-family="Segoe UI,Arial,sans-serif" font-size="12">5</text>
+  <text x="360" y="340" fill="#e0e0e0" font-family="Segoe UI,Arial,sans-serif" font-size="12">R$ 130,00</text>
+  <text x="500" y="340" fill="#e0e0e0" font-family="Segoe UI,Arial,sans-serif" font-size="12">R$ 650,00</text>
+  <circle cx="648" cy="335" r="4" fill="#ff9800"/>
+  <text x="660" y="340" fill="#ff9800" font-family="Segoe UI,Arial,sans-serif" font-size="12">Pendente</text>
+
+  <!-- Detail Row 3 -->
+  <rect x="16" y="352" width="768" height="34" fill="#1e1e1e"/>
+  <line x1="16" y1="386" x2="784" y2="386" stroke="#2a2a2a" stroke-width="1"/>
+  <rect x="26" y="361" width="12" height="12" rx="2" fill="none" stroke="#555" stroke-width="1.5"/>
+  <text x="48"  y="374" fill="#e0e0e0" font-family="Segoe UI,Arial,sans-serif" font-size="12">Cabo HDMI 2m</text>
+  <text x="260" y="374" fill="#e0e0e0" font-family="Segoe UI,Arial,sans-serif" font-size="12">3</text>
+  <text x="360" y="374" fill="#e0e0e0" font-family="Segoe UI,Arial,sans-serif" font-size="12">R$ 45,00</text>
+  <text x="500" y="374" fill="#e0e0e0" font-family="Segoe UI,Arial,sans-serif" font-size="12">R$ 135,00</text>
+  <circle cx="648" cy="369" r="4" fill="#4caf50"/>
+  <text x="660" y="374" fill="#4caf50" font-family="Segoe UI,Arial,sans-serif" font-size="12">Entregue</text>
+
+  <!-- Footer hint -->
+  <rect x="0" y="420" width="800" height="60" fill="#1a1a1a"/>
+  <line x1="0" y1="420" x2="800" y2="420" stroke="#353535" stroke-width="1"/>
+  <text x="30" y="448" fill="#555" font-family="Segoe UI,Arial,sans-serif" font-size="12">↑ ↓  navega no master   ·   Tab  alterna foco entre browses   ·   1 item selecionado no detalhe</text>
+</svg>

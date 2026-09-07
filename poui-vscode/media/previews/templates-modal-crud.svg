@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="480" viewBox="0 0 800 480">
+  <!-- Background -->
+  <rect width="800" height="480" fill="#1a1a1a"/>
+
+  <!-- Toolbar -->
+  <rect width="800" height="52" fill="#2c6fad"/>
+  <text x="20" y="33" fill="white" font-family="Segoe UI,Arial,sans-serif" font-size="16" font-weight="600">Clientes</text>
+
+  <!-- Page body (dimmed — modal open) -->
+  <rect x="0" y="52" width="800" height="428" fill="#1e1e1e"/>
+
+  <!-- Table header (behind modal) -->
+  <rect x="16" y="122" width="768" height="36" rx="3" fill="#252525" opacity="0.5"/>
+  <text x="30"  y="145" fill="#666" font-family="Segoe UI,Arial,sans-serif" font-size="12" font-weight="600">Código</text>
+  <text x="130" y="145" fill="#666" font-family="Segoe UI,Arial,sans-serif" font-size="12" font-weight="600">Nome</text>
+  <text x="430" y="145" fill="#666" font-family="Segoe UI,Arial,sans-serif" font-size="12" font-weight="600">Tipo</text>
+  <text x="600" y="145" fill="#666" font-family="Segoe UI,Arial,sans-serif" font-size="12" font-weight="600">Status</text>
+
+  <!-- Row 1 (behind) -->
+  <rect x="16" y="158" width="768" height="36" fill="#1e1e1e" opacity="0.5"/>
+  <text x="30"  y="181" fill="#444" font-family="Segoe UI,Arial,sans-serif" font-size="13">000001</text>
+  <text x="130" y="181" fill="#444" font-family="Segoe UI,Arial,sans-serif" font-size="13">Empresa Alpha Ltda</text>
+  <text x="430" y="181" fill="#444" font-family="Segoe UI,Arial,sans-serif" font-size="13">Jurídica</text>
+  <text x="600" y="181" fill="#4caf50" font-family="Segoe UI,Arial,sans-serif" font-size="13" opacity="0.5">Ativo</text>
+
+  <!-- Row 2 (behind) -->
+  <rect x="16" y="194" width="768" height="36" fill="#222" opacity="0.5"/>
+  <text x="30"  y="217" fill="#444" font-family="Segoe UI,Arial,sans-serif" font-size="13">000002</text>
+  <text x="130" y="217" fill="#444" font-family="Segoe UI,Arial,sans-serif" font-size="13">João da Silva</text>
+  <text x="430" y="217" fill="#444" font-family="Segoe UI,Arial,sans-serif" font-size="13">Física</text>
+  <text x="600" y="217" fill="#ff9800" font-family="Segoe UI,Arial,sans-serif" font-size="13" opacity="0.5">Pendente</text>
+
+  <!-- Backdrop overlay -->
+  <rect width="800" height="480" fill="black" opacity="0.6"/>
+
+  <!-- Modal dialog -->
+  <rect x="180" y="80" width="440" height="330" rx="8" fill="#242424" stroke="#353535" stroke-width="1"/>
+
+  <!-- Modal header -->
+  <rect x="180" y="80" width="440" height="52" rx="8" fill="#2a2a2a"/>
+  <rect x="180" y="112" width="440" height="20" fill="#2a2a2a"/>
+  <text x="202" y="112" fill="#e0e0e0" font-family="Segoe UI,Arial,sans-serif" font-size="15" font-weight="600">Novo Cliente</text>
+  <!-- close X -->
+  <text x="596" y="112" fill="#888" font-family="Segoe UI,Arial,sans-serif" font-size="18" text-anchor="middle">✕</text>
+  <line x1="180" y1="132" x2="620" y2="132" stroke="#353535" stroke-width="1"/>
+
+  <!-- Field: Código -->
+  <text x="202" y="160" fill="#aaa" font-family="Segoe UI,Arial,sans-serif" font-size="12">Código</text>
+  <rect x="202" y="166" width="175" height="32" rx="4" fill="#1e1e1e" stroke="#353535" stroke-width="1"/>
+  <text x="214" y="187" fill="#e0e0e0" font-family="Segoe UI,Arial,sans-serif" font-size="13">000003</text>
+
+  <!-- Field: Tipo -->
+  <text x="400" y="160" fill="#aaa" font-family="Segoe UI,Arial,sans-serif" font-size="12">Tipo</text>
+  <rect x="400" y="166" width="200" height="32" rx="4" fill="#1e1e1e" stroke="#353535" stroke-width="1"/>
+  <text x="412" y="187" fill="#e0e0e0" font-family="Segoe UI,Arial,sans-serif" font-size="13">Jurídica</text>
+  <text x="584" y="187" fill="#666" font-family="Segoe UI,Arial,sans-serif" font-size="14">▾</text>
+
+  <!-- Field: Nome (full width) -->
+  <text x="202" y="220" fill="#aaa" font-family="Segoe UI,Arial,sans-serif" font-size="12">Nome</text>
+  <rect x="202" y="226" width="398" height="32" rx="4" fill="#1e1e1e" stroke="#2c6fad" stroke-width="1.5"/>
+  <text x="214" y="247" fill="#e0e0e0" font-family="Segoe UI,Arial,sans-serif" font-size="13">Comércio Gama ME</text>
+
+  <!-- Field: E-mail -->
+  <text x="202" y="280" fill="#aaa" font-family="Segoe UI,Arial,sans-serif" font-size="12">E-mail</text>
+  <rect x="202" y="286" width="398" height="32" rx="4" fill="#1e1e1e" stroke="#353535" stroke-width="1"/>
+  <text x="214" y="307" fill="#e0e0e0" font-family="Segoe UI,Arial,sans-serif" font-size="13">contato@gama.com.br</text>
+
+  <!-- Field: Status -->
+  <text x="202" y="340" fill="#aaa" font-family="Segoe UI,Arial,sans-serif" font-size="12">Status</text>
+  <rect x="202" y="346" width="175" height="32" rx="4" fill="#1e1e1e" stroke="#353535" stroke-width="1"/>
+  <text x="214" y="367" fill="#e0e0e0" font-family="Segoe UI,Arial,sans-serif" font-size="13">Ativo</text>
+  <text x="362" y="367" fill="#666" font-family="Segoe UI,Arial,sans-serif" font-size="14">▾</text>
+
+  <!-- Modal footer -->
+  <line x1="180" y1="390" x2="620" y2="390" stroke="#353535" stroke-width="1"/>
+  <!-- Cancel button -->
+  <rect x="450" y="397" width="70" height="30" rx="4" fill="transparent" stroke="#353535" stroke-width="1"/>
+  <text x="485" y="417" fill="#aaa" font-family="Segoe UI,Arial,sans-serif" font-size="13" text-anchor="middle">Cancelar</text>
+  <!-- Confirm button -->
+  <rect x="530" y="397" width="70" height="30" rx="4" fill="#2c6fad"/>
+  <text x="565" y="417" fill="white" font-family="Segoe UI,Arial,sans-serif" font-size="13" text-anchor="middle">Salvar</text>
+</svg>
