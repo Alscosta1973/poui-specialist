@@ -2,7 +2,7 @@
   "name": "poui-vscode",
   "displayName": "PO-UI Specialist",
   "description": "Gera componentes Angular PO-UI integrados ao Protheus REST diretamente no VS Code, usando o Claude Code CLI já autenticado — sem API key separada.",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "publisher": "andre-costa",
   "private": true,
   "license": "SEE LICENSE IN LICENSE",
