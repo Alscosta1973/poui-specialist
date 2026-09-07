@@ -8,7 +8,7 @@ export function registerScaffoldCommand(
   outputChannel: vscode.OutputChannel,
 ): vscode.Disposable {
   return vscode.commands.registerCommand('poui.scaffold', async () => {
-    if (!requireLicense(context, outputChannel)) {
+    if (!(await requireLicense(context, outputChannel))) {
       return;
     }
     const projectName = await vscode.window.showInputBox({

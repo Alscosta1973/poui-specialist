@@ -10,7 +10,7 @@ export function registerPackageCommand(
   outputChannel: vscode.OutputChannel,
 ): vscode.Disposable {
   return vscode.commands.registerCommand('poui.package', async () => {
-    if (!requireLicense(context, outputChannel)) {
+    if (!(await requireLicense(context, outputChannel))) {
       return;
     }
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
