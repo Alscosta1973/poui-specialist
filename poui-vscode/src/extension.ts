@@ -17,6 +17,8 @@ import { registerActivateLicenseCommand } from './activateLicense';
 import { registerMenuCommand } from './menu';
 import { registerTemplateGalleryView } from './templateGalleryView';
 import { initializeLicenseStatus } from './requireLicense';
+import { createLicenseStatusBarItem } from './licenseStatusBar';
+import { showFirstRunOrWhatsNew } from './onboarding';
 import { stopTrackedServer } from './devServerRegistry';
 
 export function activate(context: vscode.ExtensionContext): void {
@@ -28,7 +30,9 @@ export function activate(context: vscode.ExtensionContext): void {
   // `delete` numa chave inexistente é no-op, então é fire-and-forget.
   void context.secrets.delete('poui.anthropicApiKey');
 
+  createLicenseStatusBarItem(context);
   void initializeLicenseStatus(context);
+  void showFirstRunOrWhatsNew(context, context.extension.packageJSON.version as string);
 
   context.subscriptions.push(registerGenerateComponentCommand(context, outputChannel));
   context.subscriptions.push(registerGenerateTestCommand(context, outputChannel));

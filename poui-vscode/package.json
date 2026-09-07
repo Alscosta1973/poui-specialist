@@ -2,7 +2,7 @@
   "name": "poui-vscode",
   "displayName": "PO-UI Specialist",
   "description": "Gera componentes Angular PO-UI integrados ao Protheus REST diretamente no VS Code, usando o Claude Code CLI já autenticado — sem API key separada.",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "publisher": "andre-costa",
   "private": true,
   "license": "SEE LICENSE IN LICENSE",
@@ -129,25 +129,32 @@
       {
         "id": "poui.gettingStarted",
         "title": "PO-UI Specialist — Exemplos de Comandos",
-        "description": "[SPIKE] Veja um exemplo rápido de cada comando principal antes de rodar.",
+        "description": "Veja um exemplo rápido de cada comando principal antes de rodar.",
         "steps": [
           {
             "id": "generateComponent",
             "title": "Gerar Componente",
             "description": "Cria uma página PO-UI Angular a partir de um manifesto — campos, ações e módulo Protheus. 22 tipos disponíveis (lista completa no painel PO-UI da activity bar).\nExemplo de um tipo `page-list`:\n[▶ Rodar agora](command:poui.generate.component)",
-            "media": { "image": "media/previews/templates-page-list.svg", "altText": "Exemplo de lista PO-UI gerada pela extensão" }
+            "media": {
+              "image": "media/previews/templates-page-list.svg",
+              "altText": "Exemplo de lista PO-UI gerada pela extensão"
+            }
           },
           {
             "id": "review",
             "title": "Revisar Código",
             "description": "",
-            "media": { "markdown": "media/walkthrough/review.md" }
+            "media": {
+              "markdown": "media/walkthrough/review.md"
+            }
           },
           {
             "id": "lint",
             "title": "Lint de Componentes",
             "description": "",
-            "media": { "markdown": "media/walkthrough/lint.md" }
+            "media": {
+              "markdown": "media/walkthrough/lint.md"
+            }
           }
         ]
       }
@@ -173,12 +180,13 @@
   },
   "scripts": {
     "sync-prompts": "node scripts/sync-prompts.mjs",
-    "compile": "npm run sync-prompts && tsc -p ./",
+    "compile": "npm run sync-prompts && tsc -p ./ && node esbuild.js",
+    "compile:production": "npm run sync-prompts && tsc -p ./ && node esbuild.js --production",
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile",
     "test": "node ./out/test/runTest.js",
     "test:unit": "mocha --require ts-node/register --timeout 15000 \"src/test/unit/**/*.test.ts\"",
-    "package": "npm run compile && vsce package"
+    "package": "npm run compile:production && vsce package"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",
@@ -186,6 +194,7 @@
     "@types/vscode": "^1.90.0",
     "@vscode/test-electron": "^3.1.0",
     "@vscode/vsce": "^3.9.2",
+    "esbuild": "^0.28.2",
     "glob": "^11.0.0",
     "mocha": "^11.8.0",
     "ts-node": "^10.9.2",

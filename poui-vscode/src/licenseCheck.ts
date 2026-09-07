@@ -56,6 +56,37 @@ export function formatPaidBadge(status: LicenseStatus | undefined): string {
   return '🔒 requer licença';
 }
 
+export type StatusBarSeverity = 'normal' | 'warning' | 'error';
+
+export interface StatusBarPresentation {
+  text: string;
+  tooltip: string;
+  severity: StatusBarSeverity;
+}
+
+/** Igual ao badge acima, mas pra um item persistente na status bar — fica
+ * sempre visível em vez de só aparecer quando um comando pago é executado.
+ * Escondido de propósito pra licença paga (undefined): usuário que já pagou
+ * não precisa de lembrete constante. */
+export function formatStatusBarItem(status: LicenseStatus | undefined): StatusBarPresentation | undefined {
+  if (status?.tier === 'paid') {
+    return undefined;
+  }
+  if (status?.tier === 'trial' && typeof status.daysLeft === 'number') {
+    const severity: StatusBarSeverity = status.daysLeft <= 3 ? 'warning' : 'normal';
+    return {
+      text: `$(clock) PO-UI: trial ${status.daysLeft}d`,
+      tooltip: `PO-UI Specialist — trial: ${status.daysLeft} dia(s) restante(s). Clique para ativar ou comprar uma licença.`,
+      severity,
+    };
+  }
+  return {
+    text: '$(lock) PO-UI: licença',
+    tooltip: 'PO-UI Specialist: licença necessária. Clique para ativar ou comprar.',
+    severity: 'error',
+  };
+}
+
 async function postJson(fetchFn: typeof fetch, url: string, body: unknown): Promise<unknown> {
   const response = await fetchFn(url, {
     method: 'POST',

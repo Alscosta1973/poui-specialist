@@ -7,6 +7,7 @@ import {
   isCacheFresh,
   shouldShowExpiryWarning,
   formatPaidBadge,
+  formatStatusBarItem,
   fetchTrialStart,
   fetchLicenseStatus,
   activateLicenseKey,
@@ -102,6 +103,32 @@ describe('formatPaidBadge', () => {
     assert.strictEqual(formatPaidBadge({ tier: 'expired' }), '🔒 requer licença');
     assert.strictEqual(formatPaidBadge({ tier: 'unknown' }), '🔒 requer licença');
     assert.strictEqual(formatPaidBadge(undefined), '🔒 requer licença');
+  });
+});
+
+describe('formatStatusBarItem', () => {
+  it('hides the item entirely for a paid license', () => {
+    assert.strictEqual(formatStatusBarItem({ tier: 'paid' }), undefined);
+  });
+
+  it('is a normal-severity trial reminder when there is time left', () => {
+    const presentation = formatStatusBarItem({ tier: 'trial', daysLeft: 10 });
+    assert.strictEqual(presentation?.severity, 'normal');
+    assert.match(presentation!.text, /10d/);
+  });
+
+  it('escalates to warning severity at 3 days left or fewer', () => {
+    assert.strictEqual(formatStatusBarItem({ tier: 'trial', daysLeft: 3 })?.severity, 'warning');
+    assert.strictEqual(formatStatusBarItem({ tier: 'trial', daysLeft: 1 })?.severity, 'warning');
+    assert.strictEqual(formatStatusBarItem({ tier: 'trial', daysLeft: 4 })?.severity, 'normal');
+  });
+
+  it('is an error-severity lock prompt for expired, unknown or missing status', () => {
+    for (const status of [{ tier: 'expired' as const }, { tier: 'unknown' as const }, undefined]) {
+      const presentation = formatStatusBarItem(status);
+      assert.strictEqual(presentation?.severity, 'error');
+      assert.match(presentation!.text, /licença/);
+    }
   });
 });
 

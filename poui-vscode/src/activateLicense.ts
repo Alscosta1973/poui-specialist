@@ -1,12 +1,28 @@
 import * as vscode from 'vscode';
 import { computeMachineHash, activateLicenseKey, WORKER_BASE_URL } from './licenseCheck';
 import { persistConfirmedStatus } from './requireLicense';
+import { buildPurchaseMailto } from './purchaseLink';
 
 export function registerActivateLicenseCommand(
   context: vscode.ExtensionContext,
   outputChannel: vscode.OutputChannel,
 ): vscode.Disposable {
   return vscode.commands.registerCommand('poui.activateLicense', async () => {
+    const choice = await vscode.window.showQuickPick(
+      [
+        { label: 'Já tenho uma chave de licença', action: 'activate' as const },
+        { label: 'Quero comprar uma licença', detail: 'Abre um e-mail pra falar direto com o autor', action: 'purchase' as const },
+      ],
+      { placeHolder: 'O que você quer fazer?' },
+    );
+    if (!choice) {
+      return;
+    }
+    if (choice.action === 'purchase') {
+      void vscode.env.openExternal(vscode.Uri.parse(buildPurchaseMailto()));
+      return;
+    }
+
     const licenseKey = await vscode.window.showInputBox({
       prompt: 'Chave de licença PO-UI (ex: POUI-XXXX-XXXX-XXXX)',
       validateInput: (v) => (v.trim() ? undefined : 'Informe a chave de licença.'),

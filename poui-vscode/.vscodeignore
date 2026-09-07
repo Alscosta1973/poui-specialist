@@ -9,3 +9,10 @@ node_modules/**
 license-worker/**
 .vscode-test/**
 *.vsix
+esbuild.js
+# extension.ts é empacotado num único out/extension.js pelo esbuild
+# (ver esbuild.js) — os demais .js compilados pelo tsc ficam
+# redundantes no pacote final, só out/test/** ainda é necessário
+# (fora do .vsix, só pra rodar `npm run test` localmente).
+out/**
+!out/extension.js
