@@ -5,4 +5,5 @@ scripts/**
 tsconfig.json
 **/*.map
 node_modules/**
+license-worker/**
 .vscode-test/**
