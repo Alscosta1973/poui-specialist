@@ -19,8 +19,13 @@ function buildCommand(
     options.tools ?? ALLOWED_TOOLS,
     '--permission-mode',
     'acceptEdits',
-    '--setting-sources',
-    '',
+    // Um token único `--flag=valor`, não `--flag` + `''` como dois argumentos
+    // separados: no Windows, PowerShell descarta argumentos de string vazia
+    // ao invocar um executável nativo via `&` (achado real, ver windowsShell.ts),
+    // então `--setting-sources ''` virava `--setting-sources` colado direto no
+    // próximo argumento (ex: `--model`), que a CLI então tentava interpretar
+    // como fonte de configuração inválida.
+    '--setting-sources=',
   ];
   if (options.addDir) {
     args.push('--add-dir', options.addDir);

@@ -129,8 +129,7 @@ describe('claudeAdapter.buildCommand', () => {
       'Read,Write,Edit,Glob,Grep',
       '--permission-mode',
       'acceptEdits',
-      '--setting-sources',
-      '',
+      '--setting-sources=',
     ]);
   });
 
@@ -161,8 +160,7 @@ describe('claudeAdapter.buildCommand', () => {
       'Read,Glob,Grep',
       '--permission-mode',
       'acceptEdits',
-      '--setting-sources',
-      '',
+      '--setting-sources=',
       '--add-dir',
       '/tmp/advpl',
       '--model',
