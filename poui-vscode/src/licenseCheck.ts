@@ -39,6 +39,10 @@ export function isCacheFresh(fetchedAtIso: string, nowMs: number, graceMs: numbe
   return nowMs - new Date(fetchedAtIso).getTime() < graceMs;
 }
 
+export function shouldShowExpiryWarning(status: LicenseStatus | undefined, thresholdDays: number): boolean {
+  return status?.tier === 'trial' && typeof status.daysLeft === 'number' && status.daysLeft <= thresholdDays;
+}
+
 async function postJson(fetchFn: typeof fetch, url: string, body: unknown): Promise<unknown> {
   const response = await fetchFn(url, {
     method: 'POST',

@@ -5,6 +5,7 @@ import {
   isPlaceholderMachineId,
   isAccessAllowed,
   isCacheFresh,
+  shouldShowExpiryWarning,
   fetchTrialStart,
   fetchLicenseStatus,
   activateLicenseKey,
@@ -61,6 +62,25 @@ describe('isCacheFresh', () => {
   it('is stale past the grace window', () => {
     const now = Date.parse('2026-09-10T12:00:01.000Z');
     assert.strictEqual(isCacheFresh('2026-09-06T12:00:00.000Z', now, 3 * 24 * 60 * 60 * 1000), false);
+  });
+});
+
+describe('shouldShowExpiryWarning', () => {
+  it('warns when trial days left is at or below the threshold', () => {
+    assert.strictEqual(shouldShowExpiryWarning({ tier: 'trial', daysLeft: 3 }, 3), true);
+    assert.strictEqual(shouldShowExpiryWarning({ tier: 'trial', daysLeft: 1 }, 3), true);
+  });
+
+  it('does not warn when trial days left is above the threshold', () => {
+    assert.strictEqual(shouldShowExpiryWarning({ tier: 'trial', daysLeft: 4 }, 3), false);
+  });
+
+  it('does not warn for a paid license, regardless of daysLeft', () => {
+    assert.strictEqual(shouldShowExpiryWarning({ tier: 'paid' }, 3), false);
+  });
+
+  it('does not warn when there is no status yet', () => {
+    assert.strictEqual(shouldShowExpiryWarning(undefined, 3), false);
   });
 });
 

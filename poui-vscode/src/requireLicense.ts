@@ -5,6 +5,7 @@ import {
   isPlaceholderMachineId,
   isAccessAllowed,
   isCacheFresh,
+  shouldShowExpiryWarning,
   fetchTrialStart,
   fetchLicenseStatus,
   LicenseStatus,
@@ -12,6 +13,9 @@ import {
 
 const GRACE_PERIOD_MS = 3 * 24 * 60 * 60 * 1000;
 const CACHE_KEY = 'poui.licenseStatusCache';
+const EXPIRY_WARNING_THRESHOLD_DAYS = 3;
+
+let hasShownExpiryWarning = false;
 
 interface CachedStatus {
   status: LicenseStatus;
@@ -63,6 +67,20 @@ export async function requireLicense(context: vscode.ExtensionContext, outputCha
     await initPromise;
   }
   if (isAccessAllowed(sessionStatus)) {
+    if (sessionStatus?.tier === 'trial' && typeof sessionStatus.daysLeft === 'number') {
+      vscode.window.setStatusBarMessage(`PO-UI: trial — ${sessionStatus.daysLeft} dia(s) restante(s)`, 5000);
+      if (!hasShownExpiryWarning && shouldShowExpiryWarning(sessionStatus, EXPIRY_WARNING_THRESHOLD_DAYS)) {
+        hasShownExpiryWarning = true;
+        void vscode.window.showInformationMessage(
+          `PO-UI: seu trial termina em ${sessionStatus.daysLeft} dia(s). Ative uma licença paga para continuar usando sem interrupção.`,
+          'Ativar Licença',
+        ).then((choice) => {
+          if (choice === 'Ativar Licença') {
+            void vscode.commands.executeCommand('poui.activateLicense');
+          }
+        });
+      }
+    }
     return true;
   }
   outputChannel.appendLine('PO-UI: licença expirada ou não confirmada — ative uma licença para continuar.');
