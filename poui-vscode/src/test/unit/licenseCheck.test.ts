@@ -6,9 +6,11 @@ import {
   isAccessAllowed,
   isCacheFresh,
   shouldShowExpiryWarning,
+  shouldShowRenewalWarning,
   formatPaidBadge,
   formatStatusBarItem,
   effortToCredits,
+  PAID_RENEWAL_WARNING_THRESHOLD_DAYS,
   fetchConsumeCredits,
   fetchTrialStart,
   fetchLicenseStatus,
@@ -88,6 +90,26 @@ describe('shouldShowExpiryWarning', () => {
   });
 });
 
+describe('shouldShowRenewalWarning', () => {
+  it('warns when daysUntilExpiry is at or below the threshold', () => {
+    assert.strictEqual(shouldShowRenewalWarning({ tier: 'paid', daysUntilExpiry: 7 }, 7), true);
+    assert.strictEqual(shouldShowRenewalWarning({ tier: 'paid', daysUntilExpiry: 1 }, 7), true);
+  });
+
+  it('does not warn when daysUntilExpiry is above the threshold', () => {
+    assert.strictEqual(shouldShowRenewalWarning({ tier: 'paid', daysUntilExpiry: 8 }, 7), false);
+  });
+
+  it('does not warn for a trial, regardless of any field', () => {
+    assert.strictEqual(shouldShowRenewalWarning({ tier: 'trial', usedPct: 99 }, 7), false);
+  });
+
+  it('does not warn when there is no status or no daysUntilExpiry yet', () => {
+    assert.strictEqual(shouldShowRenewalWarning(undefined, 7), false);
+    assert.strictEqual(shouldShowRenewalWarning({ tier: 'paid' }, 7), false);
+  });
+});
+
 describe('formatPaidBadge', () => {
   it('shows no badge for a paid license', () => {
     assert.strictEqual(formatPaidBadge({ tier: 'paid' }), '');
@@ -131,6 +153,16 @@ describe('formatStatusBarItem', () => {
       assert.strictEqual(presentation?.severity, 'error');
       assert.match(presentation!.text, /licença/);
     }
+  });
+
+  it('shows a warning-severity renewal nudge for a paid license nearing expiry', () => {
+    const presentation = formatStatusBarItem({ tier: 'paid', daysUntilExpiry: 5 });
+    assert.strictEqual(presentation?.severity, 'warning');
+    assert.match(presentation!.text, /5d/);
+  });
+
+  it('stays hidden for a paid license that is not near expiry', () => {
+    assert.strictEqual(formatStatusBarItem({ tier: 'paid', daysUntilExpiry: 30 }), undefined);
   });
 });
 

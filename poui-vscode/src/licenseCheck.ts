@@ -7,6 +7,7 @@ export interface LicenseStatus {
   daysLeft?: number;
   usedPct?: number;
   licenseKey?: string;
+  daysUntilExpiry?: number;
 }
 
 export interface ActivationResult {
@@ -44,6 +45,10 @@ export function shouldShowExpiryWarning(status: LicenseStatus | undefined, thres
   return status?.tier === 'trial' && typeof status.usedPct === 'number' && status.usedPct >= thresholdPct;
 }
 
+export function shouldShowRenewalWarning(status: LicenseStatus | undefined, thresholdDays: number): boolean {
+  return status?.tier === 'paid' && typeof status.daysUntilExpiry === 'number' && status.daysUntilExpiry <= thresholdDays;
+}
+
 /** Rótulo curto pra sinalizar, em qualquer UI (QuickPick, webview), que um
  * comando é pago — mesmo texto usado no badge do `poui.menu` e no painel de
  * detalhe da galeria de templates, pra não ter duas variações do aviso. */
@@ -65,12 +70,21 @@ export interface StatusBarPresentation {
   severity: StatusBarSeverity;
 }
 
+export const PAID_RENEWAL_WARNING_THRESHOLD_DAYS = 7;
+
 /** Igual ao badge acima, mas pra um item persistente na status bar — fica
  * sempre visível em vez de só aparecer quando um comando pago é executado.
  * Escondido de propósito pra licença paga (undefined): usuário que já pagou
  * não precisa de lembrete constante. */
 export function formatStatusBarItem(status: LicenseStatus | undefined): StatusBarPresentation | undefined {
   if (status?.tier === 'paid') {
+    if (typeof status.daysUntilExpiry === 'number' && status.daysUntilExpiry <= PAID_RENEWAL_WARNING_THRESHOLD_DAYS) {
+      return {
+        text: `$(clock) PO-UI: licença vence em ${status.daysUntilExpiry}d`,
+        tooltip: `PO-UI Specialist — sua licença paga vence em ${status.daysUntilExpiry} dia(s). Clique para renovar.`,
+        severity: 'warning',
+      };
+    }
     return undefined;
   }
   if (status?.tier === 'trial' && typeof status.usedPct === 'number') {
