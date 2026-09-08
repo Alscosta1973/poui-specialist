@@ -6,7 +6,8 @@
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
     "typecheck": "tsc --noEmit",
-    "test": "mocha"
+    "test": "mocha",
+    "license": "node scripts/issue-license.mjs"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20250101.0",
