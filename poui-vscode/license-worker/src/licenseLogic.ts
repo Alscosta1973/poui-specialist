@@ -1,6 +1,9 @@
 export const TRIAL_DAYS = 14;
 export const TRIAL_CREDIT_BUDGET = 40;
 
+export const PLAN_DAYS = { mensal: 30, trimestral: 90, anual: 365 } as const;
+export type PlanId = keyof typeof PLAN_DAYS;
+
 export interface MachineRecord {
   firstSeen: string;
   lastSeen: string;
@@ -14,6 +17,8 @@ export interface LicenseRecord {
   status: 'active' | 'revoked';
   createdAt: string;
   boundMachineHash: string | null;
+  expiresAt: string;
+  notifiedExpiredAt: string | null;
 }
 
 export type LicenseTier = 'trial' | 'paid' | 'expired' | 'unknown';
@@ -23,6 +28,7 @@ export interface StatusResult {
   daysLeft?: number;
   usedPct?: number;
   licenseKey?: string;
+  daysUntilExpiry?: number;
 }
 
 export function computeDaysLeft(firstUsedAtIso: string, nowIso: string, trialDays: number = TRIAL_DAYS): number {
@@ -63,6 +69,18 @@ export function computeCreditsUsedPct(creditsUsed: number, budget: number = TRIA
   return Math.min(100, Math.max(0, Math.round(pct)));
 }
 
+/** Whole days from `nowIso` to a future `targetIso`, never negative.
+ * General-purpose — unlike `computeDaysLeft`, this has no built-in cap
+ * (the trial's cap is always 14 days; a paid license's `expiresAt` can be
+ * up to 365 days out for an annual plan, so reusing computeDaysLeft here
+ * would silently truncate at 14). */
+export function computeDaysUntil(targetIso: string, nowIso: string): number {
+  const target = new Date(targetIso).getTime();
+  const now = new Date(nowIso).getTime();
+  const elapsedDays = Math.floor((target - now) / (1000 * 60 * 60 * 24));
+  return Math.max(0, elapsedDays);
+}
+
 /** Server-side defense in depth — never trust the credit weight a client
  * sends verbatim. Valid weights are 1-3 (see poui.effort mapping in the
  * extension's licenseCheck.ts); anything else is clamped into that range.
@@ -78,6 +96,29 @@ export function clampCredits(credits: number): number {
   return Math.min(3, Math.max(1, rounded));
 }
 
+/** true only the first time an active license is seen past its
+ * expiresAt — never true again for the same expiry, even called
+ * repeatedly (same idempotent-flag spirit as `firstUsedAt` for the
+ * trial: set once, never rewritten until the next renewal zeroes it). */
+export function shouldNotifyExpiry(license: LicenseRecord | undefined, nowIso: string): boolean {
+  return (
+    license !== undefined &&
+    license.status === 'active' &&
+    nowIso >= license.expiresAt &&
+    license.notifiedExpiredAt === null
+  );
+}
+
+/** New expiresAt after a renewal. If the current expiresAt is still in
+ * the future, the plan's days are added on top of it (no paid day is
+ * lost by renewing early). If it already lapsed, there is no "time
+ * left" to add to — the new period counts from now instead. */
+export function computeRenewedExpiresAt(currentExpiresAt: string, planDays: number, nowIso: string): string {
+  const base = currentExpiresAt > nowIso ? currentExpiresAt : nowIso;
+  const baseMs = new Date(base).getTime();
+  return new Date(baseMs + planDays * 24 * 60 * 60 * 1000).toISOString();
+}
+
 export function resolveStatus(
   machine: MachineRecord | undefined,
   license: LicenseRecord | undefined,
@@ -87,8 +128,18 @@ export function resolveStatus(
   if (!machine) {
     return { tier: 'unknown' };
   }
-  if (machine.licenseKey && license && license.status === 'active' && license.boundMachineHash === machineHash) {
-    return { tier: 'paid', licenseKey: machine.licenseKey };
+  if (
+    machine.licenseKey &&
+    license &&
+    license.status === 'active' &&
+    license.boundMachineHash === machineHash &&
+    nowIso < license.expiresAt
+  ) {
+    return {
+      tier: 'paid',
+      licenseKey: machine.licenseKey,
+      daysUntilExpiry: computeDaysUntil(license.expiresAt, nowIso),
+    };
   }
   const daysUsedPct = computeDaysUsedPct(machine.firstUsedAt, nowIso);
   const creditsUsedPct = computeCreditsUsedPct(machine.creditsUsed);

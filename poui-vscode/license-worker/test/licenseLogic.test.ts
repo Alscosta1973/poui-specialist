@@ -3,11 +3,15 @@ import {
   computeDaysLeft,
   computeDaysUsedPct,
   computeCreditsUsedPct,
+  computeDaysUntil,
   clampCredits,
+  shouldNotifyExpiry,
+  computeRenewedExpiresAt,
   resolveStatus,
   shouldActivate,
   TRIAL_DAYS,
   TRIAL_CREDIT_BUDGET,
+  PLAN_DAYS,
   MachineRecord,
   LicenseRecord,
 } from '../src/licenseLogic';
@@ -84,6 +88,25 @@ describe('computeCreditsUsedPct', () => {
   });
 });
 
+describe('computeDaysUntil', () => {
+  it('returns the exact number of whole days to a future date', () => {
+    assert.strictEqual(computeDaysUntil('2026-10-06T00:00:00.000Z', '2026-09-06T00:00:00.000Z'), 30);
+  });
+
+  it('returns 0 for a date that is now', () => {
+    const now = '2026-09-06T00:00:00.000Z';
+    assert.strictEqual(computeDaysUntil(now, now), 0);
+  });
+
+  it('never returns a negative number for a date in the past', () => {
+    assert.strictEqual(computeDaysUntil('2026-01-01T00:00:00.000Z', '2026-09-06T00:00:00.000Z'), 0);
+  });
+
+  it('is not capped at 14 — unlike computeDaysLeft, this is general-purpose (used for up to 365-day annual plans)', () => {
+    assert.strictEqual(computeDaysUntil('2027-09-06T00:00:00.000Z', '2026-09-06T00:00:00.000Z'), 365);
+  });
+});
+
 describe('clampCredits', () => {
   it('leaves valid weights (1-3) unchanged', () => {
     assert.strictEqual(clampCredits(1), 1);
@@ -114,6 +137,82 @@ describe('clampCredits', () => {
   it('clamps Infinity/-Infinity same as any other out-of-range value', () => {
     assert.strictEqual(clampCredits(Infinity), 3);
     assert.strictEqual(clampCredits(-Infinity), 1);
+  });
+});
+
+describe('shouldNotifyExpiry', () => {
+  const NOW = '2026-09-06T00:00:00.000Z';
+
+  it('is false when there is no license', () => {
+    assert.strictEqual(shouldNotifyExpiry(undefined, NOW), false);
+  });
+
+  it('is false when the license has not expired yet', () => {
+    const license: LicenseRecord = {
+      email: 'dev@example.com',
+      status: 'active',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      boundMachineHash: 'hash',
+      expiresAt: '2026-12-01T00:00:00.000Z',
+      notifiedExpiredAt: null,
+    };
+    assert.strictEqual(shouldNotifyExpiry(license, NOW), false);
+  });
+
+  it('is true the first time an active license is seen expired', () => {
+    const license: LicenseRecord = {
+      email: 'dev@example.com',
+      status: 'active',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      boundMachineHash: 'hash',
+      expiresAt: '2026-08-01T00:00:00.000Z',
+      notifiedExpiredAt: null,
+    };
+    assert.strictEqual(shouldNotifyExpiry(license, NOW), true);
+  });
+
+  it('is false once already notified for this expiry', () => {
+    const license: LicenseRecord = {
+      email: 'dev@example.com',
+      status: 'active',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      boundMachineHash: 'hash',
+      expiresAt: '2026-08-01T00:00:00.000Z',
+      notifiedExpiredAt: '2026-08-02T00:00:00.000Z',
+    };
+    assert.strictEqual(shouldNotifyExpiry(license, NOW), false);
+  });
+
+  it('is false for a revoked license, even if past its expiresAt', () => {
+    const license: LicenseRecord = {
+      email: 'dev@example.com',
+      status: 'revoked',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      boundMachineHash: 'hash',
+      expiresAt: '2026-08-01T00:00:00.000Z',
+      notifiedExpiredAt: null,
+    };
+    assert.strictEqual(shouldNotifyExpiry(license, NOW), false);
+  });
+});
+
+describe('computeRenewedExpiresAt', () => {
+  it('adds plan days on top of the current expiresAt when renewing before it lapses', () => {
+    // 5 days still left (expires 2026-09-11), renew mensal (30d) -> 35 days from NOW
+    const result = computeRenewedExpiresAt('2026-09-11T00:00:00.000Z', PLAN_DAYS.mensal, '2026-09-06T00:00:00.000Z');
+    assert.strictEqual(result, '2026-10-11T00:00:00.000Z');
+  });
+
+  it('bases the new expiresAt on now (not the stale past date) when renewing after it already lapsed', () => {
+    // expired 2026-08-01, renew mensal (30d) from NOW (2026-09-06) -> 2026-10-06, not 2026-08-31
+    const result = computeRenewedExpiresAt('2026-08-01T00:00:00.000Z', PLAN_DAYS.mensal, '2026-09-06T00:00:00.000Z');
+    assert.strictEqual(result, '2026-10-06T00:00:00.000Z');
+  });
+
+  it('supports all three plan lengths', () => {
+    const now = '2026-01-01T00:00:00.000Z';
+    assert.strictEqual(computeRenewedExpiresAt(now, PLAN_DAYS.trimestral, now), '2026-04-01T00:00:00.000Z');
+    assert.strictEqual(computeRenewedExpiresAt(now, PLAN_DAYS.anual, now), '2027-01-01T00:00:00.000Z');
   });
 });
 
@@ -163,7 +262,7 @@ describe('resolveStatus', () => {
       firstSeen: NOW,
       lastSeen: NOW,
       licenseKey: null,
-      firstUsedAt: NOW, // trial just started today
+      firstUsedAt: NOW,
       creditsUsed: TRIAL_CREDIT_BUDGET,
     };
     assert.deepStrictEqual(resolveStatus(machine, undefined, HASH, NOW), { tier: 'expired' });
@@ -174,13 +273,13 @@ describe('resolveStatus', () => {
       firstSeen: '2026-09-01T00:00:00.000Z',
       lastSeen: NOW,
       licenseKey: null,
-      firstUsedAt: '2026-09-01T00:00:00.000Z', // 36% of days used
-      creditsUsed: 28, // 70% of credits used
+      firstUsedAt: '2026-09-01T00:00:00.000Z',
+      creditsUsed: 28,
     };
     assert.deepStrictEqual(resolveStatus(machine, undefined, HASH, NOW), { tier: 'trial', daysLeft: TRIAL_DAYS - 5, usedPct: 70 });
   });
 
-  it('returns paid when the license is active and bound to this exact machine (credits irrelevant)', () => {
+  it('returns paid with daysUntilExpiry when the license is active, bound to this machine, and not yet expired', () => {
     const machine: MachineRecord = {
       firstSeen: '2026-01-01T00:00:00.000Z',
       lastSeen: NOW,
@@ -188,8 +287,34 @@ describe('resolveStatus', () => {
       firstUsedAt: '2026-01-01T00:00:00.000Z',
       creditsUsed: TRIAL_CREDIT_BUDGET, // even "exhausted" credits don't matter once paid
     };
-    const license: LicenseRecord = { email: 'dev@example.com', status: 'active', createdAt: NOW, boundMachineHash: HASH };
-    assert.deepStrictEqual(resolveStatus(machine, license, HASH, NOW), { tier: 'paid', licenseKey: 'POUI-KEY' });
+    const license: LicenseRecord = {
+      email: 'dev@example.com',
+      status: 'active',
+      createdAt: NOW,
+      boundMachineHash: HASH,
+      expiresAt: '2026-10-06T00:00:00.000Z', // 30 days out
+      notifiedExpiredAt: null,
+    };
+    assert.deepStrictEqual(resolveStatus(machine, license, HASH, NOW), { tier: 'paid', licenseKey: 'POUI-KEY', daysUntilExpiry: 30 });
+  });
+
+  it('falls back to trial/expired math when a paid license has expired (blocking)', () => {
+    const machine: MachineRecord = {
+      firstSeen: '2026-01-01T00:00:00.000Z',
+      lastSeen: NOW,
+      licenseKey: 'POUI-KEY',
+      firstUsedAt: '2026-09-01T00:00:00.000Z',
+      creditsUsed: 0,
+    };
+    const license: LicenseRecord = {
+      email: 'dev@example.com',
+      status: 'active',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      boundMachineHash: HASH,
+      expiresAt: '2026-09-05T00:00:00.000Z', // expired yesterday
+      notifiedExpiredAt: null,
+    };
+    assert.deepStrictEqual(resolveStatus(machine, license, HASH, NOW), { tier: 'trial', daysLeft: TRIAL_DAYS - 5, usedPct: 36 });
   });
 
   it('falls back to trial/expired math when the license is bound to a different machine (device was replaced)', () => {
@@ -200,7 +325,14 @@ describe('resolveStatus', () => {
       firstUsedAt: '2026-09-01T00:00:00.000Z',
       creditsUsed: 0,
     };
-    const license: LicenseRecord = { email: 'dev@example.com', status: 'active', createdAt: NOW, boundMachineHash: 'some-other-hash' };
+    const license: LicenseRecord = {
+      email: 'dev@example.com',
+      status: 'active',
+      createdAt: NOW,
+      boundMachineHash: 'some-other-hash',
+      expiresAt: '2026-12-01T00:00:00.000Z',
+      notifiedExpiredAt: null,
+    };
     assert.deepStrictEqual(resolveStatus(machine, license, HASH, NOW), { tier: 'trial', daysLeft: TRIAL_DAYS - 5, usedPct: 36 });
   });
 
@@ -212,17 +344,18 @@ describe('resolveStatus', () => {
       firstUsedAt: '2026-09-01T00:00:00.000Z',
       creditsUsed: 0,
     };
-    const license: LicenseRecord = { email: 'dev@example.com', status: 'revoked', createdAt: NOW, boundMachineHash: HASH };
+    const license: LicenseRecord = {
+      email: 'dev@example.com',
+      status: 'revoked',
+      createdAt: NOW,
+      boundMachineHash: HASH,
+      expiresAt: '2026-12-01T00:00:00.000Z',
+      notifiedExpiredAt: null,
+    };
     assert.deepStrictEqual(resolveStatus(machine, license, HASH, NOW), { tier: 'trial', daysLeft: TRIAL_DAYS - 5, usedPct: 36 });
   });
 
   it('resolves a legacy (pre-this-feature) MachineRecord — missing firstUsedAt/creditsUsed keys entirely, not just null — to a fresh full trial instead of an un-expirable one', () => {
-    // A TypeScript object literal can't express a genuinely absent key (it would
-    // just be a type error or silently present as undefined via `as`, which
-    // doesn't prove the JSON-parse codepath). Building it from a raw JSON string,
-    // the exact shape the OLD (pre-branch) `/trial/start` handler used to write,
-    // is what actually exercises `machine.firstUsedAt === undefined` /
-    // `machine.creditsUsed === undefined` at runtime.
     const legacyMachine = JSON.parse(
       '{"firstSeen":"2026-01-01T00:00:00.000Z","lastSeen":"2026-01-01T00:00:00.000Z","licenseKey":null}',
     ) as MachineRecord;
@@ -230,12 +363,6 @@ describe('resolveStatus', () => {
     assert.strictEqual(legacyMachine.creditsUsed, undefined);
 
     const result = resolveStatus(legacyMachine, undefined, HASH, NOW);
-
-    // Before the fix: computeDaysUsedPct(undefined, ...) fell through to
-    // computeDaysLeft(undefined, ...) -> NaN -> usedPct: NaN -> `NaN >= 100`
-    // is always false, so tier could NEVER become 'expired' for this record,
-    // on either the day or credit axis. This assertion is exactly what
-    // catches a regression back to that state.
     assert.deepStrictEqual(result, { tier: 'trial', daysLeft: TRIAL_DAYS, usedPct: 0 });
   });
 });
@@ -246,12 +373,26 @@ describe('shouldActivate', () => {
   });
 
   it('rejects a revoked license', () => {
-    const license: LicenseRecord = { email: 'dev@example.com', status: 'revoked', createdAt: '2026-01-01T00:00:00.000Z', boundMachineHash: null };
+    const license: LicenseRecord = {
+      email: 'dev@example.com',
+      status: 'revoked',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      boundMachineHash: null,
+      expiresAt: '2026-12-01T00:00:00.000Z',
+      notifiedExpiredAt: null,
+    };
     assert.deepStrictEqual(shouldActivate(license), { ok: false, reason: 'invalid_key' });
   });
 
   it('accepts an active license', () => {
-    const license: LicenseRecord = { email: 'dev@example.com', status: 'active', createdAt: '2026-01-01T00:00:00.000Z', boundMachineHash: null };
+    const license: LicenseRecord = {
+      email: 'dev@example.com',
+      status: 'active',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      boundMachineHash: null,
+      expiresAt: '2026-12-01T00:00:00.000Z',
+      notifiedExpiredAt: null,
+    };
     assert.deepStrictEqual(shouldActivate(license), { ok: true });
   });
 });
