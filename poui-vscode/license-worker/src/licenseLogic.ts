@@ -99,13 +99,22 @@ export function clampCredits(credits: number): number {
 /** true only the first time an active license is seen past its
  * expiresAt — never true again for the same expiry, even called
  * repeatedly (same idempotent-flag spirit as `firstUsedAt` for the
- * trial: set once, never rewritten until the next renewal zeroes it). */
+ * trial: set once, never rewritten until the next renewal zeroes it).
+ *
+ * Uses `!license.notifiedExpiredAt` rather than `=== null`: a legacy
+ * LicenseRecord (same kind grandfathered in by resolveStatus's
+ * `!license.expiresAt` check) has `notifiedExpiredAt` genuinely
+ * `undefined`, not `null`, in its stored JSON. If such a record later
+ * gets `expiresAt` backfilled without also explicitly setting
+ * `notifiedExpiredAt` to `null`, a strict `=== null` check would stay
+ * `false` forever (undefined never becomes null on its own) — silently
+ * and permanently disabling the expiry email for that license. */
 export function shouldNotifyExpiry(license: LicenseRecord | undefined, nowIso: string): boolean {
   return (
     license !== undefined &&
     license.status === 'active' &&
     nowIso >= license.expiresAt &&
-    license.notifiedExpiredAt === null
+    !license.notifiedExpiredAt
   );
 }
 
@@ -159,9 +168,18 @@ export function resolveStatus(
   return { tier: 'trial', daysLeft, usedPct };
 }
 
-export function shouldActivate(license: LicenseRecord | undefined): { ok: boolean; reason?: string } {
+/** `license.expiresAt &&` is deliberate: a license with no `expiresAt` at
+ * all (the grandfathered-in legacy case from resolveStatus's emergency
+ * fix) must NOT be rejected here — it keeps working exactly as it did
+ * before this whole feature existed. Only a license with a real, past
+ * `expiresAt` is rejected, with the distinct 'expired_key' reason so the
+ * extension can tell "bad key" apart from "key expired". */
+export function shouldActivate(license: LicenseRecord | undefined, nowIso: string): { ok: boolean; reason?: string } {
   if (!license || license.status !== 'active') {
     return { ok: false, reason: 'invalid_key' };
+  }
+  if (license.expiresAt && nowIso >= license.expiresAt) {
+    return { ok: false, reason: 'expired_key' };
   }
   return { ok: true };
 }

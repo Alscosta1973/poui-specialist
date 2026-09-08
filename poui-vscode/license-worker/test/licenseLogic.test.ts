@@ -396,8 +396,10 @@ describe('resolveStatus', () => {
 });
 
 describe('shouldActivate', () => {
+  const NOW = '2026-09-06T00:00:00.000Z';
+
   it('rejects when the license key does not exist', () => {
-    assert.deepStrictEqual(shouldActivate(undefined), { ok: false, reason: 'invalid_key' });
+    assert.deepStrictEqual(shouldActivate(undefined, NOW), { ok: false, reason: 'invalid_key' });
   });
 
   it('rejects a revoked license', () => {
@@ -409,7 +411,7 @@ describe('shouldActivate', () => {
       expiresAt: '2026-12-01T00:00:00.000Z',
       notifiedExpiredAt: null,
     };
-    assert.deepStrictEqual(shouldActivate(license), { ok: false, reason: 'invalid_key' });
+    assert.deepStrictEqual(shouldActivate(license, NOW), { ok: false, reason: 'invalid_key' });
   });
 
   it('accepts an active license', () => {
@@ -421,6 +423,33 @@ describe('shouldActivate', () => {
       expiresAt: '2026-12-01T00:00:00.000Z',
       notifiedExpiredAt: null,
     };
-    assert.deepStrictEqual(shouldActivate(license), { ok: true });
+    assert.deepStrictEqual(shouldActivate(license, NOW), { ok: true });
+  });
+
+  it('rejects an active license whose expiresAt has already passed, with a distinct reason', () => {
+    const license: LicenseRecord = {
+      email: 'dev@example.com',
+      status: 'active',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      boundMachineHash: null,
+      expiresAt: '2026-08-01T00:00:00.000Z', // expired over a month before NOW
+      notifiedExpiredAt: null,
+    };
+    assert.deepStrictEqual(shouldActivate(license, NOW), { ok: false, reason: 'expired_key' });
+  });
+
+  it('accepts a legacy (pre-this-feature) active license with no expiresAt at all — grandfather-in holds at activation too, not just at resolveStatus', () => {
+    // Same shape as the production POUI-TEST-0001 incident record: no
+    // expiresAt/notifiedExpiredAt keys in the stored JSON at all. A TS
+    // object literal can't express a genuinely missing key, so this is
+    // built via JSON.parse like the equivalent resolveStatus regression
+    // guard above.
+    const legacyLicense = JSON.parse(
+      '{"email":"dev@example.com","status":"active","createdAt":"2026-01-01T00:00:00.000Z","boundMachineHash":null}',
+    ) as LicenseRecord;
+    assert.strictEqual(legacyLicense.expiresAt, undefined);
+    assert.strictEqual(legacyLicense.notifiedExpiredAt, undefined);
+
+    assert.deepStrictEqual(shouldActivate(legacyLicense, NOW), { ok: true });
   });
 });

@@ -63,7 +63,7 @@ async function notifyIfExpired(env: Env, license: LicenseRecord, licenseKey: str
 }
 
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
     const now = new Date().toISOString();
 
@@ -94,7 +94,7 @@ export default {
         ? await readJson<LicenseRecord>(env.LICENSES, `license:${machine.licenseKey}`)
         : undefined;
       if (license && machine.licenseKey) {
-        await notifyIfExpired(env, license, machine.licenseKey, now);
+        ctx.waitUntil(notifyIfExpired(env, license, machine.licenseKey, now));
       }
       const currentStatus = resolveStatus(machine, license, machineHash, now);
       if (currentStatus.tier === 'paid') {
@@ -121,7 +121,7 @@ export default {
         ? await readJson<LicenseRecord>(env.LICENSES, `license:${machine.licenseKey}`)
         : undefined;
       if (license && machine?.licenseKey) {
-        await notifyIfExpired(env, license, machine.licenseKey, now);
+        ctx.waitUntil(notifyIfExpired(env, license, machine.licenseKey, now));
       }
       return jsonResponse(resolveStatus(machine, license, machineHash, now));
     }
@@ -129,7 +129,7 @@ export default {
     if (url.pathname === '/license/activate' && request.method === 'POST') {
       const { machineHash, licenseKey } = (await request.json()) as { machineHash: string; licenseKey: string };
       const license = await readJson<LicenseRecord>(env.LICENSES, `license:${licenseKey}`);
-      const check = shouldActivate(license);
+      const check = shouldActivate(license, now);
       if (!check.ok || !license) {
         return jsonResponse({ ok: false, reason: check.reason }, 400);
       }
