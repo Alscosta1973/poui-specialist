@@ -5,6 +5,7 @@ export type LicenseTier = 'trial' | 'paid' | 'expired' | 'unknown';
 export interface LicenseStatus {
   tier: LicenseTier;
   daysLeft?: number;
+  usedPct?: number;
   licenseKey?: string;
 }
 
@@ -39,8 +40,8 @@ export function isCacheFresh(fetchedAtIso: string, nowMs: number, graceMs: numbe
   return nowMs - new Date(fetchedAtIso).getTime() < graceMs;
 }
 
-export function shouldShowExpiryWarning(status: LicenseStatus | undefined, thresholdDays: number): boolean {
-  return status?.tier === 'trial' && typeof status.daysLeft === 'number' && status.daysLeft <= thresholdDays;
+export function shouldShowExpiryWarning(status: LicenseStatus | undefined, thresholdPct: number): boolean {
+  return status?.tier === 'trial' && typeof status.usedPct === 'number' && status.usedPct >= thresholdPct;
 }
 
 /** Rótulo curto pra sinalizar, em qualquer UI (QuickPick, webview), que um
@@ -50,8 +51,8 @@ export function formatPaidBadge(status: LicenseStatus | undefined): string {
   if (status?.tier === 'paid') {
     return '';
   }
-  if (status?.tier === 'trial' && typeof status.daysLeft === 'number') {
-    return `🔒 trial — ${status.daysLeft} dia(s)`;
+  if (status?.tier === 'trial' && typeof status.usedPct === 'number') {
+    return `🔒 trial — ${status.usedPct}% usado`;
   }
   return '🔒 requer licença';
 }
@@ -72,11 +73,11 @@ export function formatStatusBarItem(status: LicenseStatus | undefined): StatusBa
   if (status?.tier === 'paid') {
     return undefined;
   }
-  if (status?.tier === 'trial' && typeof status.daysLeft === 'number') {
-    const severity: StatusBarSeverity = status.daysLeft <= 3 ? 'warning' : 'normal';
+  if (status?.tier === 'trial' && typeof status.usedPct === 'number') {
+    const severity: StatusBarSeverity = status.usedPct >= 80 ? 'warning' : 'normal';
     return {
-      text: `$(clock) PO-UI: trial ${status.daysLeft}d`,
-      tooltip: `PO-UI Specialist — trial: ${status.daysLeft} dia(s) restante(s). Clique para ativar ou comprar uma licença.`,
+      text: `$(clock) PO-UI: trial ${status.usedPct}% usado`,
+      tooltip: `PO-UI Specialist — trial: ${status.usedPct}% usado. Clique para ativar ou comprar uma licença.`,
       severity,
     };
   }
@@ -85,6 +86,19 @@ export function formatStatusBarItem(status: LicenseStatus | undefined): StatusBa
     tooltip: 'PO-UI Specialist: licença necessária. Clique para ativar ou comprar.',
     severity: 'error',
   };
+}
+
+/** Peso em créditos do trial pra cada nível de poui.effort — precisa
+ * continuar igual ao clampCredits do license-worker (Worker só clampa
+ * a faixa válida, quem decide o mapeamento é sempre o cliente). */
+export function effortToCredits(effort: string): number {
+  if (effort === 'high') {
+    return 2;
+  }
+  if (effort === 'xhigh' || effort === 'max') {
+    return 3;
+  }
+  return 1; // low, medium, ou qualquer valor não reconhecido
 }
 
 async function postJson(fetchFn: typeof fetch, url: string, body: unknown): Promise<unknown> {
@@ -102,6 +116,15 @@ export async function fetchTrialStart(
   fetchFn: typeof fetch = fetch,
 ): Promise<LicenseStatus> {
   return (await postJson(fetchFn, `${baseUrl}/trial/start`, { machineHash })) as LicenseStatus;
+}
+
+export async function fetchConsumeCredits(
+  baseUrl: string,
+  machineHash: string,
+  credits: number,
+  fetchFn: typeof fetch = fetch,
+): Promise<LicenseStatus> {
+  return (await postJson(fetchFn, `${baseUrl}/trial/consume`, { machineHash, credits })) as LicenseStatus;
 }
 
 export async function fetchLicenseStatus(

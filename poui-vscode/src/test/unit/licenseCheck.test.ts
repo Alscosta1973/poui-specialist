@@ -8,6 +8,8 @@ import {
   shouldShowExpiryWarning,
   formatPaidBadge,
   formatStatusBarItem,
+  effortToCredits,
+  fetchConsumeCredits,
   fetchTrialStart,
   fetchLicenseStatus,
   activateLicenseKey,
@@ -68,21 +70,21 @@ describe('isCacheFresh', () => {
 });
 
 describe('shouldShowExpiryWarning', () => {
-  it('warns when trial days left is at or below the threshold', () => {
-    assert.strictEqual(shouldShowExpiryWarning({ tier: 'trial', daysLeft: 3 }, 3), true);
-    assert.strictEqual(shouldShowExpiryWarning({ tier: 'trial', daysLeft: 1 }, 3), true);
+  it('warns when usedPct is at or above the threshold', () => {
+    assert.strictEqual(shouldShowExpiryWarning({ tier: 'trial', usedPct: 80 }, 80), true);
+    assert.strictEqual(shouldShowExpiryWarning({ tier: 'trial', usedPct: 95 }, 80), true);
   });
 
-  it('does not warn when trial days left is above the threshold', () => {
-    assert.strictEqual(shouldShowExpiryWarning({ tier: 'trial', daysLeft: 4 }, 3), false);
+  it('does not warn when usedPct is below the threshold', () => {
+    assert.strictEqual(shouldShowExpiryWarning({ tier: 'trial', usedPct: 79 }, 80), false);
   });
 
-  it('does not warn for a paid license, regardless of daysLeft', () => {
-    assert.strictEqual(shouldShowExpiryWarning({ tier: 'paid' }, 3), false);
+  it('does not warn for a paid license, regardless of usedPct', () => {
+    assert.strictEqual(shouldShowExpiryWarning({ tier: 'paid' }, 80), false);
   });
 
   it('does not warn when there is no status yet', () => {
-    assert.strictEqual(shouldShowExpiryWarning(undefined, 3), false);
+    assert.strictEqual(shouldShowExpiryWarning(undefined, 80), false);
   });
 });
 
@@ -91,11 +93,11 @@ describe('formatPaidBadge', () => {
     assert.strictEqual(formatPaidBadge({ tier: 'paid' }), '');
   });
 
-  it('shows days left for a trial', () => {
-    assert.strictEqual(formatPaidBadge({ tier: 'trial', daysLeft: 5 }), '🔒 trial — 5 dia(s)');
+  it('shows the used percentage for a trial', () => {
+    assert.strictEqual(formatPaidBadge({ tier: 'trial', usedPct: 42 }), '🔒 trial — 42% usado');
   });
 
-  it('falls back to a generic lock badge for a trial with no daysLeft', () => {
+  it('falls back to a generic lock badge for a trial with no usedPct', () => {
     assert.strictEqual(formatPaidBadge({ tier: 'trial' }), '🔒 requer licença');
   });
 
@@ -111,16 +113,16 @@ describe('formatStatusBarItem', () => {
     assert.strictEqual(formatStatusBarItem({ tier: 'paid' }), undefined);
   });
 
-  it('is a normal-severity trial reminder when there is time left', () => {
-    const presentation = formatStatusBarItem({ tier: 'trial', daysLeft: 10 });
+  it('is a normal-severity trial reminder below the warning threshold', () => {
+    const presentation = formatStatusBarItem({ tier: 'trial', usedPct: 40 });
     assert.strictEqual(presentation?.severity, 'normal');
-    assert.match(presentation!.text, /10d/);
+    assert.match(presentation!.text, /40% usado/);
   });
 
-  it('escalates to warning severity at 3 days left or fewer', () => {
-    assert.strictEqual(formatStatusBarItem({ tier: 'trial', daysLeft: 3 })?.severity, 'warning');
-    assert.strictEqual(formatStatusBarItem({ tier: 'trial', daysLeft: 1 })?.severity, 'warning');
-    assert.strictEqual(formatStatusBarItem({ tier: 'trial', daysLeft: 4 })?.severity, 'normal');
+  it('escalates to warning severity at 80% used or more', () => {
+    assert.strictEqual(formatStatusBarItem({ tier: 'trial', usedPct: 80 })?.severity, 'warning');
+    assert.strictEqual(formatStatusBarItem({ tier: 'trial', usedPct: 99 })?.severity, 'warning');
+    assert.strictEqual(formatStatusBarItem({ tier: 'trial', usedPct: 79 })?.severity, 'normal');
   });
 
   it('is an error-severity lock prompt for expired, unknown or missing status', () => {
@@ -189,5 +191,43 @@ describe('activateLicenseKey', () => {
     const result = await activateLicenseKey('https://example.workers.dev', 'hash123', 'BAD-KEY', fetchFn);
 
     assert.deepStrictEqual(result, { ok: false, reason: 'invalid_key' });
+  });
+});
+
+describe('effortToCredits', () => {
+  it('weighs low and medium effort as 1 credit', () => {
+    assert.strictEqual(effortToCredits('low'), 1);
+    assert.strictEqual(effortToCredits('medium'), 1);
+  });
+
+  it('weighs high effort as 2 credits', () => {
+    assert.strictEqual(effortToCredits('high'), 2);
+  });
+
+  it('weighs xhigh and max effort as 3 credits', () => {
+    assert.strictEqual(effortToCredits('xhigh'), 3);
+    assert.strictEqual(effortToCredits('max'), 3);
+  });
+
+  it('falls back to 1 credit for an unrecognized value', () => {
+    assert.strictEqual(effortToCredits('unknown-value'), 1);
+  });
+});
+
+describe('fetchConsumeCredits', () => {
+  it('posts the machineHash and credits and returns the parsed status', async () => {
+    let capturedUrl: string | undefined;
+    let capturedBody: string | undefined;
+    const fetchFn = (async (url: string, init?: { body?: string }) => {
+      capturedUrl = url;
+      capturedBody = init?.body;
+      return { ok: true, status: 200, json: async () => ({ tier: 'trial', daysLeft: 14, usedPct: 5 }) };
+    }) as unknown as typeof fetch;
+
+    const result = await fetchConsumeCredits('https://example.workers.dev', 'hash123', 2, fetchFn);
+
+    assert.strictEqual(capturedUrl, 'https://example.workers.dev/trial/consume');
+    assert.deepStrictEqual(JSON.parse(capturedBody ?? '{}'), { machineHash: 'hash123', credits: 2 });
+    assert.deepStrictEqual(result, { tier: 'trial', daysLeft: 14, usedPct: 5 });
   });
 });
