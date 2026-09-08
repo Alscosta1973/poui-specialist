@@ -6,6 +6,8 @@ import {
   isAccessAllowed,
   isCacheFresh,
   shouldShowExpiryWarning,
+  shouldShowRenewalWarning,
+  PAID_RENEWAL_WARNING_THRESHOLD_DAYS,
   effortToCredits,
   fetchTrialStart,
   fetchLicenseStatus,
@@ -68,9 +70,13 @@ export function initializeLicenseStatus(context: vscode.ExtensionContext): Promi
   return initPromise;
 }
 
-async function offerPurchaseOrActivate(message: string, showMessage: typeof vscode.window.showErrorMessage): Promise<void> {
-  const choice = await showMessage(message, 'Ativar Licença', 'Comprar Licença');
-  if (choice === 'Ativar Licença') {
+async function offerPurchaseOrActivate(
+  message: string,
+  showMessage: typeof vscode.window.showErrorMessage,
+  activateLabel: string = 'Ativar Licença',
+): Promise<void> {
+  const choice = await showMessage(message, activateLabel, 'Comprar Licença');
+  if (choice === activateLabel) {
     void vscode.commands.executeCommand('poui.activateLicense');
   } else if (choice === 'Comprar Licença') {
     void vscode.env.openExternal(vscode.Uri.parse(buildPurchaseMailto()));
@@ -104,14 +110,19 @@ export async function requireLicense(context: vscode.ExtensionContext, outputCha
   }
   if (isAccessAllowed(sessionStatus)) {
     reportCreditUsage(context);
-    if (sessionStatus?.tier === 'trial' && typeof sessionStatus.usedPct === 'number') {
-      if (!hasShownExpiryWarning && shouldShowExpiryWarning(sessionStatus, EXPIRY_WARNING_THRESHOLD_PCT)) {
-        hasShownExpiryWarning = true;
-        void offerPurchaseOrActivate(
-          `PO-UI: seu trial está em ${sessionStatus.usedPct}% de uso. Ative uma licença paga para continuar usando sem interrupção.`,
-          vscode.window.showInformationMessage,
-        );
-      }
+    if (!hasShownExpiryWarning && sessionStatus?.tier === 'trial' && shouldShowExpiryWarning(sessionStatus, EXPIRY_WARNING_THRESHOLD_PCT)) {
+      hasShownExpiryWarning = true;
+      void offerPurchaseOrActivate(
+        `PO-UI: seu trial está em ${sessionStatus.usedPct}% de uso. Ative uma licença paga para continuar usando sem interrupção.`,
+        vscode.window.showInformationMessage,
+      );
+    } else if (!hasShownExpiryWarning && sessionStatus?.tier === 'paid' && shouldShowRenewalWarning(sessionStatus, PAID_RENEWAL_WARNING_THRESHOLD_DAYS)) {
+      hasShownExpiryWarning = true;
+      void offerPurchaseOrActivate(
+        `PO-UI: sua licença paga vence em ${sessionStatus.daysUntilExpiry} dia(s). Renove para continuar usando sem interrupção.`,
+        vscode.window.showInformationMessage,
+        'Renovar Licença',
+      );
     }
     return true;
   }
