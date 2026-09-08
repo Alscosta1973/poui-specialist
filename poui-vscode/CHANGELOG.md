@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.0
+
+- Trial agora expira no que vier primeiro: 14 dias **ou** 40 créditos (peso por `poui.effort`: low/medium=1, high=2, xhigh/max=3) — fecha a brecha de dar pra construir um projeto inteiro dentro dos 14 dias sem nunca pagar.
+- O relógio de 14 dias só começa a contar no primeiro comando pago rodado, não na instalação — instalar e não usar não gasta trial.
+- Status bar e avisos de trial agora mostram uma porcentagem única de uso, em vez de "N dias restantes".
+
 ## 1.2.0
 
 - Item da status bar mostrando o status da licença (trial com dias restantes, ou aviso de licença necessária) — antes só aparecia num toast de 5s ao rodar um comando pago.
