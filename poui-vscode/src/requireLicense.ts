@@ -6,8 +6,10 @@ import {
   isAccessAllowed,
   isCacheFresh,
   shouldShowExpiryWarning,
+  effortToCredits,
   fetchTrialStart,
   fetchLicenseStatus,
+  fetchConsumeCredits,
   LicenseStatus,
 } from './licenseCheck';
 import { updateLicenseStatusBar } from './licenseStatusBar';
@@ -15,7 +17,7 @@ import { buildPurchaseMailto } from './purchaseLink';
 
 const GRACE_PERIOD_MS = 3 * 24 * 60 * 60 * 1000;
 const CACHE_KEY = 'poui.licenseStatusCache';
-const EXPIRY_WARNING_THRESHOLD_DAYS = 3;
+const EXPIRY_WARNING_THRESHOLD_PCT = 80;
 
 let hasShownExpiryWarning = false;
 
@@ -75,16 +77,38 @@ async function offerPurchaseOrActivate(message: string, showMessage: typeof vsco
   }
 }
 
+/** Dispara em paralelo, sem travar a liberação do comando que acabou de
+ * rodar. Só reporta pra `tier: 'trial'` — licença paga nunca consome
+ * crédito (confirmado no design). Uma falha de rede aqui não bloqueia o
+ * comando atual: na pior das hipóteses, essa execução específica não é
+ * contabilizada no servidor dessa vez. */
+function reportCreditUsage(context: vscode.ExtensionContext): void {
+  if (sessionStatus?.tier !== 'trial') {
+    return;
+  }
+  const effort = vscode.workspace
+    .getConfiguration('poui')
+    .get<'low' | 'medium' | 'high' | 'xhigh' | 'max'>('effort', 'high');
+  const credits = effortToCredits(effort);
+  const machineHash = computeMachineHash(vscode.env.machineId);
+  void fetchConsumeCredits(WORKER_BASE_URL, machineHash, credits)
+    .then((status) => persistConfirmedStatus(context, status))
+    .catch(() => {
+      // Rede indisponível — a checagem seguinte tenta de novo, não bloqueia nada agora.
+    });
+}
+
 export async function requireLicense(context: vscode.ExtensionContext, outputChannel: vscode.OutputChannel): Promise<boolean> {
   if (initPromise) {
     await initPromise;
   }
   if (isAccessAllowed(sessionStatus)) {
-    if (sessionStatus?.tier === 'trial' && typeof sessionStatus.daysLeft === 'number') {
-      if (!hasShownExpiryWarning && shouldShowExpiryWarning(sessionStatus, EXPIRY_WARNING_THRESHOLD_DAYS)) {
+    reportCreditUsage(context);
+    if (sessionStatus?.tier === 'trial' && typeof sessionStatus.usedPct === 'number') {
+      if (!hasShownExpiryWarning && shouldShowExpiryWarning(sessionStatus, EXPIRY_WARNING_THRESHOLD_PCT)) {
         hasShownExpiryWarning = true;
         void offerPurchaseOrActivate(
-          `PO-UI: seu trial termina em ${sessionStatus.daysLeft} dia(s). Ative uma licença paga para continuar usando sem interrupção.`,
+          `PO-UI: seu trial está em ${sessionStatus.usedPct}% de uso. Ative uma licença paga para continuar usando sem interrupção.`,
           vscode.window.showInformationMessage,
         );
       }
