@@ -1,7 +1,8 @@
-import { resolveStatus, shouldActivate, clampCredits, MachineRecord, LicenseRecord } from './licenseLogic';
+import { resolveStatus, shouldActivate, clampCredits, shouldNotifyExpiry, MachineRecord, LicenseRecord } from './licenseLogic';
 
 export interface Env {
   LICENSES: KVNamespace;
+  RESEND_API_KEY: string;
 }
 
 async function readJson<T>(kv: KVNamespace, key: string): Promise<T | undefined> {
@@ -19,6 +20,37 @@ function jsonResponse(body: unknown, status = 200): Response {
 
 function emptyMachineRecord(now: string): MachineRecord {
   return { firstSeen: now, lastSeen: now, licenseKey: null, firstUsedAt: null, creditsUsed: 0 };
+}
+
+async function sendExpiryEmail(apiKey: string, license: LicenseRecord): Promise<void> {
+  await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      from: 'PO-UI Specialist <onboarding@resend.dev>',
+      to: 'andre.andrelscosta@gmail.com',
+      subject: `PO-UI: licença de ${license.email} expirou`,
+      text: `A licença de ${license.email} (venceu em ${license.expiresAt}) expirou e o acesso pago foi bloqueado automaticamente.`,
+    }),
+  });
+}
+
+/** Best-effort — o bloqueio da licença já aconteceu via resolveStatus,
+ * independente disso. Uma falha aqui (Resend fora do ar, chave inválida)
+ * não impede nada além do aviso em si; `notifiedExpiredAt` é marcado
+ * mesmo assim, pra não tentar reenviar a cada request se o Resend
+ * estiver fora do ar. */
+async function notifyIfExpired(env: Env, license: LicenseRecord, licenseKey: string, nowIso: string): Promise<void> {
+  if (!shouldNotifyExpiry(license, nowIso)) {
+    return;
+  }
+  try {
+    await sendExpiryEmail(env.RESEND_API_KEY, license);
+  } catch {
+    // best-effort — ver comentário acima da função.
+  }
+  license.notifiedExpiredAt = nowIso;
+  await writeJson(env.LICENSES, `license:${licenseKey}`, license);
 }
 
 export default {
@@ -52,6 +84,9 @@ export default {
       const license = machine.licenseKey
         ? await readJson<LicenseRecord>(env.LICENSES, `license:${machine.licenseKey}`)
         : undefined;
+      if (license && machine.licenseKey) {
+        await notifyIfExpired(env, license, machine.licenseKey, now);
+      }
       const currentStatus = resolveStatus(machine, license, machineHash, now);
       if (currentStatus.tier === 'paid') {
         // Licença paga nunca consome nada — devolve o status pago sem gravar.
@@ -76,6 +111,9 @@ export default {
       const license = machine?.licenseKey
         ? await readJson<LicenseRecord>(env.LICENSES, `license:${machine.licenseKey}`)
         : undefined;
+      if (license && machine?.licenseKey) {
+        await notifyIfExpired(env, license, machine.licenseKey, now);
+      }
       return jsonResponse(resolveStatus(machine, license, machineHash, now));
     }
 
