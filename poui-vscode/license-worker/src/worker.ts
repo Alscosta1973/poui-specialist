@@ -36,10 +36,15 @@ async function sendExpiryEmail(apiKey: string, license: LicenseRecord): Promise<
 }
 
 /** Best-effort — o bloqueio da licença já aconteceu via resolveStatus,
- * independente disso. Uma falha aqui (Resend fora do ar, chave inválida)
- * não impede nada além do aviso em si; `notifiedExpiredAt` é marcado
- * mesmo assim, pra não tentar reenviar a cada request se o Resend
- * estiver fora do ar. */
+ * independente disso. Uma falha aqui (Resend fora do ar, chave inválida,
+ * ou até o próprio write no KV falhando por rate limit/erro transitório)
+ * não pode nunca vazar como exceção pro caller: as rotas que chamam essa
+ * função devolvem a resposta de status já calculada por resolveStatus, e
+ * essa resposta tem que sair normalmente não importa o que aconteça aqui
+ * dentro. `notifiedExpiredAt` é marcado mesmo que o e-mail falhe, pra não
+ * tentar reenviar a cada request se o Resend estiver fora do ar — mas se
+ * o próprio write falhar, a tentativa de notificar simplesmente se repete
+ * na próxima request (aceitável: pior caso é reenviar o e-mail). */
 async function notifyIfExpired(env: Env, license: LicenseRecord, licenseKey: string, nowIso: string): Promise<void> {
   if (!shouldNotifyExpiry(license, nowIso)) {
     return;
@@ -49,8 +54,12 @@ async function notifyIfExpired(env: Env, license: LicenseRecord, licenseKey: str
   } catch {
     // best-effort — ver comentário acima da função.
   }
-  license.notifiedExpiredAt = nowIso;
-  await writeJson(env.LICENSES, `license:${licenseKey}`, license);
+  try {
+    license.notifiedExpiredAt = nowIso;
+    await writeJson(env.LICENSES, `license:${licenseKey}`, license);
+  } catch {
+    // best-effort — ver comentário acima da função.
+  }
 }
 
 export default {
