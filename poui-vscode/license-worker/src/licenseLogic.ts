@@ -133,12 +133,20 @@ export function resolveStatus(
     license &&
     license.status === 'active' &&
     license.boundMachineHash === machineHash &&
-    nowIso < license.expiresAt
+    // Um LicenseRecord gravado antes desta feature não tem `expiresAt` no
+    // JSON salvo (undefined, não uma string) — sem o `!license.expiresAt`,
+    // `nowIso < undefined` é sempre `false` em JS, o que bloquearia
+    // imediatamente qualquer cliente pagante já existente assim que este
+    // deploy saísse. Ausente = licença permanente (grandfather-in), do
+    // mesmo jeito que ela já funcionava antes desta feature existir —
+    // só passa a ter prazo de verdade depois de uma renovação de verdade
+    // (issue-license.mjs --renew), que sempre grava um expiresAt real.
+    (!license.expiresAt || nowIso < license.expiresAt)
   ) {
     return {
       tier: 'paid',
       licenseKey: machine.licenseKey,
-      daysUntilExpiry: computeDaysUntil(license.expiresAt, nowIso),
+      ...(license.expiresAt ? { daysUntilExpiry: computeDaysUntil(license.expiresAt, nowIso) } : {}),
     };
   }
   const daysUsedPct = computeDaysUsedPct(machine.firstUsedAt, nowIso);

@@ -365,6 +365,34 @@ describe('resolveStatus', () => {
     const result = resolveStatus(legacyMachine, undefined, HASH, NOW);
     assert.deepStrictEqual(result, { tier: 'trial', daysLeft: TRIAL_DAYS, usedPct: 0 });
   });
+
+  it('grandfathers in a legacy (pre-this-feature) LicenseRecord — missing expiresAt/notifiedExpiredAt keys entirely — as a permanent paid license instead of instantly blocking a real existing customer', () => {
+    // A LicenseRecord written by the old (pre-this-branch) /license/activate
+    // handler has no expiresAt/notifiedExpiredAt keys in its stored JSON at
+    // all. `nowIso < undefined` is always false in JS (undefined coerces to
+    // NaN for the comparison), so without the fix, resolveStatus's paid
+    // condition would fail for every such record — instantly downgrading
+    // every already-paying customer to trial/expired the moment this
+    // feature deployed. This exact scenario broke the real production
+    // POUI-TEST-0001 license within minutes of the real deploy — this test
+    // is the regression guard for that live incident, not a hypothetical.
+    const legacyLicense = JSON.parse(
+      `{"email":"dev@example.com","status":"active","createdAt":"2026-01-01T00:00:00.000Z","boundMachineHash":"${HASH}"}`,
+    ) as LicenseRecord;
+    assert.strictEqual(legacyLicense.expiresAt, undefined);
+    assert.strictEqual(legacyLicense.notifiedExpiredAt, undefined);
+
+    const machine: MachineRecord = {
+      firstSeen: '2026-01-01T00:00:00.000Z',
+      lastSeen: NOW,
+      licenseKey: 'POUI-KEY',
+      firstUsedAt: '2026-01-01T00:00:00.000Z',
+      creditsUsed: 0,
+    };
+
+    const result = resolveStatus(machine, legacyLicense, HASH, NOW);
+    assert.deepStrictEqual(result, { tier: 'paid', licenseKey: 'POUI-KEY' });
+  });
 });
 
 describe('shouldActivate', () => {
