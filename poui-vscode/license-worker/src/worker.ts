@@ -27,7 +27,7 @@ export default {
       const key = `machine:${machineHash}`;
       let machine = await readJson<MachineRecord>(env.LICENSES, key);
       if (!machine) {
-        machine = { firstSeen: now, lastSeen: now, licenseKey: null };
+        machine = { firstSeen: now, lastSeen: now, licenseKey: null, firstUsedAt: null, creditsUsed: 0 };
       } else {
         machine.lastSeen = now;
       }
@@ -60,6 +60,8 @@ export default {
         firstSeen: now,
         lastSeen: now,
         licenseKey: null,
+        firstUsedAt: null,
+        creditsUsed: 0,
       };
       machine.licenseKey = licenseKey;
       await writeJson(env.LICENSES, `machine:${machineHash}`, machine);
