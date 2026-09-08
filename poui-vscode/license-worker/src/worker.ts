@@ -57,10 +57,14 @@ export default {
         // Licença paga nunca consome nada — devolve o status pago sem gravar.
         return jsonResponse(currentStatus);
       }
-      if (machine.firstUsedAt === null) {
+      if (!machine.firstUsedAt) {
         machine.firstUsedAt = now;
       }
-      machine.creditsUsed += clampCredits(credits);
+      // Um registro escrito antes desta feature não tem `creditsUsed` no
+      // JSON salvo (undefined, não 0) — sem esse guard, `undefined += n`
+      // vira NaN e corrompe o campo permanentemente a partir da 1ª chamada.
+      const creditsUsedSoFar = Number.isFinite(machine.creditsUsed) ? machine.creditsUsed : 0;
+      machine.creditsUsed = creditsUsedSoFar + clampCredits(credits);
       machine.lastSeen = now;
       await writeJson(env.LICENSES, key, machine);
       return jsonResponse(resolveStatus(machine, license, machineHash, now));

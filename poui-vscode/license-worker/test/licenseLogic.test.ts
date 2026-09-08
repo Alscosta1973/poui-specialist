@@ -49,6 +49,10 @@ describe('computeDaysUsedPct', () => {
   it('clamps at 100 once the trial window has fully elapsed', () => {
     assert.strictEqual(computeDaysUsedPct('2026-01-01T00:00:00.000Z', '2026-09-06T00:00:00.000Z'), 100);
   });
+
+  it('is 0 when firstUsedAt is undefined, same as null (a legacy record has no such key at all)', () => {
+    assert.strictEqual(computeDaysUsedPct(undefined, '2026-09-06T00:00:00.000Z'), 0);
+  });
 });
 
 describe('computeCreditsUsedPct', () => {
@@ -67,6 +71,16 @@ describe('computeCreditsUsedPct', () => {
 
   it('clamps at 100 past the budget', () => {
     assert.strictEqual(computeCreditsUsedPct(999, TRIAL_CREDIT_BUDGET), 100);
+  });
+
+  it('is 0 for a non-finite creditsUsed (NaN/undefined) instead of propagating NaN', () => {
+    assert.strictEqual(computeCreditsUsedPct(NaN, TRIAL_CREDIT_BUDGET), 0);
+    assert.strictEqual(computeCreditsUsedPct(undefined as unknown as number, TRIAL_CREDIT_BUDGET), 0);
+  });
+
+  it('is 0 for a non-positive budget instead of dividing by zero', () => {
+    assert.strictEqual(computeCreditsUsedPct(10, 0), 0);
+    assert.strictEqual(computeCreditsUsedPct(10, -5), 0);
   });
 });
 
@@ -89,6 +103,17 @@ describe('clampCredits', () => {
   it('rounds a non-integer to the nearest valid weight', () => {
     assert.strictEqual(clampCredits(2.4), 2);
     assert.strictEqual(clampCredits(2.6), 3);
+  });
+
+  it('returns the minimum weight (1) for NaN-producing input instead of propagating NaN', () => {
+    assert.strictEqual(clampCredits(NaN), 1);
+    assert.strictEqual(clampCredits(undefined as unknown as number), 1);
+    assert.strictEqual(clampCredits('abc' as unknown as number), 1);
+  });
+
+  it('clamps Infinity/-Infinity same as any other out-of-range value', () => {
+    assert.strictEqual(clampCredits(Infinity), 3);
+    assert.strictEqual(clampCredits(-Infinity), 1);
   });
 });
 
@@ -189,6 +214,29 @@ describe('resolveStatus', () => {
     };
     const license: LicenseRecord = { email: 'dev@example.com', status: 'revoked', createdAt: NOW, boundMachineHash: HASH };
     assert.deepStrictEqual(resolveStatus(machine, license, HASH, NOW), { tier: 'trial', daysLeft: TRIAL_DAYS - 5, usedPct: 36 });
+  });
+
+  it('resolves a legacy (pre-this-feature) MachineRecord — missing firstUsedAt/creditsUsed keys entirely, not just null — to a fresh full trial instead of an un-expirable one', () => {
+    // A TypeScript object literal can't express a genuinely absent key (it would
+    // just be a type error or silently present as undefined via `as`, which
+    // doesn't prove the JSON-parse codepath). Building it from a raw JSON string,
+    // the exact shape the OLD (pre-branch) `/trial/start` handler used to write,
+    // is what actually exercises `machine.firstUsedAt === undefined` /
+    // `machine.creditsUsed === undefined` at runtime.
+    const legacyMachine = JSON.parse(
+      '{"firstSeen":"2026-01-01T00:00:00.000Z","lastSeen":"2026-01-01T00:00:00.000Z","licenseKey":null}',
+    ) as MachineRecord;
+    assert.strictEqual(legacyMachine.firstUsedAt, undefined);
+    assert.strictEqual(legacyMachine.creditsUsed, undefined);
+
+    const result = resolveStatus(legacyMachine, undefined, HASH, NOW);
+
+    // Before the fix: computeDaysUsedPct(undefined, ...) fell through to
+    // computeDaysLeft(undefined, ...) -> NaN -> usedPct: NaN -> `NaN >= 100`
+    // is always false, so tier could NEVER become 'expired' for this record,
+    // on either the day or credit axis. This assertion is exactly what
+    // catches a regression back to that state.
+    assert.deepStrictEqual(result, { tier: 'trial', daysLeft: TRIAL_DAYS, usedPct: 0 });
   });
 });
 
