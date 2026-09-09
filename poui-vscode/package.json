@@ -185,7 +185,7 @@
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile",
     "test": "node ./out/test/runTest.js",
-    "test:unit": "mocha --require ts-node/register --timeout 15000 \"src/test/unit/**/*.test.ts\"",
+    "test:unit": "mocha --require ts-node/register --require ./src/test/unit/registerVscodeStub.ts --timeout 15000 \"src/test/unit/**/*.test.ts\"",
     "package": "npm run compile:production && vsce package"
   },
   "devDependencies": {
