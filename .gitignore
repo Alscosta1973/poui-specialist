@@ -25,3 +25,5 @@ poui-vscode/.vscode-test/
 poui-vscode/assets/agent-prompts/
 poui-vscode/*.vsix
 !poui-vscode/package-lock.json
+# Config local de IDE (ex: debugger ADVPL com caminho de máquina específico)
+poui-vscode/.vscode/
