@@ -1,8 +1,17 @@
-import { resolveStatus, shouldActivate, clampCredits, shouldNotifyExpiry, MachineRecord, LicenseRecord } from './licenseLogic';
+import {
+  resolveStatus,
+  shouldActivate,
+  clampCredits,
+  shouldNotifyExpiry,
+  isDevMachine,
+  MachineRecord,
+  LicenseRecord,
+} from './licenseLogic';
 
 export interface Env {
   LICENSES: KVNamespace;
   RESEND_API_KEY: string;
+  DEV_MACHINE_HASHES?: string;
 }
 
 async function readJson<T>(kv: KVNamespace, key: string): Promise<T | undefined> {
@@ -69,6 +78,9 @@ export default {
 
     if (url.pathname === '/trial/start' && request.method === 'POST') {
       const { machineHash } = (await request.json()) as { machineHash: string };
+      if (isDevMachine(machineHash, env.DEV_MACHINE_HASHES)) {
+        return jsonResponse({ tier: 'paid' });
+      }
       const key = `machine:${machineHash}`;
       let machine = await readJson<MachineRecord>(env.LICENSES, key);
       if (!machine) {
@@ -85,6 +97,9 @@ export default {
 
     if (url.pathname === '/trial/consume' && request.method === 'POST') {
       const { machineHash, credits } = (await request.json()) as { machineHash: string; credits: number };
+      if (isDevMachine(machineHash, env.DEV_MACHINE_HASHES)) {
+        return jsonResponse({ tier: 'paid' });
+      }
       const key = `machine:${machineHash}`;
       const machine = await readJson<MachineRecord>(env.LICENSES, key);
       if (!machine) {
@@ -116,6 +131,9 @@ export default {
 
     if (url.pathname === '/license/status' && request.method === 'GET') {
       const machineHash = url.searchParams.get('machineHash') ?? '';
+      if (isDevMachine(machineHash, env.DEV_MACHINE_HASHES)) {
+        return jsonResponse({ tier: 'paid' });
+      }
       const machine = await readJson<MachineRecord>(env.LICENSES, `machine:${machineHash}`);
       const license = machine?.licenseKey
         ? await readJson<LicenseRecord>(env.LICENSES, `license:${machine.licenseKey}`)
