@@ -11,7 +11,13 @@ import {
 export interface Env {
   LICENSES: KVNamespace;
   RESEND_API_KEY: string;
-  DEV_MACHINE_HASHES?: string;
+  DEV_UNLOCK_PASSWORD: string;
+}
+
+const DEV_ALLOWLIST_KEY = 'dev:allowlist';
+
+async function readDevAllowlist(kv: KVNamespace): Promise<string[]> {
+  return (await readJson<string[]>(kv, DEV_ALLOWLIST_KEY)) ?? [];
 }
 
 async function readJson<T>(kv: KVNamespace, key: string): Promise<T | undefined> {
@@ -78,7 +84,7 @@ export default {
 
     if (url.pathname === '/trial/start' && request.method === 'POST') {
       const { machineHash } = (await request.json()) as { machineHash: string };
-      if (isDevMachine(machineHash, env.DEV_MACHINE_HASHES)) {
+      if (isDevMachine(machineHash, await readDevAllowlist(env.LICENSES))) {
         return jsonResponse({ tier: 'paid' });
       }
       const key = `machine:${machineHash}`;
@@ -97,7 +103,7 @@ export default {
 
     if (url.pathname === '/trial/consume' && request.method === 'POST') {
       const { machineHash, credits } = (await request.json()) as { machineHash: string; credits: number };
-      if (isDevMachine(machineHash, env.DEV_MACHINE_HASHES)) {
+      if (isDevMachine(machineHash, await readDevAllowlist(env.LICENSES))) {
         return jsonResponse({ tier: 'paid' });
       }
       const key = `machine:${machineHash}`;
@@ -131,7 +137,7 @@ export default {
 
     if (url.pathname === '/license/status' && request.method === 'GET') {
       const machineHash = url.searchParams.get('machineHash') ?? '';
-      if (isDevMachine(machineHash, env.DEV_MACHINE_HASHES)) {
+      if (isDevMachine(machineHash, await readDevAllowlist(env.LICENSES))) {
         return jsonResponse({ tier: 'paid' });
       }
       const machine = await readJson<MachineRecord>(env.LICENSES, `machine:${machineHash}`);
@@ -157,6 +163,19 @@ export default {
       machine.licenseKey = licenseKey;
       await writeJson(env.LICENSES, `machine:${machineHash}`, machine);
       return jsonResponse({ ok: true, tier: 'paid' });
+    }
+
+    if (url.pathname === '/dev/unlock' && request.method === 'POST') {
+      const { machineHash, password } = (await request.json()) as { machineHash: string; password: string };
+      if (!env.DEV_UNLOCK_PASSWORD || password !== env.DEV_UNLOCK_PASSWORD) {
+        return jsonResponse({ ok: false, reason: 'invalid_password' }, 401);
+      }
+      const allowlist = await readDevAllowlist(env.LICENSES);
+      if (!allowlist.includes(machineHash)) {
+        allowlist.push(machineHash);
+        await writeJson(env.LICENSES, DEV_ALLOWLIST_KEY, allowlist);
+      }
+      return jsonResponse({ ok: true });
     }
 
     return jsonResponse({ error: 'not_found' }, 404);

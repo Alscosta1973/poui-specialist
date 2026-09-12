@@ -488,31 +488,23 @@ describe('shouldActivate', () => {
 });
 
 describe('isDevMachine', () => {
-  it('returns false when the secret is unset (undefined)', () => {
-    assert.strictEqual(isDevMachine('any-hash', undefined), false);
-  });
-
-  it('returns false when the secret is an empty string', () => {
-    assert.strictEqual(isDevMachine('any-hash', ''), false);
+  it('returns false when the allowlist is empty', () => {
+    assert.strictEqual(isDevMachine('any-hash', []), false);
   });
 
   it('returns true when the hash matches the only entry', () => {
-    assert.strictEqual(isDevMachine('abc123', 'abc123'), true);
+    assert.strictEqual(isDevMachine('abc123', ['abc123']), true);
   });
 
-  it('returns true when the hash matches one of several comma-separated entries', () => {
-    assert.strictEqual(isDevMachine('def456', 'abc123,def456,ghi789'), true);
+  it('returns true when the hash matches one of several entries', () => {
+    assert.strictEqual(isDevMachine('def456', ['abc123', 'def456', 'ghi789']), true);
   });
 
   it('returns false when the hash matches none of the entries', () => {
-    assert.strictEqual(isDevMachine('zzz999', 'abc123,def456'), false);
-  });
-
-  it('tolerates whitespace around entries', () => {
-    assert.strictEqual(isDevMachine('def456', 'abc123, def456 , ghi789'), true);
+    assert.strictEqual(isDevMachine('zzz999', ['abc123', 'def456']), false);
   });
 
   it('does not partial-match a hash that is only a substring of an entry', () => {
-    assert.strictEqual(isDevMachine('abc12', 'abc123'), false);
+    assert.strictEqual(isDevMachine('abc12', ['abc123']), false);
   });
 });

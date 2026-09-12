@@ -158,3 +158,17 @@ export async function activateLicenseKey(
 ): Promise<ActivationResult> {
   return (await postJson(fetchFn, `${baseUrl}/license/activate`, { machineHash, licenseKey })) as ActivationResult;
 }
+
+export interface DevUnlockResult {
+  ok: boolean;
+  reason?: string;
+}
+
+export async function fetchDevUnlock(
+  baseUrl: string,
+  machineHash: string,
+  password: string,
+  fetchFn: typeof fetch = fetch,
+): Promise<DevUnlockResult> {
+  return (await postJson(fetchFn, `${baseUrl}/dev/unlock`, { machineHash, password })) as DevUnlockResult;
+}

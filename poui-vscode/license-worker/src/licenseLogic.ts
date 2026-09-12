@@ -137,20 +137,12 @@ export function computeRenewedExpiresAt(currentExpiresAt: string, planDays: numb
   return new Date(baseMs + planDays * 24 * 60 * 60 * 1000).toISOString();
 }
 
-/** Dev/test machines (comma-separated `machineHash` list, kept server-side
- * as a Worker secret — never in source control, never reachable from a
- * client) always resolve to unlimited paid access, bypassing trial/credits/
- * license entirely. Whitespace around each hash is trimmed so the secret
- * can be formatted with spaces after commas without breaking the match. */
-export function isDevMachine(machineHash: string, devHashesCsv: string | undefined): boolean {
-  if (!devHashesCsv) {
-    return false;
-  }
-  return devHashesCsv
-    .split(',')
-    .map((hash) => hash.trim())
-    .filter(Boolean)
-    .includes(machineHash);
+/** Dev/test machines (hashes kept in the Worker's `dev:allowlist` KV entry,
+ * populated only via the password-gated `/dev/unlock` endpoint — never
+ * reachable or guessable from a client without the password) always resolve
+ * to unlimited paid access, bypassing trial/credits/license entirely. */
+export function isDevMachine(machineHash: string, allowlist: string[]): boolean {
+  return allowlist.includes(machineHash);
 }
 
 export function resolveStatus(

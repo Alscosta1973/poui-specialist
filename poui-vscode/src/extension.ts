@@ -14,6 +14,7 @@ import { registerScaffoldCommand } from './generateScaffold';
 import { registerDocsCommand } from './generateDocs';
 import { registerConfigureEngineCommand } from './configureEngine';
 import { registerActivateLicenseCommand } from './activateLicense';
+import { registerDevUnlockCommand } from './devUnlock';
 import { registerMenuCommand } from './menu';
 import { registerTemplateGalleryView } from './templateGalleryView';
 import { initializeLicenseStatus } from './requireLicense';
@@ -49,6 +50,7 @@ export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(registerDocsCommand(context, outputChannel));
   context.subscriptions.push(registerConfigureEngineCommand(context, outputChannel));
   context.subscriptions.push(registerActivateLicenseCommand(context, outputChannel));
+  context.subscriptions.push(registerDevUnlockCommand(context, outputChannel));
   context.subscriptions.push(registerMenuCommand(context, outputChannel));
   context.subscriptions.push(registerTemplateGalleryView(context));
 

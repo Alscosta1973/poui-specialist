@@ -86,6 +86,10 @@
       {
         "command": "poui.activateLicense",
         "title": "PO-UI: Ativar Licença"
+      },
+      {
+        "command": "poui.devUnlock",
+        "title": "PO-UI: Desbloquear Modo Dev (interno)"
       }
     ],
     "configuration": {
