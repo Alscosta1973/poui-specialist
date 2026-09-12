@@ -5,6 +5,7 @@
 //
 // Uso:
 //   node scripts/issue-license.mjs --new --email cliente@empresa.com --plan mensal
+//   node scripts/issue-license.mjs --new --email tester@empresa.com --plan beta
 //   node scripts/issue-license.mjs --renew POUI-XXXX-XXXX-XXXX --plan anual
 //
 // computeRenewedExpiresAt abaixo é uma cópia deliberada da função de mesmo
@@ -21,7 +22,7 @@ import { writeFileSync, unlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-const PLAN_DAYS = { mensal: 30, trimestral: 90, anual: 365 };
+const PLAN_DAYS = { mensal: 30, trimestral: 90, anual: 365, beta: 30 };
 
 function parseArgs(argv) {
   const args = { mode: null, email: null, plan: null, key: null };
@@ -99,9 +100,10 @@ function main() {
       boundMachineHash: null,
       expiresAt,
       notifiedExpiredAt: null,
+      source: args.plan === 'beta' ? 'beta' : 'paid',
     };
     kvPut(`license:${key}`, record);
-    console.log(`Chave criada: ${key}`);
+    console.log(`Chave criada (${record.source}): ${key}`);
     console.log(`Expira em: ${expiresAt}`);
     return;
   }
@@ -122,7 +124,7 @@ function main() {
   }
 
   console.error('Uso:');
-  console.error('  node scripts/issue-license.mjs --new --email <email> --plan <mensal|trimestral|anual>');
+  console.error('  node scripts/issue-license.mjs --new --email <email> --plan <mensal|trimestral|anual|beta>');
   console.error('  node scripts/issue-license.mjs --renew <chave> --plan <mensal|trimestral|anual>');
   process.exit(1);
 }

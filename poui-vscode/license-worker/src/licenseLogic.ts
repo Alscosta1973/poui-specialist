@@ -1,7 +1,7 @@
 export const TRIAL_DAYS = 14;
 export const TRIAL_CREDIT_BUDGET = 40;
 
-export const PLAN_DAYS = { mensal: 30, trimestral: 90, anual: 365 } as const;
+export const PLAN_DAYS = { mensal: 30, trimestral: 90, anual: 365, beta: 30 } as const;
 export type PlanId = keyof typeof PLAN_DAYS;
 
 export interface MachineRecord {
@@ -19,6 +19,10 @@ export interface LicenseRecord {
   boundMachineHash: string | null;
   expiresAt: string;
   notifiedExpiredAt: string | null;
+  /** Absent on every record written before this field existed — treated the
+   * same as 'paid' (grandfathered in), since every key issued back then was
+   * a real paid key. Only `issue-license.mjs --plan beta` writes 'beta'. */
+  source?: 'paid' | 'beta';
 }
 
 export type LicenseTier = 'trial' | 'paid' | 'expired' | 'unknown';
@@ -108,13 +112,18 @@ export function clampCredits(credits: number): number {
  * gets `expiresAt` backfilled without also explicitly setting
  * `notifiedExpiredAt` to `null`, a strict `=== null` check would stay
  * `false` forever (undefined never becomes null on its own) — silently
- * and permanently disabling the expiry email for that license. */
+ * and permanently disabling the expiry email for that license.
+ *
+ * Beta keys never notify: the email tells the owner a paying customer
+ * lapsed so they can follow up for renewal, which doesn't apply to a
+ * free tester key. */
 export function shouldNotifyExpiry(license: LicenseRecord | undefined, nowIso: string): boolean {
   return (
     license !== undefined &&
     license.status === 'active' &&
     nowIso >= license.expiresAt &&
-    !license.notifiedExpiredAt
+    !license.notifiedExpiredAt &&
+    license.source !== 'beta'
   );
 }
 

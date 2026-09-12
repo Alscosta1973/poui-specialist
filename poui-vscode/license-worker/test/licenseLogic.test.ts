@@ -195,6 +195,38 @@ describe('shouldNotifyExpiry', () => {
     };
     assert.strictEqual(shouldNotifyExpiry(license, NOW), false);
   });
+
+  it('is false for an expired beta license, even though the same record would notify as paid', () => {
+    const license: LicenseRecord = {
+      email: 'tester@example.com',
+      status: 'active',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      boundMachineHash: 'hash',
+      expiresAt: '2026-08-01T00:00:00.000Z',
+      notifiedExpiredAt: null,
+      source: 'beta',
+    };
+    assert.strictEqual(shouldNotifyExpiry(license, NOW), false);
+  });
+
+  it('is true for an expired license explicitly marked as paid', () => {
+    const license: LicenseRecord = {
+      email: 'dev@example.com',
+      status: 'active',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      boundMachineHash: 'hash',
+      expiresAt: '2026-08-01T00:00:00.000Z',
+      notifiedExpiredAt: null,
+      source: 'paid',
+    };
+    assert.strictEqual(shouldNotifyExpiry(license, NOW), true);
+  });
+});
+
+describe('PLAN_DAYS', () => {
+  it('gives beta keys a 30-day window, same as a monthly plan', () => {
+    assert.strictEqual(PLAN_DAYS.beta, 30);
+  });
 });
 
 describe('computeRenewedExpiresAt', () => {
