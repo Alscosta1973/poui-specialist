@@ -116,15 +116,15 @@ describe('extension packaging', () => {
     assert.ok(commands.includes('poui.menu'));
   });
 
-  it('contributes the poui.examplesView webview view in an activity bar container', () => {
+  it('contributes the poui.examplesView tree view in an activity bar container', () => {
     const ext = vscode.extensions.getExtension('andre-costa.poui-vscode');
-    const views = ext?.packageJSON?.contributes?.views as Record<string, Array<{ id: string; type: string }>> | undefined;
+    const views = ext?.packageJSON?.contributes?.views as Record<string, Array<{ id: string; type?: string }>> | undefined;
     const containers = ext?.packageJSON?.contributes?.viewsContainers?.activitybar as Array<{ id: string }> | undefined;
     const containerIds = containers?.map((c) => c.id) ?? [];
     const viewEntries = Object.entries(views ?? {}).flatMap(([containerId, entries]) => entries.map((e) => ({ containerId, ...e })));
     const examplesView = viewEntries.find((v) => v.id === 'poui.examplesView');
     assert.ok(examplesView, 'expected poui.examplesView to be contributed');
-    assert.strictEqual(examplesView?.type, 'webview');
+    assert.strictEqual(examplesView?.type, undefined, 'expected a native tree view (no "type" field), not a webview');
     assert.ok(containerIds.includes(examplesView!.containerId), 'expected the view container to be registered in the activity bar');
   });
 });

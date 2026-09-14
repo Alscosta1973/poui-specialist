@@ -46,6 +46,27 @@ export const Uri = {
 
 export const ProgressLocation = { Notification: 15 };
 
+export enum TreeItemCollapsibleState {
+  None = 0,
+  Collapsed = 1,
+  Expanded = 2,
+}
+
+export class ThemeIcon {
+  constructor(public id: string) {}
+}
+
+export class TreeItem {
+  public iconPath?: ThemeIcon;
+  public tooltip?: string;
+  public contextValue?: string;
+  public command?: { command: string; title: string; arguments?: unknown[] };
+  constructor(
+    public label: string,
+    public collapsibleState: TreeItemCollapsibleState = TreeItemCollapsibleState.None,
+  ) {}
+}
+
 export const window = {
   showErrorMessage: async (message: string, ..._items: string[]): Promise<string | undefined> => {
     shownErrorMessages.push(message);

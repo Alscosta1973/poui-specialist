@@ -176,8 +176,7 @@
       "pouiSpike": [
         {
           "id": "poui.examplesView",
-          "name": "Exemplos de Comandos",
-          "type": "webview"
+          "name": "Comandos"
         }
       ]
     }
