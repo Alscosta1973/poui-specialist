@@ -17,6 +17,7 @@ import { registerActivateLicenseCommand } from './activateLicense';
 import { registerDevUnlockCommand } from './devUnlock';
 import { registerMenuCommand } from './menu';
 import { registerTemplateGalleryView } from './templateGalleryView';
+import { registerCheckEnvironmentCommand } from './environmentCheckPrompt';
 import { initializeLicenseStatus } from './requireLicense';
 import { createLicenseStatusBarItem } from './licenseStatusBar';
 import { showFirstRunOrWhatsNew } from './onboarding';
@@ -33,7 +34,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
   createLicenseStatusBarItem(context);
   void initializeLicenseStatus(context);
-  void showFirstRunOrWhatsNew(context, context.extension.packageJSON.version as string);
+  void showFirstRunOrWhatsNew(context, context.extension.packageJSON.version as string, outputChannel);
 
   context.subscriptions.push(registerGenerateComponentCommand(context, outputChannel));
   context.subscriptions.push(registerGenerateTestCommand(context, outputChannel));
@@ -53,6 +54,7 @@ export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(registerDevUnlockCommand(context, outputChannel));
   context.subscriptions.push(registerMenuCommand(context, outputChannel));
   context.subscriptions.push(registerTemplateGalleryView(context));
+  context.subscriptions.push(registerCheckEnvironmentCommand(context, outputChannel));
 
   // Preview/E2E deixam um `ng serve` rodando em background (reaproveitado
   // entre execuções via devServerRegistry). Ao fechar esta janela/desativar

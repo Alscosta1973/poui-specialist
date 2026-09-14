@@ -13,9 +13,17 @@ export const commandRegistry = new Map<string, AnyFn>();
 export const executedCommands: string[] = [];
 export const shownErrorMessages: string[] = [];
 export const shownInfoMessages: string[] = [];
+export const shownWarningMessages: string[] = [];
+export const openedExternalUrls: string[] = [];
 
 let quickPickResult: unknown;
 let inputBoxResult: string | undefined;
+// Fila FIFO — permite scriptar respostas diferentes pra chamadas sucessivas
+// de showInformationMessage/showWarningMessage/showErrorMessage dentro de um
+// mesmo fluxo (ex: environmentCheckPrompt.ts mostra uma mensagem por item
+// faltando, cada uma com sua própria escolha). Vazia = undefined (comporta-
+// mento anterior, sem quebrar os testes que não usam a fila).
+const messageChoiceQueue: (string | undefined)[] = [];
 
 export function setNextQuickPick(value: unknown): void {
   quickPickResult = value;
@@ -25,11 +33,22 @@ export function setNextInputBox(value: string | undefined): void {
   inputBoxResult = value;
 }
 
+export function queueMessageChoice(value: string | undefined): void {
+  messageChoiceQueue.push(value);
+}
+
+function nextMessageChoice(): string | undefined {
+  return messageChoiceQueue.length > 0 ? messageChoiceQueue.shift() : undefined;
+}
+
 export function resetVscodeStub(): void {
   commandRegistry.clear();
   executedCommands.length = 0;
   shownErrorMessages.length = 0;
   shownInfoMessages.length = 0;
+  shownWarningMessages.length = 0;
+  openedExternalUrls.length = 0;
+  messageChoiceQueue.length = 0;
   quickPickResult = undefined;
   inputBoxResult = undefined;
   env.machineId = 'test-machine-id';
@@ -37,7 +56,10 @@ export function resetVscodeStub(): void {
 
 export const env = {
   machineId: 'test-machine-id',
-  openExternal: async (): Promise<boolean> => true,
+  openExternal: async (uri: { toString(): string }): Promise<boolean> => {
+    openedExternalUrls.push(uri.toString());
+    return true;
+  },
 };
 
 export const Uri = {
@@ -70,11 +92,15 @@ export class TreeItem {
 export const window = {
   showErrorMessage: async (message: string, ..._items: string[]): Promise<string | undefined> => {
     shownErrorMessages.push(message);
-    return undefined;
+    return nextMessageChoice();
   },
   showInformationMessage: async (message: string, ..._items: string[]): Promise<string | undefined> => {
     shownInfoMessages.push(message);
-    return undefined;
+    return nextMessageChoice();
+  },
+  showWarningMessage: async (message: string, ..._items: string[]): Promise<string | undefined> => {
+    shownWarningMessages.push(message);
+    return nextMessageChoice();
   },
   showQuickPick: async (_items: unknown, _options?: unknown): Promise<unknown> => quickPickResult,
   showInputBox: async (_options?: unknown): Promise<string | undefined> => inputBoxResult,

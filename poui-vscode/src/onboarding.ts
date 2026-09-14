@@ -1,10 +1,15 @@
 import * as vscode from 'vscode';
 import { shouldShowWhatsNew } from './versionNotice';
+import { runEnvironmentCheck } from './environmentCheckPrompt';
 
 const LAST_SEEN_VERSION_KEY = 'poui.lastSeenVersion';
 const WALKTHROUGH_ID = 'andre-costa.poui-vscode#poui.gettingStarted';
 
-export async function showFirstRunOrWhatsNew(context: vscode.ExtensionContext, currentVersion: string): Promise<void> {
+export async function showFirstRunOrWhatsNew(
+  context: vscode.ExtensionContext,
+  currentVersion: string,
+  outputChannel: vscode.OutputChannel,
+): Promise<void> {
   const lastSeenVersion = context.globalState.get<string>(LAST_SEEN_VERSION_KEY);
 
   if (lastSeenVersion === undefined) {
@@ -15,6 +20,9 @@ export async function showFirstRunOrWhatsNew(context: vscode.ExtensionContext, c
     if (choice === 'Ver Guia Rápido') {
       void vscode.commands.executeCommand('workbench.action.openWalkthrough', WALKTHROUGH_ID);
     }
+    // Só na primeira instalação — não em toda atualização de versão, pra não
+    // acrescentar latência/ruído em quem já tem tudo configurado.
+    void runEnvironmentCheck(context, outputChannel);
   } else if (shouldShowWhatsNew(lastSeenVersion, currentVersion)) {
     const choice = await vscode.window.showInformationMessage(
       `PO-UI Specialist atualizado para v${currentVersion}.`,

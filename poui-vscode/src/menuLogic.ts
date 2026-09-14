@@ -41,6 +41,7 @@ export const GROUPS: MenuGroup[] = [
       { label: 'Preview no Browser', commandId: 'poui.preview', paid: false },
       { label: 'Reverter Componente Gerado', commandId: 'poui.undo', paid: false },
       { label: 'Consultar Documentação de Componente', commandId: 'poui.docs', paid: false },
+      { label: 'Verificar Ambiente', commandId: 'poui.checkEnvironment', paid: false },
     ],
   },
   {

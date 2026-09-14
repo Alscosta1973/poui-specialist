@@ -88,6 +88,10 @@
         "title": "PO-UI: Ativar Licença"
       },
       {
+        "command": "poui.checkEnvironment",
+        "title": "PO-UI: Verificar Ambiente"
+      },
+      {
         "command": "poui.devUnlock",
         "title": "PO-UI: Desbloquear Modo Dev (interno)"
       }

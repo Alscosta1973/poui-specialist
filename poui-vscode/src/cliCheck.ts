@@ -14,7 +14,11 @@ export interface CliCheckResult {
 
 export type RunVersionCheck = (command: string, args: string[]) => Promise<{ stdout: string }>;
 
-async function defaultRunVersionCheck(command: string, args: string[]): Promise<{ stdout: string }> {
+/** Exportada (não só usada como default de `checkEngineAvailable`) pra
+ * `environmentCheck.ts` reaproveitar a mesma invocação segura no Windows —
+ * `node`/`ng`/`git` têm o mesmo problema de shim `.cmd`/`.ps1` que `codex`/
+ * `gemini` já tinham (ver achado no comentário abaixo). */
+export async function runVersionCheck(command: string, args: string[]): Promise<{ stdout: string }> {
   // Mesma causa raiz e mesma correção do fix em agentRuntime.ts:
   // defaultSpawn — ver o comentário lá pro achado completo (ENOENT em
   // codex/gemini no Windows por serem shims .cmd/.ps1, e por que uma
@@ -35,7 +39,7 @@ async function defaultRunVersionCheck(command: string, args: string[]): Promise<
 
 export async function checkEngineAvailable(
   engineId: EngineId,
-  run: RunVersionCheck = defaultRunVersionCheck,
+  run: RunVersionCheck = runVersionCheck,
 ): Promise<CliCheckResult> {
   const adapter = getEngineAdapter(engineId);
   try {

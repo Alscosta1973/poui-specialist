@@ -8,12 +8,32 @@ já autenticada no claude.ai — sem precisar de API key separada.
 
 ## Requisitos
 
-- VS Code
-- [Claude Code CLI](https://code.claude.com) instalado e logado na sua
-  conta (`claude --version` funcionando) — necessário para os comandos
-  de geração/revisão; alguns comandos (ver tabela abaixo) não precisam
-  dele
+**Sempre obrigatório:**
+- VS Code ≥ 1.90
+- [Node.js](https://nodejs.org/) ≥ 18.19 (recomendado uma LTS recente —
+  20 ou 22 — porque o Angular 21 usado pelo Scaffold é exigente com
+  versão de Node)
+- [Angular CLI](https://angular.dev/cli) instalado globalmente
+  (`npm install -g @angular/cli`) — os comandos rodam `ng new`/`ng
+  build`/`ng serve` direto, então o `ng` precisa resolver no PATH
 - Uma licença PO-UI Specialist ativa (trial, beta ou paga)
+
+**Obrigatório só para os comandos com IA** (Gerar Componente/Teste/E2E/
+Screenshot, Revisar Código, Consultar Documentação, a parte agentiva do
+Conectar — ver tabela abaixo):
+- [Claude Code CLI](https://code.claude.com) instalado e logado na sua
+  própria conta (`claude --version` funcionando)
+
+**Opcional** (a extensão funciona sem, com aviso/fallback):
+- Git — só usado pelo Scaffold para `git init`/commit no projeto novo;
+  sem ele, o Scaffold avisa e segue sem versionar
+- [7-Zip](https://7-zip.org/) — só usado por `PO-UI: Empacotar Projeto
+  (.app)`; sem ele, cai num fallback do PowerShell com aviso antes de
+  usar
+
+Rode `PO-UI: Verificar Ambiente` a qualquer momento (ou deixe a
+extensão verificar sozinha na primeira instalação) para conferir o que
+está faltando na sua máquina.
 
 ## Instalação
 
@@ -72,6 +92,7 @@ automaticamente, só reportados.
 | `PO-UI: Consultar Documentação de Componente` | Consulta a referência de um componente PO-UI (inputs, outputs, exemplos de uso) |
 | `PO-UI: Configurar Motor de IA` | Escolhe qual CLI a extensão usa (`claude`/`codex`/`gemini` — Codex e Gemini ainda experimentais) |
 | `PO-UI: Ativar Licença` | Ativa uma chave de licença existente, ou abre o fluxo de compra |
+| `PO-UI: Verificar Ambiente` | Confere Node, Angular CLI, Claude Code CLI, Git e 7-Zip na sua máquina e orienta o que falta — roda sozinho na primeira instalação |
 
 ## Licença
 
