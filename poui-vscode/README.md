@@ -1,545 +1,80 @@
-# PO-UI Specialist — extensão VS Code (paridade completa com o plugin)
+# PO-UI Specialist — extensão VS Code
 
-Gera componentes Angular PO-UI de 3 famílias diretamente do VS Code —
-**Lista/Browse** (`page-list`, `page-dynamic-search`, `stacked-browse`,
-`two-panel-browse`, `action-list`, `master-detail`, `page-dynamic`,
-`infinite-scroll`, `po-tree`), **Formulários** (`page-edit`,
-`page-detail`, `modal-crud`, `stepper-form`) e **Infraestrutura**
-(`service`, `dashboard`, `tlpp-contract`, `auth-login`, `module`,
-`models`, `refactor`, `http-interceptor`, `route-guard`,
-`standalone-migrate`, `upload`) — os 24 tipos do plugin original.
-Roda o Claude Code CLI (`claude`) como subprocesso, reaproveitando a
-sessão já autenticada no claude.ai — sem API key separada, mas
-dependente do CLI instalado na máquina.
+Gera componentes Angular PO-UI integrados ao Protheus REST diretamente no
+VS Code — 24 tipos, agrupados em 3 famílias: **Lista/Browse**,
+**Formulários** e **Infraestrutura**. A maioria dos comandos roda o
+Claude Code CLI (`claude`) como subprocesso, reaproveitando a sua sessão
+já autenticada no claude.ai — sem precisar de API key separada.
 
-A partir da versão com motor plugável, o CLI usado é escolhido pelo setting
-`poui.aiEngine` (`claude`/`codex`/`gemini`, default `claude`) — Codex e
-Gemini ainda são suporte experimental, ver
-`docs/superpowers/specs/2026-09-04-vscode-extension-multi-engine-design.md`
-para as limitações conhecidas de cada um.
+## Requisitos
 
-Após gerar os arquivos com sucesso, a extensão roda `ng build
---configuration development` automaticamente para verificar o
-resultado. Se o build falhar com erros localizados nos arquivos que ela
-acabou de gerar, tenta corrigi-los sozinha (até 3 tentativas, cada uma
-seguida de uma nova verificação de build); erros pré-existentes no
-projeto (fora dos arquivos gerados nesta execução) nunca são "corrigidos"
-automaticamente — só reportados.
+- VS Code
+- [Claude Code CLI](https://code.claude.com) instalado e logado na sua
+  conta (`claude --version` funcionando) — necessário para os comandos
+  de geração/revisão; alguns comandos (ver tabela abaixo) não precisam
+  dele
+- Uma licença PO-UI Specialist ativa (trial, beta ou paga)
 
-Também gera testes unitários Karma + Jasmine (`PO-UI: Gerar Teste
-Unitário`) para qualquer `.component.ts`/`.service.ts` do projeto —
-gerado pelo plugin ou legado — via um seletor de arquivo. Diferente da
-geração de componentes, não roda `ng test` automaticamente depois: o
-spec é escrito e cabe a você rodar `ng test` para verificar. Antes de
-gerar, avisa (sem bloquear) se o projeto não tiver Karma configurado em
-`angular.json` — spec Jasmine não roda em projetos criados para Vitest
-ou sem test runner nenhum (achado testando em um Angular 21 real, ver
-`src/karmaCheck.ts`) — e oferece um botão **"Configurar Karma"** que
-instala as dependências, escreve `karma.conf.js`, adiciona o target
-`test` em `angular.json` e ajusta `tsconfig.spec.json`/`tsconfig.json`
-sozinho (`src/karmaSetup.ts`); depois de configurar, pede pra rodar o
-comando de novo em vez de continuar a geração na mesma execução.
-**Nada disso acontece automaticamente sem esse clique** — a extensão
-nunca mexe nas dependências do projeto do usuário sem confirmação
-explícita.
+## Instalação
 
-`PO-UI: Lint de Componentes` e `PO-UI: Auditoria de Qualidade` **não
-usam o Claude Code CLI** — são só análise por regex/texto sobre arquivos
-já no disco. O lint roda 14 verificações conhecidas (`ChangeDetectionStrategy.OnPush`
-ausente, `*ngIf`/`*ngFor` legados, `p-selected-rows`/`p-max-length`
-incorretos em `po-table`/`po-input`, etc.) numa pasta escolhida, com
-correção automática opcional para 7 delas; a auditoria de qualidade
-varre `src/app` inteiro procurando componentes gerados pelo plugin
-(marca `@generated  poui-specialist`) e classifica cada um em
-Aprovado/Atenção/Crítico — só leitura, nunca modifica nada.
+1. Instale o `.vsix`: no VS Code, `Ctrl+Shift+P` → `Extensions: Install
+   from VSIX...` e selecione o arquivo (ou pelo terminal,
+   `code --install-extension poui-vscode-<versão>.vsix`)
+2. Rode `PO-UI: Ativar Licença` na paleta de comandos e informe sua
+   chave (`POUI-XXXX-XXXX-XXXX`). Sem chave ainda? A mesma tela tem a
+   opção "Quero comprar uma licença"
+3. Abra uma pasta de projeto Angular como workspace e comece a usar os
+   comandos `PO-UI: ...` pela paleta (`Ctrl+Shift+P`) — ou rode
+   `PO-UI: Menu` para ver os comandos mais usados num só lugar
 
-`PO-UI: Revisar Código` volta a usar o Claude Code CLI — pede um arquivo
-ou pasta e um foco (boas práticas, performance, acessibilidade,
-segurança, quirks PO-UI, qualidade, ou todas), e reporta os achados como
-texto no output channel. Diferente dos demais comandos que chamam o
-CLI, roda com um conjunto de ferramentas restrito a leitura
-(`Read,Glob,Grep` — sem `Write`/`Edit`), já que revisão nunca deve poder
-alterar código sozinha.
+## O que você pode gerar
 
-`PO-UI: Preview no Browser` **não usa o Claude Code CLI nem Playwright**
-— diferente do `poui-preview`/`poui-e2e` originais (que rodam num chat
-sem tela e por isso precisam de MCP + screenshot), a extensão roda no
-computador do usuário com um browser de verdade disponível. O comando
-registra a rota em `app.routes.ts` (se ainda não existir), sobe
-`ng serve` numa porta livre (4200-4209, detectada via `net` do Node) e
-abre a URL no browser padrão do sistema via `vscode.env.openExternal`.
-O dev server continua rodando em background depois — não há comando de
-"parar" nesta fatia.
+24 tipos via `PO-UI: Gerar Componente`, agrupados por família no
+seletor:
 
-`PO-UI: Gerar Teste E2E (Playwright)` volta a usar o Claude Code CLI, e
-é o único fluxo que também usa **MCP** — diferente de `preview`, aqui o
-agente precisa controlar um browser de verdade *durante* a geração
-(navegar e inspecionar a árvore de acessibilidade real via
-`browser_snapshot`, pra descobrir seletores de verdade em vez de
-inventar). O comando: verifica se a rota do componente já está
-registrada em `app.routes.ts` (não registra sozinho — rode `PO-UI:
-Preview no Browser` primeiro se ainda não tiver rota), sobe o dev
-server (reaproveita `devServer.ts`, sem registrar rota), configura um
-servidor MCP do Playwright (`npx @playwright/mcp@latest --headless`)
-via `--mcp-config`, e gera `e2e/<nome>.e2e.spec.ts`. **Achado
-confirmado por teste real**: `--tools`/`--permission-mode acceptEdits`
-não auto-aprovam ferramentas MCP sozinhas — precisa também de
-`--allowedTools` com os nomes `mcp__playwright__*`, senão toda chamada
-MCP fica bloqueada por permissão. Não roda `npx playwright test`
-automaticamente (mesma decisão do `test`) — e assim como o Karma, o
-projeto alvo precisa ter `@playwright/test` configurado
-(`playwright.config.ts`) pra rodar o spec depois; o comando avisa (sem
-bloquear) quando não tiver.
-
-## Rodando em desenvolvimento
-
-1. Tenha o [Claude Code CLI](https://code.claude.com) instalado e logado
-   (`claude` no PATH, `claude --version` funcionando — a extensão usa a
-   mesma sessão do claude.ai já autenticada, sem API key separada)
-2. `cd poui-vscode && npm install`
-3. Pressione **F5** no VS Code (roda a task `npm: compile` e abre um
-   "Extension Development Host")
-4. Abra uma pasta de projeto Angular (ex: `examples/modulo-compras` deste
-   repo) como workspace do host de desenvolvimento
-5. Rode `PO-UI: Gerar Componente` na paleta (`Ctrl+Shift+P`), escolha o
-   tipo no `QuickPick` (agrupado por família: Lista/Browse, Formulários,
-   Infraestrutura) e informe o nome da entidade e o módulo de destino
-   (pulado automaticamente para `auth-login`, que sempre vai em
-   `src/app/auth/`)
-6. Ou rode `PO-UI: Gerar Teste Unitário` na paleta, selecione um
-   `.component.ts`/`.service.ts` existente no diálogo de arquivo (começa
-   em `src/app`) e aguarde o `.spec.ts` ser escrito ao lado
-7. Ou rode `PO-UI: Lint de Componentes`, selecione uma pasta, veja o
-   relatório no output channel "PO-UI" e escolha se quer aplicar as
-   correções automáticas disponíveis
-8. Ou rode `PO-UI: Auditoria de Qualidade` (sem escolher nada) para ver o
-   relatório de todos os componentes gerados pelo plugin em `src/app`
-9. Ou rode `PO-UI: Revisar Código`, selecione um arquivo ou pasta,
-   escolha o foco no `QuickPick` e veja o relatório de achados no output
-   channel "PO-UI"
-10. Ou rode `PO-UI: Preview no Browser`, selecione um `.component.ts` já
-    gerado e aguarde o browser abrir sozinho na rota do componente
-11. Ou rode `PO-UI: Gerar Teste E2E (Playwright)` (depois de já ter
-    rodado o Preview nesse componente pelo menos uma vez, pra rota
-    existir), selecione o `.component.ts` e aguarde
-    `e2e/<nome>.e2e.spec.ts` ser escrito
-
-## Testes
-
-- `npm run test:unit` — testes rápidos (Mocha, sem Electron)
-- `npm test` — testes de integração via `@vscode/test-electron` (baixa um
-  binário do VS Code na primeira execução — precisa de internet)
-
-## QA manual
-
-Com o Extension Development Host rodando (F5) e `examples/modulo-compras`
-(módulo `compras`) aberto como workspace, executar e registrar o resultado
-(pass/fail + notas) de cada cenário:
-
-1. **Sem workspace aberto** — feche a pasta do workspace e rode `PO-UI: Gerar
-   Componente` → esperado: o erro "abra uma pasta de projeto Angular antes de
-   gerar um componente" e nenhum prompt adicional (nem o `QuickPick` de tipo).
-2. **CLI não instalado/não logado** — renomeie temporariamente o binário
-   `claude` do PATH (ou rode num ambiente sem ele) e rode `PO-UI: Gerar
-   Componente` → esperado: erro orientando instalar/logar o Claude Code CLI,
-   sem travar a extensão.
-3. **Nome em minúsculas** — rode `PO-UI: Gerar Componente`, escolha `Page
-   List`, use o nome de entidade `fornecedores` → esperado: o aviso "nome
-   corrigido para PascalCase: Fornecedores" e a geração prosseguindo.
-4. **Módulo inválido** — digite `Compras Financeiro` (contém espaço/maiúscula)
-   no prompt de módulo → esperado: mensagem de validação inline bloqueando o
-   envio até ser corrigido para `compras`.
-5. **Caminho feliz** — entidade `Fornecedores`, módulo `compras`, aceitando o
-   endpoint padrão → esperado: saída em streaming no output channel "PO-UI",
-   uma notificação final com a contagem de arquivos e, ao clicar em "Abrir
-   arquivo gerado", o `.component.ts` gerado abre no editor.
-6. **Build real** — em um terminal, `cd examples/modulo-compras && npm run build`
-   (ou `ng build --configuration development`, já que os `budgets` padrão de
-   produção desse projeto de exemplo são apertados demais mesmo sem nenhum
-   componente novo) → esperado: compilação bem-sucedida com os arquivos
-   recém gerados incluídos, sem erros de TypeScript.
-6b. **Build-fix automático** — logo após uma geração bem-sucedida (cenário 5
-    ou 7-10), observe o output channel "PO-UI": deve aparecer "Verificando o
-    build..." seguido de "✓ Build passou na tentativa 1." (build já limpo) ou,
-    se introduzir deliberadamente um erro de tipo num arquivo gerado antes de
-    rodar o comando, das mensagens "✗ Build falhou... corrigindo (tentativa
-    N/3)..." até "✓ Build passou na tentativa N." → esperado: a notificação
-    final some "build ok." ao sucesso, ou "build ainda com erro(s)" (aviso, não
-    erro) se as 3 tentativas se esgotarem.
-7. **Outro tipo da família Lista** — rode `PO-UI: Gerar Componente` de novo,
-   escolha um tipo diferente (ex: `Stacked Browse` ou `Action List`) →
-   esperado: geração usando os arquivos de referência daquele tipo
-   específico (não os de `page-list`), mesmo fluxo de nome/módulo/endpoint.
-8. **Tipo da família Formulários** — escolha `Page Edit` ou `Modal CRUD` →
-   esperado: geração usando os arquivos de referência de
-   `code-generator-forms.md` (formulário com `po-dynamic-form`), não os de
-   Lista/Browse.
-9. **Tipo sem módulo (`auth-login`)** — escolha `Auth Login` → esperado: a
-   pergunta de módulo é pulada (log no output channel confirmando o destino
-   fixo `auth`), geração direto em `src/app/auth/`.
-10. **Tipo sem componente Angular (`tlpp-contract` ou `service`)** —
-    escolha um dos dois → esperado: geração usando os arquivos de
-    referência de `code-generator-infra.md`, sem necessariamente criar
-    `.component.ts/html/scss` (conforme a convenção do próprio tipo).
-11. **Gerar teste unitário** — rode `PO-UI: Gerar Teste Unitário`, selecione
-    um `.component.ts` gerado num cenário anterior (ex: o de `Fornecedores`
-    do cenário 5) → esperado: diálogo de arquivo abrindo em `src/app`,
-    geração do `.spec.ts` ao lado do componente, notificação final "teste
-    gerado. Rode `ng test` manualmente..." (sem `ng test` rodando sozinho).
-    Depois, rode `ng test --include="<specPath>" --watch=false` manualmente
-    para confirmar que o spec compila e passa.
-11b. **Aviso de Karma ausente — continuar sem configurar** — num projeto
-     sem target `test` em `angular.json` (ou renomeie temporariamente o
-     `angular.json` do `modulo-compras`), rode `PO-UI: Gerar Teste
-     Unitário` → esperado: aviso "este projeto não parece ter o Karma
-     configurado..." com dois botões, **"Configurar Karma"** e
-     **"Continuar sem configurar"** → clique no segundo → esperado: segue
-     normal pro diálogo de arquivo e gera o teste. Fechar o aviso sem
-     clicar em nenhum botão cancela o comando inteiro (decisão explícita
-     exigida, diferente das fases anteriores).
-11c. **Configurar Karma pelo botão** — mesmo cenário acima, mas clique em
-     **"Configurar Karma"** → esperado: barra de progresso "PO-UI:
-     configurando Karma...", output channel narrando cada passo (`npm
-     install`, `karma.conf.js`, `angular.json`, `tsconfig.spec.json`/
-     `tsconfig.json`), notificação final "Karma configurado! Rode... de
-     novo", e o comando encerra sem abrir o diálogo de arquivo (rode `PO-UI:
-     Gerar Teste Unitário` de novo pra confirmar que o aviso não aparece
-     mais).
-12. **Gerar teste para arquivo inválido** — rode `PO-UI: Gerar Teste
-    Unitário` e tente selecionar algo que não seja `.component.ts`/
-    `.service.ts` (ex: um `.html`) → esperado: como o diálogo já filtra por
-    `.ts`, selecione um `.ts` que não seja componente/service (ex: um
-    `.module.ts`) → erro "selecione um arquivo `.component.ts` ou
-    `.service.ts`", sem chamar o CLI.
-13. **Lint com problemas corrigíveis** — introduza deliberadamente um
-    componente sem `OnPush` e com `p-max-length` no template, rode `PO-UI:
-    Lint de Componentes`, selecione a pasta → esperado: relatório no
-    output channel listando os achados por severidade, prompt "Aplicar as
-    correções automáticas disponíveis?" → escolha "Aplicar correções" →
-    esperado: os arquivos são reescritos (`OnPush` adicionado,
-    `p-max-length` virou `p-maxlength`), resumo de fixes aplicados +
-    pendências manuais, e `ng build --configuration development` continua
-    passando depois.
-14. **Lint sem problemas** — rode `PO-UI: Lint de Componentes` numa pasta
-    já limpa → esperado: "Nenhum problema encontrado." no relatório, sem
-    prompt de correção.
-15. **Auditoria de qualidade** — rode `PO-UI: Auditoria de Qualidade` (sem
-    escolher pasta) → esperado: relatório agrupando os componentes com a
-    marca `@generated  poui-specialist` em Aprovados/Atenção/Críticos,
-    seção de rotas auditadas se `app.routes.ts` existir, notificação final
-    com a contagem de cada categoria.
-16. **Revisar código** — rode `PO-UI: Revisar Código`, selecione uma pasta
-    (ex: `src/app/financeiro`), escolha o foco "Todas as categorias" →
-    esperado: relatório de achados por arquivo/severidade no output
-    channel "PO-UI", notificação final "revisão concluída", e nenhum
-    arquivo do projeto modificado (confira com `git status` depois).
-17. **Revisar com foco específico** — rode `PO-UI: Revisar Código` de novo
-    escolhendo "Segurança" → esperado: achados restritos à categoria
-    (`bypassSecurityTrust*`, URL hardcoded, concatenação em HTTP), sem
-    misturar com os das outras categorias.
-18. **Preview de um componente novo** — rode `PO-UI: Preview no Browser`,
-    selecione um `.component.ts` gerado num cenário anterior cuja rota
-    ainda não existe em `app.routes.ts` → esperado: output channel mostra
-    "Rota registrada: <módulo>/<kebab-name>", `app.routes.ts` ganha a
-    nova entrada `loadComponent`, "Iniciando dev server na porta 4200...",
-    e o browser padrão do sistema abre sozinho em
-    `http://localhost:4200/<módulo>/<kebab-name>` mostrando o componente.
-19. **Preview de rota já registrada** — rode `PO-UI: Preview no Browser`
-    de novo apontando pro mesmo componente do cenário 18, sem fechar o
-    dev server anterior → esperado: "Rota já registrada: ..." (sem
-    duplicar a entrada em `app.routes.ts`); como o comando não rastreia
-    servidores já rodando, a porta 4200 aparece ocupada e ele sobe **um
-    segundo** `ng serve` na próxima porta livre (4201) e abre o browser
-    nela — limitação conhecida desta fatia (sem reaproveitar servidor
-    já no ar), ok pra esse teste, mas encerre os processos `ng serve`
-    manualmente no terminal ao final.
-20. **E2E sem rota registrada** — rode `PO-UI: Gerar Teste E2E
-    (Playwright)` num componente que nunca passou pelo Preview →
-    esperado: erro "a rota `<módulo>/<nome>` ainda não está registrada
-    em app.routes.ts — rode PO-UI: Preview no Browser neste componente
-    primeiro", sem subir dev server nem chamar o CLI.
-21. **E2E de verdade** — rode `PO-UI: Preview no Browser` no
-    `fornecedores-list` primeiro (garante a rota), depois `PO-UI: Gerar
-    Teste E2E (Playwright)` no mesmo componente → esperado: dev server
-    sobe, output channel narra o agente usando `browser_navigate`/
-    `browser_snapshot` (bloco `→ mcp__playwright__browser_...`),
-    `e2e/fornecedores-list.e2e.spec.ts` é escrito com seletores reais
-    (não genéricos) descobertos no snapshot, notificação final "teste
-    E2E gerado. Rode `npx playwright test` manualmente...".
-22. **Configurar Playwright pelo botão** — num projeto sem
-    `playwright.config.ts`/`.js`, rode `PO-UI: Gerar Teste E2E
-    (Playwright)` → aviso com os botões **"Configurar Playwright"**/
-    **"Continuar sem configurar"** → clique em "Configurar Playwright" →
-    esperado: barra de progresso avisando que pode demorar (download do
-    Chromium), output channel narrando `npm install`, instalação do
-    Chromium e criação do `playwright.config.ts`, notificação final
-    "Playwright configurado! Rode... de novo". Rode o comando de novo
-    depois e confirme que o aviso não aparece mais.
-
-## Escopo desta fase
-
-24 tipos disponíveis via `PO-UI: Gerar Componente` (paridade completa com
-o `/generate` do plugin original), agrupados por família no `QuickPick`:
-
-- **Lista/Browse**: `page-list`, `page-dynamic-search`, `stacked-browse`,
-  `two-panel-browse`, `action-list`, `master-detail`, `page-dynamic`,
-  `infinite-scroll`, `po-tree`
-- **Formulários**: `page-edit`, `page-detail`, `modal-crud`, `stepper-form`
+- **Lista/Browse**: `page-list`, `page-dynamic-search`,
+  `stacked-browse`, `two-panel-browse`, `action-list`, `master-detail`,
+  `page-dynamic`, `infinite-scroll`, `po-tree`
+- **Formulários**: `page-edit`, `page-detail`, `modal-crud`,
+  `stepper-form`
 - **Infraestrutura**: `service`, `dashboard`, `tlpp-contract`,
   `auth-login`, `module`, `models`, `refactor`, `http-interceptor`,
   `route-guard`, `standalone-migrate`, `upload`
 
 `module` não pede módulo nem arquivo — usa o próprio nome como módulo
-(scaffold de app inteiro). `refactor` é o único tipo que abre um diálogo
-de arquivo (`showOpenDialog`) para escolher o `.prw`/`.tlpp` de origem
-antes de gerar. `upload` tem 3 variantes internas (auto-upload único,
-múltiplo + tabela, ou embutido em form) que o próprio agente escolhe a
-partir da descrição — sem pergunta extra na UI.
+(scaffold de app inteiro). `refactor` abre um diálogo de arquivo para
+escolher o `.prw`/`.tlpp` de origem antes de gerar. `auth-login` sempre
+vai em `src/app/auth/`, sem perguntar módulo.
 
 Toda geração é seguida automaticamente por uma verificação de build
-(`ng build --configuration development`) com correção automática de até
-3 tentativas, restrita a erros localizados nos arquivos gerados nesta
-mesma execução (equivalente ao `poui-build-fix` do plugin original).
+(`ng build --configuration development`): se falhar em erros dos
+arquivos recém-gerados, a extensão tenta corrigir sozinha (até 3
+tentativas); erros pré-existentes no projeto nunca são "corrigidos"
+automaticamente, só reportados.
 
-`PO-UI: Gerar Teste Unitário` (comando `poui.generate.test`) gera specs
-Karma + Jasmine (equivalente ao `/poui-specialist:test` do plugin
-original) para qualquer `.component.ts`/`.service.ts` do projeto,
-apontado via um diálogo de arquivo — não roda `ng test` automaticamente.
+## Comandos disponíveis
 
-`PO-UI: Lint de Componentes` (`poui.lint`, equivalente a
-`/poui-specialist:lint <path> [--fix]`) e `PO-UI: Auditoria de Qualidade`
-(`poui.quality`, equivalente à skill `poui-quality`) não usam o Claude
-Code CLI — são regex/texto puro sobre arquivos no disco. O lint cobre as
-14 verificações do plugin original; 7 têm correção automática nesta
-versão (`L01`, `L02`, `L06`, `L07`, `H03`, `H04`, `H06`) — `H01`/`H02`
-(`*ngIf`/`*ngFor` → `@if`/`@for`) ficam só como relatório porque a
-reescrita seguraria exigiria balancear a tag de fechamento em HTML
-arbitrário, risco maior do que vale nesta fatia.
+| Comando | O que faz |
+|---|---|
+| `PO-UI: Menu` | Atalho com os comandos mais usados, num só seletor |
+| `PO-UI: Gerar Componente` | Gera um dos 24 tipos acima, a partir do nome da entidade, módulo e endpoint |
+| `PO-UI: Gerar Teste Unitário` | Gera um spec Karma + Jasmine para um `.component.ts`/`.service.ts` já existente; se o projeto não tiver Karma configurado, oferece configurar tudo com um clique |
+| `PO-UI: Lint de Componentes` | Analisa uma pasta (14 verificações conhecidas de PO-UI/Angular) e corrige 7 delas automaticamente se você confirmar — **não usa o Claude Code CLI** |
+| `PO-UI: Auditoria de Qualidade` | Varre `src/app` procurando componentes gerados pela extensão e classifica cada um em Aprovado/Atenção/Crítico — só leitura, **não usa o CLI** |
+| `PO-UI: Revisar Código` | Revisa um arquivo ou pasta (boas práticas, performance, acessibilidade, segurança, quirks PO-UI ou qualidade) e reporta os achados — nunca altera código |
+| `PO-UI: Preview no Browser` | Registra a rota do componente, sobe um `ng serve` numa porta livre (4200-4209) e abre no seu navegador — **não usa o CLI** |
+| `PO-UI: Gerar Teste E2E (Playwright)` | Gera um spec Playwright real para um componente (rode `Preview no Browser` nele antes, pra rota existir); oferece configurar o Playwright se o projeto não tiver |
+| `PO-UI: Reverter Componente Gerado` | Lista componentes gerados pela extensão e remove os arquivos escolhidos + a rota correspondente, com confirmação |
+| `PO-UI: Gerar a partir de Screenshot` | Analisa uma imagem local (wireframe/print) e monta um manifesto de geração, pedindo sua confirmação antes de gerar |
+| `PO-UI: Empacotar Projeto (.app)` | Builda em produção e empacota o projeto como `Resource/<projeto>.app`, pronto para publicar no Protheus |
+| `PO-UI: Conectar ao Protheus` | Troca os mocks de um componente por chamadas reais ao endpoint Protheus configurado, ajustando o proxy e (se necessário) gerando o contrato TLPP |
+| `PO-UI: Criar Novo Projeto (Scaffold)` | Cria um projeto Angular + PO-UI novo do zero (`ng new`, tema, componente inicial, proxy) |
+| `PO-UI: Consultar Documentação de Componente` | Consulta a referência de um componente PO-UI (inputs, outputs, exemplos de uso) |
+| `PO-UI: Configurar Motor de IA` | Escolhe qual CLI a extensão usa (`claude`/`codex`/`gemini` — Codex e Gemini ainda experimentais) |
+| `PO-UI: Ativar Licença` | Ativa uma chave de licença existente, ou abre o fluxo de compra |
 
-`PO-UI: Revisar Código` (`poui.review`, equivalente a
-`/poui-specialist:review <file|directory> [--focus <categoria>]`) volta
-a usar o Claude Code CLI, mas com o conjunto de ferramentas restrito a
-`Read,Glob,Grep` (sem `Write`/`Edit`) via o novo campo opcional
-`RunAgentOptions.tools` de `agentRuntime.ts` — igual ao comando
-original, que também não inclui ferramentas de escrita. Cobre as mesmas
-6 categorias (boas práticas, performance, acessibilidade, segurança,
-quirks PO-UI, qualidade) via o único arquivo de referência
-`agents/code-reviewer.md`.
+## Licença
 
-`PO-UI: Preview no Browser` (`poui.preview`, equivalente ao `poui-
-preview` original) **não usa o Claude Code CLI nem Playwright** — a
-extensão roda no computador do usuário com um browser real disponível,
-então em vez de MCP + screenshot ela registra a rota em
-`app.routes.ts` (`src/previewRoutes.ts`), sobe `ng serve` numa porta
-livre 4200-4209 (`src/devServer.ts`, detecção via `net` do Node, sem
-PowerShell/netstat) e abre o browser padrão do sistema via
-`vscode.env.openExternal`. Limitação conhecida: não rastreia servidores
-já em execução, então rodar o comando duas vezes sobe dois `ng serve`
-em portas diferentes (ver cenário de QA 19).
-
-`PO-UI: Gerar Teste E2E (Playwright)` (`poui.generate.e2e`, equivalente
-a `/poui-specialist:e2e <ComponentClass> --module <module>`) é o único
-comando que combina Claude Code CLI **e** MCP. Não registra rota (exige
-que `PO-UI: Preview no Browser` já tenha rodado nesse componente antes
-— erro claro se a rota não existir), reaproveita `devServer.ts` pra
-subir o `ng serve`, e configura `@playwright/mcp` via
-`--mcp-config`/`--strict-mcp-config` (`agentRuntime.ts` ganhou os campos
-`mcpConfig`/`allowedTools` em `RunAgentOptions` pra isso). **Achado
-confirmado por spike real antes de implementar**: `--tools`/
-`--permission-mode acceptEdits` não auto-aprovam ferramentas MCP —
-precisa também de `--allowedTools` com os nomes
-`mcp__playwright__browser_navigate`/`browser_snapshot`/`browser_wait_for`,
-senão toda chamada MCP é bloqueada por permissão mesmo em modo
-não-interativo. Gera `e2e/<nome>.e2e.spec.ts` usando seletores reais
-descobertos via `browser_snapshot` (árvore de acessibilidade) contra o
-dev server já no ar — não roda `npx playwright test` automaticamente
-(mesma decisão do `test`), e avisa (sem bloquear) se o projeto não tiver
-`playwright.config.ts`/`.js` (`src/playwrightCheck.ts`) — com um botão
-**"Configurar Playwright"** que instala `@playwright/test`, baixa o
-Chromium (`npx playwright install chromium`) e escreve
-`playwright.config.ts` sozinho (`src/playwrightSetup.ts`); mesma
-mecânica do "Configurar Karma": só roda com um clique explícito, nunca
-automaticamente.
-
-**Adiados deliberadamente** (não são bugs — decisão de escopo por
-orçamento de tempo/tokens da sessão, ver memória do projeto): a skill
-`discover` (analisa um endpoint REST fazendo uma chamada HTTP real
-contra um backend Protheus — arquitetura bem diferente dos geradores).
-A correção automática de `H01`/`H02` no lint (ver acima), a sidebar
-tree view, um comando de "parar o dev server" (preview e e2e sobem
-servidores que ficam rodando), e rodar `npx playwright test`/`ng test`
-automaticamente depois de gerar (mesma decisão em ambos: gerar é útil
-mesmo antes do runner estar configurado) ficam para depois — ver
-`docs/superpowers/specs/2026-08-21-vscode-extension-phase0-design.md`.
-
-## Fase 4 — em andamento
-
-`PO-UI: Reverter Componente Gerado` (`poui.undo`, equivalente à skill
-`poui-undo`) — igual a `poui.lint`/`poui.quality`, não usa o Claude Code
-CLI. Localiza todo arquivo com o marcador `@generated  poui-specialist`
-sob `src/app`, agrupa por diretório, mostra um `QuickPick` com os
-componentes gerados encontrados, confirma (modal, lista os arquivos)
-antes de remover a rota correspondente de `app.routes.ts` e apagar os
-arquivos — remove só os arquivos `@generated` do diretório escolhido,
-preserva o resto se o diretório for compartilhado com outros arquivos.
-
-`PO-UI: Gerar a partir de Screenshot` (`poui.generate.screenshot`,
-equivalente à skill `poui-screenshot`) — diálogo de arquivo pra
-escolher uma imagem local (png/jpg/jpeg/gif/webp; **sem suporte a URL**
-nesta fatia — exigiria liberar `WebFetch` pro agente, hoje restrito a
-`Read,Write,Edit,Glob,Grep`). Em duas fases: (1) análise — chama o CLI
-só com a skill `poui-screenshot` como referência e `tools: 'Read,Glob'`
-(sem escrita), pedindo um manifesto estruturado (`TYPE:`/`MODULE:`/
-`ENTITY:`/`API_PATH:`/`FIELDS:`/`RULES:`) em vez do laudo em texto
-livre do plugin original; (2) confirmação real (mostra o manifesto,
-pergunta "Gerar agora?") seguida da geração propriamente dita,
-reaproveitando 100% o mesmo pipeline de `poui.generate.component`
-(`buildGeneratorSystemPrompt`/`buildGeneratorUserPrompt`/
-`runClaudeAgent`/`runBuildFixLoop`) com o tipo/nome/módulo/campos
-vindos da análise em vez de digitados. **Sem `generate-batch`** — gera
-só o componente principal (+ service, se o tipo pedir), não múltiplos
-componentes de um manifesto. Validado com um teste real de visão
-(`login-preview.png` de `examples/modulo-compras`): o Read leu a
-imagem e o modelo devolveu o manifesto exato esperado (`page-edit`,
-campos `usuario`/`senha`, regra do ícone de mostrar/ocultar senha).
-
-`PO-UI: Empacotar Projeto (.app)` (`poui.package`, equivalente a
-`/poui-specialist:package`) — também não usa o Claude Code CLI, é 100%
-determinístico (mesmo padrão de `poui.undo`): corrige o `outputPath` do
-`angular.json` se necessário (`{ base: "dist/<projeto>", browser: "" }`
-— sem isso o Protheus falha com "Falha ao Ajustar os arquivos Index"),
-roda `ng build --configuration production`, compacta `dist/<projeto>`
-com 7-Zip preservando `<projeto>/` como raiz do zip (**nunca**
-`Compress-Archive` do PowerShell silenciosamente — conhecido por gerar
-um `.app` que o Protheus falha ao extrair; se o 7-Zip não for
-encontrado, avisa e pede confirmação explícita antes desse fallback
-arriscado), verifica a estrutura de verdade (não declara sucesso sem
-confirmar `<projeto>/` como raiz via `7z l`), copia para
-`Resource/<projeto>.app` e atualiza o `.gitignore`. **Corte de
-escopo:** sem `--skip-build`/caminho de projeto externo — sempre builda
-fresco no workspace aberto. Validado de ponta a ponta contra
-`examples/modulo-compras` de verdade: build (achou e reportou
-corretamente uma falha real de orçamento de bundle na primeira
-tentativa — comportamento correto, não um bug), depois com orçamento
-temporariamente relaxado só para o teste, o caminho completo (build →
-zip → verificação → cópia) funcionou e o `.app` gerado foi conferido
-de forma independente com `7z l` — `modulo-compras/` confirmado como
-raiz do zip.
-
-`PO-UI: Conectar ao Protheus` (`poui.connect`, equivalente à skill
-`poui-connect`) — a fatia mais arriscada da Fase 4: mexe em arquivos
-reais existentes (não cria novos) e envolve dados de conexão,
-possivelmente credenciais. **Desenho em duas partes, diferente do
-plugin original** por um motivo de segurança real: o modo `-p`
-não-interativo do CLI passa o prompt como argumento literal do
-processo — visível a qualquer processo na máquina que liste processos
-(Task Manager, WMI). O plugin original roda dentro do chat interativo,
-sem esse risco; a extensão precisa evitar introduzi-lo.
-- **Parte determinística** (`protheusProxy.ts`, sem CLI) — monta e
-  escreve `proxy.conf.json` localmente (URL + header `Authorization`
-  Basic/Bearer computado em Node puro), corrige `angular.json`
-  (`serve.options.proxyConfig`) e `.gitignore` (`proxy.conf.json` nunca
-  vai ao repo). A credencial nunca sai daqui.
-- **Parte agentiva** (`connectPromptBuilder.ts` + CLI) — recebe só
-  informação não-sensível (caminho do componente, prefixo da API,
-  endpoint ou regras de negócio pro contrato TLPP, ações extras,
-  preferência de tratamento do interceptor escolhida antes via
-  `QuickPick`) e reaproveita o mesmo pipeline de `runClaudeAgent`/
-  `runBuildFixLoop`. `ConnectParams` não tem nenhum campo de credencial
-  — garantia em tempo de compilação, reforçada por teste unitário que
-  varre o prompt gerado por palavras como "senha"/"token"/
-  "Authorization".
-- Seleção do componente via `showOpenDialog` em `*.component.ts`,
-  módulo/classe derivados automaticamente (reaproveita
-  `deriveRouteRegistration` do `poui.preview`). **Sem rodar `ng test`
-  automaticamente** — mesma política já usada em `poui.generate.test`.
-
-**Validado com uma chamada real e completa** contra um fixture
-propositalmente criado com mock (`of(MOCK_ITEMS).pipe(delay(700))` +
-interceptor mock registrado em `app.config.ts`) em
-`examples/modulo-compras`: o agente diagnosticou os dois mocks
-corretamente, reescreveu o service para `this.http.get(...)` real,
-removeu o import e o registro do interceptor de `app.config.ts`
-(Opção A, como pedido), nunca tocou em `proxy.conf.json` (instruído a
-não tocar), e o build passou de primeira. O prompt real enviado ao CLI
-foi inspecionado à mão — zero menção a credenciais. Fixture removido
-depois — `examples/modulo-compras` voltou limpo.
-
-`PO-UI: Criar Novo Projeto (Scaffold)` (`poui.scaffold`, equivalente a
-`/poui-specialist:scaffold`) — a última peça da Fase 4, e a maior
-(706 linhas no comando original). **Inteiramente determinístico**,
-sem CLI do Claude — `ng new` + dois `ng add` + `npm install` +
-edições de `angular.json`/`tsconfig.json` + escrita do shell da
-aplicação + `proxy.conf.json` + `git init`/commit + verificação de
-build. Diferente de todos os outros comandos, **não exige workspace
-aberto** — pergunta a pasta-pai via diálogo de pasta, roda `ng new`
-lá dentro, e ao final oferece abrir a pasta nova no VS Code ou iniciar
-o servidor (reaproveitando `ensureDevServer` do `poui.preview`/
-`poui.generate.e2e`). **Cortes de escopo**: sem `--with-dark-mode`/
-`--with-i18n`; sem `--skip-install` (sempre instala); `--demo` virou
-uma pergunta sim/não.
-
-**3 bugs reais achados e corrigidos rodando o scaffold de ponta a
-ponta de verdade** (não só testes unitários — `ng new`/`ng add`/
-`npm install`/`ng build` reais, repetido a cada correção):
-1. `tsconfig.json` gerado por `ng new` tem comentários de bloco no
-   topo — `JSON.parse` quebra nisso. Corrigido pra busca-e-substituição
-   em texto puro (`fixTsconfigStrictness`), igual ao Passo 5 do
-   comando original — que já usava texto, não JSON, por esse motivo.
-2. **Achado de escopo mais importante**: o Angular CLI 21 atual gera o
-   componente raiz como `app.ts`/`app.html`/`app.scss` com a classe
-   `App` — não mais `app.component.ts`/`AppComponent` (convenção
-   antiga que tanto minha primeira tentativa quanto o
-   `commands/scaffold.md` original do plugin assumiam).
-   `main.ts` já importa `App` de `./app/app`. Corrigido pra escrever
-   nos arquivos certos com o nome de classe certo — **vale propagar
-   essa correção pro `commands/scaffold.md` do plugin também**, é o
-   mesmo bug lá.
-3. `git init`/`add`/`commit` falhava com "Author identity unknown"
-   nesta máquina (sem `user.name`/`user.email` configurados
-   globalmente) e derrubava o scaffold inteiro por causa disso.
-   Corrigido pra melhor-esforço — avisa e continua; o projeto em si
-   (o que realmente importa) já estava pronto e não deveria ser
-   reportado como falha por uma configuração de git não relacionada.
-
-Validado com 4 execuções reais completas (`qa-scaffold-teste`, com
-demo) numa pasta isolada — a última terminou `success: true`, com
-`ng build` limpo e `angular.json`/rotas conferidos manualmente contra
-os arquivos gerados de verdade. Projeto de teste removido depois.
-
-**Com isso, a Fase 4 está completa** — os 5 comandos restantes do
-plugin original (undo, screenshot, package, connect, scaffold) foram
-portados. `migrate` ficou de fora deliberadamente (coberto por
-`standalone-migrate`).
-
-## Pós-Fase 4 — achados da auditoria de paridade
-
-Uma auditoria plugin×extensão depois da Fase 4 achou dois itens reais:
-
-- **`/poui-specialist:docs` nunca tinha sido portado nem documentado
-  como decisão** (diferente de `discover`/`migrate`, que são
-  explicitamente fora de escopo). Portado agora: `PO-UI: Consultar
-  Documentação de Componente` (`poui.docs`). Como o CLI não consegue
-  ler dinamicamente os arquivos de referência da extensão (eles vivem
-  fora do `cwd` do agente), a extensão faz o roteamento ela mesma —
-  `docsPromptBuilder.ts` parseia a própria tabela "Component Reference
-  Files" de `poui-components/SKILL.md` (sem hardcodar a lista de
-  componentes) pra achar qual único arquivo de categoria carregar,
-  evitando concatenar as ~4300 linhas de todos os 11 arquivos de uma
-  vez. Só leitura (`tools: 'Read'`). Validado com uma consulta real
-  (`po-lookup` → roteado certo pra `form-fields.md`, resposta completa
-  e correta, zero arquivos escritos).
-- **`poui.connect` perguntava a preferência de tratamento de
-  interceptor mesmo quando o componente não tinha nenhum mock** —
-  cosmético, mas sem sentido. Corrigido: `connectDiagnostics.ts`
-  (`findMockInterceptors`) roda a mesma checagem do Passo 2b da skill
-  *antes* de perguntar — só mostra o `QuickPick` se achar de fato um
-  interceptor referenciando o componente. Confirmado contra um
-  componente real sem mock (`fornecedores-list` de
-  `examples/modulo-compras`): retorna vazio, pergunta não aparece.
-
-259 testes unitários (era 247) + TypeScript limpo. Suíte de
-integração não rodou nesta fatia (exige nenhuma instância do VS Code
-aberta — outras janelas reais do usuário estavam abertas); registro
-de comando/`package.json` seguem o mesmo padrão já coberto pelas 12
-outras entradas já testadas.
+A extensão exige uma licença ativa para os comandos de geração. Rode
+`PO-UI: Ativar Licença` a qualquer momento pela paleta de comandos para
+ativar uma chave (trial, beta ou paga) ou iniciar a compra.
