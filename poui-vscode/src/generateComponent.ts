@@ -8,6 +8,7 @@ import { runBuildFixLoop } from './buildFixLoop';
 import { GENERATOR_TYPES, GeneratorType } from './generatorTypes';
 import { EngineId } from './engineTypes';
 import { requireLicense } from './requireLicense';
+import { isAngularWorkspace } from './angularWorkspaceCheck';
 
 /** Nome de entidade aceitável: começa por letra e usa apenas letras, dígitos,
  * espaço, hífen ou underscore — evita entradas como `---` ou `123`, que
@@ -44,6 +45,17 @@ export function registerGenerateComponentCommand(
       void vscode.window.showErrorMessage(
         'PO-UI: abra uma pasta de projeto Angular antes de gerar um componente.',
       );
+      return;
+    }
+
+    if (!(await isAngularWorkspace(workspaceFolder.uri.fsPath))) {
+      const choice = await vscode.window.showErrorMessage(
+        `PO-UI: a pasta aberta (${workspaceFolder.uri.fsPath}) não parece ser a raiz de um projeto Angular — não achei um "angular.json" nela. Se ainda não tem um projeto Angular, crie um primeiro.`,
+        'Criar Novo Projeto (Scaffold)',
+      );
+      if (choice === 'Criar Novo Projeto (Scaffold)') {
+        void vscode.commands.executeCommand('poui.scaffold');
+      }
       return;
     }
 

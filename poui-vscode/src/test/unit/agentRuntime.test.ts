@@ -226,6 +226,36 @@ describe('runAgent', () => {
     await assert.rejects(() => fs.access(capturedMcpConfigFile as string));
   });
 
+  it('defaults to an empty mcp-config (isolating the user\'s own claude.ai connectors) when the command does not request one', async () => {
+    const sink = new RecordingSink();
+    const fsSync = await import('node:fs');
+    let mcpConfigContentsDuringRun: string | undefined;
+
+    const adapter: EngineAdapter = {
+      id: 'claude',
+      binaryName: 'fake-cli',
+      capabilities: { restrictsTools: true, supportsMcp: true, supportsVision: true },
+      buildCommand: (_options, _systemPromptFile, mcpConfigFile) => {
+        if (mcpConfigFile) {
+          mcpConfigContentsDuringRun = fsSync.readFileSync(mcpConfigFile, 'utf8');
+        }
+        return { command: 'fake-cli', args: [] };
+      },
+      parseLine: (line: string) => (line === 'L1' ? [{ kind: 'result', success: true }] : []),
+    };
+    const spawnFn: SpawnFn = () => makeFakeProcess({ lines: ['L1'] });
+
+    // Sem `mcpConfig` — ex: poui.generate.component, que não pede MCP.
+    await runAgentWithAdapter(
+      adapter,
+      { cwd: '/tmp/workspace', systemPrompt: 'p', userPrompt: 'u' },
+      sink,
+      spawnFn,
+    );
+
+    assert.strictEqual(mcpConfigContentsDuringRun, '{"mcpServers":{}}');
+  });
+
   it('removes the systemPrompt temp file after a failed run too', async () => {
     const sink = new RecordingSink();
     const fs = await import('node:fs/promises');

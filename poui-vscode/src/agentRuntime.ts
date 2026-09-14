@@ -64,15 +64,18 @@ export async function runAgentWithAdapter(
   const filesWritten: string[] = [];
   let isAuthError = false;
   const systemPromptFile = path.join(os.tmpdir(), `poui-system-prompt-${randomUUID()}.txt`);
-  const mcpConfigFile = options.mcpConfig
-    ? path.join(os.tmpdir(), `poui-mcp-config-${randomUUID()}.json`)
-    : undefined;
+  // Sempre escreve um mcp-config — vazio por padrão — e passa
+  // `--strict-mcp-config` (ver claudeAdapter.buildCommand). Sem isso, a CLI
+  // resolve MCP no padrão dela, herdando conectores da conta claude.ai do
+  // usuário (Google Drive, Windsor.ai etc.) que não têm nada a ver com o
+  // comando rodando — achado real: apareciam como aviso não solicitado no
+  // meio da geração de um componente comum. Só `poui.generate.e2e` passa um
+  // `options.mcpConfig` de verdade (o do Playwright).
+  const mcpConfigFile = path.join(os.tmpdir(), `poui-mcp-config-${randomUUID()}.json`);
 
   try {
     await fs.writeFile(systemPromptFile, options.systemPrompt, 'utf8');
-    if (mcpConfigFile && options.mcpConfig) {
-      await fs.writeFile(mcpConfigFile, options.mcpConfig, 'utf8');
-    }
+    await fs.writeFile(mcpConfigFile, options.mcpConfig ?? '{"mcpServers":{}}', 'utf8');
 
     const { command, args, env } = adapter.buildCommand(options, systemPromptFile, mcpConfigFile);
     const child = spawnFn(command, args, {
@@ -154,9 +157,7 @@ export async function runAgentWithAdapter(
     return { filesWritten, succeeded: false, errorMessage, isAuthError };
   } finally {
     await fs.rm(systemPromptFile, { force: true });
-    if (mcpConfigFile) {
-      await fs.rm(mcpConfigFile, { force: true });
-    }
+    await fs.rm(mcpConfigFile, { force: true });
   }
 }
 
