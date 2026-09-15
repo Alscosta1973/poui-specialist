@@ -55,8 +55,8 @@ describe('buildValidationOptions', () => {
 });
 
 describe('getValidationTimeoutMs', () => {
-  it('returns 30000', () => {
-    assert.strictEqual(getValidationTimeoutMs(), 30000);
+  it('returns 60000 — 30s was too short for gemini-cli\'s own retry-with-backoff on transient 503s', () => {
+    assert.strictEqual(getValidationTimeoutMs(), 60000);
   });
 });
 

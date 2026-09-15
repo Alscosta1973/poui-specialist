@@ -49,7 +49,12 @@ export function buildCredentialChoices(engineId: EngineId, hasStoredCredential: 
   return choices;
 }
 
-const VALIDATION_TIMEOUT_MS = 30000;
+// Achado real (2026-09-15): 30s era curto demais — o Gemini CLI faz
+// retry-with-backoff sozinho em erros 503 transitórios do servidor
+// ("high demand"), e a 4ª tentativa já passa dos 30s. 60s dá folga pra
+// algumas rodadas de backoff sem deixar o usuário esperando pra sempre
+// (a geração de verdade, fora deste teste de conexão, não tem teto).
+const VALIDATION_TIMEOUT_MS = 60000;
 
 export function buildValidationOptions(cwd: string): RunAgentOptions {
   return {
