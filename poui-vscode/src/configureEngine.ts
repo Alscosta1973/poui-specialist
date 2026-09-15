@@ -3,6 +3,7 @@ import * as vscode from 'vscode';
 import { checkEngineAvailable } from './cliCheck';
 import { runAgentForCommand } from './runAgentForCommand';
 import { storeCredential, deleteCredential, hasCredential } from './engineCredentials';
+import { ensureGeminiApiKeyAuthType } from './geminiSettings';
 import {
   buildEngineChoices,
   buildCredentialChoices,
@@ -122,6 +123,14 @@ async function configureCredentialEngine(
       return;
     }
     await storeCredential(context, engineId, apiKey);
+    if (engineId === 'gemini') {
+      // Achado real: se `~/.gemini/settings.json` ficou com
+      // `selectedType: "oauth-personal"` de uma tentativa anterior de
+      // login gratuito (descontinuado pelo Google), o CLI ignora a API key
+      // e tenta OAuth de novo, falhando com "Failed to sign in" mesmo com
+      // uma chave válida. Corrige isso toda vez que uma API key é salva.
+      await ensureGeminiApiKeyAuthType();
+    }
   }
 
   const valid = await validateCredential(context, outputChannel, engineId, engineLabel, workspaceRoot);
