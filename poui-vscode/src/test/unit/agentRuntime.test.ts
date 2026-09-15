@@ -1,6 +1,6 @@
 import * as assert from 'node:assert';
 import { EventEmitter } from 'node:events';
-import { Readable } from 'node:stream';
+import { Readable, Writable } from 'node:stream';
 import { runAgent, runAgentWithAdapter, OutputSink, SpawnFn, SpawnedProcess } from '../../agentRuntime';
 import { EngineAdapter, NormalizedEvent } from '../../engineTypes';
 
@@ -14,10 +14,24 @@ class RecordingSink implements OutputSink {
 /** Fake `child_process`-like objeto — cada `lines[i]` já é o texto bruto de
  * uma linha de stdout (o fake adapter abaixo devolve os eventos certos pra
  * cada uma via um mapa, sem precisar reimplementar JSON de verdade). */
-function makeFakeProcess(options: { lines?: string[]; exitCode?: number | null; spawnError?: Error }): SpawnedProcess {
+function makeFakeProcess(options: {
+  lines?: string[];
+  exitCode?: number | null;
+  spawnError?: Error;
+  /** Recebe os pedaços escritos em `child.stdin` — usado pelo teste que
+   * verifica o workaround de stdin do codex (ver `stdinFile` em
+   * `engineTypes.ts`). */
+  stdinChunks?: string[];
+}): SpawnedProcess {
   const emitter = new EventEmitter();
   const stdout = Readable.from((options.lines ?? []).map((l) => `${l}\n`));
   const stderr = new Readable({ read() { this.push(null); } });
+  const stdin = new Writable({
+    write(chunk: Buffer, _encoding, callback) {
+      options.stdinChunks?.push(chunk.toString());
+      callback();
+    },
+  });
 
   if (options.spawnError) {
     setImmediate(() => emitter.emit('error', options.spawnError));
@@ -30,6 +44,7 @@ function makeFakeProcess(options: { lines?: string[]; exitCode?: number | null; 
   return {
     stdout,
     stderr,
+    stdin,
     on: (event: string, listener: (...args: unknown[]) => void) => emitter.on(event, listener),
   } as unknown as SpawnedProcess;
 }
@@ -254,6 +269,47 @@ describe('runAgent', () => {
     );
 
     assert.strictEqual(mcpConfigContentsDuringRun, '{"mcpServers":{}}');
+  });
+
+  it('pipes stdinFile content to the child\'s stdin and ends it, when the adapter requests it (codex system-prompt workaround)', async () => {
+    const sink = new RecordingSink();
+    const stdinChunks: string[] = [];
+
+    const adapter: EngineAdapter = {
+      id: 'codex',
+      binaryName: 'fake-cli',
+      capabilities: { restrictsTools: false, supportsMcp: false, supportsVision: true },
+      buildCommand: (_options, systemPromptFile) => ({ command: 'fake-cli', args: [], stdinFile: systemPromptFile }),
+      parseLine: (line: string) => (line === 'L1' ? [{ kind: 'result', success: true }] : []),
+    };
+    const spawnFn: SpawnFn = () => makeFakeProcess({ lines: ['L1'], stdinChunks });
+
+    await runAgentWithAdapter(
+      adapter,
+      { cwd: '/tmp/workspace', systemPrompt: 'meu prompt de sistema', userPrompt: 'u' },
+      sink,
+      spawnFn,
+    );
+
+    assert.strictEqual(stdinChunks.join(''), 'meu prompt de sistema');
+  });
+
+  it('does not touch stdin at all when the adapter does not request stdinFile (claude/gemini unaffected)', async () => {
+    const sink = new RecordingSink();
+    const stdinChunks: string[] = [];
+
+    const adapter: EngineAdapter = {
+      id: 'claude',
+      binaryName: 'fake-cli',
+      capabilities: { restrictsTools: true, supportsMcp: true, supportsVision: true },
+      buildCommand: () => ({ command: 'fake-cli', args: [] }),
+      parseLine: (line: string) => (line === 'L1' ? [{ kind: 'result', success: true }] : []),
+    };
+    const spawnFn: SpawnFn = () => makeFakeProcess({ lines: ['L1'], stdinChunks });
+
+    await runAgentWithAdapter(adapter, { cwd: '/tmp/workspace', systemPrompt: 'p', userPrompt: 'u' }, sink, spawnFn);
+
+    assert.deepStrictEqual(stdinChunks, []);
   });
 
   it('removes the systemPrompt temp file after a failed run too', async () => {

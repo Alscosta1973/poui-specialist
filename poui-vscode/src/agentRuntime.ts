@@ -13,7 +13,7 @@ export type { GenerateResult, OutputSink, RunAgentOptions, SpawnedProcess, Spawn
 function defaultSpawn(
   command: string,
   args: string[],
-  options: { cwd: string; env: NodeJS.ProcessEnv },
+  options: { cwd: string; env: NodeJS.ProcessEnv; stdin?: boolean },
 ): SpawnedProcess {
   // Achado confirmado via teste manual real, em duas rodadas: (1) no
   // Windows, codex/gemini são instalados pelo npm como shims .cmd/.ps1
@@ -29,17 +29,18 @@ function defaultSpawn(
   // — aspas simples de PowerShell aceitam quebra de linha embutida sem
   // tratamento especial. Em macOS/Linux nada muda, os binários já são
   // executáveis diretos.
+  const stdio: ['pipe' | 'ignore', 'pipe', 'pipe'] = [options.stdin ? 'pipe' : 'ignore', 'pipe', 'pipe'];
   if (process.platform === 'win32') {
     return spawn('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', buildPowerShellInvocation(command, args)], {
       cwd: options.cwd,
       env: options.env,
-      stdio: ['ignore', 'pipe', 'pipe'],
+      stdio,
     }) as unknown as SpawnedProcess;
   }
   return spawn(command, args, {
     cwd: options.cwd,
     env: options.env,
-    stdio: ['ignore', 'pipe', 'pipe'],
+    stdio,
   }) as unknown as SpawnedProcess;
 }
 
@@ -77,11 +78,18 @@ export async function runAgentWithAdapter(
     await fs.writeFile(systemPromptFile, options.systemPrompt, 'utf8');
     await fs.writeFile(mcpConfigFile, options.mcpConfig ?? '{"mcpServers":{}}', 'utf8');
 
-    const { command, args, env } = adapter.buildCommand(options, systemPromptFile, mcpConfigFile);
+    const { command, args, env, stdinFile } = adapter.buildCommand(options, systemPromptFile, mcpConfigFile);
     const child = spawnFn(command, args, {
       cwd: options.cwd,
       env: { ...buildSubprocessEnv(), ...credentialEnv, ...env },
+      stdin: Boolean(stdinFile),
     });
+
+    if (stdinFile) {
+      const stdinContent = await fs.readFile(stdinFile, 'utf8');
+      child.stdin?.write(stdinContent);
+      child.stdin?.end();
+    }
 
     let stderrOutput = '';
     child.stderr.on('data', (chunk: Buffer | string) => {

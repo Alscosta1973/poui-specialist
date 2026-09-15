@@ -33,6 +33,14 @@ export interface GenerateResult {
 export interface SpawnedProcess {
   stdout: NodeJS.ReadableStream;
   stderr: NodeJS.ReadableStream;
+  /** Só presente quando `options.stdin` é passado como `true` ao spawnar —
+   * usado pelo codex, que não tem uma flag de arquivo de system prompt de
+   * verdade (achado real: `--append-system-prompt-file` não existe nele,
+   * só no Claude). O jeito confirmado que funciona é gravar o prompt de
+   * sistema no stdin do processo — o próprio `codex exec` anexa o stdin
+   * como bloco `<stdin>` ao turno, comportamento documentado e testado de
+   * verdade). */
+  stdin?: NodeJS.WritableStream;
   on(event: 'error', listener: (err: Error) => void): unknown;
   on(event: 'close', listener: (code: number | null) => void): unknown;
 }
@@ -40,7 +48,7 @@ export interface SpawnedProcess {
 export type SpawnFn = (
   command: string,
   args: string[],
-  options: { cwd: string; env: NodeJS.ProcessEnv },
+  options: { cwd: string; env: NodeJS.ProcessEnv; stdin?: boolean },
 ) => SpawnedProcess;
 
 export interface EngineCapabilities {
@@ -78,6 +86,10 @@ export interface EngineAdapter {
      * configuram algo (ex: o prompt de sistema do gemini) via env var em
      * vez de argumento de CLI. */
     env?: Record<string, string>;
+    /** Caminho de um arquivo cujo conteúdo deve ser gravado no stdin do
+     * processo antes de fechar — usado só pelo codex (ver `SpawnedProcess.stdin`
+     * pro porquê). Normalmente é o próprio `systemPromptFile` recebido aqui. */
+    stdinFile?: string;
   };
   /** Função pura — uma linha de stdout vira 0+ eventos normalizados. Nunca
    * lança: JSON inválido ou tipo de mensagem desconhecido devolve []. */
