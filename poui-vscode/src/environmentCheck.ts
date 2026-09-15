@@ -1,6 +1,15 @@
 import { existsSync } from 'node:fs';
 import { RunVersionCheck, checkEngineAvailable, runVersionCheck } from './cliCheck';
 import { findSevenZip } from './packaging';
+import { EngineId } from './engineTypes';
+import { ENGINE_LABELS } from './configureEngineLogic';
+
+/** Só o motor `claude` tem um link de instalação verificado neste código —
+ * `codex`/`gemini` são suporte experimental (ver README) e não têm URL
+ * oficial documentada aqui, então não inventamos uma. */
+const AI_ENGINE_INSTALL_URLS: Partial<Record<EngineId, string>> = {
+  claude: 'https://code.claude.com',
+};
 
 export type SemVer = [number, number, number];
 
@@ -28,7 +37,7 @@ export function parseMinNodeVersion(enginesNode: string): SemVer {
 }
 
 export interface EnvCheckItem {
-  id: 'node' | 'ng' | 'claude' | 'git' | '7zip';
+  id: 'node' | 'ng' | 'aiEngine' | 'git' | '7zip';
   label: string;
   required: boolean;
   ok: boolean;
@@ -40,6 +49,10 @@ export interface EnvCheckItem {
   /** Instalador de sistema — só dá pra abrir o link de download, nunca rodar
    * sozinho (fora do escopo seguro de auto-instalação). */
   installUrl?: string;
+  /** Só presente em `id: 'aiEngine'` — qual motor (`claude`/`codex`/`gemini`)
+   * foi checado, pra `environmentCheckPrompt.ts` poder oferecer o botão
+   * "Configurar Motor de IA" além do link de instalação. */
+  engineId?: EngineId;
 }
 
 export interface EnvironmentCheckDeps {
@@ -72,25 +85,31 @@ async function checkVersioned(
  * `--version` com timeout curto, ver `cliCheck.ts`) — usado tanto no
  * primeiro run da extensão quanto no comando manual `PO-UI: Verificar
  * Ambiente`. Node/Angular CLI são obrigatórios (o Scaffold nem começa sem
- * eles); Claude CLI/Git/7-Zip são opcionais — cada um só é necessário pra um
- * subconjunto de comandos (ver README, seção Requisitos). */
+ * eles); o motor de IA/Git/7-Zip são opcionais — cada um só é necessário pra
+ * um subconjunto de comandos (ver README, seção Requisitos).
+ *
+ * `aiEngine` checa o motor **configurado** (`poui.aiEngine`, default
+ * `claude`) — não fixo em Claude, já que o dev pode ter escolhido
+ * `codex`/`gemini` em `PO-UI: Configurar Motor de IA`. */
 export async function checkEnvironment(
   minNodeVersion: SemVer,
+  aiEngine: EngineId,
   deps: Partial<EnvironmentCheckDeps> = {},
 ): Promise<EnvCheckItem[]> {
   const d: EnvironmentCheckDeps = { ...defaultDeps, ...deps };
 
-  const [nodeResult, ngResult, claudeResult, gitResult] = await Promise.all([
+  const [nodeResult, ngResult, aiEngineResult, gitResult] = await Promise.all([
     checkVersioned('node', 'Node.js', 'node', true, d.run, { installUrl: 'https://nodejs.org/' }),
     checkVersioned('ng', 'Angular CLI', 'ng', true, d.run, { npmInstallCommand: 'npm install -g @angular/cli' }),
-    checkEngineAvailable('claude', d.run).then(
+    checkEngineAvailable(aiEngine, d.run).then(
       (r): EnvCheckItem => ({
-        id: 'claude',
-        label: 'Claude Code CLI',
+        id: 'aiEngine',
+        label: `${ENGINE_LABELS[aiEngine]} CLI`,
         required: false,
         ok: r.available,
         detail: r.version,
-        installUrl: 'https://code.claude.com',
+        installUrl: AI_ENGINE_INSTALL_URLS[aiEngine],
+        engineId: aiEngine,
       }),
     ),
     checkVersioned('git', 'Git', 'git', false, d.run, { installUrl: 'https://git-scm.com/' }),
@@ -115,5 +134,5 @@ export async function checkEnvironment(
     installUrl: 'https://7-zip.org/',
   };
 
-  return [nodeResult, ngResult, claudeResult, gitResult, sevenZipResult];
+  return [nodeResult, ngResult, aiEngineResult, gitResult, sevenZipResult];
 }

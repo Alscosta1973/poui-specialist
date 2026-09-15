@@ -2,6 +2,7 @@ import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
 import * as vscode from 'vscode';
 import { EnvCheckItem, checkEnvironment, parseMinNodeVersion } from './environmentCheck';
+import { EngineId } from './engineTypes';
 
 const execAsync = promisify(exec);
 
@@ -53,10 +54,14 @@ export async function runEnvironmentCheck(
   const d: RunEnvironmentCheckDeps = { ...defaultDeps, ...deps };
   const enginesNode = (context.extension.packageJSON as { engines?: { node?: string } })?.engines?.node ?? '>=18.19.0';
   const minNodeVersion = parseMinNodeVersion(enginesNode);
+  // Checa o motor CONFIGURADO (poui.aiEngine, default claude) — não fixo em
+  // Claude, já que o dev pode ter escolhido codex/gemini em "Configurar
+  // Motor de IA".
+  const aiEngine = vscode.workspace.getConfiguration('poui').get<EngineId>('aiEngine', 'claude');
 
   const items = await vscode.window.withProgress(
     { location: vscode.ProgressLocation.Notification, title: 'PO-UI: verificando ambiente...' },
-    () => d.checkEnvironmentFn(minNodeVersion),
+    () => d.checkEnvironmentFn(minNodeVersion, aiEngine),
   );
 
   reportToOutputChannel(items, outputChannel);
@@ -65,8 +70,9 @@ export async function runEnvironmentCheck(
   const missingOptional = items.filter((i) => !i.required && !i.ok);
 
   if (missingRequired.length === 0 && missingOptional.length === 0) {
+    const aiEngineLabel = items.find((i) => i.id === 'aiEngine')?.label ?? 'motor de IA';
     void vscode.window.showInformationMessage(
-      'PO-UI: ambiente ok — Node, Angular CLI, Claude Code CLI, Git e 7-Zip detectados.',
+      `PO-UI: ambiente ok — Node, Angular CLI, ${aiEngineLabel}, Git e 7-Zip detectados.`,
     );
     return;
   }
@@ -102,6 +108,29 @@ export async function runEnvironmentCheck(
   }
 
   for (const item of missingOptional) {
+    if (item.id === 'aiEngine') {
+      // Nunca "continue" sem mostrar nada aqui: mesmo sem installUrl (caso
+      // de codex/gemini, sem link oficial verificado neste código), o dev
+      // ainda precisa saber que o motor configurado não foi encontrado e
+      // que pode trocar de motor em vez de instalar este.
+      const configureLabel = 'Configurar Motor de IA';
+      const openLabel = 'Abrir site de instalação';
+      const buttons = item.installUrl ? [configureLabel, openLabel] : [configureLabel];
+      void vscode.window
+        .showInformationMessage(
+          `PO-UI: ${item.label} não encontrado — necessário só para os comandos que usam IA. Troque de motor ou instale este.`,
+          ...buttons,
+        )
+        .then((choice) => {
+          if (choice === configureLabel) {
+            void vscode.commands.executeCommand('poui.configureEngine');
+          } else if (choice === openLabel && item.installUrl) {
+            void vscode.env.openExternal(vscode.Uri.parse(item.installUrl));
+          }
+        });
+      continue;
+    }
+
     if (!item.installUrl) {
       continue;
     }

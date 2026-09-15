@@ -6,6 +6,7 @@ import {
   shownWarningMessages,
   shownErrorMessages,
   openedExternalUrls,
+  executedCommands,
   queueMessageChoice,
 } from './vscodeStub';
 import { runEnvironmentCheck } from '../../environmentCheckPrompt';
@@ -33,7 +34,7 @@ describe('runEnvironmentCheck', () => {
     const items: EnvCheckItem[] = [
       OK_ITEM('node', 'Node.js'),
       OK_ITEM('ng', 'Angular CLI'),
-      OK_ITEM('claude', 'Claude Code CLI'),
+      OK_ITEM('aiEngine', 'Claude Code CLI'),
       OK_ITEM('git', 'Git'),
       OK_ITEM('7zip', '7-Zip'),
     ];
@@ -43,6 +44,7 @@ describe('runEnvironmentCheck', () => {
     });
     assert.strictEqual(shownInfoMessages.length, 1);
     assert.match(shownInfoMessages[0], /ambiente ok/);
+    assert.match(shownInfoMessages[0], /Claude Code CLI/);
     assert.strictEqual(shownWarningMessages.length, 0);
     assert.strictEqual(shownErrorMessages.length, 0);
   });
@@ -51,7 +53,7 @@ describe('runEnvironmentCheck', () => {
     const items: EnvCheckItem[] = [
       OK_ITEM('node', 'Node.js'),
       { id: 'ng', label: 'Angular CLI', required: true, ok: false, npmInstallCommand: 'npm install -g @angular/cli' },
-      OK_ITEM('claude', 'Claude Code CLI'),
+      OK_ITEM('aiEngine', 'Claude Code CLI'),
       OK_ITEM('git', 'Git'),
       OK_ITEM('7zip', '7-Zip'),
     ];
@@ -74,7 +76,7 @@ describe('runEnvironmentCheck', () => {
     const items: EnvCheckItem[] = [
       OK_ITEM('node', 'Node.js'),
       { id: 'ng', label: 'Angular CLI', required: true, ok: false, npmInstallCommand: 'npm install -g @angular/cli' },
-      OK_ITEM('claude', 'Claude Code CLI'),
+      OK_ITEM('aiEngine', 'Claude Code CLI'),
       OK_ITEM('git', 'Git'),
       OK_ITEM('7zip', '7-Zip'),
     ];
@@ -94,7 +96,7 @@ describe('runEnvironmentCheck', () => {
     const items: EnvCheckItem[] = [
       { id: 'node', label: 'Node.js', required: true, ok: false, installUrl: 'https://nodejs.org/', detail: 'encontrado v16.0.0, mínimo exigido v18.19.0' },
       OK_ITEM('ng', 'Angular CLI'),
-      OK_ITEM('claude', 'Claude Code CLI'),
+      OK_ITEM('aiEngine', 'Claude Code CLI'),
       OK_ITEM('git', 'Git'),
       OK_ITEM('7zip', '7-Zip'),
     ];
@@ -108,11 +110,11 @@ describe('runEnvironmentCheck', () => {
     assert.deepStrictEqual(openedExternalUrls, ['https://nodejs.org/']);
   });
 
-  it('shows a soft info message (not a warning/error) for each missing optional item', async () => {
+  it('shows a soft info message (not a warning/error) for each missing optional item, including the ai engine', async () => {
     const items: EnvCheckItem[] = [
       OK_ITEM('node', 'Node.js'),
       OK_ITEM('ng', 'Angular CLI'),
-      { id: 'claude', label: 'Claude Code CLI', required: false, ok: false, installUrl: 'https://code.claude.com' },
+      { id: 'aiEngine', label: 'Claude Code CLI', required: false, ok: false, installUrl: 'https://code.claude.com', engineId: 'claude' },
       { id: 'git', label: 'Git', required: false, ok: false, installUrl: 'https://git-scm.com/' },
       { id: '7zip', label: '7-Zip', required: false, ok: false, installUrl: 'https://7-zip.org/' },
     ];
@@ -120,19 +122,40 @@ describe('runEnvironmentCheck', () => {
       checkEnvironmentFn: async () => items,
       installAngularCliFn: async () => true,
     });
-    // 3 opcionais faltando -> 3 mensagens informativas (nenhuma "tudo ok" combinada,
-    // nenhuma error/warning já que são opcionais)
+    // 3 opcionais faltando -> 3 mensagens informativas (nenhuma error/warning,
+    // já que todos são opcionais)
     assert.strictEqual(shownInfoMessages.length, 3);
-    assert.ok(shownInfoMessages.every((m) => /opcional/.test(m)));
+    assert.ok(shownInfoMessages.some((m) => /Git não encontrado.*opcional/.test(m)));
+    assert.ok(shownInfoMessages.some((m) => /7-Zip não encontrado.*opcional/.test(m)));
+    assert.ok(shownInfoMessages.some((m) => /Claude Code CLI não encontrado/.test(m)));
     assert.strictEqual(shownWarningMessages.length, 0);
     assert.strictEqual(shownErrorMessages.length, 0);
+  });
+
+  it('offers "Configurar Motor de IA" for a missing ai engine, and runs it when chosen', async () => {
+    const items: EnvCheckItem[] = [
+      OK_ITEM('node', 'Node.js'),
+      OK_ITEM('ng', 'Angular CLI'),
+      { id: 'aiEngine', label: 'Codex CLI', required: false, ok: false, engineId: 'codex' }, // sem installUrl (codex/gemini)
+      OK_ITEM('git', 'Git'),
+      OK_ITEM('7zip', '7-Zip'),
+    ];
+    queueMessageChoice('Configurar Motor de IA');
+    await runEnvironmentCheck(fakeContext(), fakeOutputChannel(), {
+      checkEnvironmentFn: async () => items,
+      installAngularCliFn: async () => true,
+    });
+    assert.ok(shownInfoMessages.some((m) => /Codex CLI não encontrado/.test(m)));
+    assert.ok(executedCommands.includes('poui.configureEngine'));
+    // sem installUrl -> nunca tenta abrir link nenhum
+    assert.strictEqual(openedExternalUrls.length, 0);
   });
 
   it('writes a full ✓/✗ report to the output channel regardless of outcome', async () => {
     const items: EnvCheckItem[] = [
       OK_ITEM('node', 'Node.js'),
       { id: 'ng', label: 'Angular CLI', required: true, ok: false, npmInstallCommand: 'npm install -g @angular/cli' },
-      OK_ITEM('claude', 'Claude Code CLI'),
+      OK_ITEM('aiEngine', 'Claude Code CLI'),
       OK_ITEM('git', 'Git'),
       OK_ITEM('7zip', '7-Zip'),
     ];

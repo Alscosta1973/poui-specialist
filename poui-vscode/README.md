@@ -92,7 +92,7 @@ automaticamente, só reportados.
 | `PO-UI: Consultar Documentação de Componente` | Consulta a referência de um componente PO-UI (inputs, outputs, exemplos de uso) |
 | `PO-UI: Configurar Motor de IA` | Escolhe qual CLI a extensão usa (`claude`/`codex`/`gemini` — Codex e Gemini ainda experimentais) |
 | `PO-UI: Ativar Licença` | Ativa uma chave de licença existente, ou abre o fluxo de compra |
-| `PO-UI: Verificar Ambiente` | Confere Node, Angular CLI, Claude Code CLI, Git e 7-Zip na sua máquina e orienta o que falta — roda sozinho na primeira instalação |
+| `PO-UI: Verificar Ambiente` | Confere Node, Angular CLI, o motor de IA configurado (`poui.aiEngine`), Git e 7-Zip na sua máquina e orienta o que falta — roda sozinho na primeira instalação |
 
 ## Licença
 
