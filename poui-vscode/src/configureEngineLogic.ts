@@ -27,11 +27,22 @@ export interface CredentialChoice {
   action: CredentialAction;
 }
 
-export function buildCredentialChoices(hasStoredCredential: boolean): CredentialChoice[] {
-  const choices: CredentialChoice[] = [
-    { label: 'Login gratuito (abre navegador)', action: 'oauth' },
-    { label: 'Tenho uma API key', action: 'apiKey' },
-  ];
+/** Gemini não oferece `oauth` — achado real confirmado em 2026-09-15: o
+ * Google descontinuou "Gemini Code Assist for individuals" (a única forma
+ * de login gratuito que o `gemini` CLI abria), migrando pro produto novo
+ * "Antigravity" (`https://antigravity.google`). Tentar essa opção agora só
+ * resulta em "Failed to sign in" — e o modo headless que a extensão usa já
+ * exigia `GEMINI_API_KEY`/`GOOGLE_API_KEY` mesmo antes disso (ver
+ * `geminiAdapter.ts`), então API key sempre foi o caminho real pra esse
+ * motor. Codex não tem esse problema confirmado, mantém as duas opções. */
+export function buildCredentialChoices(engineId: EngineId, hasStoredCredential: boolean): CredentialChoice[] {
+  const choices: CredentialChoice[] =
+    engineId === 'gemini'
+      ? [{ label: 'Tenho uma API key', action: 'apiKey' }]
+      : [
+          { label: 'Login gratuito (abre navegador)', action: 'oauth' },
+          { label: 'Tenho uma API key', action: 'apiKey' },
+        ];
   if (hasStoredCredential) {
     choices.push({ label: 'Remover credencial salva', action: 'remove' });
   }

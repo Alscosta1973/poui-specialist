@@ -14,16 +14,15 @@ import {
 } from './configureEngineLogic';
 import { EngineId } from './engineTypes';
 
-/** Comando de terminal pra disparar o login OAuth de cada motor. Codex:
- * `codex login` (assunção já existente em `codexAdapter.ts`, não
+/** Comando de terminal pra disparar o login OAuth de cada motor. Só Codex
+ * hoje (`codex login`, assunção já existente em `codexAdapter.ts`, não
  * validada de ponta a ponta nesta sessão por falta de conta OpenAI — ver
- * Task 2). Gemini: só `gemini` sem argumentos — confirmado via
- * `gemini --help` real em 2026-09-06 (Task 1): não existe subcomando
- * `login`/`auth` dedicado, a autenticação OAuth acontece na primeira
- * execução interativa do próprio binário. */
+ * Task 2) — Gemini nunca mais oferece a opção `oauth` (ver
+ * `buildCredentialChoices` em `configureEngineLogic.ts`: login individual
+ * gratuito confirmado descontinuado pelo Google em 2026-09-15), então essa
+ * entrada nem é necessária mais. */
 const ENGINE_LOGIN_COMMAND: Partial<Record<EngineId, string>> = {
   codex: 'codex login',
-  gemini: 'gemini',
 };
 
 interface EngineQuickPickItem extends vscode.QuickPickItem {
@@ -85,7 +84,7 @@ async function configureCredentialEngine(
 ): Promise<void> {
   const alreadyHasCredential = await hasCredential(context, engineId);
   const credentialChoice = await vscode.window.showQuickPick<CredentialQuickPickItem>(
-    buildCredentialChoices(alreadyHasCredential).map((c) => ({ label: c.label, action: c.action })),
+    buildCredentialChoices(engineId, alreadyHasCredential).map((c) => ({ label: c.label, action: c.action })),
     { placeHolder: `Como você quer autenticar o ${engineLabel}?` },
   );
   if (!credentialChoice) {

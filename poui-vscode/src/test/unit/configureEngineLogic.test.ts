@@ -22,14 +22,24 @@ describe('buildEngineChoices', () => {
 });
 
 describe('buildCredentialChoices', () => {
-  it('offers oauth and apiKey without a remove option when nothing is stored', () => {
-    const choices = buildCredentialChoices(false);
+  it('offers oauth and apiKey without a remove option when nothing is stored (codex)', () => {
+    const choices = buildCredentialChoices('codex', false);
     assert.deepStrictEqual(choices.map((c) => c.action), ['oauth', 'apiKey']);
   });
 
-  it('also offers remove when a credential is already stored', () => {
-    const choices = buildCredentialChoices(true);
+  it('also offers remove when a credential is already stored (codex)', () => {
+    const choices = buildCredentialChoices('codex', true);
     assert.deepStrictEqual(choices.map((c) => c.action), ['oauth', 'apiKey', 'remove']);
+  });
+
+  it('never offers oauth for gemini — Google discontinued individual login for the gemini CLI (2026-09-15)', () => {
+    const choices = buildCredentialChoices('gemini', false);
+    assert.deepStrictEqual(choices.map((c) => c.action), ['apiKey']);
+  });
+
+  it('still offers remove for gemini when a credential is already stored, just no oauth', () => {
+    const choices = buildCredentialChoices('gemini', true);
+    assert.deepStrictEqual(choices.map((c) => c.action), ['apiKey', 'remove']);
   });
 });
 

@@ -90,7 +90,7 @@ automaticamente, só reportados.
 | `PO-UI: Conectar ao Protheus` | Troca os mocks de um componente por chamadas reais ao endpoint Protheus configurado, ajustando o proxy e (se necessário) gerando o contrato TLPP |
 | `PO-UI: Criar Novo Projeto (Scaffold)` | Cria um projeto Angular + PO-UI novo do zero (`ng new`, tema, componente inicial, proxy) |
 | `PO-UI: Consultar Documentação de Componente` | Consulta a referência de um componente PO-UI (inputs, outputs, exemplos de uso) |
-| `PO-UI: Configurar Motor de IA` | Escolhe qual CLI a extensão usa (`claude`/`codex`/`gemini` — Codex e Gemini ainda experimentais) |
+| `PO-UI: Configurar Motor de IA` | Escolhe qual CLI a extensão usa (`claude`/`codex`/`gemini` — Codex e Gemini ainda experimentais; Gemini exige API key, o login gratuito por navegador foi descontinuado pelo Google) |
 | `PO-UI: Ativar Licença` | Ativa uma chave de licença existente, ou abre o fluxo de compra |
 | `PO-UI: Verificar Ambiente` | Confere Node, Angular CLI, o motor de IA configurado (`poui.aiEngine`), Git e 7-Zip na sua máquina e orienta o que falta — roda sozinho na primeira instalação |
 
