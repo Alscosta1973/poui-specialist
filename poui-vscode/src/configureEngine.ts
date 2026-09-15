@@ -12,6 +12,7 @@ import {
   interpretValidationResult,
   CredentialAction,
   ENGINE_LABELS,
+  ValidationOutcome,
 } from './configureEngineLogic';
 import { EngineId } from './engineTypes';
 
@@ -54,7 +55,7 @@ async function validateCredential(
   engineId: EngineId,
   engineLabel: string,
   workspaceRoot: string,
-): Promise<boolean> {
+): Promise<ValidationOutcome['kind']> {
   const result = await vscode.window.withProgress(
     { location: vscode.ProgressLocation.Notification, title: `PO-UI: testando conexão com ${engineLabel}...` },
     () =>
@@ -70,10 +71,10 @@ async function validateCredential(
   const outcome = interpretValidationResult(engineLabel, result);
   if (outcome.kind === 'success') {
     void vscode.window.showInformationMessage(outcome.message);
-    return true;
+  } else {
+    void vscode.window.showErrorMessage(outcome.message);
   }
-  void vscode.window.showErrorMessage(outcome.message);
-  return false;
+  return outcome.kind;
 }
 
 async function configureCredentialEngine(
@@ -133,15 +134,23 @@ async function configureCredentialEngine(
     }
   }
 
-  const valid = await validateCredential(context, outputChannel, engineId, engineLabel, workspaceRoot);
-  if (!valid) {
+  const outcomeKind = await validateCredential(context, outputChannel, engineId, engineLabel, workspaceRoot);
+  if (outcomeKind !== 'success') {
+    // Timeout ganha um botão a mais: geralmente é o servidor do provedor
+    // sobrecarregado (ver TIMEOUT_ERROR_MESSAGE), não credencial errada, e
+    // a geração de verdade não tem esse teto de tempo — não faz sentido
+    // travar a escolha do motor só por causa desse teste rápido.
+    const buttons = outcomeKind === 'timeout' ? ['Tentar de novo', 'Continuar mesmo assim'] : ['Tentar de novo'];
     const retry = await vscode.window.showWarningMessage(
       `PO-UI: não foi possível validar a conexão com ${engineLabel}.`,
-      'Tentar de novo',
-      'Cancelar',
+      ...buttons,
     );
     if (retry === 'Tentar de novo') {
       await configureCredentialEngine(context, outputChannel, engineId, engineLabel, workspaceRoot);
+      return;
+    }
+    if (retry === 'Continuar mesmo assim') {
+      await setActiveEngineIfConfirmed(engineId, engineLabel, outputChannel);
     }
     return;
   }

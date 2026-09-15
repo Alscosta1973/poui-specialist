@@ -102,7 +102,8 @@ describe('runAgentForCommand', () => {
       20,
     );
     assert.strictEqual(result.succeeded, false);
-    assert.strictEqual(result.errorMessage, 'tempo esgotado aguardando resposta do motor.');
+    assert.match(result.errorMessage ?? '', /tempo esgotado aguardando resposta do motor/);
+    assert.match(result.errorMessage ?? '', /alta demanda temporária no servidor/);
   });
 
   it('injects the stored credential as an env var for the given engine', async () => {

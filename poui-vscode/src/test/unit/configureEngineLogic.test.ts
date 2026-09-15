@@ -6,6 +6,7 @@ import {
   getValidationTimeoutMs,
   interpretValidationResult,
 } from '../../configureEngineLogic';
+import { TIMEOUT_ERROR_MESSAGE } from '../../runAgentForCommand';
 
 describe('buildEngineChoices', () => {
   it('lists claude, codex and gemini, marking the active engine', () => {
@@ -84,5 +85,14 @@ describe('interpretValidationResult', () => {
     });
     assert.strictEqual(outcome.kind, 'otherError');
     assert.ok(outcome.message.includes('network down'));
+  });
+
+  it('returns a distinct timeout outcome (not otherError) for TIMEOUT_ERROR_MESSAGE — lets the caller offer "Continuar mesmo assim"', () => {
+    const outcome = interpretValidationResult('Gemini', {
+      filesWritten: [],
+      succeeded: false,
+      errorMessage: TIMEOUT_ERROR_MESSAGE,
+    });
+    assert.strictEqual(outcome.kind, 'timeout');
   });
 });

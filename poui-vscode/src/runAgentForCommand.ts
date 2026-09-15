@@ -3,10 +3,18 @@ import { CredentialContext, getCredentialEnv } from './engineCredentials';
 import { runAgent, GenerateResult, OutputSink, RunAgentOptions, SpawnFn } from './agentRuntime';
 import { EngineId } from './engineTypes';
 
+// Achado real (2026-09-15): motores com camada gratuita (Gemini) fazem
+// retry-with-backoff sozinhos em erro 503 ("alta demanda") do servidor do
+// Google, e isso pode passar de 60s — não é erro nosso nem credencial
+// errada, é o servidor do provedor mesmo. Mensagem explica isso em vez de
+// só dizer "timeout" seco, pra não parecer bug da extensão.
+export const TIMEOUT_ERROR_MESSAGE =
+  'tempo esgotado aguardando resposta do motor — se for um motor com camada gratuita (ex: Gemini), pode ser alta demanda temporária no servidor; tente de novo em alguns instantes.';
+
 const TIMEOUT_RESULT: GenerateResult = {
   filesWritten: [],
   succeeded: false,
-  errorMessage: 'tempo esgotado aguardando resposta do motor.',
+  errorMessage: TIMEOUT_ERROR_MESSAGE,
 };
 
 /** Ponto único de injeção de credencial (Abordagem B) — resolve a

@@ -1,4 +1,5 @@
 import { EngineId, RunAgentOptions, GenerateResult } from './engineTypes';
+import { TIMEOUT_ERROR_MESSAGE } from './runAgentForCommand';
 
 export interface EngineChoice {
   label: string;
@@ -69,13 +70,22 @@ export function getValidationTimeoutMs(): number {
 }
 
 export interface ValidationOutcome {
-  kind: 'success' | 'authError' | 'otherError';
+  kind: 'success' | 'authError' | 'timeout' | 'otherError';
   message: string;
 }
 
 export function interpretValidationResult(engineLabel: string, result: GenerateResult): ValidationOutcome {
   if (result.succeeded) {
     return { kind: 'success', message: `PO-UI: conexão com ${engineLabel} validada com sucesso.` };
+  }
+  // Distinguido de 'otherError' pra `configureEngine.ts` poder oferecer
+  // "Continuar mesmo assim" — achado real: um timeout aqui costuma ser o
+  // servidor do provedor sobrecarregado (ver TIMEOUT_ERROR_MESSAGE), não
+  // uma credencial errada, e a geração de verdade não tem esse teto de
+  // tempo — não faz sentido bloquear o usuário de escolher o motor só
+  // porque esse teste rápido esbarrou num 503 temporário.
+  if (result.errorMessage === TIMEOUT_ERROR_MESSAGE) {
+    return { kind: 'timeout', message: `PO-UI: falha ao testar ${engineLabel} — ${result.errorMessage}` };
   }
   if (result.isAuthError) {
     return {
