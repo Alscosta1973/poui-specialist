@@ -177,6 +177,15 @@ function lintTs(tsPath: string, tsContent: string, htmlContent: string | undefin
   return findings;
 }
 
+/** Tag de abertura do `po-combo` (pode ocupar várias linhas). */
+export const PO_COMBO_TAG_RE = /<po-combo\b[^>]*>/gi;
+
+/** Combo sem ligação de valor começa vazio e não sofre o filtro inicial. */
+export function comboNeedsRemoveInitialFilter(tag: string): boolean {
+  const temValor = /\bngModel\b|\bformControlName\b|\[formControl\]/.test(tag);
+  return temValor && !/p-remove-initial-filter/.test(tag);
+}
+
 function lintHtml(htmlPath: string, htmlContent: string, tsContent: string): LintFinding[] {
   const findings: LintFinding[] = [];
   const isOnPush = /ChangeDetectionStrategy\.OnPush/.test(tsContent);
@@ -279,6 +288,21 @@ function lintHtml(htmlPath: string, htmlContent: string, tsContent: string): Lin
         line: lineAt(htmlContent, dynFormMatch.index),
         message: '(p-value-change) em po-dynamic-form (não existe) (Quirk #13)',
         fixable: false,
+      });
+    }
+  }
+
+  // H08 — po-combo ligado a um valor sem p-remove-initial-filter: abre filtrado pelo valor atual
+  for (const m of htmlContent.matchAll(PO_COMBO_TAG_RE)) {
+    if (comboNeedsRemoveInitialFilter(m[0])) {
+      findings.push({
+        id: 'H08',
+        severity: 'WARNING',
+        file: htmlPath,
+        line: lineAt(htmlContent, m.index!),
+        message:
+          'po-combo com valor e sem [p-remove-initial-filter]="true" — ao abrir, a lista mostra só a opção já escolhida (Quirk #19)',
+        fixable: true,
       });
     }
   }

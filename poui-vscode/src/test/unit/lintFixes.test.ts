@@ -97,6 +97,19 @@ describe('applyLintFixes', () => {
     assert.ok(!findingsAfter.some((f) => f.id === 'L07'));
   });
 
+  it('H08: adds [p-remove-initial-filter]="true" only to bound combos', () => {
+    const ts = `@Component({ changeDetection: ChangeDetectionStrategy.OnPush })\nexport class XComponent {}`;
+    const html = `<po-combo\n  name="s"\n  [ngModel]="s">\n</po-combo>\n<po-combo [p-options]="o"></po-combo>`;
+    const input = { tsPath: 'x.ts', tsContent: ts, htmlPath: 'x.html', htmlContent: html };
+    const result = applyLintFixes(input, lintComponentPair(input));
+
+    assert.ok(result.appliedFixIds.includes('H08'));
+    assert.strictEqual(result.htmlContent!.match(/p-remove-initial-filter/g)!.length, 1);
+    assert.ok(result.htmlContent!.startsWith('<po-combo [p-remove-initial-filter]="true"\n  name="s"'));
+    const findingsAfter = lintComponentPair({ ...input, htmlContent: result.htmlContent! });
+    assert.ok(!findingsAfter.some((f) => f.id === 'H08'));
+  });
+
   it('leaves non-fixable findings untouched and does not report them as applied', () => {
     const ts = `export class XComponent {\n  @Input() value!: string;\n}`;
     const findings = lintComponentPair({ tsPath: 'x.ts', tsContent: ts });

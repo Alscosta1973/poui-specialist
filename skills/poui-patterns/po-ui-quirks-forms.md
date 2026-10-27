@@ -201,4 +201,6 @@ mostra **só "Todos"**; o usuário precisa apagar o texto para ver as outras op�
 "bolinha da legenda no combo"). O `po-combo` também grava `selected` nas próprias opções — em teste
 unitário comparar com `jasmine.objectContaining`.
 
-**Plugin rule:** todo `po-combo` usado como filtro de browse sai com `[p-remove-initial-filter]="true"`.
+**Plugin rule:** todo `po-combo` ligado a um valor (filtro de browse ou campo de edição) sai com
+`[p-remove-initial-filter]="true"`. O `/poui-specialist:lint` acusa a falta como **H08** e o `--fix`
+acrescenta o atributo.

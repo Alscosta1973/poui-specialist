@@ -1,4 +1,4 @@
-import { ComponentPairInput, LintFinding, findSubscribeBlocks } from './lintRules';
+import { ComponentPairInput, LintFinding, PO_COMBO_TAG_RE, comboNeedsRemoveInitialFilter, findSubscribeBlocks } from './lintRules';
 
 export interface LintFixResult {
   tsContent?: string;
@@ -10,7 +10,7 @@ export interface LintFixResult {
  * suficiente para automatizar. H01/H02 (`*ngIf`/`*ngFor` → `@if`/`@for`)
  * ficam de fora desta fatia: exigem balancear a tag de fechamento em HTML
  * arbitrário, risco real de gerar template quebrado — apenas reportados. */
-const AUTO_FIXABLE_IDS = new Set(['L01', 'L02', 'L06', 'L07', 'H03', 'H04', 'H06']);
+const AUTO_FIXABLE_IDS = new Set(['L01', 'L02', 'L06', 'L07', 'H03', 'H04', 'H06', 'H08']);
 
 function ensureAngularCoreImport(content: string, symbols: string[]): string {
   const importRe = /import\s*\{([^}]*)\}\s*from\s*'@angular\/core';/;
@@ -137,6 +137,12 @@ function fixH06(htmlContent: string): string {
   return htmlContent.replace(/\bp-max-length\b/g, 'p-maxlength');
 }
 
+function fixH08(htmlContent: string): string {
+  return htmlContent.replace(PO_COMBO_TAG_RE, (tag) =>
+    comboNeedsRemoveInitialFilter(tag) ? tag.replace(/^<po-combo\b/i, '<po-combo [p-remove-initial-filter]="true"') : tag,
+  );
+}
+
 export function applyLintFixes(input: ComponentPairInput, findings: LintFinding[]): LintFixResult {
   const appliedFixIds: string[] = [];
   let tsContent = input.tsContent;
@@ -178,6 +184,10 @@ export function applyLintFixes(input: ComponentPairInput, findings: LintFinding[
     if (has('H06')) {
       htmlContent = fixH06(htmlContent);
       appliedFixIds.push('H06');
+    }
+    if (has('H08')) {
+      htmlContent = fixH08(htmlContent);
+      appliedFixIds.push('H08');
     }
   }
 

@@ -8,7 +8,7 @@ argument-hint: "<path> [--fix] [--dry-run]"
 
 # /poui-specialist:lint
 
-Analisa componentes Angular PO-UI para os 18 quirks e anti-padrões conhecidos.
+Analisa componentes Angular PO-UI para os 19 quirks e anti-padrões conhecidos.
 Com `--fix`, corrige automaticamente os problemas que têm fix seguro.
 
 ## Exemplos
@@ -61,6 +61,7 @@ Para cada componente encontrado, verificar:
 | H05 | WARNING | `po-table` sem `[p-height]` em componente OnPush (Quirk #12) | não |
 | H06 | WARNING | `p-max-length` em vez de `p-maxlength` (Quirk #4) | sim |
 | H07 | ERROR | `(p-value-change)` em `po-dynamic-form` (não existe) (Quirk #13) | não (complexo) |
+| H08 | WARNING | `po-combo` ligado a valor (`ngModel` / `[(ngModel)]` / `formControlName` / `[formControl]`) sem `p-remove-initial-filter` — ao abrir, a lista vem filtrada pelo valor atual e mostra só a opção escolhida (Quirk #19) | sim |
 
 ---
 
@@ -165,6 +166,16 @@ error: () => { this.loading.set(false); }
 ```html
 <!-- Antes --> <po-input p-max-length="100">
 <!-- Depois --> <po-input p-maxlength="100">
+```
+
+### H08 — po-combo abre filtrado pelo valor atual
+
+Só nos `po-combo` com ligação de valor; respeitar um `[p-remove-initial-filter]="false"` explícito
+(não avisar). Combo sem ligação de valor começa vazio — não avisar.
+
+```html
+<!-- Antes -->  <po-combo name="statusSel" [p-options]="statusOptions" [ngModel]="statusSel">
+<!-- Depois --> <po-combo [p-remove-initial-filter]="true" name="statusSel" [p-options]="statusOptions" [ngModel]="statusSel">
 ```
 
 ---

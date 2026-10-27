@@ -190,6 +190,37 @@ describe('lintComponentPair — HTML checks', () => {
     assert.strictEqual(findings.find((f) => f.id === 'H07')!.fixable, false);
   });
 
+  it('H08: flags a po-combo bound to a value without p-remove-initial-filter (multi-line tag)', () => {
+    const html = `<po-combo\n  name="statusSel"\n  [p-options]="statusOptions"\n  [ngModel]="statusSel"\n  (p-change)="filtrar($event)">\n</po-combo>`;
+    const findings = lintComponentPair({ tsPath: 'x.ts', tsContent: baseTs, htmlPath: 'x.html', htmlContent: html });
+    const h08 = findings.find((f) => f.id === 'H08');
+    assert.ok(h08);
+    assert.strictEqual(h08!.severity, 'WARNING');
+    assert.strictEqual(h08!.line, 1);
+    assert.strictEqual(h08!.fixable, true);
+  });
+
+  it('H08: also flags formControlName and [formControl] bindings', () => {
+    for (const bind of ['formControlName="status"', '[formControl]="ctrl"', '[(ngModel)]="x"']) {
+      const html = `<po-combo ${bind} [p-options]="o"></po-combo>`;
+      const findings = lintComponentPair({ tsPath: 'x.ts', tsContent: baseTs, htmlPath: 'x.html', htmlContent: html });
+      assert.ok(idsOf(findings).includes('H08'), bind);
+    }
+  });
+
+  it('H08: does not flag a combo without a value binding or one that already sets the attribute', () => {
+    const htmls = [
+      `<po-combo [p-options]="o" (p-change)="go($event)"></po-combo>`,
+      `<po-combo [ngModel]="x" [p-remove-initial-filter]="true" [p-options]="o"></po-combo>`,
+      `<po-combo [ngModel]="x" [p-remove-initial-filter]="false" [p-options]="o"></po-combo>`,
+      `<po-select [ngModel]="x" [p-options]="o"></po-select>`,
+    ];
+    for (const html of htmls) {
+      const findings = lintComponentPair({ tsPath: 'x.ts', tsContent: baseTs, htmlPath: 'x.html', htmlContent: html });
+      assert.ok(!idsOf(findings).includes('H08'), html);
+    }
+  });
+
   it('skips all HTML checks when there is no html content (inline template)', () => {
     const findings = lintComponentPair({ tsPath: 'x.ts', tsContent: baseTs });
     assert.deepStrictEqual(findings.filter((f) => f.id.startsWith('H')), []);
