@@ -21,24 +21,27 @@ Decisões do Andre:
 - Logos: `@totvs/common-assets/common-assets/logos/totvs/{totvs.svg,totvs-short-symbol.svg}`.
 
 ## Fase 1 — H08 lint (po-combo com valor sem p-remove-initial-filter)
-- [ ] `poui-vscode/src/lintRules.ts` H08 WARNING fixable: `<po-combo` com ligação de valor (`ngModel`,
+- [x] `poui-vscode/src/lintRules.ts` H08 WARNING fixable: `<po-combo` com ligação de valor (`ngModel`,
       `formControlName`, `[formControl]`) e sem `p-remove-initial-filter`.
-- [ ] `lintFixes.ts` fixH08: insere `[p-remove-initial-filter]="true"`.
-- [ ] Testes unit (avisa / não avisa sem ligação / não avisa com atributo / fix + relint limpo).
-- [ ] `commands/lint.md`: H08 na tabela + seção de fix; quirk 19 aponta para H08.
+- [x] `lintFixes.ts` fixH08: insere `[p-remove-initial-filter]="true"`.
+- [x] Testes unit (avisa / não avisa sem ligação / não avisa com atributo / fix + relint limpo).
+- [x] `commands/lint.md`: H08 na tabela + seção de fix; quirk 19 aponta para H08.
 
 ## Fase 2 — Padrão TOTVS no plugin
-- [ ] `skills/poui-patterns/padrao-totvs.md` (shell, fontes, menu, tabela/legenda, cores) + índice no SKILL.md.
-- [ ] `commands/scaffold.md`: shell TOTVS (logo, versão, perfil, collapse), `styles.scss` sem Open Sans, assets dos logos.
-- [ ] `module-structure.md`, templates de lista (status `label`/`subtitle`), agentes geradores citam o padrão.
-- [ ] lint S01 (styles.scss com Open Sans / font-family / redução de tokens) e H09 (po-menu sem p-collapsed / sem p-logo).
+- [x] `skills/poui-patterns/padrao-totvs.md` (shell, fontes, menu, tabela/legenda, cores) + índice no SKILL.md.
+- [x] `commands/scaffold.md`: shell TOTVS (logo, versão, perfil, collapse), `styles.scss` sem Open Sans, assets dos logos.
+- [x] `module-structure.md`, templates de lista (status `label`/`subtitle`), agentes geradores citam o padrão.
+- [x] lint S01 (styles.scss com Open Sans / font-family / redução de tokens) e H09 (po-menu sem p-collapsed / sem p-logo).
 
 ## Fase 3 — Extensão
-- [ ] `scaffolding.ts` com os mesmos modelos; lint S01/H09 (lintRules + runLint lê `src/styles.scss|css`).
-- [ ] Testes unit + integração; README/CHANGELOG/DESENVOLVIMENTO.
+- [x] `scaffolding.ts` com os mesmos modelos; lint S01/H09 (lintRules + runLint lê `src/styles.scss|css`).
+- [x] Testes unit + integração; README/CHANGELOG/DESENVOLVIMENTO.
 
 ## Fase 4 — Release
-- [ ] plugin 1.18.0 (CHANGELOG, README, troubleshooting/quickstart se couber), extensão 1.5.0 (.vsix), tag, push.
+- [x] plugin 1.18.0 (CHANGELOG, README, troubleshooting/quickstart se couber), extensão 1.5.0 (.vsix), tag, push.
 
 ## Fase 5 — RCA
-- [ ] Shell TOTVS, fonte/tamanhos do tema, status/legenda nativos; Karma + E2E; `/poui-specialist:package`; compilar RPO; smoke.
+- [x] Shell TOTVS, fonte/tamanhos do tema, status/legenda nativos; Karma + E2E; `/poui-specialist:package`; compilar RPO; smoke.
+
+## Status
+Concluído em 27/10/2026: plugin v1.18.0 (tag), extensão 1.5.0 (.vsix em poui-vscode/), RCA a2a5a4e7 + 2894983e (logo FFM). Smoke no Protheus OK.
