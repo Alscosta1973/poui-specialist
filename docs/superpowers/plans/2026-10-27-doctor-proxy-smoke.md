@@ -48,4 +48,4 @@ push para origin, tag, `.vsix`. `latest_version` do gist fica com o Andre (`bump
   `npm run package` (vsix), commit, tag, push. `sync-to-cache.ps1` para o cache local.
 
 ## Estado
-- [x] Fase 1 (7c3aa97)  - [x] Fase 2 (e3ce637)  - [x] Fase 3 (3d06d7d)  - [x] Fase 4  - [ ] Fase 5
+- [x] Fase 1 (7c3aa97)  - [x] Fase 2 (e3ce637)  - [x] Fase 3 (3d06d7d)  - [x] Fase 4 (fdd1082)  - [x] Fase 5 (v1.17.0 = 56930a3, extensão 1.4.0 = b8e45ef, push feito; .vsix local)
