@@ -18,6 +18,7 @@ export const GROUPS: MenuGroup[] = [
       { label: 'Gerar Teste E2E (Playwright)', commandId: 'poui.generate.e2e', paid: true },
       { label: 'Gerar a partir de Screenshot', commandId: 'poui.generate.screenshot', paid: true },
       { label: 'Criar Novo Projeto (Scaffold)', commandId: 'poui.scaffold', paid: true },
+      { label: 'Logo do Cliente (customização)', commandId: 'poui.clientLogo', paid: false },
     ],
   },
   {

@@ -48,8 +48,15 @@ Cria um projeto Angular 17–21+ com PO-UI e integração Protheus **do zero**, 
 | `--skip-install` | `skipInstall = true` | `false` |
 | `--with-dark-mode` | `withDarkMode = true` | `false` |
 | `--with-i18n` | `withI18n = true` | `false` |
+| `--logo <arquivo.docx\|imagem...>` | `clientLogo` | — (perguntar) |
 
 Se `projectName` não for fornecido: perguntar antes de prosseguir.
+
+**Logo (padrão visual TOTVS):** se `--logo` não foi informado, perguntar (AskUserQuestion):
+**"O projeto é uma customização para um cliente?"**
+- **Não** → mantém o logo TOTVS (padrão).
+- **Sim** → pedir o documento `.docx` ou as imagens do logo do cliente e guardar em `clientLogo`.
+  Sem arquivo, fica o TOTVS, que pode ser trocado depois com `/poui-specialist:logo`.
 
 ### 1.2 — Verificar pré-requisitos
 
@@ -387,6 +394,15 @@ Substituir `<title>` pelo nome do projeto.
 </body>
 </html>
 ```
+
+---
+
+## Passo 6.7 — Logo do cliente (se `clientLogo`)
+
+Executar o fluxo do **`/poui-specialist:logo`** (Passos 2–3) com o projeto recém-criado e os arquivos
+de `clientLogo`. Ele lista as imagens, confirma com o usuário qual é o logo com nome e o símbolo,
+remove o fundo e liga o menu aberto, o menu recolhido e o avatar ao logo do cliente. Sem
+`clientLogo`, nada a fazer: o shell já usa o logo TOTVS.
 
 ---
 

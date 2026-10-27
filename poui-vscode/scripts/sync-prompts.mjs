@@ -115,6 +115,8 @@ const sources = [
   ['skills/poui-components/ui-components.md', 'ui-components.md'],
   // Smoke no Protheus — script Playwright executado pelo comando poui.smokeProtheus
   ['skills/poui-smoke/smoke-protheus.cjs', 'smoke-protheus.cjs'],
+  // Logo do cliente — script executado pelo comando poui.clientLogo e pelo scaffold
+  ['skills/poui-logo/client-logo.cjs', 'client-logo.cjs'],
 ];
 
 async function main() {

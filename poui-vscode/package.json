@@ -76,6 +76,10 @@
         "title": "PO-UI: Smoke no Protheus (abrir pelo menu)"
       },
       {
+        "command": "poui.clientLogo",
+        "title": "PO-UI: Logo do Cliente (customização)"
+      },
+      {
         "command": "poui.connect",
         "title": "PO-UI: Conectar ao Protheus"
       },

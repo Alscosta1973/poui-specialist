@@ -96,6 +96,10 @@ Ordem de estilos no `angular.json` (como o `scaffold` gera):
   - **Tamanho:** o logo aberto ocupa até ~256 px de largura; um logo horizontal de ~280×100 px fica
     legível.
   - **Origem:** pedir os logos ao usuário (arquivo ou imagem num documento) e nunca inventar.
+  - **Automático:** `/poui-specialist:logo` (ou "PO-UI: Logo do Cliente" na extensão) faz tudo isso a
+    partir de um `.docx` ou de imagens, inclusive gerar o símbolo a partir do logo com nome. O
+    `/poui-specialist:scaffold` pergunta **"O projeto é uma customização para um cliente?"**, e sem
+    logo mantém o TOTVS.
 
   Validado com a FFM no RCA em 27/10/2026.
 

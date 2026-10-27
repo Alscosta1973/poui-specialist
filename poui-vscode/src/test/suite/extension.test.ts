@@ -81,6 +81,13 @@ describe('extension packaging', () => {
     assert.ok(commands.includes('poui.doctor'));
   });
 
+  it('registers the poui.clientLogo command after activation', async () => {
+    const ext = vscode.extensions.getExtension('andre-costa.poui-vscode');
+    await ext?.activate();
+    const commands = await vscode.commands.getCommands(true);
+    assert.ok(commands.includes('poui.clientLogo'));
+  });
+
   it('registers the poui.smokeProtheus command after activation', async () => {
     const ext = vscode.extensions.getExtension('andre-costa.poui-vscode');
     await ext?.activate();

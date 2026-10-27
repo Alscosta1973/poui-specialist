@@ -68,6 +68,8 @@ const required = [
   'commands/doctor.md',
   'commands/smoke-protheus.md',
   'skills/poui-smoke/smoke-protheus.cjs',
+  'commands/logo.md',
+  'skills/poui-logo/client-logo.cjs',
   'skills/poui-code-generation/SKILL.md',
   'skills/poui-patterns/po-ui-quirks.md',
   'skills/poui-patterns/troubleshooting.md',

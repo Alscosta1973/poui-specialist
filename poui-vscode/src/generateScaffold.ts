@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { scaffoldProject } from './scaffolding';
 import { ensureDevServer } from './devServerRegistry';
 import { requireLicense } from './requireLicense';
+import { askAndApplyClientLogo } from './generateClientLogo';
 
 export function registerScaffoldCommand(
   context: vscode.ExtensionContext,
@@ -76,6 +77,21 @@ export function registerScaffoldCommand(
     }
 
     outputChannel.appendLine('✅ Scaffold concluído.');
+
+    // padrão visual TOTVS: customização usa o logo do cliente; sem logo fica o TOTVS
+    if (result.projectDir) {
+      const logo = await vscode.window.showQuickPick(
+        [
+          { label: 'Não — produto/uso interno: manter o logo TOTVS', value: false },
+          { label: 'Sim — customização: usar o logo do cliente', description: 'documento .docx ou imagens', value: true },
+        ],
+        { title: 'O projeto é uma customização para um cliente?', ignoreFocusOut: true },
+      );
+      if (logo?.value) {
+        await askAndApplyClientLogo(context, outputChannel, result.projectDir);
+      }
+    }
+
     const openChoice = await vscode.window.showInformationMessage(
       `PO-UI: projeto "${projectName}" criado em ${result.projectDir}.`,
       'Abrir pasta',
