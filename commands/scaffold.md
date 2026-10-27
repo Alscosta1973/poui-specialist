@@ -105,7 +105,7 @@ Set-Location $projectName
 
 `@po-ui/ng-components` e `@po-ui/ng-templates` têm schematic `ng add` oficial (instala o pacote, injeta o tema padrão e integra `HttpClientModule`/`PoModule`). Rodar com `--configSideMenu=false` para pular o schematic de menu lateral — o Passo 6/8 já cria o shell próprio integrado ao Protheus, evitando conflito com o gerado pelo schematic.
 
-`@totvs/po-theme` e `@totvs/protheus-lib-core` **não têm** schematic `ng add` (pacotes CSS/lib puros) — instalar via `npm install` normal.
+`@totvs/po-theme`, `@totvs/protheus-lib-core` e `@totvs/common-assets` (peer dependency da lib-core; traz os logos TOTVS do menu) **não têm** schematic `ng add` (pacotes CSS/lib puros) — instalar via `npm install` normal.
 
 Se `--skip-install` **não** foi fornecido:
 
@@ -113,7 +113,7 @@ Se `--skip-install` **não** foi fornecido:
 ng add @po-ui/ng-components@21 --configSideMenu=false
 ng add @po-ui/ng-templates@21
 
-npm install @totvs/po-theme@^21 @totvs/protheus-lib-core@^21
+npm install @totvs/po-theme@^21 @totvs/protheus-lib-core@^21 @totvs/common-assets@^1
 ```
 
 > `ng add` já executa a instalação do próprio pacote — não repetir `npm install` para `@po-ui/ng-components` / `@po-ui/ng-templates`.
@@ -127,7 +127,7 @@ Se `--skip-install` foi fornecido:
 ⚠ Instalação ignorada (--skip-install). Execute manualmente quando pronto:
    ng add @po-ui/ng-components@21 --configSideMenu=false
    ng add @po-ui/ng-templates@21
-   npm install @totvs/po-theme@^21 @totvs/protheus-lib-core@^21
+   npm install @totvs/po-theme@^21 @totvs/protheus-lib-core@^21 @totvs/common-assets@^1
 ```
 
 ---
@@ -159,6 +159,15 @@ Ainda em `angular.json`, ajustar `projects.<projectName>.architect.build.options
 ```
 
 > **Crítico:** o builder `@angular/build:application` (padrão desde Angular 17+) por padrão gera a saída em `dist/<projeto>/browser/`, reservando a raiz de `dist/<projeto>/` para uma eventual build de servidor (SSR). O Protheus (`FWCallApp`/`AjustaIndex` em `FWCALLAPP.PRW`) espera `index.html` diretamente na raiz da pasta publicada — sem esse ajuste, o deploy falha com **"Falha ao Ajustar os arquivos Index"**. Com `browser: ""`, o `ng build` já entrega `index.html` direto em `dist/{{projectName}}/`, sem subpasta.
+
+Ainda em `angular.json`, acrescentar os logos TOTVS do menu (padrão visual TOTVS — `skills/poui-patterns/padrao-totvs.md`) em `architect.build.options.assets` **e** `architect.test.options.assets`:
+
+```json
+"assets": [
+  { "glob": "**/*", "input": "public" },
+  { "glob": "totvs*.svg", "input": "node_modules/@totvs/common-assets/common-assets/logos/totvs", "output": "assets/logos" }
+]
+```
 
 ---
 
@@ -226,10 +235,26 @@ export const routes: Routes = [
 > convenção pode mudar de novo em versões futuras do Angular CLI.
 
 ```typescript
-import { Component, ChangeDetectionStrategy } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
-import { PoMenuModule, PoToolbarModule, PoMenuItem } from '@po-ui/ng-components';
-import { ProAppConfigService } from '@totvs/protheus-lib-core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, DestroyRef, inject, signal, viewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { defer, filter } from 'rxjs';
+import {
+  PoMenuComponent,
+  PoMenuItem,
+  PoMenuModule,
+  PoToolbarAction,
+  PoToolbarModule,
+  PoToolbarProfile,
+} from '@po-ui/ng-components';
+import { ProAppConfigService, ProThreadInfoService } from '@totvs/protheus-lib-core';
+import { APP_VERSION } from './app-version';
+
+/** Usuário logado no Protheus (vazio fora do Protheus) → sem perfil na barra. */
+export function montarPerfil(info: { displayName?: string; userName?: string } | undefined): PoToolbarProfile | undefined {
+  const title = info?.displayName?.trim() || info?.userName?.trim();
+  return title ? { title, subtitle: info?.userName?.trim() ?? '' } : undefined;
+}
 
 @Component({
   selector: 'app-root',
@@ -238,16 +263,47 @@ import { ProAppConfigService } from '@totvs/protheus-lib-core';
   styleUrl: './app.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class App {
-  constructor(private proAppConfigService: ProAppConfigService) {
+export class App implements AfterViewInit {
+  private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly proAppConfigService = inject(ProAppConfigService);
+  private readonly poMenu = viewChild.required<PoMenuComponent>('poMenu');
+
+  readonly titulo = `{{projectName | titlecase}} - v${APP_VERSION}`;
+  readonly perfil = signal<PoToolbarProfile | undefined>(undefined);
+  readonly acoesPerfil: PoToolbarAction[] = [
+    { icon: 'an an-sign-out', label: 'Sair', type: 'danger', separator: true, action: () => this.closeApp() },
+  ];
+  readonly menus: PoMenuItem[] = [
+    // { label: 'Pedidos', shortLabel: 'Pedidos', icon: 'an an-list-checks', link: '/pedidos' },
+    { label: 'Sair', shortLabel: 'Sair', icon: 'an an-sign-out', action: () => this.closeApp() },
+  ];
+
+  constructor() {
     if (!this.proAppConfigService.insideProtheus()) {
       this.proAppConfigService.loadAppConfig();
     }
+    // usuário da thread do FwCallApp; fora do Protheus não há token e o serviço lança erro na hora
+    const threadInfo = inject(ProThreadInfoService);
+    if (this.proAppConfigService.insideProtheus()) {
+      defer(() => threadInfo.getUserInfoThread())
+        .pipe(takeUntilDestroyed())
+        .subscribe({
+          next: (info) => this.perfil.set(montarPerfil(info)),
+          error: () => this.perfil.set(undefined),
+        });
+    }
   }
 
-  readonly menus: PoMenuItem[] = [
-    { label: 'Sair', shortLabel: 'Sair', icon: 'po-icon-exit', action: this.closeApp.bind(this) },
-  ];
+  ngAfterViewInit(): void {
+    // padrão TOTVS: o menu volta a recolher depois de escolher uma opção
+    this.router.events
+      .pipe(
+        filter((e) => e instanceof NavigationEnd),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => this.poMenu().collapse());
+  }
 
   private closeApp(): void {
     if (this.proAppConfigService.insideProtheus()) {
@@ -257,28 +313,50 @@ export class App {
 }
 ```
 
+`src/app/app-version.ts` (versão exibida na barra; atualizar a cada entrega):
+
+```typescript
+/** Versão exibida na barra do app ("Nome - vX.Y.Z"). Atualizar a cada entrega. */
+export const APP_VERSION = '1.0.0';
+```
+
 ### 6.4 — src/app/app.html
 
 ```html
 <div class="po-wrapper">
-  <po-toolbar p-title="{{projectName | titlecase}}"></po-toolbar>
-  <po-menu [p-menus]="menus" [p-filter]="true" [p-collapsed]="true"></po-menu>
+  <po-toolbar
+    [p-title]="titulo"
+    [p-profile]="perfil()"
+    [p-profile-actions]="acoesPerfil">
+  </po-toolbar>
+  <po-menu
+    #poMenu
+    [p-menus]="menus"
+    [p-filter]="true"
+    [p-collapsed]="true"
+    [p-automatic-toggle]="true"
+    p-logo="assets/logos/totvs.svg"
+    p-short-logo="assets/logos/totvs-short-symbol.svg">
+  </po-menu>
   <div class="container-fluid">
     <router-outlet></router-outlet>
   </div>
 </div>
 ```
 
+> Padrão visual TOTVS (`skills/poui-patterns/padrao-totvs.md`): título com a versão, usuário no perfil,
+> menu recolhido que abre ao passar o mouse, logo TOTVS e recolhe a cada navegação.
+
 ### 6.5 — src/styles.scss
 
 ```scss
-@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap');
+/* Padrão visual TOTVS: fonte (NunitoSans) e tamanhos do tema @totvs/po-theme — não importar outra
+   fonte nem sobrepor --font-size-* / --target-size-* (lint S01). */
 
 * { box-sizing: border-box; }
 
 body {
   margin: 0;
-  font-family: 'Open Sans', Arial, sans-serif;
 }
 
 /* Quirk #17 — po-decimal e po-number não alinham à direita por padrão (PO-UI v17) */
@@ -352,9 +430,8 @@ import { PoPageModule, PoToolbarModule, PoWidgetModule } from '@po-ui/ng-compone
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [PoPageModule, PoToolbarModule, PoWidgetModule],
+  imports: [PoPageModule, PoWidgetModule],
   template: `
-    <po-toolbar p-title="Bem-vindo"></po-toolbar>
     <po-page-default p-title="Projeto PO-UI + Protheus">
       <div class="po-row">
         <po-widget class="po-md-12 po-lg-4 po-mt-2" p-title="Próximos passos">
@@ -394,7 +471,7 @@ export class HomeComponent {}
 
 ```typescript
 readonly menus: PoMenuItem[] = [
-  { label: 'Início', link: '/inicio', shortLabel: 'Início', icon: 'po-icon-home' },
+  { label: 'Início', link: '/inicio', shortLabel: 'Início', icon: 'an an-house-line' },
   { label: 'Sair', shortLabel: 'Sair', icon: 'po-icon-exit', action: this.closeApp.bind(this) },
 ];
 ```
@@ -561,8 +638,9 @@ Exibir:
    {{projectName}}/
    ├── src/app/app.config.ts     — providers (HTTP, Router, Protheus)
    ├── src/app/app.routes.ts     — roteamento lazy
-   ├── src/app/app.ts, app.html — shell com po-toolbar + po-menu
-   ├── src/styles.scss           — Open Sans + Quirk #17 fix
+   ├── src/app/app.ts, app.html — shell padrão TOTVS (título + versão, usuário, menu com logo)
+   ├── src/app/app-version.ts    — versão exibida na barra
+   ├── src/styles.scss           — fonte/tamanhos do tema TOTVS + Quirk #17 fix
    ├── proxy.conf.json           — proxy /rest → {{protheusUrl}}
    ├── angular.json              — estilos PO-UI + outputPath achatado (deploy Protheus)
    └── Resource/{{projectName}}.app — pacote pronto para publicar no Protheus

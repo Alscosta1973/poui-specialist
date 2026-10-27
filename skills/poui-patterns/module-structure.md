@@ -55,55 +55,17 @@ export const appConfig: ApplicationConfig = {
 
 ---
 
-## app.component.ts (shell with Protheus integration)
+## Shell (app.ts / app.html) — padrão visual TOTVS
 
-```typescript
-import { Component, ChangeDetectionStrategy } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
-import { PoMenuModule, PoToolbarModule, PoMenuItem } from '@po-ui/ng-components';
-import { ProAppConfigService } from '@totvs/protheus-lib-core';
+O shell segue **`skills/poui-patterns/padrao-totvs.md`** (código completo de `app.ts`, `app.html` e
+`app-version.ts` na seção 2), igual aos apps nativos FINA710/FINAPP001:
 
-@Component({
-  selector: 'app-root',
-  standalone: true,
-  imports: [RouterOutlet, PoMenuModule, PoToolbarModule],
-  templateUrl: './app.component.html',
-  styleUrl: './app.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
-})
-export class AppComponent {
-  constructor(private proAppConfigService: ProAppConfigService) {
-    if (!this.proAppConfigService.insideProtheus()) {
-      this.proAppConfigService.loadAppConfig();
-    }
-  }
+- `po-toolbar` com "Nome - vX.Y.Z" e o usuário (`ProThreadInfoService`, só dentro do Protheus);
+- `po-menu` com `[p-collapsed]="true"` + `[p-automatic-toggle]="true"` (abre ao passar o mouse) e logo
+  TOTVS; recolhe a cada `NavigationEnd`;
+- itens com `label` + `shortLabel` + `icon: 'an an-*'`; "Sair" por último.
 
-  readonly menus: PoMenuItem[] = [
-    { label: 'Pedidos', link: '/pedidos', shortLabel: 'Pedidos', icon: 'po-icon-user' },
-    { label: 'Sair',     shortLabel: 'Sair', icon: 'po-icon-exit', action: this.closeApp.bind(this) },
-  ];
-
-  private closeApp(): void {
-    if (this.proAppConfigService.insideProtheus()) {
-      this.proAppConfigService.callAppClose();
-    }
-  }
-}
-```
-
-## app.component.html
-
-```html
-<div class="po-wrapper">
-  <po-toolbar p-title="Meu Sistema"></po-toolbar>
-  <po-menu [p-menus]="menus" [p-filter]="true" [p-collapsed]="true"></po-menu>
-  <div class="container-fluid">
-    <router-outlet></router-outlet>
-  </div>
-</div>
-```
-
-> **`[p-collapsed]="true"`** — menu começa recolhido, padrão quando o app abre dentro do Protheus.
+> No Angular 21 o componente raiz é `src/app/app.ts` / `App` (não `app.component.ts`).
 
 ---
 
@@ -121,7 +83,7 @@ export class AppComponent {
 
 ## Toolbar: shell vs por componente
 
-**Opção A — toolbar no shell** (padrão deste plugin): `<po-toolbar>` no `app.component.html`. Título fixo do app.
+**Opção A — toolbar no shell** (padrão deste plugin e da TOTVS): `<po-toolbar>` no `app.html` com "Nome - vVersão" e o usuário.
 
 **Opção B — toolbar por componente**: sem `<po-toolbar>` no shell; cada componente tem seu próprio `<po-toolbar p-title="...">`. Permite título dinâmico por página.
 
@@ -340,10 +302,24 @@ Registrar em `angular.json`:
 
 ## Icon Reference
 
-Always use `po-icon-*` names. Never use `an an-*`.
+PO-UI 21 usa a fonte **Animalia** (`an an-*`), como os apps nativos TOTVS. Os nomes antigos `po-icon-*`
+não existem no `@po-ui/style` 21 (ex.: `po-icon-exit` não renderiza). Conferidos no
+`po-theme-core.min.css` 21.34:
 
 | Action | Icon |
 |--------|------|
+| New / Add | `an an-plus` |
+| Edit | `an an-pencil-simple` |
+| Delete | `an an-trash` |
+| Home | `an an-house-line` |
+| User | `an an-user` |
+| Exit / Close | `an an-sign-out` |
+| Search | `an an-magnifying-glass` |
+| Save | `an an-floppy-disk` |
+| View | `an an-eye` |
+| List | `an an-list-checks` |
+
+--------|------|
 | New / Add | `po-icon-plus` |
 | Edit | `po-icon-edit` |
 | Delete | `po-icon-delete` |

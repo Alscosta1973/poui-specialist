@@ -117,6 +117,7 @@ Activate when the user:
 | PUI-002 | WARNING | HTTP component without loading state | Component calls `this.service.get/post/put/delete` but has no `signal<boolean>` for loading — users get no visual feedback during requests |
 | PUI-003 | CRITICAL | `po-table` column with non-existent `type` | `type: 'tag'` — does not exist in PO-UI and silently breaks column rendering. Valid values: `string`, `number`, `currency`, `date`, `dateTime`, `time`, `boolean`, `label`, `icon`, `link`, `detail`, `subtitle` |
 | PUI-004 | WARNING | `po-modal` with no way to dismiss | `<po-modal>` with `[p-click-out]="false"` and no `(p-on-close)` binding — modal can get stuck open with no dismiss path |
+| PUI-005 | WARNING | Fora do padrão visual TOTVS (`skills/poui-patterns/padrao-totvs.md`) | Coluna `cellTemplate` desenhando bolinha de status + modal/botão "Legenda" (usar `type: 'subtitle'`); cor em hexadecimal em `PoTableColumn`/legenda (usar token `color-NN`/`caption-tag-NN`); `po-menu` sem `[p-collapsed]="true"`/`p-logo`; item de menu sem `shortLabel` ou com ícone `po-icon-*`; `po-toolbar` sem a versão no título |
 
 ### Quality (QUAL)
 
@@ -135,6 +136,7 @@ Aplicar nos arquivos `*.component.scss` e `styles.scss`. Ler o arquivo `.scss` a
 | CSS-002 | WARNING | `::ng-deep` sem escopo `:host` | `::ng-deep` sem prefixo `:host` — vaza estilos para outros componentes fora do encapsulamento. Correto: `:host ::ng-deep .po-table { ... }` |
 | CSS-003 | INFO | `!important` excessivo em component scss | Mais de 2 declarações `!important` num mesmo `.component.scss` — indica conflito com o framework; preferir especificidade CSS ou variáveis PO-UI |
 | CSS-004 | WARNING | Layout tabular manual em vez de `po-table` | `display: flex` ou `display: grid` com 4+ filhos estilizados como colunas de dados (ex: classes `col-`, `.campo-`, `.linha-`) — em ERP, dados tabulares devem usar `<po-table>` para sorting, paginação e acessibilidade nativos |
+| CSS-005 | WARNING | Fonte/tamanho fora do padrão TOTVS | `styles.scss` com `@import` de fonte (ex.: Open Sans), `font-family` em `body`/`html`/`:root`/`*`, ou override de `--font-size-*`/`--font-family*`/`--target-size-*` — os apps TOTVS usam a fonte e os tamanhos do tema (lint S01; ver `skills/poui-patterns/padrao-totvs.md`) |
 
 ### Internacionalização (I18N)
 

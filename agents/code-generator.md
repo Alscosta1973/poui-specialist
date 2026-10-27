@@ -70,6 +70,19 @@ When the user's manifest or prompt contains a `CONTEXTO_PROJETO:` block (produce
 | `po-button` | `PoButtonModule` | — |
 | `po-divider` | `PoDividerModule` | — |
 
+### Padrão visual TOTVS (MANDATORY)
+Seguir `skills/poui-patterns/padrao-totvs.md` (o mesmo visual dos apps nativos FINA710/FINAPP001):
+- **Fonte e tamanhos do tema.** Nunca gerar `font-family`, `@import` de fonte nem override de
+  `--font-size-*`/`--target-size-*`.
+- **Status e legenda nativos.** Status com tag usa coluna `type: 'label'`; legenda por cor usa coluna
+  `type: 'subtitle'` (bolinha + legenda no rodapé, nativo). Nunca `cellTemplate` com bolinha nem
+  modal/botão "Legenda".
+- **Cores e colunas.** Cores só por token (`color-NN` / `caption-tag-NN`), nunca hexadecimal; colunas
+  curtas com `width`.
+- **`po-table`.** Com `[p-height]`, `[p-striped]="true"` e `[p-sort]="true"`.
+- **`po-combo` ligado a valor.** Com `[p-remove-initial-filter]="true"` (lint H08).
+- **Itens de menu.** Com `label` + `shortLabel` + `icon: 'an an-*'`.
+
 ### PoTableColumn types and formats
 - `type` is a plain `string` — never use `PoTableColumnType` enum (it does not exist)
 - Valid values: `'string' | 'number' | 'currency' | 'date' | 'dateTime' | 'time' | 'boolean' | 'label' | 'icon' | 'link' | 'detail' | 'subtitle'`

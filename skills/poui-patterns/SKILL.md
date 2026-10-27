@@ -12,6 +12,7 @@ metadata:
 
 ## Contents
 
+- **Padrão visual TOTVS (OBRIGATÓRIO)** (fonte/tamanhos do tema, shell com logo + versão + usuário, menu recolhido, tabela com legenda nativa, cores por token): see `padrao-totvs.md`
 - **Angular 17–21+ module structure** (standalone, lazy routing, app.config): see `module-structure.md`
 - **Protheus REST integration** (response contract, pagination, error handling): see `protheus-rest.md`
 - **Reactive Forms with PO-UI** (FormGroup, FormBuilder, cross-field validation, FormArray): see `reactive-forms.md`

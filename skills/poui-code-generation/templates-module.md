@@ -63,42 +63,86 @@ export const routes: Routes = [
 ```typescript
 import { bootstrapApplication } from '@angular/platform-browser';
 import { appConfig } from './app/app.config';
-import { AppComponent } from './app/app.component';
+import { App } from './app/app';
 
-bootstrapApplication(AppComponent, appConfig)
+bootstrapApplication(App, appConfig)
   .catch(err => console.error(err));
 ```
 
 ---
 
-## app.component.ts
+## app.ts
 
 ```typescript
-import { Component, ChangeDetectionStrategy } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
-import { PoMenuModule, PoToolbarModule, PoMenuItem } from '@po-ui/ng-components';
-import { ProAppConfigService } from '@totvs/protheus-lib-core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, DestroyRef, inject, signal, viewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { defer, filter } from 'rxjs';
+import {
+  PoMenuComponent,
+  PoMenuItem,
+  PoMenuModule,
+  PoToolbarAction,
+  PoToolbarModule,
+  PoToolbarProfile,
+} from '@po-ui/ng-components';
+import { ProAppConfigService, ProThreadInfoService } from '@totvs/protheus-lib-core';
+import { APP_VERSION } from './app-version';
+
+/** Usuário logado no Protheus (vazio fora do Protheus) → sem perfil na barra. */
+export function montarPerfil(info: { displayName?: string; userName?: string } | undefined): PoToolbarProfile | undefined {
+  const title = info?.displayName?.trim() || info?.userName?.trim();
+  return title ? { title, subtitle: info?.userName?.trim() ?? '' } : undefined;
+}
 
 @Component({
   selector: 'app-root',
-  standalone: true,
   imports: [RouterOutlet, PoMenuModule, PoToolbarModule],
-  templateUrl: './app.component.html',
-  styleUrl: './app.component.scss',
+  templateUrl: './app.html',
+  styleUrl: './app.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AppComponent {
-  constructor(private proAppConfigService: ProAppConfigService) {
+export class App implements AfterViewInit {
+  private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly proAppConfigService = inject(ProAppConfigService);
+  private readonly poMenu = viewChild.required<PoMenuComponent>('poMenu');
+
+  readonly titulo = `{{ModuleName}} - v${APP_VERSION}`;
+  readonly perfil = signal<PoToolbarProfile | undefined>(undefined);
+  readonly acoesPerfil: PoToolbarAction[] = [
+    { icon: 'an an-sign-out', label: 'Sair', type: 'danger', separator: true, action: () => this.closeApp() },
+  ];
+  readonly menus: PoMenuItem[] = [
+    // { label: 'Pedidos', shortLabel: 'Pedidos', icon: 'an an-list-checks', link: '/pedidos' },
+    { label: 'Sair', shortLabel: 'Sair', icon: 'an an-sign-out', action: () => this.closeApp() },
+  ];
+
+  constructor() {
     if (!this.proAppConfigService.insideProtheus()) {
       this.proAppConfigService.loadAppConfig();
     }
+    // usuário da thread do FwCallApp; fora do Protheus não há token e o serviço lança erro na hora
+    const threadInfo = inject(ProThreadInfoService);
+    if (this.proAppConfigService.insideProtheus()) {
+      defer(() => threadInfo.getUserInfoThread())
+        .pipe(takeUntilDestroyed())
+        .subscribe({
+          next: (info) => this.perfil.set(montarPerfil(info)),
+          error: () => this.perfil.set(undefined),
+        });
+    }
   }
 
-  readonly menus: PoMenuItem[] = [
-    // TODO: adicione itens de menu correspondentes às rotas
-    // { label: 'Pedidos', link: '/pedidos', shortLabel: 'Pedidos', icon: 'po-icon-user' },
-    { label: 'Sair', shortLabel: 'Sair', icon: 'po-icon-exit', action: this.closeApp.bind(this) },
-  ];
+  ngAfterViewInit(): void {
+    // padrão TOTVS: o menu volta a recolher depois de escolher uma opção
+    this.router.events
+      .pipe(
+        filter((e) => e instanceof NavigationEnd),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => this.poMenu().collapse());
+  }
 
   private closeApp(): void {
     if (this.proAppConfigService.insideProtheus()) {
@@ -108,23 +152,43 @@ export class AppComponent {
 }
 ```
 
-## app.component.html
+`src/app/app-version.ts`:
+
+```typescript
+/** Versão exibida na barra do app ("Nome - vX.Y.Z"). Atualizar a cada entrega. */
+export const APP_VERSION = '1.0.0';
+```
+
+## app.html
 
 ```html
 <div class="po-wrapper">
-  <po-toolbar p-title="{{ModuleName}}"></po-toolbar>
-  <po-menu [p-menus]="menus" [p-filter]="true" [p-collapsed]="true"></po-menu>
+  <po-toolbar
+    [p-title]="titulo"
+    [p-profile]="perfil()"
+    [p-profile-actions]="acoesPerfil">
+  </po-toolbar>
+  <po-menu
+    #poMenu
+    [p-menus]="menus"
+    [p-filter]="true"
+    [p-collapsed]="true"
+    [p-automatic-toggle]="true"
+    p-logo="assets/logos/totvs.svg"
+    p-short-logo="assets/logos/totvs-short-symbol.svg">
+  </po-menu>
   <div class="container-fluid">
     <router-outlet></router-outlet>
   </div>
 </div>
 ```
 
-> **`[p-collapsed]="true"`** — menu inicia recolhido, que é o padrão quando o app roda dentro do Protheus.
+> Shell no **padrão visual TOTVS** (`skills/poui-patterns/padrao-totvs.md`): título com a versão, usuário no perfil, menu recolhido que abre ao passar o mouse (`p-automatic-toggle`), logo TOTVS (assets do `@totvs/common-assets` no `angular.json`) e recolhe a cada navegação. No Angular 21 o componente raiz é `app.ts` / `App`.
+
 
 > **Toolbar por componente (alternativa):** Remova `po-toolbar` do shell e adicione `<po-toolbar p-title="...">` dentro de cada componente individualmente. Isso permite que cada página tenha seu próprio título e ações na toolbar.
 
-## app.component.scss
+## app.scss
 
 ```scss
 // Estilos globais do shell da aplicação
