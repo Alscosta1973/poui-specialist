@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.18.0](https://github.com/Alscosta1973/poui-specialist/compare/v1.17.0...v1.18.0) (2026-10-27)
+
+
+### Features
+
+* **lint,scaffold:** S01 (styles fora do padrao TOTVS), H09 (po-menu), lint do shell app.ts e scaffold com o shell TOTVS ([dfc470c](https://github.com/Alscosta1973/poui-specialist/commit/dfc470c13094ae749df28169f8c0ae9bb35961f6))
+* **lint:** H08 avisa po-combo ligado a valor sem p-remove-initial-filter ([52e5f1f](https://github.com/Alscosta1973/poui-specialist/commit/52e5f1f5071c799b605b42a0d7976632f4d726fe))
+* **patterns:** padrao visual TOTVS (fonte do tema, shell com versao/usuario/logo, menu que abre no hover, legenda nativa) e icones Animalia ([67faf15](https://github.com/Alscosta1973/poui-specialist/commit/67faf156d8d2941949817a7207b75d822caf88d1))
+
+
+### Documentation
+
+* padrao visual TOTVS e lint H08/H09/S01 no README, CHANGELOG e QA da extensao ([3751720](https://github.com/Alscosta1973/poui-specialist/commit/37517206a6e8fe358359785bdb755cac0b62c22d))
+* **plan:** mark doctor/proxy/smoke plan as released in 1.17.0 ([702ac97](https://github.com/Alscosta1973/poui-specialist/commit/702ac977a09699f913546512f5ef919e94fdbbe7))
+
+
+### Chores
+
+* **release:** bump version to 1.18.0 ([b8dd1f6](https://github.com/Alscosta1973/poui-specialist/commit/b8dd1f6e3fca0d63a480e7eeb988ec6f69623cc0))
+* **vscode-ext:** bump version 1.4.0 -> 1.5.0 ([7c53493](https://github.com/Alscosta1973/poui-specialist/commit/7c53493abe65407cadfab8c91cbc367f2542cd9d))
+
 ## [1.17.0](https://github.com/Alscosta1973/poui-specialist/compare/v1.16.0...v1.17.0) (2026-10-27)
 
 
