@@ -80,12 +80,20 @@ Ordem de estilos no `angular.json` (como o `scaffold` gera):
   `p-logo="assets/logos/totvs.svg"` (expandido) e `p-short-logo="assets/logos/totvs-short-symbol.svg"`
   (recolhido).
 - **Logo do cliente (customização).** Quando o app é uma customização para um cliente, o logo do
-  cliente substitui o TOTVS no menu:
-  - imagem em `public/assets/logos/<cliente>.png`, já copiada pelo glob `public` do `angular.json`;
-  - `p-logo` e `p-short-logo` apontando para ela, e `p-logo-alt="<Cliente>"`.
-  
-  Um símbolo quadrado (~100 px) funciona nos dois estados do menu. Exemplo: FFM, validado no RCA em
-  27/10/2026. Pedir o logo ao usuário (arquivo ou imagem num documento) e não inventar um.
+  cliente substitui o TOTVS no menu, com o **mesmo efeito**:
+  - menu aberto: logo com o nome (`p-logo`);
+  - menu recolhido: só o símbolo (`p-short-logo`).
+
+  Como fazer:
+  - **Arquivos:** os dois ficam em `public/assets/logos/` (ex.: `cliente-nome.png` e `cliente.png`), já
+    copiados pelo glob `public` do `angular.json`, mais `p-logo-alt="<Cliente>"`.
+  - **Fundo transparente:** logo com fundo opaco (comum em imagem colada num documento) fica como um
+    retângulo cinza no menu. Remova o fundo e corte as bordas antes de usar.
+  - **Tamanho:** o logo aberto ocupa até ~256 px de largura; um logo horizontal de ~280×100 px fica
+    legível.
+  - **Origem:** pedir os logos ao usuário (arquivo ou imagem num documento) e nunca inventar.
+
+  Validado com a FFM no RCA em 27/10/2026.
 
 ### app-version.ts
 
