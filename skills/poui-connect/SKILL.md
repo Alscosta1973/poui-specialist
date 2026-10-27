@@ -69,9 +69,11 @@ Localizar em `src/app/core/interceptors/` ou `src/app/core/` arquivos que:
 
 Listar todos encontrados.
 
-### 2c — proxy.conf.json
+### 2c — proxy (proxy.conf.js / proxy.conf.json)
 
-Verificar se existe na raiz do projeto Angular. Listar targets configurados.
+Verificar se existe `proxy.conf.js` ou `proxy.conf.json` na raiz do projeto Angular. Listar targets
+configurados. `proxy.conf.json` (formato antigo) será substituído pelo `proxy.conf.js` no Passo 4 —
+com ele, gravações (POST/PUT/DELETE) voltam 401 no Protheus sem CORS.
 
 ### 2d — Relatório de diagnóstico
 
@@ -89,7 +91,7 @@ Interceptors encontrados:
   - src/app/core/interceptors/mock-divergencias.interceptor.ts
     → intercepts: GET /financeiro/divergencias-cartao
 
-proxy.conf.json: não encontrado (será criado)
+proxy.conf.js: não encontrado (será criado)
 
 Próximo passo: informe os dados de conexão com o Protheus.
 Use o guia em skills/poui-connect/protheus-connect-guide.md
@@ -111,57 +113,86 @@ Para conectar <ComponentClass> ao Protheus, preciso de:
    Se não, descreva os filtros e regras de negócio para gerar o TLPP.
 4. Autenticação: sem auth / Basic (usuário+senha) / Bearer token
 5. Há ações além do GET? (POST confirmar, DELETE, etc.)
+6. tenantId (empresa,filial — ex.: 99,01)? Em branco = padrão do REST
 ```
+
+> **Nunca peça a senha/token no chat.** Para Basic/Bearer, peça só o usuário e oriente o
+> usuário a gravar a senha (ou o token) no arquivo `protheus-dev.secret` na raiz do projeto
+> Angular — o proxy lê de lá. Não leia nem exiba esse arquivo.
 
 Aguardar resposta do usuário antes de prosseguir.
 
 ---
 
-## Passo 4 — Atualizar proxy.conf.json
+## Passo 4 — Gerar o proxy.conf.js
 
-Localizar `proxy.conf.json` ou `proxy.conf.js` na raiz do projeto Angular.
+Gerar **`<angularRoot>/proxy.conf.js`** (não mais `proxy.conf.json` com header fixo). Motivos,
+confirmados contra um Protheus real (2026-10-27):
 
-**Se não existir:** criar em `<angularRoot>/proxy.conf.json`:
+- **Origin → 401:** sem CORS habilitado no `[HTTPURI]`, o REST do Protheus responde **401** a
+  qualquer requisição com cabeçalho `Origin` — e o navegador manda `Origin` em todo
+  POST/PUT/DELETE. O proxy precisa **remover** o `Origin`.
+- **Bearer vazio:** fora do Protheus o `ProtheusLibCore` envia `Authorization: Bearer ` (vazio); um
+  `headers` estático no proxy não garante a troca — o proxy precisa **sobrescrever** no `proxyReq`.
+- **Senha fora do arquivo:** `proxy.conf.json` com `Basic <base64>` é a senha em texto reversível.
+  O `.js` lê a senha/token a cada requisição de `protheus-dev.secret` (só o valor, gitignored).
 
-```json
-{
-  "/rest": {
-    "target": "<protheusUrl>",
-    "secure": false,
-    "changeOrigin": true,
-    "logLevel": "info"
-  }
+```js
+// Gerado pelo PO-UI Specialist (connect) — proxy do ng serve para o REST do Protheus.
+// A senha/token NAO fica aqui: e lida a cada requisicao de protheus-dev.secret (no .gitignore).
+const fs = require('fs');
+const path = require('path');
+
+const PROTHEUS_URL = "<protheusUrl>";
+const AUTH = "<none|basic|bearer>";
+const USUARIO = "<usuario ou vazio>";
+const TENANT_ID = "<empresa,filial ou vazio>";
+
+function segredo() {
+  const arquivo = path.join(__dirname, "protheus-dev.secret");
+  return fs.existsSync(arquivo) ? fs.readFileSync(arquivo, 'utf8').replace(/[\r\n]/g, '') : '';
 }
+
+function ajustarRequisicao(proxyReq) {
+  const valor = segredo();
+  if (AUTH === 'basic' && valor) {
+    proxyReq.setHeader('Authorization', 'Basic ' + Buffer.from(USUARIO + ':' + valor).toString('base64'));
+  } else if (AUTH === 'bearer' && valor) {
+    proxyReq.setHeader('Authorization', 'Bearer ' + valor);
+  }
+  if (TENANT_ID) {
+    proxyReq.setHeader('tenantId', TENANT_ID);
+  }
+  // sem CORS habilitado no REST do Protheus, requisicao com Origin volta 401
+  proxyReq.removeHeader('origin');
+}
+
+module.exports = {
+  // <outras entradas do proxy.conf.json antigo, exceto "/rest", copiadas aqui>
+  '/rest': {
+    target: PROTHEUS_URL,
+    secure: false,
+    changeOrigin: true,
+    logLevel: 'info',
+    // Angular 17+ (builder application / Vite)
+    configure: (proxy) => proxy.on('proxyReq', ajustarRequisicao),
+    // builder browser (webpack-dev-server)
+    onProxyReq: ajustarRequisicao,
+  },
+};
 ```
 
-**Se existir:** adicionar a entrada `/rest` se não estiver presente.
+Valores dentro de aspas devem ser escapados como string JSON (`JSON.stringify`).
 
-Verificar se `angular.json` referencia o proxy:
-```json
-"serve": {
-  "options": {
-    "proxyConfig": "proxy.conf.json"
-  }
-}
-```
-Se não, adicionar.
-
-**Auth Basic** — adicionar header no proxy:
-```json
-{
-  "/rest": {
-    "target": "<protheusUrl>",
-    "secure": false,
-    "changeOrigin": true,
-    "headers": {
-      "Authorization": "Basic <base64(user:senha)>"
-    }
-  }
-}
-```
-
-> **Nota de segurança:** credenciais no `proxy.conf.json` são apenas para desenvolvimento local.
-> Adicionar `proxy.conf.json` ao `.gitignore` se contiver senhas.
+**Depois de gerar:**
+1. `.gitignore` — **antes** de qualquer arquivo de senha existir, garantir as três linhas:
+   `proxy.conf.json`, `proxy.conf.js`, `protheus-dev.secret`.
+2. `angular.json` → `projects.<projeto>.architect.serve.options.proxyConfig = "proxy.conf.js"`.
+3. `package.json` → se o script `start` tiver `--proxy-config proxy.conf.json` (gerado pelo
+   scaffold, sobrepõe o `angular.json`), trocar para `proxy.conf.js`.
+4. Se havia `proxy.conf.json`: manter o arquivo, copiar as entradas que não são `/rest` para o
+   `.js` e avisar que o ativo agora é o `proxy.conf.js`.
+5. Basic/Bearer: lembrar o usuário de criar `protheus-dev.secret` com a senha/token (uma linha).
 
 ---
 
@@ -272,7 +303,7 @@ Exibir relatório:
 
 Arquivos atualizados:
   - <servicePath>: of(MOCK) → http.get()
-  - proxy.conf.json: target http://<ip>:<porta> configurado
+  - proxy.conf.js: target http://<ip>:<porta> (Authorization/tenantId no proxy, Origin removido)
   - <interceptorPath>: desativado
   - <specPath>: convertido para HttpTestingController
 
@@ -281,7 +312,7 @@ Specs:  ✅ N/N passando
 
 Próximos passos:
   1. Iniciar o Protheus REST no ambiente de desenvolvimento
-  2. Rodar: ng serve --proxy-config proxy.conf.json
+  2. Gravar a senha/token em protheus-dev.secret (se Basic/Bearer) e rodar: ng serve (usa o proxy.conf.js do angular.json)
   3. Navegar para /<module>/<kebab-name> e verificar os dados reais
 ```
 

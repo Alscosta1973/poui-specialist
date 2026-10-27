@@ -6,8 +6,8 @@ export type EndpointInfo =
 
 export type InterceptorHandling = 'remove' | 'deactivate';
 
-/** Nenhum campo de credencial aqui — de propósito. `proxy.conf.json` (com
- * usuário/senha/token, se houver) é escrito diretamente pela extensão antes
+/** Nenhum campo de credencial aqui — de propósito. `proxy.conf.js` e o
+ * `protheus-dev.secret` (senha/token, se houver) são escritos diretamente pela extensão antes
  * de qualquer chamada ao CLI; ver protheusProxy.ts. O agente nunca vê a
  * credencial, só o fato de que o proxy já está configurado. */
 export interface ConnectParams {
@@ -51,9 +51,9 @@ export function buildConnectUserPrompt(params: ConnectParams): string {
 
   lines.push(
     '',
-    'IMPORTANTE: proxy.conf.json já foi configurado pela extensão antes desta chamada — não crie',
-    'nem edite esse arquivo, e não pergunte por URL/credenciais do Protheus, elas já foram',
-    'tratadas fora desta conversa.',
+    'IMPORTANTE: o proxy (proxy.conf.js + protheus-dev.secret) já foi configurado pela extensão antes',
+    'desta chamada — não crie nem edite esses arquivos (nem proxy.conf.json), não leia o protheus-dev.secret',
+    'e não pergunte por URL/credenciais do Protheus, elas já foram tratadas fora desta conversa.',
   );
 
   if (params.endpoint.kind === 'existing') {

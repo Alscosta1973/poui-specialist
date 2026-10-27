@@ -45,16 +45,20 @@ Para remover backups após confirmar que tudo funciona: `Get-ChildItem src/ -Fil
 
 ## Passo — Verificar `.gitignore`
 
-Após criar/atualizar `proxy.conf.json`, verificar se ele consta no `.gitignore` do projeto:
+**Antes** de gerar o `proxy.conf.js` e de o usuário criar o `protheus-dev.secret`, garantir que os
+arquivos de proxy e o segredo estão no `.gitignore` do projeto:
 
 ```powershell
-if (-not (Select-String -Path ".gitignore" -Pattern "proxy\.conf\.json" -Quiet)) {
-    Add-Content ".gitignore" "`n# Proxy — pode conter endereços de servidores internos`nproxy.conf.json"
-    Write-Host "⚠ proxy.conf.json adicionado ao .gitignore — contém endereços que não devem ir ao repositório."
+foreach ($f in @("proxy.conf.json", "proxy.conf.js", "protheus-dev.secret")) {
+    if (-not (Select-String -Path ".gitignore" -Pattern ("^" + [regex]::Escape($f) + "$") -Quiet)) {
+        Add-Content ".gitignore" $f
+        Write-Host "⚠ $f adicionado ao .gitignore"
+    }
 }
 ```
 
-> `proxy.conf.json` pode conter IPs/hostnames de servidores de produção. Confirmar que está no `.gitignore` antes de qualquer `git add`.
+> O proxy contém endereços de servidores internos e o `protheus-dev.secret` contém a senha/token
+> de desenvolvimento. Nunca pedir a senha no chat nem ler/exibir o `protheus-dev.secret`.
 
 ## Processo
 

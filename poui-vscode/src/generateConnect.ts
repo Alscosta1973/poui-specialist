@@ -8,12 +8,13 @@ import { deriveRouteRegistration } from './previewRoutes';
 import { readProjectName } from './packaging';
 import { findMockInterceptors } from './connectDiagnostics';
 import {
-  buildBasicAuthHeader,
-  buildProxyConfig,
-  mergeProxyConfig,
-  needsProxyConfigInAngularJson,
-  addProxyConfigToAngularJson,
+  buildProxyConfigJs,
+  otherProxyEntries,
+  setProxyConfigInAngularJson,
+  updateStartScriptProxy,
   buildConnectGitignoreAdditions,
+  PROXY_JS_FILE,
+  PROXY_SECRET_FILE,
 } from './protheusProxy';
 import { buildConnectSystemPrompt, buildConnectUserPrompt, ConnectParams, EndpointInfo, InterceptorHandling } from './connectPromptBuilder';
 import { EngineId } from './engineTypes';
@@ -138,24 +139,32 @@ export function registerConnectCommand(
       return;
     }
 
-    let authorizationHeader: string | undefined;
+    // senha/token vão só para protheus-dev.secret (gitignored), lido pelo proxy.conf.js a cada requisição
+    let username: string | undefined;
+    let secret: string | undefined;
     if (authChoice.value === 'basic') {
-      const username = await vscode.window.showInputBox({ prompt: 'Usuário Protheus' });
+      username = await vscode.window.showInputBox({ prompt: 'Usuário Protheus' });
       if (!username) {
         return;
       }
-      const password = await vscode.window.showInputBox({ prompt: 'Senha Protheus', password: true });
-      if (!password) {
+      secret = await vscode.window.showInputBox({ prompt: 'Senha Protheus', password: true });
+      if (!secret) {
         return;
       }
-      authorizationHeader = buildBasicAuthHeader(username, password);
     } else if (authChoice.value === 'bearer') {
-      const token = await vscode.window.showInputBox({ prompt: 'Bearer token', password: true });
-      if (!token) {
+      secret = await vscode.window.showInputBox({ prompt: 'Bearer token', password: true });
+      if (!secret) {
         return;
       }
-      authorizationHeader = `Bearer ${token}`;
     }
+
+    const tenantInput = await vscode.window.showInputBox({
+      prompt: 'tenantId (empresa,filial — ex.: 99,01). Deixe em branco para usar o padrão do REST',
+    });
+    if (tenantInput === undefined) {
+      return;
+    }
+    const tenantId = tenantInput.replace(/\s+/g, '') || undefined;
 
     const extraActionsInput = await vscode.window.showInputBox({
       prompt: 'Ações além do GET (POST/DELETE/etc.) — deixe em branco se não houver',
@@ -188,32 +197,57 @@ export function registerConnectCommand(
       interceptorHandling = interceptorChoice.value;
     }
 
-    // --- Parte determinística: proxy.conf.json nunca vê o CLI ---
+    // --- Parte determinística: proxy e credencial nunca veem o CLI ---
     outputChannel.clear();
     outputChannel.show(true);
-    outputChannel.appendLine(`Configurando proxy.conf.json para ${protheusUrl}...`);
+    outputChannel.appendLine(`Configurando ${PROXY_JS_FILE} para ${protheusUrl}...`);
 
-    const proxyConfigPath = path.join(workspaceRoot, 'proxy.conf.json');
-    const existingProxyContent = await fs.readFile(proxyConfigPath, 'utf8').catch(() => undefined);
-    const newProxyEntry = buildProxyConfig(protheusUrl, authorizationHeader);
-    await fs.writeFile(proxyConfigPath, mergeProxyConfig(existingProxyContent, newProxyEntry), 'utf8');
-    outputChannel.appendLine('proxy.conf.json configurado.');
+    // .gitignore primeiro: o segredo só é gravado com o arquivo já ignorado
+    const gitignorePath = path.join(workspaceRoot, '.gitignore');
+    const gitignoreContent = (await fs.readFile(gitignorePath, 'utf8').catch(() => null)) ?? '';
+    const additions = buildConnectGitignoreAdditions(gitignoreContent);
+    if (additions) {
+      await fs.writeFile(gitignorePath, gitignoreContent + additions, 'utf8');
+      outputChannel.appendLine(`.gitignore atualizado (${PROXY_JS_FILE}, ${PROXY_SECRET_FILE}).`);
+    }
+
+    if (secret) {
+      await fs.writeFile(path.join(workspaceRoot, PROXY_SECRET_FILE), secret, 'utf8');
+      outputChannel.appendLine(`${PROXY_SECRET_FILE} gravado (fora do git).`);
+    }
+
+    const oldProxyContent = await fs.readFile(path.join(workspaceRoot, 'proxy.conf.json'), 'utf8').catch(() => undefined);
+    const proxyJs = buildProxyConfigJs({
+      protheusUrl,
+      auth: authChoice.value,
+      username,
+      tenantId,
+      otherEntries: otherProxyEntries(oldProxyContent),
+    });
+    await fs.writeFile(path.join(workspaceRoot, PROXY_JS_FILE), proxyJs, 'utf8');
+    outputChannel.appendLine(`${PROXY_JS_FILE} configurado (Authorization${tenantId ? ' + tenantId' : ''} no proxy, Origin removido).`);
+    if (oldProxyContent !== undefined) {
+      outputChannel.appendLine(`proxy.conf.json mantido, mas o ativo agora é o ${PROXY_JS_FILE} (outras entradas copiadas).`);
+    }
 
     const angularJson = JSON.parse(angularJsonRaw);
     const projectName = readProjectName(angularJson);
-    if (needsProxyConfigInAngularJson(angularJson, projectName)) {
-      const fixed = addProxyConfigToAngularJson(angularJson, projectName);
+    if (angularJson?.projects?.[projectName]?.architect?.serve?.options?.proxyConfig !== PROXY_JS_FILE) {
+      const fixed = setProxyConfigInAngularJson(angularJson, projectName, PROXY_JS_FILE);
       await fs.writeFile(angularJsonPath, JSON.stringify(fixed, null, 2) + '\n', 'utf8');
-      outputChannel.appendLine('angular.json: serve.options.proxyConfig configurado.');
+      outputChannel.appendLine(`angular.json: serve.options.proxyConfig → ${PROXY_JS_FILE}.`);
     }
 
-    const gitignorePath = path.join(workspaceRoot, '.gitignore');
-    const gitignoreContent = await fs.readFile(gitignorePath, 'utf8').catch(() => null);
-    if (gitignoreContent !== null) {
-      const additions = buildConnectGitignoreAdditions(gitignoreContent);
-      if (additions) {
-        await fs.writeFile(gitignorePath, gitignoreContent + additions, 'utf8');
-        outputChannel.appendLine('.gitignore atualizado (proxy.conf.json).');
+    const packageJsonPath = path.join(workspaceRoot, 'package.json');
+    const packageJsonRaw = await fs.readFile(packageJsonPath, 'utf8').catch(() => undefined);
+    if (packageJsonRaw) {
+      const packageJson = JSON.parse(packageJsonRaw);
+      const start = packageJson?.scripts?.start as string | undefined;
+      const novoStart = updateStartScriptProxy(start);
+      if (start && novoStart !== start) {
+        packageJson.scripts.start = novoStart;
+        await fs.writeFile(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n', 'utf8');
+        outputChannel.appendLine(`package.json: script start → ${novoStart}.`);
       }
     }
 

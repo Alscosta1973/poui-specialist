@@ -117,6 +117,13 @@ pé e é só reaproveitado aqui, sem gastar outros 5-10s de boot do Angular.
 Se o Playwright MCP não estiver disponível nesta sessão (mesma checagem do `poui-preview`
 Passo 4.5), abortar com a mesma mensagem orientando ativar o MCP.
 
+**Dados reais do Protheus:** o `ng serve` usa o proxy do `angular.json`. Se o projeto tiver
+`proxy.conf.js` gerado pelo `/poui-specialist:connect` (Authorization lido de `protheus-dev.secret`,
+`tenantId` e `Origin` removido), o E2E roda contra o Protheus real, inclusive gravações. Se só
+houver `proxy.conf.json` antigo (header fixo, sem remover `Origin`), avisar que POST/PUT/DELETE
+devolvem 401 no Protheus sem CORS e sugerir rodar o `/poui-specialist:connect` antes. Nunca ler nem
+exibir o `protheus-dev.secret`.
+
 ---
 
 ## Passo 5 — Inspecionar o DOM real para descobrir seletores

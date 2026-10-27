@@ -19,10 +19,11 @@ describe('buildConnectUserPrompt', () => {
     assert.ok(prompt.includes('/rest/api/custom/v1/titulos'));
   });
 
-  it('tells the model proxy.conf.json is already configured and must not be touched', () => {
+  it('tells the model the proxy (proxy.conf.js + secret) is already configured and must not be touched', () => {
     const prompt = buildConnectUserPrompt(baseParams);
 
-    assert.ok(prompt.toLowerCase().includes('proxy.conf.json'));
+    assert.ok(prompt.includes('proxy.conf.js'));
+    assert.ok(prompt.includes('protheus-dev.secret'));
     assert.ok(prompt.toLowerCase().includes('já'));
   });
 
