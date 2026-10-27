@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.6.0
+
+- **Novo `PO-UI: Logo do Cliente (customização)`** (gratuito):
+  - você escolhe um `.docx` (ex.: o documento do cliente com o logo colado) ou imagens, e indica qual é o logo com nome;
+  - a extensão tira o fundo opaco, corta as bordas e, sem símbolo separado, gera o símbolo a partir do logo (a forma da esquerda, sem o texto);
+  - grava em `public/assets/logos/` e liga o menu aberto (`p-logo`), o menu recolhido (`p-short-logo`) e o avatar da barra.
+- **O Scaffold pergunta "O projeto é uma customização para um cliente?"**: sim aplica o logo do cliente; não mantém o logo TOTVS.
+- **Shell do Scaffold no padrão TOTVS revisto:**
+  - menu sem o campo "Pesquisar" (como o FINA710);
+  - avatar da barra sempre presente (TOTVS por padrão);
+  - "Carregando" (`po-loading-overlay`) também no "carregar mais".
 ## 1.5.0
 
 - **Padrão visual TOTVS no Scaffold** — o projeto novo sai igual aos apps nativos do Protheus (Novo Gestor Financeiro, Análise de Crédito):

@@ -221,6 +221,15 @@ Com o Extension Development Host rodando (F5) e `examples/modulo-compras`
     
     Confirme as correções: só a H08 é corrigida (atributo inserido), e S01/H09 aparecem em
     "revisão manual".
+28. **Logo do cliente** — num projeto do Scaffold, rode `PO-UI: Logo do Cliente` e escolha um `.docx`
+    com o logo colado (fundo cinza) → esperado:
+    - a lista mostra as imagens com tamanho e "parece logo com nome / símbolo / print de tela";
+    - escolha o logo e "Gerar a partir do logo com nome", e informe o cliente;
+    - em `public/assets/logos/` saem `<cliente>-nome.png` (sem fundo) e `<cliente>.png` (só o
+      símbolo), e `app.html`/`app.ts` apontam para eles;
+    - no `npm start`: menu aberto com o logo e nome, recolhido com o símbolo, avatar com o símbolo.
+
+    No Scaffold, responder "Sim — customização" deve abrir o mesmo fluxo; "Não" mantém o TOTVS.
 
 ## Decisões de escopo adiadas deliberadamente
 

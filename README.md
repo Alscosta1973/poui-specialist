@@ -127,6 +127,13 @@ Crédito) — `skills/poui-patterns/padrao-totvs.md`:
 - **Menu:** recolhido, abre ao passar o mouse, com o logo TOTVS ou o do cliente, numa customização.
 - **Tabelas:** listradas e ordenáveis; a legenda de cores (`type: 'subtitle'`) fica no rodapé; cores só por token do tema.
 
+**Logo do cliente:** em customização o app usa o logo do cliente:
+
+- **Menu aberto:** logo com nome.
+- **Menu recolhido e avatar:** símbolo.
+- **Como aplicar:** `/poui-specialist:logo` lê o logo de um `.docx` ou de imagens, tira o fundo e gera
+  o símbolo sozinho. O `scaffold` pergunta se é customização; sem logo, fica o TOTVS.
+
 O `/poui-specialist:lint` confere o padrão:
 
 - **S01:** `styles.scss`;
