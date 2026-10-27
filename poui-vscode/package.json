@@ -68,6 +68,10 @@
         "title": "PO-UI: Empacotar Projeto (.app)"
       },
       {
+        "command": "poui.doctor",
+        "title": "PO-UI: Diagnosticar App no Protheus (doctor)"
+      },
+      {
         "command": "poui.connect",
         "title": "PO-UI: Conectar ao Protheus"
       },
@@ -130,6 +134,11 @@
           ],
           "default": "claude",
           "description": "Motor de IA usado pelos comandos que dependem de raciocínio (gerar, revisar, conectar, etc)."
+        },
+        "poui.protheusRootPath": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "RootPath do ambiente Protheus (pasta que contém `http-root\\app-root`), usado pelo **Diagnosticar App no Protheus** para conferir o que o `FwCallApp` extraiu. Ex.: `C:\\TOTVS12\\Protheus\\protheus_data`."
         }
       }
     },

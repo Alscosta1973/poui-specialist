@@ -9,6 +9,7 @@ import { registerE2eCommand } from './generateE2e';
 import { registerUndoCommand } from './generateUndo';
 import { registerScreenshotCommand } from './generateScreenshot';
 import { registerPackageCommand } from './generatePackage';
+import { registerDoctorCommand } from './generateDoctor';
 import { registerConnectCommand } from './generateConnect';
 import { registerScaffoldCommand } from './generateScaffold';
 import { registerDocsCommand } from './generateDocs';
@@ -46,6 +47,7 @@ export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(registerUndoCommand(context, outputChannel));
   context.subscriptions.push(registerScreenshotCommand(context, outputChannel));
   context.subscriptions.push(registerPackageCommand(context, outputChannel));
+  context.subscriptions.push(registerDoctorCommand(context, outputChannel));
   context.subscriptions.push(registerConnectCommand(context, outputChannel));
   context.subscriptions.push(registerScaffoldCommand(context, outputChannel));
   context.subscriptions.push(registerDocsCommand(context, outputChannel));

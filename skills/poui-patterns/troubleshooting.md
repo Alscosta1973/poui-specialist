@@ -127,7 +127,7 @@ AccessControlAllowMethods=GET,POST,PUT,DELETE,OPTIONS
 AccessControlAllowHeaders=Content-Type,Authorization,X-TOTVS-TenantId
 ```
 
-> Em desenvolvimento, use o proxy Angular (`proxy.conf.json`) para evitar CORS totalmente.
+> Em desenvolvimento, use o proxy Angular (`proxy.conf.js` gerado pelo `/poui-specialist:connect`) para evitar CORS totalmente.
 
 ---
 
@@ -217,6 +217,36 @@ Se você ainda tiver um `.app` com qualquer uma das três estruturas incorretas,
    (nunca zipar de dentro de `dist\<projeto>\` com `*` — isso acha o conteúdo e perde a pasta
    `<projeto>/` que o Protheus precisa encontrar)
 3. Copiar o zip para `Resource/` e renomear para `<projeto>.app`.
+
+---
+
+### Rotina fica em "Verificando atualizações..." ao abrir o app pelo menu do Protheus
+
+**Sintoma:** o item de menu (User Function com `FwCallApp("<app>")`) abre a aba, mas fica para
+sempre em "Verificando atualizações..."; nenhum erro no console.log do AppServer.
+
+**Causa:** `.app` sem a pasta `<app>/` na raiz do zip (arquivos soltos). O `FwCallApp` extrai tudo
+direto em `<RootPath>/http-root/app-root/`, não encontra a pasta `<app>` para virar
+`<app>_env_<ambiente>` e não entrega o app ao navegador. **Não é REST/CORS** — o app conversa com
+a API pelo próprio canal do `FwCallApp` (`:<porta TCP>/app-root/<rota>`), sem precisar de REST
+no ini do serviço.
+
+**Diagnóstico:** `/poui-specialist:doctor` (ou "PO-UI: Diagnosticar App no Protheus" na extensão) —
+confere o pacote e aponta itens soltos em `app-root/`.
+
+**Fix:** reempacotar com `/poui-specialist:package` (7-Zip, `<app>/` na raiz), recompilar o `.app`
+no RPO, mover para fora de `app-root/` os itens soltos e reabrir a rotina.
+
+---
+
+### `401` em POST/PUT/DELETE pelo `ng serve` (o GET funciona)
+
+**Causa:** o navegador manda `Origin` em toda requisição de escrita e, sem CORS habilitado no
+`[HTTPURI]`, o REST do Protheus responde **401** a qualquer requisição com `Origin` — mesmo com
+`Authorization` correto. Um `proxy.conf.json` com `headers` estático não resolve.
+
+**Fix:** usar o `proxy.conf.js` do `/poui-specialist:connect`, que remove o `Origin`, sobrescreve o
+`Authorization` (lendo `protheus-dev.secret`) e envia `tenantId`.
 
 ---
 

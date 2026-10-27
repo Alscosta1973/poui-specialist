@@ -25,6 +25,7 @@ export const GROUPS: MenuGroup[] = [
     entries: [
       { label: 'Conectar ao Protheus', commandId: 'poui.connect', paid: true },
       { label: 'Empacotar Projeto (.app)', commandId: 'poui.package', paid: true },
+      { label: 'Diagnosticar App no Protheus (doctor)', commandId: 'poui.doctor', paid: false },
     ],
   },
   {
