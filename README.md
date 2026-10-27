@@ -117,6 +117,24 @@ Revisa código Angular/PO-UI contra regras de boas práticas, performance e aces
 
 ---
 
+### Padrão visual TOTVS
+
+Tudo o que o plugin gera segue o visual dos apps nativos do Protheus (Novo Gestor Financeiro, Análise de
+Crédito) — `skills/poui-patterns/padrao-totvs.md`:
+
+- **Letras:** fonte NunitoSans e tamanhos do tema, sem fonte própria.
+- **Barra:** "Nome - vX.Y.Z" e o usuário logado.
+- **Menu:** recolhido, abre ao passar o mouse, com o logo TOTVS ou o do cliente, numa customização.
+- **Tabelas:** listradas e ordenáveis; a legenda de cores (`type: 'subtitle'`) fica no rodapé; cores só por token do tema.
+
+O `/poui-specialist:lint` confere o padrão:
+
+- **S01:** `styles.scss`;
+- **H09:** `po-menu`;
+- **H08:** `po-combo` que abre filtrado.
+
+---
+
 ### Integração e publicação no Protheus
 
 | Comando | O que faz |

@@ -79,7 +79,7 @@ automaticamente, só reportados.
 | `PO-UI: Menu` | Atalho com os comandos mais usados, num só seletor |
 | `PO-UI: Gerar Componente` | Gera um dos 24 tipos acima, a partir do nome da entidade, módulo e endpoint |
 | `PO-UI: Gerar Teste Unitário` | Gera um spec Karma + Jasmine para um `.component.ts`/`.service.ts` já existente; se o projeto não tiver Karma configurado, oferece configurar tudo com um clique |
-| `PO-UI: Lint de Componentes` | Analisa uma pasta (14 verificações conhecidas de PO-UI/Angular) e corrige 7 delas automaticamente se você confirmar — **não usa o Claude Code CLI** |
+| `PO-UI: Lint de Componentes` | Analisa uma pasta (17 verificações conhecidas de PO-UI/Angular, incluindo o padrão visual TOTVS: `po-combo` que abre filtrado, `po-menu` e `styles.scss` fora do padrão) e corrige 8 delas automaticamente se você confirmar — **não usa o Claude Code CLI** |
 | `PO-UI: Auditoria de Qualidade` | Varre `src/app` procurando componentes gerados pela extensão e classifica cada um em Aprovado/Atenção/Crítico — só leitura, **não usa o CLI** |
 | `PO-UI: Revisar Código` | Revisa um arquivo ou pasta (boas práticas, performance, acessibilidade, segurança, quirks PO-UI ou qualidade) e reporta os achados — nunca altera código |
 | `PO-UI: Preview no Browser` | Registra a rota do componente, sobe um `ng serve` numa porta livre (4200-4209) e abre no seu navegador — **não usa o CLI** |
@@ -90,7 +90,7 @@ automaticamente, só reportados.
 | `PO-UI: Diagnosticar App no Protheus (doctor)` | Para app que não abre ou fica em "Verificando atualizações...": confere a estrutura do `.app` e, com o RootPath do ambiente (`poui.protheusRootPath`), o que o `FwCallApp` extraiu em `http-root/app-root` — só leitura, **não usa o CLI** |
 | `PO-UI: Smoke no Protheus (abrir pelo menu)` | Abre o app pelo menu da WebApp com Playwright (login com senha lida de arquivo, sessão, pesquisa no menu) e relata se abriu, as chamadas de API e os erros de console, com screenshot — configurado em `poui.smoke.*`, **não usa o CLI** |
 | `PO-UI: Conectar ao Protheus` | Troca os mocks de um componente por chamadas reais ao endpoint Protheus configurado e gera o `proxy.conf.js` (senha/token em `protheus-dev.secret`, fora do git; `tenantId`; `Origin` removido para as gravações não voltarem 401) e, se necessário, o contrato TLPP |
-| `PO-UI: Criar Novo Projeto (Scaffold)` | Cria um projeto Angular + PO-UI novo do zero (`ng new`, tema, componente inicial, proxy) |
+| `PO-UI: Criar Novo Projeto (Scaffold)` | Cria um projeto Angular + PO-UI novo do zero (`ng new`, tema, componente inicial, proxy) no padrão visual TOTVS: fonte e tamanhos do tema, barra com "Nome - vVersão" e o usuário logado, menu recolhido que abre ao passar o mouse com o logo TOTVS |
 | `PO-UI: Consultar Documentação de Componente` | Consulta a referência de um componente PO-UI (inputs, outputs, exemplos de uso) |
 | `PO-UI: Configurar Motor de IA` | Escolhe qual CLI a extensão usa (`claude`/`codex`/`gemini` — Codex e Gemini ainda experimentais; Gemini exige API key, o login gratuito por navegador foi descontinuado pelo Google) |
 | `PO-UI: Ativar Licença` | Ativa uma chave de licença existente, ou abre o fluxo de compra |

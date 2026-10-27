@@ -207,6 +207,20 @@ Com o Extension Development Host rodando (F5) e `examples/modulo-compras`
     /app-root/...` 2xx no painel e o botão "Abrir screenshot". Com
     `menuSearch` inexistente → ✗ na etapa "menu" com a dica de
     menuSearch/menuItem.
+26. **Scaffold no padrão TOTVS** — rode `PO-UI: Criar Novo Projeto` → esperado:
+    - `npm start` abre com a fonte NunitoSans e a barra "Nome Do Projeto - v1.0.0";
+    - menu recolhido com o símbolo TOTVS, que expande ao passar o mouse com o logo TOTVS e "Fechar menu";
+    - `src/styles.scss` sem Open Sans;
+    - `angular.json` com os logos em `assets` (build e test).
+27. **Lint H08/H09/S01** — num projeto antigo, com Open Sans no `styles.scss`, `po-menu` sem logo e
+    `po-combo [ngModel]` sem `p-remove-initial-filter`, rode `PO-UI: Lint de Componentes` na raiz →
+    esperado:
+    - S01 em cada linha de fonte/token;
+    - H09 em `app.html`;
+    - H08 no combo.
+    
+    Confirme as correções: só a H08 é corrigida (atributo inserido), e S01/H09 aparecem em
+    "revisão manual".
 
 ## Decisões de escopo adiadas deliberadamente
 

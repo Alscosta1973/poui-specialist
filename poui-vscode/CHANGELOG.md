@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.5.0
+
+- **Padrão visual TOTVS no Scaffold** — o projeto novo sai igual aos apps nativos do Protheus (Novo Gestor Financeiro, Análise de Crédito):
+  - **Fonte e tamanhos:** NunitoSans e tamanhos do tema; o `styles.scss` não importa mais Open Sans.
+  - **Barra superior:** "Nome - vX.Y.Z", com a versão em `src/app/app-version.ts`, e o usuário logado (`ProThreadInfoService`, só dentro do Protheus).
+  - **Menu:** fica recolhido e abre ao passar o mouse (`p-automatic-toggle`), com o logo TOTVS (`@totvs/common-assets`, agora instalado). Recolhe a cada navegação.
+  - **Ícones:** Animalia (`an an-*`), porque os `po-icon-*` não existem no PO-UI 21.
+- **Lint — novas verificações:**
+  - **H08:** `po-combo` ligado a valor sem `[p-remove-initial-filter]="true"` (abre mostrando só a opção escolhida), com correção automática.
+  - **H09:** `po-menu` sem `p-collapsed`, `p-automatic-toggle` ou `p-logo`.
+  - **S01:** `styles.scss` com fonte própria ou tamanhos do tema sobrepostos.
+- **Lint — também analisa o shell `app.ts`/`app.html` do Angular 21**, sem L06/L07, que não se aplicam a ele.
 ## 1.4.0
 
 - Novo `PO-UI: Diagnosticar App no Protheus (doctor)` — para a rotina que fica em "Verificando atualizações...": confere o `Resource/<projeto>.app` (pasta do projeto na raiz do zip, `index.html`, prefixo `dist/`) e, com o RootPath do ambiente (`poui.protheusRootPath`), o que o `FwCallApp` extraiu em `http-root/app-root` (itens soltos de um pacote errado, pasta `<app>_env_*`, build desatualizado). Só leitura, gratuito.
