@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.19.0](https://github.com/Alscosta1973/poui-specialist/compare/v1.18.0...v1.19.0) (2026-10-27)
+
+
+### Features
+
+* **logo:** logo do cliente em customizacao (comando logo, pergunta no scaffold, extracao do .docx, fundo removido e simbolo gerado) ([7a5d0bd](https://github.com/Alscosta1973/poui-specialist/commit/7a5d0bde8c724d7e0f3aab285c302473cfb4e707))
+
+
+### Documentation
+
+* logo do cliente no README, CHANGELOG e QA da extensao ([a5a4f4a](https://github.com/Alscosta1973/poui-specialist/commit/a5a4f4a72f7d061931cb7001dd419dca0d41739a))
+* **patterns:** avatar do perfil com o simbolo do cliente em customizacao ([4b76892](https://github.com/Alscosta1973/poui-specialist/commit/4b76892e268a585c19d42f26c8c1a191341b82c1))
+* **patterns:** icones Animalia em todas as skills e overlay Carregando no padrao TOTVS ([43ff2c1](https://github.com/Alscosta1973/poui-specialist/commit/43ff2c15295fdf3cba38f355350777dd1aeca8d9))
+* **patterns:** logo do cliente com nome no menu aberto e simbolo no recolhido ([3c3bb4a](https://github.com/Alscosta1973/poui-specialist/commit/3c3bb4a474c05a33d4732f3b53407d022d1e922d))
+* **patterns:** menu sem pesquisa, avatar TOTVS no perfil e Carregando tambem no carregar mais ([7575604](https://github.com/Alscosta1973/poui-specialist/commit/75756045bb1634770c13764daa5af4be20182088))
+* **plan:** mark H08 + padrao TOTVS plan as released in 1.18.0 ([c35f463](https://github.com/Alscosta1973/poui-specialist/commit/c35f463aac1d8d322c30657fcae98acc14a4c8e3))
+
+
+### Chores
+
+* **release:** bump version to 1.19.0 ([36fe3a3](https://github.com/Alscosta1973/poui-specialist/commit/36fe3a3203f992dd09f04d9ef80dcab9bb969eb3))
+* **vscode-ext:** bump version 1.5.0 -> 1.6.0 ([c7b0d61](https://github.com/Alscosta1973/poui-specialist/commit/c7b0d6100bef34e0d839753782dfa6762c6ab205))
+
 ## [1.18.0](https://github.com/Alscosta1973/poui-specialist/compare/v1.17.0...v1.18.0) (2026-10-27)
 
 
