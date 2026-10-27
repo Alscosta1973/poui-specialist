@@ -113,6 +113,8 @@ const sources = [
   ['skills/poui-components/utility-components.md', 'utility-components.md'],
   ['skills/poui-components/table-templates.md', 'table-templates.md'],
   ['skills/poui-components/ui-components.md', 'ui-components.md'],
+  // Smoke no Protheus — script Playwright executado pelo comando poui.smokeProtheus
+  ['skills/poui-smoke/smoke-protheus.cjs', 'smoke-protheus.cjs'],
 ];
 
 async function main() {

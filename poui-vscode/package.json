@@ -72,6 +72,10 @@
         "title": "PO-UI: Diagnosticar App no Protheus (doctor)"
       },
       {
+        "command": "poui.smokeProtheus",
+        "title": "PO-UI: Smoke no Protheus (abrir pelo menu)"
+      },
+      {
         "command": "poui.connect",
         "title": "PO-UI: Conectar ao Protheus"
       },
@@ -139,6 +143,41 @@
           "type": "string",
           "default": "",
           "markdownDescription": "RootPath do ambiente Protheus (pasta que contém `http-root\\app-root`), usado pelo **Diagnosticar App no Protheus** para conferir o que o `FwCallApp` extraiu. Ex.: `C:\\TOTVS12\\Protheus\\protheus_data`."
+        },
+        "poui.smoke.webAppUrl": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "URL da WebApp do Protheus usada pelo **Smoke no Protheus**. Ex.: `http://localhost:8080/webapp/`."
+        },
+        "poui.smoke.program": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Programa inicial (módulo) aberto na WebApp antes de pesquisar a rotina. Ex.: `SIGAFIN`."
+        },
+        "poui.smoke.environment": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Ambiente do AppServer. Ex.: `PROTHEUS_LOCAL`."
+        },
+        "poui.smoke.user": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Usuário Protheus do smoke."
+        },
+        "poui.smoke.passwordFile": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Arquivo com **só a senha** do usuário (relativo ao projeto ou absoluto). Lido na hora, nunca exibido; quando fica dentro do projeto vai para o `.gitignore`."
+        },
+        "poui.smoke.menuSearch": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Texto pesquisado no menu do módulo para achar a rotina."
+        },
+        "poui.smoke.menuItem": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Texto exato do item de menu, quando a pesquisa traz mais de um resultado (opcional)."
         }
       }
     },

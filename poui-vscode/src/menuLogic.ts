@@ -26,6 +26,7 @@ export const GROUPS: MenuGroup[] = [
       { label: 'Conectar ao Protheus', commandId: 'poui.connect', paid: true },
       { label: 'Empacotar Projeto (.app)', commandId: 'poui.package', paid: true },
       { label: 'Diagnosticar App no Protheus (doctor)', commandId: 'poui.doctor', paid: false },
+      { label: 'Smoke no Protheus (abrir pelo menu)', commandId: 'poui.smokeProtheus', paid: true },
     ],
   },
   {
