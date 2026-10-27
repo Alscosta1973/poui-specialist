@@ -52,12 +52,14 @@ Ordem de estilos no `angular.json` (como o `scaffold` gera):
   - `p-profile` = `{ title: displayName, subtitle: userName }`. Dentro do `FwCallApp` vem de
     `ProThreadInfoService.getUserInfoThread()` (`@totvs/protheus-lib-core`; chama
     `/api/framework/v1/users/<id>`). Assim como nos apps TOTVS, a barra mostra só o avatar; o nome
-    aparece ao clicar.
+    aparece ao clicar. `avatar` = símbolo TOTVS (`assets/logos/totvs-short-symbol.svg`), sempre presente,
+    como o ícone TOTVS no canto superior direito dos apps padrão.
     - **Só chamar dentro do Protheus** (`insideProtheus()`) e dentro de `defer()`: fora dele não há
       token, e o serviço lança `TypeError ... 'access_token'` na hora, o que derruba o app no `ng serve`.
     - Sem usuário, a barra fica sem perfil.
   - `p-profile-actions` = `[{ icon: 'an an-sign-out', label: 'Sair', type: 'danger', separator: true, action }]`.
 - **`po-menu`**
+  - **Sem `p-filter`** (o FINA710 não mostra "Pesquisar" no menu).
   - `#poMenu`, `[p-collapsed]="true"` + `[p-automatic-toggle]="true"`: começa só com ícones,
     **expande ao passar o mouse** e recolhe ao sair, como no FINA710.
   - `p-logo` / `p-short-logo` com os logos TOTVS.
@@ -114,7 +116,6 @@ export const APP_VERSION = '1.0.0';
   <po-menu
     #poMenu
     [p-menus]="menus"
-    [p-filter]="true"
     [p-collapsed]="true"
     [p-automatic-toggle]="true"
     p-logo="assets/logos/totvs.svg"
@@ -144,10 +145,13 @@ import {
 import { ProAppConfigService, ProThreadInfoService } from '@totvs/protheus-lib-core';
 import { APP_VERSION } from './app-version';
 
-/** Usuário logado no Protheus (vazio fora do Protheus) → sem perfil na barra. */
-export function montarPerfil(info: { displayName?: string; userName?: string } | undefined): PoToolbarProfile | undefined {
-  const title = info?.displayName?.trim() || info?.userName?.trim();
-  return title ? { title, subtitle: info?.userName?.trim() ?? '' } : undefined;
+/** Avatar do perfil na barra: símbolo TOTVS, como nos apps padrão (FINA710/FINAPP001). */
+export const AVATAR_TOTVS = 'assets/logos/totvs-short-symbol.svg';
+
+/** Perfil da barra: sempre com o avatar TOTVS; nome/login do usuário logado quando houver. */
+export function montarPerfil(info: { displayName?: string; userName?: string } | undefined): PoToolbarProfile {
+  const title = info?.displayName?.trim() || info?.userName?.trim() || '';
+  return { avatar: AVATAR_TOTVS, title, subtitle: info?.userName?.trim() ?? '' };
 }
 
 @Component({
@@ -164,7 +168,7 @@ export class App implements AfterViewInit {
   private readonly poMenu = viewChild.required<PoMenuComponent>('poMenu');
 
   readonly titulo = `Nome do App - v${APP_VERSION}`;
-  readonly perfil = signal<PoToolbarProfile | undefined>(undefined);
+  readonly perfil = signal<PoToolbarProfile>(montarPerfil(undefined));
   readonly acoesPerfil: PoToolbarAction[] = [
     { icon: 'an an-sign-out', label: 'Sair', type: 'danger', separator: true, action: () => this.closeApp() },
   ];
@@ -184,7 +188,7 @@ export class App implements AfterViewInit {
         .pipe(takeUntilDestroyed())
         .subscribe({
           next: (info) => this.perfil.set(montarPerfil(info)),
-          error: () => this.perfil.set(undefined),
+          error: () => this.perfil.set(montarPerfil(undefined)),
         });
     }
   }
@@ -278,7 +282,7 @@ Como os apps TOTVS (FINAPP001 e FINA710): enquanto algo carrega, aparece o **ove
 | Situação | Como |
 |---|---|
 | Carga inicial, pesquisa ou filtro de uma lista | `@if (loading()) { <po-loading-overlay [p-screen-lock]="false" /> }` dentro do `po-page-list` (cobre a página, não a tela toda) |
-| "Carregar mais" da tabela | **sem** overlay: `[p-loading-show-more]="carregandoMais()"` na `po-table` (signal separado do `loading`) |
+| "Carregar mais" da tabela | o **mesmo** overlay (`loading()`), como nas telas TOTVS |
 | Ação na linha (reprocessar, excluir) e gravação | o mesmo overlay do `loading()` |
 | Formulário (abrir/salvar) | `<po-loading-overlay [p-screen-lock]="true" />` |
 | Troca de tela (rota lazy) | no shell: `navegando` = `true` em `NavigationStart` e `false` em `NavigationEnd`/`NavigationCancel`/`NavigationError`; `@if (navegando()) { <po-loading-overlay /> }` |
@@ -294,4 +298,4 @@ grade, diferente das telas TOTVS.
 - [ ] Legenda por cor com `type: 'subtitle'` (rodapé nativo); situação em texto com `type: 'label'`; só tokens de cor.
 - [ ] `po-table` com `[p-striped]` e `[p-sort]` (e `[p-height]` em componente OnPush — lint H05); colunas curtas com `width`.
 - [ ] `po-combo` ligado a valor com `[p-remove-initial-filter]="true"` (lint **H08**).
-- [ ] Carregamento com `po-loading-overlay` (lista, ação, formulário e troca de tela); "carregar mais" só com `p-loading-show-more`.
+- [ ] Carregamento com `po-loading-overlay` (lista, "carregar mais", ação, formulário e troca de tela).

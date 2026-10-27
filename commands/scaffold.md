@@ -250,10 +250,13 @@ import {
 import { ProAppConfigService, ProThreadInfoService } from '@totvs/protheus-lib-core';
 import { APP_VERSION } from './app-version';
 
-/** Usuário logado no Protheus (vazio fora do Protheus) → sem perfil na barra. */
-export function montarPerfil(info: { displayName?: string; userName?: string } | undefined): PoToolbarProfile | undefined {
-  const title = info?.displayName?.trim() || info?.userName?.trim();
-  return title ? { title, subtitle: info?.userName?.trim() ?? '' } : undefined;
+/** Avatar do perfil na barra: símbolo TOTVS, como nos apps padrão (FINA710/FINAPP001). */
+export const AVATAR_TOTVS = 'assets/logos/totvs-short-symbol.svg';
+
+/** Perfil da barra: sempre com o avatar TOTVS; nome/login do usuário logado quando houver. */
+export function montarPerfil(info: { displayName?: string; userName?: string } | undefined): PoToolbarProfile {
+  const title = info?.displayName?.trim() || info?.userName?.trim() || '';
+  return { avatar: AVATAR_TOTVS, title, subtitle: info?.userName?.trim() ?? '' };
 }
 
 @Component({
@@ -270,7 +273,7 @@ export class App implements AfterViewInit {
   private readonly poMenu = viewChild.required<PoMenuComponent>('poMenu');
 
   readonly titulo = `{{projectName | titlecase}} - v${APP_VERSION}`;
-  readonly perfil = signal<PoToolbarProfile | undefined>(undefined);
+  readonly perfil = signal<PoToolbarProfile>(montarPerfil(undefined));
   readonly acoesPerfil: PoToolbarAction[] = [
     { icon: 'an an-sign-out', label: 'Sair', type: 'danger', separator: true, action: () => this.closeApp() },
   ];
@@ -290,7 +293,7 @@ export class App implements AfterViewInit {
         .pipe(takeUntilDestroyed())
         .subscribe({
           next: (info) => this.perfil.set(montarPerfil(info)),
-          error: () => this.perfil.set(undefined),
+          error: () => this.perfil.set(montarPerfil(undefined)),
         });
     }
   }
@@ -332,7 +335,6 @@ export const APP_VERSION = '1.0.0';
   <po-menu
     #poMenu
     [p-menus]="menus"
-    [p-filter]="true"
     [p-collapsed]="true"
     [p-automatic-toggle]="true"
     p-logo="assets/logos/totvs.svg"

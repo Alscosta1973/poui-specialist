@@ -67,8 +67,8 @@ Seguir `skills/poui-patterns/padrao-totvs.md` (o mesmo visual dos apps nativos F
 - **`po-table`.** Com `[p-height]`, `[p-striped]="true"` e `[p-sort]="true"`.
 - **`po-combo` ligado a valor.** Com `[p-remove-initial-filter]="true"` (lint H08).
 - **Itens de menu.** Com `label` + `shortLabel` + `icon: 'an an-*'`.
-- **Carregando.** `po-loading-overlay` enquanto carrega (seção 4 do padrão); "carregar mais" só com
-  `[p-loading-show-more]`, nunca `[p-loading]` da `po-table` como indicador principal.
+- **Carregando.** `po-loading-overlay` enquanto carrega, inclusive no "carregar mais" (seção 4 do
+  padrão); nunca `[p-loading]` da `po-table` como indicador principal.
 
 ### po-dynamic-form: capturar valores com `(p-form)` + valueChanges (MANDATORY)
 - **`(p-value-change)` NÃO existe** em PO-UI 17.26.28 → Angular ignora silenciosamente, handler nunca chamado (Quirk #13)
