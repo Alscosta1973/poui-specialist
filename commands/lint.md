@@ -28,7 +28,9 @@ Com `--fix`, corrige automaticamente os problemas que têm fix seguro.
 
 ## Passo 1 — Descobrir arquivos
 
-Listar todos os `.component.ts` e `.component.html` sob o caminho fornecido.
+Listar todos os `.component.ts` e `.component.html` sob o caminho fornecido, mais o componente raiz do
+Angular 21 (`app.ts` / `app.html`, o shell) e o `styles` global (`src/styles.scss` ou `src/styles.css`,
+procurado a partir do caminho fornecido).
 
 Se nenhum arquivo encontrado: informar e encerrar.
 
@@ -62,6 +64,18 @@ Para cada componente encontrado, verificar:
 | H06 | WARNING | `p-max-length` em vez de `p-maxlength` (Quirk #4) | sim |
 | H07 | ERROR | `(p-value-change)` em `po-dynamic-form` (não existe) (Quirk #13) | não (complexo) |
 | H08 | WARNING | `po-combo` ligado a valor (`ngModel` / `[(ngModel)]` / `formControlName` / `[formControl]`) sem `p-remove-initial-filter` — ao abrir, a lista vem filtrada pelo valor atual e mostra só a opção escolhida (Quirk #19) | sim |
+| H09 | WARNING | `po-menu` fora do padrão visual TOTVS: falta `[p-collapsed]="true"`, `[p-automatic-toggle]="true"` (abre ao passar o mouse) ou `p-logo` (TOTVS ou do cliente) — ver `skills/poui-patterns/padrao-totvs.md` | não |
+
+---
+
+### Verificações no `styles` global
+
+| ID | Severidade | Verificação | Fix automático |
+|----|-----------|-------------|----------------|
+| S01 | WARNING | `styles.scss` fora do padrão visual TOTVS: `@import` de fonte (ex.: Open Sans), `font-family` que não seja `var(--font-family…)`, ou override de `--font-size-*` / `--font-family*` / `--target-size-*` (ignora comentários) — os apps TOTVS usam a fonte NunitoSans e os tamanhos do tema | não (revisar: pode haver motivo do cliente) |
+
+> No shell raiz (`app.ts`), L06/L07 não se aplicam: os `subscribe` de lá são de eventos do router e do
+> usuário logado, sem loading de tela.
 
 ---
 

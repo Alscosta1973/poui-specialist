@@ -62,14 +62,48 @@ ${demoRoute}  { path: '**', redirectTo: 'inicio' },
 `;
 }
 
-export function buildAppComponentTs(includeDemo: boolean): string {
+/** Versão exibida na barra do app (padrão visual TOTVS: "Nome - vX.Y.Z"). */
+export const APP_VERSION_TS = `/** Versão exibida na barra do app ("Nome - vX.Y.Z"). Atualizar a cada entrega. */
+export const APP_VERSION = '1.0.0';
+`;
+
+export const TOTVS_LOGO = 'assets/logos/totvs.svg';
+export const TOTVS_SHORT_LOGO = 'assets/logos/totvs-short-symbol.svg';
+
+/** `@totvs/common-assets` (peer dependency da protheus-lib-core) traz os logos usados no po-menu. */
+export const TOTVS_LOGOS_ASSET = {
+  glob: 'totvs*.svg',
+  input: 'node_modules/@totvs/common-assets/common-assets/logos/totvs',
+  output: 'assets/logos',
+};
+
+/** Shell no padrão visual TOTVS (skills/poui-patterns/padrao-totvs.md), o mesmo validado no app
+ * RCA dentro do FwCallApp: título com versão, usuário da thread do Protheus no perfil, menu
+ * recolhido que abre ao passar o mouse, logo TOTVS e recolhe a cada navegação. */
+export function buildAppComponentTs(includeDemo: boolean, projectTitle: string): string {
   const inicioMenuItem = includeDemo
-    ? "    { label: 'Início', link: '/inicio', shortLabel: 'Início', icon: 'po-icon-home' },\n"
+    ? "    { label: 'Início', link: '/inicio', shortLabel: 'Início', icon: 'an an-house-line' },\n"
     : '';
-  return `import { Component, ChangeDetectionStrategy } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
-import { PoMenuModule, PoToolbarModule, PoMenuItem } from '@po-ui/ng-components';
-import { ProAppConfigService } from '@totvs/protheus-lib-core';
+  return `import { AfterViewInit, ChangeDetectionStrategy, Component, DestroyRef, inject, signal, viewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { defer, filter } from 'rxjs';
+import {
+  PoMenuComponent,
+  PoMenuItem,
+  PoMenuModule,
+  PoToolbarAction,
+  PoToolbarModule,
+  PoToolbarProfile,
+} from '@po-ui/ng-components';
+import { ProAppConfigService, ProThreadInfoService } from '@totvs/protheus-lib-core';
+import { APP_VERSION } from './app-version';
+
+/** Usuário logado no Protheus (vazio fora do Protheus) -> sem perfil na barra. */
+export function montarPerfil(info: { displayName?: string; userName?: string } | undefined): PoToolbarProfile | undefined {
+  const title = info?.displayName?.trim() || info?.userName?.trim();
+  return title ? { title, subtitle: info?.userName?.trim() ?? '' } : undefined;
+}
 
 @Component({
   selector: 'app-root',
@@ -78,16 +112,46 @@ import { ProAppConfigService } from '@totvs/protheus-lib-core';
   styleUrl: './app.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class App {
-  constructor(private proAppConfigService: ProAppConfigService) {
+export class App implements AfterViewInit {
+  private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly proAppConfigService = inject(ProAppConfigService);
+  private readonly poMenu = viewChild.required<PoMenuComponent>('poMenu');
+
+  readonly titulo = \`${projectTitle} - v\${APP_VERSION}\`;
+  readonly perfil = signal<PoToolbarProfile | undefined>(undefined);
+  readonly acoesPerfil: PoToolbarAction[] = [
+    { icon: 'an an-sign-out', label: 'Sair', type: 'danger', separator: true, action: () => this.closeApp() },
+  ];
+  readonly menus: PoMenuItem[] = [
+${inicioMenuItem}    { label: 'Sair', shortLabel: 'Sair', icon: 'an an-sign-out', action: () => this.closeApp() },
+  ];
+
+  constructor() {
     if (!this.proAppConfigService.insideProtheus()) {
       this.proAppConfigService.loadAppConfig();
     }
+    // usuário da thread do FwCallApp; fora do Protheus não há token e o serviço lança erro na hora
+    const threadInfo = inject(ProThreadInfoService);
+    if (this.proAppConfigService.insideProtheus()) {
+      defer(() => threadInfo.getUserInfoThread())
+        .pipe(takeUntilDestroyed())
+        .subscribe({
+          next: (info) => this.perfil.set(montarPerfil(info)),
+          error: () => this.perfil.set(undefined),
+        });
+    }
   }
 
-  readonly menus: PoMenuItem[] = [
-${inicioMenuItem}    { label: 'Sair', shortLabel: 'Sair', icon: 'po-icon-exit', action: this.closeApp.bind(this) },
-  ];
+  ngAfterViewInit(): void {
+    // padrão TOTVS: o menu volta a recolher depois de escolher uma opção
+    this.router.events
+      .pipe(
+        filter((e) => e instanceof NavigationEnd),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => this.poMenu().collapse());
+  }
 
   private closeApp(): void {
     if (this.proAppConfigService.insideProtheus()) {
@@ -98,10 +162,22 @@ ${inicioMenuItem}    { label: 'Sair', shortLabel: 'Sair', icon: 'po-icon-exit', 
 `;
 }
 
-export function buildAppComponentHtml(projectTitle: string): string {
+export function buildAppComponentHtml(): string {
   return `<div class="po-wrapper">
-  <po-toolbar p-title="${projectTitle}"></po-toolbar>
-  <po-menu [p-menus]="menus" [p-filter]="true" [p-collapsed]="true"></po-menu>
+  <po-toolbar
+    [p-title]="titulo"
+    [p-profile]="perfil()"
+    [p-profile-actions]="acoesPerfil">
+  </po-toolbar>
+  <po-menu
+    #poMenu
+    [p-menus]="menus"
+    [p-filter]="true"
+    [p-collapsed]="true"
+    [p-automatic-toggle]="true"
+    p-logo="${TOTVS_LOGO}"
+    p-short-logo="${TOTVS_SHORT_LOGO}">
+  </po-menu>
   <div class="container-fluid">
     <router-outlet></router-outlet>
   </div>
@@ -109,13 +185,14 @@ export function buildAppComponentHtml(projectTitle: string): string {
 `;
 }
 
-export const STYLES_SCSS = `@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap');
+/** Padrão visual TOTVS: fonte (NunitoSans) e tamanhos do tema, sem Open Sans nem overrides (lint S01). */
+export const STYLES_SCSS = `/* Padrão visual TOTVS: fonte (NunitoSans) e tamanhos do tema @totvs/po-theme — não importar outra
+   fonte nem sobrepor --font-size-* / --target-size-* (lint S01). */
 
 * { box-sizing: border-box; }
 
 body {
   margin: 0;
-  font-family: 'Open Sans', Arial, sans-serif;
 }
 
 /* Quirk #17 — po-decimal e po-number não alinham à direita por padrão (PO-UI v17) */
@@ -148,14 +225,13 @@ export function buildProxyConfigJson(protheusUrl: string): string {
 
 export function buildHomeComponentTs(protheusUrl: string): string {
   return `import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { PoPageModule, PoToolbarModule, PoWidgetModule } from '@po-ui/ng-components';
+import { PoPageModule, PoWidgetModule } from '@po-ui/ng-components';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [PoPageModule, PoToolbarModule, PoWidgetModule],
+  imports: [PoPageModule, PoWidgetModule],
   template: \`
-    <po-toolbar p-title="Bem-vindo"></po-toolbar>
     <po-page-default p-title="Projeto PO-UI + Protheus">
       <div class="po-row">
         <po-widget class="po-md-12 po-lg-4 po-mt-2" p-title="Próximos passos">
@@ -209,6 +285,18 @@ const TOTVS_STYLES = [
 export function setAngularJsonStyles(angularJson: JsonObject, projectName: string): JsonObject {
   const fixed = JSON.parse(JSON.stringify(angularJson)) as JsonObject;
   fixed.projects[projectName].architect.build.options.styles = [...TOTVS_STYLES];
+  // logos TOTVS do menu (padrão visual TOTVS), no build e nos testes
+  for (const target of ['build', 'test']) {
+    const options = fixed.projects[projectName].architect[target]?.options;
+    if (!options) {
+      continue;
+    }
+    const assets: JsonObject[] = options.assets ?? [];
+    if (!assets.some((a) => typeof a === 'object' && a.output === TOTVS_LOGOS_ASSET.output)) {
+      assets.push({ ...TOTVS_LOGOS_ASSET });
+    }
+    options.assets = assets;
+  }
   return fixed;
 }
 
@@ -260,7 +348,7 @@ export async function scaffoldProject(parentDir: string, params: ScaffoldParams,
     sink.appendLine('Instalando pacotes PO-UI e Protheus...');
     await run('ng add @po-ui/ng-components@21 --configSideMenu=false --skip-confirmation', projectDir, sink);
     await run('ng add @po-ui/ng-templates@21 --skip-confirmation', projectDir, sink);
-    await run('npm install @totvs/po-theme@^21 @totvs/protheus-lib-core@^21', projectDir, sink);
+    await run('npm install @totvs/po-theme@^21 @totvs/protheus-lib-core@^21 @totvs/common-assets@^1', projectDir, sink);
     steps.push('Pacotes PO-UI/Protheus instalados');
 
     const angularJsonPath = path.join(projectDir, 'angular.json');
@@ -272,7 +360,7 @@ export async function scaffoldProject(parentDir: string, params: ScaffoldParams,
       browser: '',
     };
     await fs.writeFile(angularJsonPath, JSON.stringify(withStyles, null, 2) + '\n', 'utf8');
-    steps.push('angular.json: estilos PO-UI + outputPath configurados');
+    steps.push('angular.json: estilos PO-UI, logos TOTVS e outputPath configurados');
 
     const tsconfigPath = path.join(projectDir, 'tsconfig.json');
     const tsconfigText = await fs.readFile(tsconfigPath, 'utf8');
@@ -285,8 +373,9 @@ export async function scaffoldProject(parentDir: string, params: ScaffoldParams,
     // com a classe `App` — não mais app.component.ts/AppComponent (convenção antiga).
     // main.ts já importa `App` de './app/app'; sobrescrever esses arquivos no lugar
     // certo evita ter que editar main.ts também.
-    await fs.writeFile(path.join(projectDir, 'src', 'app', 'app.ts'), buildAppComponentTs(params.includeDemo), 'utf8');
-    await fs.writeFile(path.join(projectDir, 'src', 'app', 'app.html'), buildAppComponentHtml(projectTitle), 'utf8');
+    await fs.writeFile(path.join(projectDir, 'src', 'app', 'app.ts'), buildAppComponentTs(params.includeDemo, projectTitle), 'utf8');
+    await fs.writeFile(path.join(projectDir, 'src', 'app', 'app-version.ts'), APP_VERSION_TS, 'utf8');
+    await fs.writeFile(path.join(projectDir, 'src', 'app', 'app.html'), buildAppComponentHtml(), 'utf8');
     await fs.writeFile(path.join(projectDir, 'src', 'styles.scss'), STYLES_SCSS, 'utf8');
     const indexHtmlPath = path.join(projectDir, 'src', 'index.html');
     const indexHtml = await fs.readFile(indexHtmlPath, 'utf8');

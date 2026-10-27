@@ -10,6 +10,9 @@ import {
   buildHomeComponentTs,
   fixTsconfigStrictness,
   setAngularJsonStyles,
+  STYLES_SCSS,
+  APP_VERSION_TS,
+  TOTVS_LOGOS_ASSET,
 } from '../../scaffolding';
 
 describe('checkNodeVersion', () => {
@@ -42,27 +45,67 @@ describe('titleCase', () => {
 
 describe('buildAppComponentTs', () => {
   it('includes the "Início" menu item when demo is included', () => {
-    const withDemo = buildAppComponentTs(true);
+    const withDemo = buildAppComponentTs(true, 'Meu Projeto');
     assert.ok(withDemo.includes("link: '/inicio'"));
   });
 
   it('omits the "Início" menu item without demo', () => {
-    const withoutDemo = buildAppComponentTs(false);
+    const withoutDemo = buildAppComponentTs(false, 'Meu Projeto');
     assert.ok(!withoutDemo.includes("link: '/inicio'"));
   });
 
   it('exports class App targeting app.html/app.scss — Angular CLI 21 generates app.ts/App, not app.component.ts/AppComponent, and main.ts already imports App from ./app/app', () => {
-    const content = buildAppComponentTs(false);
+    const content = buildAppComponentTs(false, 'Meu Projeto');
     assert.ok(content.includes('export class App '), 'expected the class to be named App, not AppComponent');
     assert.ok(content.includes("templateUrl: './app.html'"));
     assert.ok(content.includes("styleUrl: './app.scss'"));
   });
+
+  it('padrão TOTVS: title with the app version, profile from the Protheus thread (only inside Protheus) and menu collapsing on navigation', () => {
+    const content = buildAppComponentTs(true, 'Meu Projeto');
+    assert.ok(content.includes('readonly titulo = `Meu Projeto - v${APP_VERSION}`;'));
+    assert.ok(content.includes("import { APP_VERSION } from './app-version';"));
+    assert.ok(content.includes('defer(() => threadInfo.getUserInfoThread())'));
+    assert.ok(/if \(this\.proAppConfigService\.insideProtheus\(\)\) \{\s*defer/.test(content), 'user lookup must be guarded by insideProtheus()');
+    assert.ok(content.includes('this.poMenu().collapse()'));
+  });
+
+  it('padrão TOTVS: Animalia icons only (po-icon-* does not exist in PO-UI 21)', () => {
+    const content = buildAppComponentTs(true, 'X');
+    assert.ok(!content.includes('po-icon-'));
+    assert.ok(content.includes("icon: 'an an-sign-out'"));
+    assert.ok(content.includes("icon: 'an an-house-line'"));
+  });
 });
 
 describe('buildAppComponentHtml', () => {
-  it('substitutes the project title into po-toolbar', () => {
-    const html = buildAppComponentHtml('Meu Projeto');
-    assert.ok(html.includes('p-title="Meu Projeto"'));
+  it('padrão TOTVS: toolbar bound to title/profile and a collapsed menu that opens on hover with the TOTVS logos', () => {
+    const html = buildAppComponentHtml();
+    for (const piece of [
+      '[p-title]="titulo"',
+      '[p-profile]="perfil()"',
+      '[p-profile-actions]="acoesPerfil"',
+      '#poMenu',
+      '[p-collapsed]="true"',
+      '[p-automatic-toggle]="true"',
+      'p-logo="assets/logos/totvs.svg"',
+      'p-short-logo="assets/logos/totvs-short-symbol.svg"',
+    ]) {
+      assert.ok(html.includes(piece), piece);
+    }
+  });
+});
+
+describe('STYLES_SCSS / APP_VERSION_TS', () => {
+  it('padrão TOTVS: no extra font and no theme token overrides', () => {
+    const codigo = STYLES_SCSS.replace(/\/\*[\s\S]*?\*\//g, '');
+    assert.ok(!/Open\+?\s?Sans|@import\s+url|font-family/.test(codigo));
+    assert.ok(!/--font-size-|--target-size-/.test(codigo));
+    assert.ok(STYLES_SCSS.includes('text-align: right'), 'Quirk #17 fix stays');
+  });
+
+  it('exports the version constant used by the toolbar title', () => {
+    assert.ok(APP_VERSION_TS.includes("export const APP_VERSION = '1.0.0';"));
   });
 });
 
@@ -151,5 +194,29 @@ describe('setAngularJsonStyles', () => {
       'node_modules/@po-ui/style/css/po-theme-core.min.css',
       'src/styles.scss',
     ]);
+  });
+});
+
+describe('setAngularJsonStyles — TOTVS logos', () => {
+  it('adds the @totvs/common-assets logos to build and test assets once, keeping existing entries', () => {
+    const angularJson = {
+      projects: {
+        x: {
+          architect: {
+            build: { options: { styles: [], assets: [{ glob: '**/*', input: 'public' }] } },
+            test: { options: { assets: [{ glob: '**/*', input: 'public' }] } },
+          },
+        },
+      },
+    };
+    const once = setAngularJsonStyles(angularJson, 'x');
+    const twice = setAngularJsonStyles(once, 'x');
+    for (const target of ['build', 'test']) {
+      const assets = twice.projects.x.architect[target].options.assets;
+      assert.strictEqual(assets.length, 2, target);
+      assert.deepStrictEqual(assets[0], { glob: '**/*', input: 'public' });
+      assert.deepStrictEqual(assets[1], TOTVS_LOGOS_ASSET);
+    }
+    assert.strictEqual(angularJson.projects.x.architect.build.options.assets.length, 1, 'input is not mutated');
   });
 });

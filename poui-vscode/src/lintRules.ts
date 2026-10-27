@@ -146,7 +146,10 @@ function lintTs(tsPath: string, tsContent: string, htmlContent: string | undefin
   }
 
   // L06 / L07 — subscribe() sem callback error: / error: sem loading.set(false)
-  for (const block of findSubscribeBlocks(tsContent)) {
+  // Fora do shell raiz (app.ts): lá os subscribes são de eventos do router / usuário logado, sem
+  // loading de tela que possa travar (padrão visual TOTVS — skills/poui-patterns/padrao-totvs.md).
+  const ehShellRaiz = /(^|[\/])app\.ts$/.test(tsPath);
+  for (const block of ehShellRaiz ? [] : findSubscribeBlocks(tsContent)) {
     const isObjectForm = /^\(\s*\{/.test(block.body);
     const hasError = /error\s*:/.test(block.body);
     if (!hasError) {
@@ -292,6 +295,26 @@ function lintHtml(htmlPath: string, htmlContent: string, tsContent: string): Lin
     }
   }
 
+  // H09 — po-menu fora do padrão visual TOTVS (recolhido, abre ao passar o mouse, com logo)
+  for (const m of htmlContent.matchAll(/<po-menu\b[^>]*>/gi)) {
+    const tag = m[0];
+    const faltando = [
+      /p-collapsed/.test(tag) ? '' : '[p-collapsed]="true"',
+      /p-automatic-toggle/.test(tag) ? '' : '[p-automatic-toggle]="true"',
+      /p-logo/.test(tag) ? '' : 'p-logo',
+    ].filter(Boolean);
+    if (faltando.length > 0) {
+      findings.push({
+        id: 'H09',
+        severity: 'WARNING',
+        file: htmlPath,
+        line: lineAt(htmlContent, m.index!),
+        message: `po-menu fora do padrão visual TOTVS — falta ${faltando.join(', ')} (skills/poui-patterns/padrao-totvs.md)`,
+        fixable: false,
+      });
+    }
+  }
+
   // H08 — po-combo ligado a um valor sem p-remove-initial-filter: abre filtrado pelo valor atual
   for (const m of htmlContent.matchAll(PO_COMBO_TAG_RE)) {
     if (comboNeedsRemoveInitialFilter(m[0])) {
@@ -308,6 +331,31 @@ function lintHtml(htmlPath: string, htmlContent: string, tsContent: string): Lin
   }
 
   return findings;
+}
+
+/** S01 — `styles.scss` global fora do padrão visual TOTVS: fonte própria ou tokens de tamanho sobrepostos. */
+export function lintStyles(stylesPath: string, content: string): LintFinding[] {
+  // comentários viram espaços (preserva as posições para o número da linha); `//` de URL não é comentário
+  const codigo = content.replace(/\/\*[\s\S]*?\*\/|(?<![:'"\w])\/\/[^\n]*/g, (c) => c.replace(/[^\n]/g, ' '));
+  const regras: { re: RegExp; motivo: string }[] = [
+    { re: /@import\s+url\([^)]*\bfonts?\b[^)]*\)/gi, motivo: 'importa outra fonte' },
+    { re: /font-family\s*:\s*(?!\s*var\(--font-family)[^;}]+/gi, motivo: 'troca a fonte do tema (NunitoSans)' },
+    { re: /--(?:font-size|font-family|target-size)[\w-]*\s*:/gi, motivo: 'sobrepõe token de fonte/tamanho do tema' },
+  ];
+  const findings: LintFinding[] = [];
+  for (const { re, motivo } of regras) {
+    for (const m of codigo.matchAll(re)) {
+      findings.push({
+        id: 'S01',
+        severity: 'WARNING',
+        file: stylesPath,
+        line: lineAt(codigo, m.index!),
+        message: `styles fora do padrão visual TOTVS: ${motivo} — \`${m[0].trim().slice(0, 60)}\` (skills/poui-patterns/padrao-totvs.md)`,
+        fixable: false,
+      });
+    }
+  }
+  return findings.sort((a, b) => a.line - b.line);
 }
 
 export function lintComponentPair(input: ComponentPairInput): LintFinding[] {

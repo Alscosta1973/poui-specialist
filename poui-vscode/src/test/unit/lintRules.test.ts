@@ -1,5 +1,5 @@
 import * as assert from 'node:assert';
-import { lintComponentPair, LintFinding } from '../../lintRules';
+import { lintComponentPair, lintStyles, LintFinding } from '../../lintRules';
 
 function idsOf(findings: LintFinding[]): string[] {
   return findings.map((f) => f.id);
@@ -221,8 +221,67 @@ describe('lintComponentPair — HTML checks', () => {
     }
   });
 
+  it('H09: flags a po-menu outside the TOTVS standard and lists what is missing', () => {
+    const html = `<po-menu [p-menus]="menus" [p-filter]="true" [p-collapsed]="true"></po-menu>`;
+    const findings = lintComponentPair({ tsPath: 'app.ts', tsContent: baseTs, htmlPath: 'app.html', htmlContent: html });
+    const h09 = findings.find((f) => f.id === 'H09');
+    assert.ok(h09);
+    assert.strictEqual(h09!.severity, 'WARNING');
+    assert.ok(h09!.message.includes('p-automatic-toggle'));
+    assert.ok(h09!.message.includes('p-logo'));
+    assert.ok(!h09!.message.includes('p-collapsed'));
+  });
+
+  it('H09: accepts the TOTVS shell menu (also with a customer logo)', () => {
+    const html = `<po-menu\n  #poMenu\n  [p-menus]="menus"\n  [p-collapsed]="true"\n  [p-automatic-toggle]="true"\n  p-logo="assets/logos/ffm.png"\n  p-short-logo="assets/logos/ffm.png">\n</po-menu>`;
+    const findings = lintComponentPair({ tsPath: 'app.ts', tsContent: baseTs, htmlPath: 'app.html', htmlContent: html });
+    assert.ok(!idsOf(findings).includes('H09'));
+  });
+
   it('skips all HTML checks when there is no html content (inline template)', () => {
     const findings = lintComponentPair({ tsPath: 'x.ts', tsContent: baseTs });
     assert.deepStrictEqual(findings.filter((f) => f.id.startsWith('H')), []);
+  });
+});
+
+describe('lintStyles (S01)', () => {
+  it('flags an imported font, a font-family override and theme size tokens, with their lines', () => {
+    const scss = [
+      "@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400&display=swap');",
+      ':root {',
+      '  --font-size-default: 12px;',
+      '  --target-size-aaa: 28px;',
+      '}',
+      'body {',
+      "  font-family: 'Open Sans', Arial, sans-serif;",
+      '}',
+    ].join('\n');
+    const findings = lintStyles('src/styles.scss', scss);
+    assert.ok(findings.every((f) => f.id === 'S01' && f.severity === 'WARNING' && !f.fixable));
+    assert.deepStrictEqual(findings.map((f) => f.line), [1, 3, 4, 7]);
+  });
+
+  it('accepts the TOTVS styles.scss: comments mentioning tokens, theme variables and the Quirk #17 fix', () => {
+    const scss = [
+      '/* Padrão visual TOTVS: não sobrepor --font-size-* / --target-size-* nem font-family */',
+      '* { box-sizing: border-box; }',
+      'body { margin: 0; }',
+      '// font-family: Arial; comentado',
+      '.x { font-family: var(--font-family-theme); }',
+      'po-decimal input, po-number input { text-align: right; }',
+    ].join('\n');
+    assert.deepStrictEqual(lintStyles('src/styles.scss', scss), []);
+  });
+});
+
+describe('L06/L07 scope', () => {
+  it('does not flag subscribes in the root shell app.ts (router events / logged user, no screen loading)', () => {
+    const ts = `@Component({ changeDetection: ChangeDetectionStrategy.OnPush })\nexport class App {\n  ngAfterViewInit(): void {\n    this.router.events.pipe(filter((e) => e instanceof NavigationEnd)).subscribe(() => this.poMenu().collapse());\n    defer(() => x.getUserInfoThread()).subscribe({ next: (i) => this.perfil.set(i), error: () => this.perfil.set(undefined) });\n  }\n}`;
+    const ids = lintComponentPair({ tsPath: 'src/app/app.ts', tsContent: ts }).map((f) => f.id);
+    assert.ok(!ids.includes('L06'));
+    assert.ok(!ids.includes('L07'));
+    // o mesmo código num componente de feature continua sendo acusado
+    const feature = lintComponentPair({ tsPath: 'src/app/x/x.component.ts', tsContent: ts }).map((f) => f.id);
+    assert.ok(feature.includes('L06'));
   });
 });

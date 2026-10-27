@@ -1,6 +1,6 @@
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
-import { lintComponentPair, LintFinding, LintSeverity } from './lintRules';
+import { lintComponentPair, lintStyles, LintFinding, LintSeverity } from './lintRules';
 import { applyLintFixes } from './lintFixes';
 import { findFiles } from './fsWalk';
 
@@ -14,10 +14,10 @@ export interface LintRunResult {
   findings: LintFinding[];
 }
 
-/** Casa cada `*.component.ts` (ignorando `*.component.spec.ts`) sob `rootDir`
- * com o `.html` irmão, quando existir. */
+/** Casa cada `*.component.ts` (ignorando `*.component.spec.ts`) e o componente raiz `app.ts` do
+ * Angular 21 sob `rootDir` com o `.html` irmão, quando existir. */
 export async function findComponentPairs(rootDir: string): Promise<ComponentPairPath[]> {
-  const tsFiles = await findFiles(rootDir, (name) => name.endsWith('.component.ts') && !name.endsWith('.spec.ts'));
+  const tsFiles = await findFiles(rootDir, (name) => (name.endsWith('.component.ts') || name === 'app.ts') && !name.endsWith('.spec.ts'));
   const pairs: ComponentPairPath[] = [];
 
   for (const fullPath of tsFiles) {
@@ -52,8 +52,19 @@ export async function runLint(rootDir: string): Promise<LintRunResult> {
     );
   }
 
+  for (const candidato of STYLES_CANDIDATES) {
+    const content = await fs.readFile(path.join(rootDir, candidato), 'utf8').catch(() => undefined);
+    if (content !== undefined) {
+      findings.push(...lintStyles(candidato, content));
+      break;
+    }
+  }
+
   return { pairs, findings };
 }
+
+/** `styles` global do projeto (lint S01), quando o lint roda na raiz do projeto ou em `src/`. */
+const STYLES_CANDIDATES = ['src/styles.scss', 'src/styles.css', 'styles.scss', 'styles.css'];
 
 const SEVERITY_ORDER: LintSeverity[] = ['ERROR', 'WARNING', 'INFO'];
 const SEVERITY_LABEL: Record<LintSeverity, string> = { ERROR: 'ERRORS', WARNING: 'WARNINGS', INFO: 'INFO' };
@@ -137,6 +148,12 @@ export async function applyLintFixesToDisk(rootDir: string, result: LintRunResul
         manualReviewLines.push(`⚠ ${finding.file}:${finding.line} [${finding.id}] — ${finding.message}`);
       }
     }
+  }
+
+  // achados fora dos pares de componente (ex.: S01 no styles.scss) só têm revisão manual
+  const arquivosDePares = new Set(result.pairs.flatMap((p) => [p.tsPath, p.htmlPath]));
+  for (const finding of result.findings.filter((f) => !arquivosDePares.has(f.file))) {
+    manualReviewLines.push(`⚠ ${finding.file}:${finding.line} [${finding.id}] — ${finding.message}`);
   }
 
   return { fixedSummaryLines, manualReviewLines };

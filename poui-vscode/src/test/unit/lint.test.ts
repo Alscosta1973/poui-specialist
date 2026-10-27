@@ -41,6 +41,20 @@ describe('findComponentPairs', () => {
     assert.strictEqual(pairs[0].htmlPath, undefined);
   });
 
+  it('also lints the Angular 21 root component app.ts / app.html', async () => {
+    const root = await mkTmpProject();
+    await fs.mkdir(path.join(root, 'src', 'app'), { recursive: true });
+    await fs.writeFile(path.join(root, 'src', 'app', 'app.ts'), DIRTY_TS, 'utf8');
+    await fs.writeFile(path.join(root, 'src', 'app', 'app.html'), '<po-menu [p-menus]="menus"></po-menu>', 'utf8');
+    await fs.writeFile(path.join(root, 'src', 'app', 'app.spec.ts'), '// spec', 'utf8');
+
+    const pairs = await findComponentPairs(root);
+
+    assert.strictEqual(pairs.length, 1);
+    assert.ok(pairs[0].tsPath.endsWith('app.ts'));
+    assert.ok(pairs[0].htmlPath?.endsWith('app.html'));
+  });
+
   it('returns an empty list when no component files exist', async () => {
     const root = await mkTmpProject();
     await fs.mkdir(path.join(root, 'src', 'app'), { recursive: true });
@@ -112,5 +126,20 @@ describe('applyLintFixesToDisk', () => {
 
     const updatedTs = await fs.readFile(path.join(compDir, 'x.component.ts'), 'utf8');
     assert.ok(updatedTs.includes('ChangeDetectionStrategy.OnPush'));
+  });
+
+  it('lints the global src/styles.scss (S01) and leaves it for manual review when fixing', async () => {
+    const root = await mkTmpProject();
+    await fs.mkdir(path.join(root, 'src', 'app'), { recursive: true });
+    await fs.writeFile(path.join(root, 'src', 'styles.scss'), "body {\n  font-family: 'Open Sans';\n}\n", 'utf8');
+
+    const result = await runLint(root);
+    const s01 = result.findings.filter((f) => f.id === 'S01');
+    assert.strictEqual(s01.length, 1);
+    assert.strictEqual(s01[0].file, 'src/styles.scss');
+    assert.strictEqual(s01[0].line, 2);
+
+    const outcome = await applyLintFixesToDisk(root, result);
+    assert.ok(outcome.manualReviewLines.some((l) => l.includes('src/styles.scss:2 [S01]')));
   });
 });
