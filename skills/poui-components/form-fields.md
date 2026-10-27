@@ -175,6 +175,82 @@ mais que apenas o label — avatar, status, departamento, badges, etc.
 > **Contexto do template:** `let-option` expõe o objeto completo de `p-options` — inclua
 > propriedades extras como `avatarUrl`, `departamento`, `status` além de `label` e `value`.
 
+> **O template vale só para a lista aberta.** O valor já escolhido aparece no campo como texto
+> (é um `<input>`). Para mostrar um ícone/bolinha também no campo, sobreponha um elemento
+> posicionado (ver padrão "bolinha da legenda" abaixo).
+
+### [p-remove-initial-filter] — lista completa no primeiro clique
+
+Por padrão o `po-combo` abre **filtrado pelo texto do valor atual** — com "Todos" escolhido, a
+lista mostra só "Todos" (quirk #19). Para filtros de browse, onde o usuário quer trocar de opção,
+use `[p-remove-initial-filter]="true"`: o primeiro clique mostra todas as opções (o próprio
+PO-UI usa isso nos combos de mês/ano do datepicker).
+
+```html
+<po-combo name="statusSel" p-label="Status" [p-options]="statusOptions"
+  [p-remove-initial-filter]="true" [ngModel]="statusSel" (p-change)="filtrar($event)">
+</po-combo>
+```
+
+### Padrão: bolinha da legenda no combo de status
+
+Filtro de status de um browse que mostra a mesma cor da legenda da tabela, na lista **e** no
+valor escolhido. `po-select` não aceita template — usar `po-combo`.
+
+```typescript
+export interface StatusOption extends PoComboOption { color: string; }
+
+// 'T' = Todos: o combo nao exibe opcao com valor vazio
+statusSel = 'T';
+readonly statusOptions: StatusOption[] = [
+  { value: 'T', label: 'Todos', color: '' },
+  ...LEGENDA.map((s) => ({ value: s.value, label: s.label, color: s.color })),
+];
+
+corStatusSel(): string {
+  return LEGENDA.find((s) => s.value === this.statusSel)?.color ?? '';
+}
+
+filtrar(status: string): void {
+  this.statusSel = status || 'T';   // combo limpo devolve undefined
+  this.carregar();
+}
+```
+
+```html
+<div class="po-md-4 po-lg-3 status-sel" [class.com-bolinha]="corStatusSel()">
+  <po-combo name="statusSel" p-label="Status" [p-options]="statusOptions"
+    [p-remove-initial-filter]="true" [ngModel]="statusSel" (p-change)="filtrar($event)">
+    <ng-template p-combo-option-template let-option>
+      <span class="opcao-status">
+        <span class="bolinha-opcao" [style.background-color]="option.color" [class.sem-cor]="!option.color"></span>
+        {{ option.label }}
+      </span>
+    </ng-template>
+  </po-combo>
+  @if (corStatusSel()) {
+    <span class="bolinha-sel" [style.background-color]="corStatusSel()"></span>
+  }
+</div>
+```
+
+```scss
+.opcao-status { display: inline-flex; align-items: center; gap: 8px; }
+.bolinha-opcao { display: inline-block; flex: none; width: 12px; height: 12px; border-radius: 50%;
+  &.sem-cor { border: 1px solid #c1c7cc; } }
+.status-sel {
+  position: relative;
+  // coluna do grid tem 8px de recuo; o input do po-combo tem 44px de altura
+  .bolinha-sel { position: absolute; left: 22px; bottom: 16px; width: 12px; height: 12px;
+    border-radius: 50%; pointer-events: none; }
+  &.com-bolinha ::ng-deep input { padding-left: 34px; }
+}
+```
+
+> **Teste unitário:** o `po-combo` grava `selected: true/false` nas próprias opções — comparar com
+> `jasmine.objectContaining({ value, label, color })`, nunca `toEqual` do objeto literal.
+> **E2E:** clicar em `po-combo[name="statusSel"] input` e na opção (`li` com o texto), não `selectOption`.
+
 ---
 
 ## po-lookup

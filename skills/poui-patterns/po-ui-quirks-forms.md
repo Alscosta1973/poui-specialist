@@ -179,3 +179,26 @@ po-number input {
 Não afeta `po-table` (que alinha via `type` correto automaticamente).
 
 **Plugin rule:** `styles.scss` gerado pelo plugin inclui essa regra. Ao revisar, verificar se `styles.scss` contém `po-decimal input`.
+
+---
+
+## 19. po-combo: abre filtrado pelo valor atual (descoberto 2026-10-27, PO-UI 21)
+
+**Symptom:** filtro de browse com `po-combo` e valor inicial "Todos" — ao clicar no campo, a lista
+mostra **só "Todos"**; o usuário precisa apagar o texto para ver as outras opções.
+
+**Root cause:** o `po-combo` filtra a lista pelo texto do campo já no primeiro clique
+(`removeInitialFilter = false` por padrão).
+
+**Fix:**
+
+```html
+<po-combo [p-options]="opcoes" [p-remove-initial-filter]="true" ...></po-combo>
+```
+
+**Relacionados:** `po-select` não aceita template de opção; para ícone/bolinha por opção usar
+`po-combo` + `p-combo-option-template` (ver `skills/poui-components/form-fields.md`, padrão
+"bolinha da legenda no combo"). O `po-combo` também grava `selected` nas próprias opções — em teste
+unitário comparar com `jasmine.objectContaining`.
+
+**Plugin rule:** todo `po-combo` usado como filtro de browse sai com `[p-remove-initial-filter]="true"`.
