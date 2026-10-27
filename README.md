@@ -117,6 +117,17 @@ Revisa código Angular/PO-UI contra regras de boas práticas, performance e aces
 
 ---
 
+### Integração e publicação no Protheus
+
+| Comando | O que faz |
+|---------|-----------|
+| `/poui-specialist:connect <component>` | Troca mocks por HTTP real e gera o `proxy.conf.js` do `ng serve`: `Authorization` lido de `protheus-dev.secret` (fora do git), `tenantId` e remoção do `Origin` (sem CORS o Protheus devolve 401 em POST/PUT/DELETE) |
+| `/poui-specialist:package [path]` | Build de produção + `Resource/<projeto>.app` com a pasta `<projeto>/` na raiz do zip (7-Zip) e verificação da estrutura |
+| `/poui-specialist:doctor [path] [--rootpath <RootPath>]` | Diagnostica app que não abre / fica em "Verificando atualizações...": estrutura do `.app` e o que o `FwCallApp` extraiu em `http-root/app-root` |
+| `/poui-specialist:smoke-protheus [path]` | Abre o app pelo menu da WebApp (Playwright: login, sessão, pesquisa no menu) e relata abertura, chamadas de API e erros de console, com screenshot |
+
+---
+
 ## Agentes
 
 | Agente | Descrição |

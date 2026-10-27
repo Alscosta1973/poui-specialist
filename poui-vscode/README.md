@@ -87,7 +87,9 @@ automaticamente, só reportados.
 | `PO-UI: Reverter Componente Gerado` | Lista componentes gerados pela extensão e remove os arquivos escolhidos + a rota correspondente, com confirmação |
 | `PO-UI: Gerar a partir de Screenshot` | Analisa uma imagem local (wireframe/print) e monta um manifesto de geração, pedindo sua confirmação antes de gerar |
 | `PO-UI: Empacotar Projeto (.app)` | Builda em produção e empacota o projeto como `Resource/<projeto>.app`, pronto para publicar no Protheus |
-| `PO-UI: Conectar ao Protheus` | Troca os mocks de um componente por chamadas reais ao endpoint Protheus configurado, ajustando o proxy e (se necessário) gerando o contrato TLPP |
+| `PO-UI: Diagnosticar App no Protheus (doctor)` | Para app que não abre ou fica em "Verificando atualizações...": confere a estrutura do `.app` e, com o RootPath do ambiente (`poui.protheusRootPath`), o que o `FwCallApp` extraiu em `http-root/app-root` — só leitura, **não usa o CLI** |
+| `PO-UI: Smoke no Protheus (abrir pelo menu)` | Abre o app pelo menu da WebApp com Playwright (login com senha lida de arquivo, sessão, pesquisa no menu) e relata se abriu, as chamadas de API e os erros de console, com screenshot — configurado em `poui.smoke.*`, **não usa o CLI** |
+| `PO-UI: Conectar ao Protheus` | Troca os mocks de um componente por chamadas reais ao endpoint Protheus configurado e gera o `proxy.conf.js` (senha/token em `protheus-dev.secret`, fora do git; `tenantId`; `Origin` removido para as gravações não voltarem 401) e, se necessário, o contrato TLPP |
 | `PO-UI: Criar Novo Projeto (Scaffold)` | Cria um projeto Angular + PO-UI novo do zero (`ng new`, tema, componente inicial, proxy) |
 | `PO-UI: Consultar Documentação de Componente` | Consulta a referência de um componente PO-UI (inputs, outputs, exemplos de uso) |
 | `PO-UI: Configurar Motor de IA` | Escolhe qual CLI a extensão usa (`claude`/`codex`/`gemini` — Codex e Gemini ainda experimentais; Gemini exige API key, o login gratuito por navegador foi descontinuado pelo Google) |

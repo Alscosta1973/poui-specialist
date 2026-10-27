@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.0
+
+- Novo `PO-UI: Diagnosticar App no Protheus (doctor)` — para a rotina que fica em "Verificando atualizações...": confere o `Resource/<projeto>.app` (pasta do projeto na raiz do zip, `index.html`, prefixo `dist/`) e, com o RootPath do ambiente (`poui.protheusRootPath`), o que o `FwCallApp` extraiu em `http-root/app-root` (itens soltos de um pacote errado, pasta `<app>_env_*`, build desatualizado). Só leitura, gratuito.
+- Novo `PO-UI: Smoke no Protheus (abrir pelo menu)` — Playwright entra na WebApp, faz login (senha lida de arquivo, nunca exibida), confirma a sessão, pesquisa a rotina no menu e relata se o app abriu, as chamadas de API (status) e os erros de console do app, com screenshot em `smoke-results/`. Configuração em `poui.smoke.*`.
+- `PO-UI: Conectar ao Protheus` agora gera `proxy.conf.js` em vez de `proxy.conf.json` com `Basic` fixo: a senha/token fica em `protheus-dev.secret` (no `.gitignore`), o `Authorization` é sobrescrito a cada requisição (o ProtheusLibCore manda `Bearer` vazio fora do Protheus), envia `tenantId` e remove o `Origin` — sem CORS o REST do Protheus devolve 401 em POST/PUT/DELETE. Migra o script `start` do scaffold e as outras entradas do `proxy.conf.json`.
+
 ## 1.3.1
 
 - README reescrito só pro usuário final (instalação, requisitos, tabela de comandos); notas de desenvolvimento movidas pra `docs/DESENVOLVIMENTO.md`.

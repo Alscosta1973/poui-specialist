@@ -44,11 +44,15 @@ Edite `pedidos.service.ts` e ajuste a URL base:
 private readonly base = '/rest/api/custom/v1/pedidos'; // ← seu endpoint
 ```
 
-O proxy já está configurado (Passo 1). Inicie o dev server:
+Para usar dados reais com login, rode o connect — ele gera o `proxy.conf.js` (Authorization e
+`tenantId` no proxy, `Origin` removido para as gravações não voltarem 401 no Protheus sem CORS):
+```
+/poui-specialist:connect src/app/compras/pedidos-list/pedidos-list.component.ts
+```
+Grave a senha (ou token) do usuário de desenvolvimento em `protheus-dev.secret` na raiz do projeto
+(uma linha; já fica no `.gitignore`) e inicie o dev server:
 ```bash
 npm start
-# ou
-ng serve --proxy-config proxy.conf.json
 ```
 
 ---
@@ -79,8 +83,30 @@ Quando o projeto já passou pelos testes e revisões (Passos 2-5) e está pronto
 /poui-specialist:package
 ```
 
-Builda em produção e gera `Resource/<projeto>.app`, pronto para copiar ao AppServer — falta
-só a verificação dentro do Protheus (ver `skills/poui-patterns/deploy-protheus.md`).
+Builda em produção e gera `Resource/<projeto>.app` (7-Zip, pasta `<projeto>/` na raiz do zip),
+pronto para compilar no RPO (ver `skills/poui-patterns/deploy-protheus.md`).
+
+---
+
+## Passo 7 — Validar dentro do Protheus
+
+Com o `.app` compilado e a rotina (User Function com `FwCallApp`) no menu:
+
+```
+/poui-specialist:smoke-protheus
+```
+
+Abre a WebApp com Playwright, faz login (senha lida de arquivo), pesquisa a rotina no menu e relata
+se o app abriu, as chamadas de API (status) e os erros de console do app, com screenshot.
+
+Se a rotina ficar em **"Verificando atualizações..."** ou abrir uma versão antiga:
+
+```
+/poui-specialist:doctor --rootpath C:\TOTVS12\Protheus\protheus_data
+```
+
+Confere a estrutura do `.app` e o que o AppServer extraiu em `http-root/app-root` (itens soltos de
+um pacote errado, pasta `<app>_env_*`, build desatualizado).
 
 ---
 

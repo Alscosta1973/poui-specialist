@@ -190,6 +190,24 @@ Com o Extension Development Host rodando (F5) e `examples/modulo-compras`
     "Playwright configurado! Rode... de novo". Rode o comando de novo
     depois e confirme que o aviso não aparece mais.
 
+23. **Connect com proxy.conf.js** — rode `PO-UI: Conectar ao Protheus` num
+    projeto com `proxy.conf.json` do scaffold, escolha Basic e informe um
+    tenantId → esperado: `proxy.conf.js` criado (sem a senha), senha em
+    `protheus-dev.secret`, ambos + `proxy.conf.json` no `.gitignore`,
+    `angular.json` e o `start` do `package.json` apontando para o `.js`; com o
+    `ng serve` no ar, um POST pela tela chega ao Protheus (não volta 401).
+24. **Doctor** — rode `PO-UI: Diagnosticar App no Protheus` com um
+    `Resource/<projeto>.app` bom e informe o RootPath do ambiente → esperado:
+    só ✓. Gere um zip achatado (arquivos soltos, ex.: `7z a x.app .\dist\<proj>\*`)
+    no lugar do `.app` → esperado: ✗ "Arquivos soltos na raiz do zip" com a
+    dica do package.
+25. **Smoke no Protheus** — com o `.app` compilado e a rotina no menu, rode
+    `PO-UI: Smoke no Protheus`, responda os `poui.smoke.*` (senha em arquivo)
+    → esperado: "abriu pelo menu do Protheus sem problemas", chamadas `GET
+    /app-root/...` 2xx no painel e o botão "Abrir screenshot". Com
+    `menuSearch` inexistente → ✗ na etapa "menu" com a dica de
+    menuSearch/menuItem.
+
 ## Decisões de escopo adiadas deliberadamente
 
 Não são bugs — decisão de escopo por orçamento de tempo/tokens da sessão,
