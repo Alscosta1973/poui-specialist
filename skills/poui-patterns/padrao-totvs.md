@@ -52,8 +52,9 @@ Ordem de estilos no `angular.json` (como o `scaffold` gera):
   - `p-profile` = `{ title: displayName, subtitle: userName }`. Dentro do `FwCallApp` vem de
     `ProThreadInfoService.getUserInfoThread()` (`@totvs/protheus-lib-core`; chama
     `/api/framework/v1/users/<id>`). Assim como nos apps TOTVS, a barra mostra só o avatar; o nome
-    aparece ao clicar. `avatar` = símbolo TOTVS (`assets/logos/totvs-short-symbol.svg`), sempre presente,
-    como o ícone TOTVS no canto superior direito dos apps padrão.
+    aparece ao clicar. `avatar` sempre presente, com o **símbolo da marca do app**: TOTVS
+    (`assets/logos/totvs-short-symbol.svg`) em produto TOTVS, como nos apps padrão; em
+    **customização**, o símbolo do cliente, o mesmo arquivo do `p-short-logo` (ex.: `assets/logos/ffm.png`).
     - **Só chamar dentro do Protheus** (`insideProtheus()`) e dentro de `defer()`: fora dele não há
       token, e o serviço lança `TypeError ... 'access_token'` na hora, o que derruba o app no `ng serve`.
     - Sem usuário, a barra fica sem perfil.
@@ -87,6 +88,7 @@ Ordem de estilos no `angular.json` (como o `scaffold` gera):
   - menu recolhido: só o símbolo (`p-short-logo`).
 
   Como fazer:
+  - **Avatar do perfil:** o símbolo do cliente também (constante `AVATAR_CLIENTE` no `app.ts`).
   - **Arquivos:** os dois ficam em `public/assets/logos/` (ex.: `cliente-nome.png` e `cliente.png`), já
     copiados pelo glob `public` do `angular.json`, mais `p-logo-alt="<Cliente>"`.
   - **Fundo transparente:** logo com fundo opaco (comum em imagem colada num documento) fica como um
