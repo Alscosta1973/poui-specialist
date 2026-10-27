@@ -119,7 +119,7 @@ export class AppComponent {
   // Ações da toolbar — botão de toggle de tema
   readonly toolbarActions: PoToolbarAction[] = [
     {
-      icon:   'po-icon-light',
+      icon:   'an an-sun',
       label:  'Alternar tema',
       type:   'icon',
       action: () => this.themeService.toggle(),
@@ -127,7 +127,7 @@ export class AppComponent {
   ];
 
   readonly menus: PoMenuItem[] = [
-    { label: 'Sair', shortLabel: 'Sair', icon: 'po-icon-exit', action: this.closeApp.bind(this) },
+    { label: 'Sair', shortLabel: 'Sair', icon: 'an an-sign-out', action: this.closeApp.bind(this) },
   ];
 
   private closeApp(): void {
@@ -155,7 +155,7 @@ export class AppComponent {
 > **Ícone reativo:** para alternar o ícone conforme o modo atual, use `computed()`:
 > ```typescript
 > readonly themeIcon = computed(() =>
->   this.themeService.mode() === 'dark' ? 'po-icon-light' : 'po-icon-moon'
+>   this.themeService.mode() === 'dark' ? 'an an-sun' : 'an an-moon'
 > );
 > ```
 > E referencie `themeIcon()` no `icon` da ação. Como `PoToolbarAction` é um array
@@ -170,7 +170,7 @@ Quando a toolbar já está ocupada, um botão flutuante ou no menu lateral:
 ```html
 <!-- Em qualquer template -->
 <po-button
-  [p-icon]="themeService.mode() === 'dark' ? 'po-icon-light' : 'po-icon-moon'"
+  [p-icon]="themeService.mode() === 'dark' ? 'an an-sun' : 'an an-moon'"
   [p-label]="themeService.mode() === 'dark' ? 'Modo claro' : 'Modo escuro'"
   p-kind="secondary"
   (p-click)="themeService.toggle()">

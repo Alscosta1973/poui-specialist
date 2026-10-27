@@ -235,7 +235,7 @@ closeSlide(): void { this.slide.close(); }
 ```html
 <po-button
   p-label="Ver Detalhes"
-  p-icon="po-icon-eye"
+  p-icon="an an-eye"
   p-kind="secondary"
   (p-click)="openSlide()">
 </po-button>
@@ -251,7 +251,7 @@ closeSlide(): void { this.slide.close(); }
 
   <po-page-slide-footer>
     <po-button p-label="Fechar" p-kind="secondary" (p-click)="closeSlide()"></po-button>
-    <po-button p-label="Editar" p-kind="primary"   p-icon="po-icon-edit" (p-click)="editarPedido()"></po-button>
+    <po-button p-label="Editar" p-kind="primary"   p-icon="an an-pencil-simple" (p-click)="editarPedido()"></po-button>
   </po-page-slide-footer>
 
 </po-page-slide>

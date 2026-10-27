@@ -188,7 +188,7 @@ import { PoBadgeModule } from '@po-ui/ng-components';
 ```html
 <!-- Badge sobre ícone de notificação -->
 <div class="po-relative po-d-inline-block">
-  <span class="po-icon po-icon-notification po-font-subtitle"></span>
+  <span class="an an-bell po-font-subtitle"></span>
   <po-badge [p-value]="notificacoesCount()" p-status="negative"></po-badge>
 </div>
 

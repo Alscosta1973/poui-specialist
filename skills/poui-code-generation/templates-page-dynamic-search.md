@@ -83,13 +83,13 @@ export class {{ComponentClass}} implements OnInit, AfterViewInit {
   readonly tableActions: PoTableAction[] = [
     {
       label: 'Editar',
-      icon: 'po-icon-edit',
+      icon: 'an an-pencil-simple',
       action: (row: {{ModelInterface}}) =>
         this.router.navigate([row['id']], { relativeTo: this.route }),
     },
     {
       label: 'Excluir',
-      icon: 'po-icon-delete',
+      icon: 'an an-trash',
       type: 'danger',
       action: (row: {{ModelInterface}}) => this.confirmDelete(row),
     },

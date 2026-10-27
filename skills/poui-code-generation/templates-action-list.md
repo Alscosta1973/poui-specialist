@@ -91,7 +91,7 @@ export class {{ComponentClass}} implements OnInit, AfterViewInit {
     // {
     //   id: 'baixar',
     //   label: 'Baixar Título',
-    //   icon: 'po-icon-ok',
+    //   icon: 'an an-check',
     //   mode: 'single',
     //   endpoint: '/financeiro/titulos/baixar',
     //   modalTitle: 'Confirmar Baixo',
@@ -103,7 +103,7 @@ export class {{ComponentClass}} implements OnInit, AfterViewInit {
     // {
     //   id: 'cancelar',
     //   label: 'Cancelar',
-    //   icon: 'po-icon-close',
+    //   icon: 'an an-x',
     //   mode: 'multi',
     //   endpoint: '/financeiro/titulos/cancelar',
     //   modalTitle: 'Cancelar Títulos',

@@ -212,7 +212,7 @@ readonly kpi1Trend = computed(() => {
   @if (kpi1Trend().up !== null) {
     <div class="po-text-center po-mt-1">
       <span [class]="kpi1Trend().up ? 'po-color-11' : 'po-color-07'">
-        <span [class]="kpi1Trend().up ? 'po-icon-arrow-up' : 'po-icon-arrow-down'"></span>
+        <span [class]="kpi1Trend().up ? 'an an-arrow-up' : 'an an-arrow-down'"></span>
         {{ kpi1Trend().pct }} vs período anterior
       </span>
     </div>
@@ -384,7 +384,7 @@ closeDrillDown(): void {
     <po-widget class="po-md-12" [p-title]="drillDownTitle()">
 
       <div class="po-text-right po-mb-1">
-        <po-button p-label="Fechar" p-icon="po-icon-close" (p-click)="closeDrillDown()">
+        <po-button p-label="Fechar" p-icon="an an-x" (p-click)="closeDrillDown()">
         </po-button>
       </div>
 

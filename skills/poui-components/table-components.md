@@ -105,12 +105,12 @@ interface PoTableAction {
 readonly tableActions: PoTableAction[] = [
   {
     label: 'Editar',
-    icon: 'po-icon-edit',
+    icon: 'an an-pencil-simple',
     action: (row) => this.router.navigate([row.codigo]),
   },
   {
     label: 'Excluir',
-    icon: 'po-icon-delete',
+    icon: 'an an-trash',
     type: 'danger',
     separator: true,
     action: (row) => this.delete(row),

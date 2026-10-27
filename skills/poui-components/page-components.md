@@ -42,7 +42,7 @@ interface PoPageFilter {
 
 ```typescript
 readonly pageActions: PoPageAction[] = [
-  { label: 'Novo', action: () => this.router.navigate(['novo']), icon: 'po-icon-plus' },
+  { label: 'Novo', action: () => this.router.navigate(['novo']), icon: 'an an-plus' },
 ];
 
 readonly filterSettings: PoPageFilter = {

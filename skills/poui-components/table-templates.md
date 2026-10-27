@@ -36,7 +36,7 @@ readonly columns: PoTableColumn[] = [
     }
     @if (column.property === 'acoes') {
       <po-button
-        p-icon="po-icon-edit"
+        p-icon="an an-pencil-simple"
         p-kind="tertiary"
         p-size="small"
         (p-click)="edit(row)">

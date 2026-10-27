@@ -92,13 +92,13 @@ export class {{ComponentClass}} implements OnInit, AfterViewInit {
   readonly tableActions: PoTableAction[] = [
     {
       label:  'Editar',
-      icon:   'po-icon-edit',
+      icon:   'an an-pencil-simple',
       action: (row: {{ModelInterface}}) =>
         this.router.navigate([row['numero']], { relativeTo: this.route }),
     },
     {
       label:     'Cancelar',
-      icon:      'po-icon-close',
+      icon:      'an an-x',
       type:      'danger',
       separator: true,
       disabled:  (row: {{ModelInterface}}) => row['status'] !== 'A',
@@ -109,7 +109,7 @@ export class {{ComponentClass}} implements OnInit, AfterViewInit {
   readonly pageActions: PoPageAction[] = [
     {
       label:  'Incluir',
-      icon:   'po-icon-plus',
+      icon:   'an an-plus',
       action: () => this.router.navigate(['novo'], { relativeTo: this.route }),
     },
   ];

@@ -49,7 +49,7 @@
     <po-button
       p-label="Buscar"
       p-kind="primary"
-      p-icon="po-icon-search"
+      p-icon="an an-magnifying-glass"
       (p-click)="buscar()"
       class="btn-buscar">
     </po-button>
@@ -112,7 +112,7 @@
     <po-button
       p-label="Confirmar"
       p-kind="primary"
-      p-icon="po-icon-ok"
+      p-icon="an an-check"
       [p-disabled]="!podeConfirmar()"
       (p-click)="confirmar()">
     </po-button>

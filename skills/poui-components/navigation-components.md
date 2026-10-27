@@ -10,7 +10,7 @@ Suporta quatro estilos visuais, loading integrado, ícone e type HTML.
 | Input | Type | Description |
 |-------|------|-------------|
 | `p-label` | `string` | Texto exibido no botão |
-| `p-icon` | `string` | Ícone PO (ex: `'po-icon-plus'`, `'po-icon-save'`, `'po-icon-delete'`) |
+| `p-icon` | `string` | Ícone PO (ex: `'an an-plus'`, `'an an-floppy-disk'`, `'an an-trash'`) |
 | `p-kind` | `'primary' \| 'secondary' \| 'tertiary' \| 'link'` | Estilo visual (default `'secondary'`) |
 | `p-type` | `'button' \| 'submit' \| 'reset'` | Tipo HTML do botão (default `'button'`) |
 | `p-disabled` | `boolean` | Desabilita o botão |
@@ -45,7 +45,7 @@ import { PoButtonModule } from '@po-ui/ng-components';
 <po-button
   p-label="Salvar"
   p-kind="primary"
-  p-icon="po-icon-ok"
+  p-icon="an an-check"
   p-type="submit"
   [p-loading]="saving()">
 </po-button>
@@ -61,7 +61,7 @@ import { PoButtonModule } from '@po-ui/ng-components';
 <po-button
   p-label="Excluir"
   p-kind="secondary"
-  p-icon="po-icon-delete"
+  p-icon="an an-trash"
   [p-danger]="true"
   (p-click)="onDelete()">
 </po-button>
@@ -159,15 +159,15 @@ import { PoMenuModule, PoMenuItem } from '@po-ui/ng-components';
 // em imports: [PoMenuModule]
 
 readonly menuItems: PoMenuItem[] = [
-  { label: 'Home', link: '/home', icon: 'po-icon-home', shortLabel: 'Home' },
+  { label: 'Home', link: '/home', icon: 'an an-house-line', shortLabel: 'Home' },
   {
-    label: 'Financeiro', icon: 'po-icon-finance', shortLabel: 'Fin',
+    label: 'Financeiro', icon: 'an an-currency-dollar', shortLabel: 'Fin',
     subItems: [
       { label: 'Pedidos',        link: '/financeiro/pedidos' },
       { label: 'Contas a Pagar', link: '/financeiro/contas-pagar', badge: '5', badgeColor: 'color-07' },
     ],
   },
-  { label: 'Configurações', link: '/config', icon: 'po-icon-settings', divider: true },
+  { label: 'Configurações', link: '/config', icon: 'an an-gear', divider: true },
 ];
 ```
 
@@ -229,11 +229,11 @@ import { PoMenuPanelModule, PoMenuPanelItem } from '@po-ui/ng-components';
 // em imports: [PoMenuPanelModule]
 
 readonly menuItems: PoMenuPanelItem[] = [
-  { label: 'Dashboard',    icon: 'po-icon-home',      link: '/dashboard'    },
-  { label: 'Pedidos',      icon: 'po-icon-document',  link: '/pedidos'      },
-  { label: 'Fornecedores', icon: 'po-icon-user',       link: '/fornecedores' },
-  { label: 'Relatórios',   icon: 'po-icon-chart-bar', link: '/relatorios'   },
-  { label: 'Configurações',icon: 'po-icon-settings',  link: '/config'       },
+  { label: 'Dashboard',    icon: 'an an-house-line',      link: '/dashboard'    },
+  { label: 'Pedidos',      icon: 'an an-file-text',  link: '/pedidos'      },
+  { label: 'Fornecedores', icon: 'an an-user',       link: '/fornecedores' },
+  { label: 'Relatórios',   icon: 'an an-chart-bar', link: '/relatorios'   },
+  { label: 'Configurações',icon: 'an an-gear',  link: '/config'       },
 ];
 ```
 
@@ -285,13 +285,13 @@ import { PoToolbarModule, PoToolbarItem, PoToolbarProfile } from '@po-ui/ng-comp
 readonly toolbarProfile: PoToolbarProfile = {
   title: 'Andre Costa', subtitle: 'Administrador',
   profileActions: [
-    { label: 'Meu Perfil', icon: 'po-icon-user', url: '/perfil' },
-    { label: 'Sair', icon: 'po-icon-exit', action: () => this.router.navigate(['/login']), separator: true },
+    { label: 'Meu Perfil', icon: 'an an-user', url: '/perfil' },
+    { label: 'Sair', icon: 'an an-sign-out', action: () => this.router.navigate(['/login']), separator: true },
   ],
 };
 
 readonly toolbarItems: PoToolbarItem[] = [
-  { icon: 'po-icon-notification', tooltip: 'Notificações', badge: { value: 3, color: 'color-08' }, action: () => this.openNotifications() },
+  { icon: 'an an-bell', tooltip: 'Notificações', badge: { value: 3, color: 'color-08' }, action: () => this.openNotifications() },
 ];
 ```
 
@@ -433,8 +433,8 @@ import { PoButtonGroupModule, PoButtonGroupItem } from '@po-ui/ng-components';
 // em imports: [PoButtonGroupModule]
 
 readonly viewButtons: PoButtonGroupItem[] = [
-  { label: 'Grade', icon: 'po-icon-menu-grid',  selected: true,  action: () => this.setView('grid') },
-  { label: 'Lista', icon: 'po-icon-menu-lines',  selected: false, action: () => this.setView('list') },
+  { label: 'Grade', icon: 'an an-squares-four',  selected: true,  action: () => this.setView('grid') },
+  { label: 'Lista', icon: 'an an-list',  selected: false, action: () => this.setView('list') },
 ];
 
 setView(mode: 'grid' | 'list'): void {
@@ -471,9 +471,9 @@ import { PoDropdownModule, PoDropdownItem } from '@po-ui/ng-components';
 // em imports: [PoDropdownModule]
 
 readonly exportActions: PoDropdownItem[] = [
-  { label: 'Exportar CSV', icon: 'po-icon-export', action: () => this.exportCsv() },
-  { label: 'Exportar PDF', icon: 'po-icon-pdf',    action: () => this.exportPdf() },
-  { separator: true, label: 'Imprimir', icon: 'po-icon-print', action: () => this.print() },
+  { label: 'Exportar CSV', icon: 'an an-export', action: () => this.exportCsv() },
+  { label: 'Exportar PDF', icon: 'an an-file-pdf',    action: () => this.exportPdf() },
+  { separator: true, label: 'Imprimir', icon: 'an an-printer', action: () => this.print() },
 ];
 ```
 

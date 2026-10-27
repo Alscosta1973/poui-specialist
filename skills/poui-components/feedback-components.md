@@ -11,7 +11,7 @@ Visual para status/categorias; usar quando o tag precisa aparecer fora da `po-ta
 | `p-value` | `string` | Texto exibido |
 | `p-kind` | `'default' \| 'success' \| 'warning' \| 'danger' \| 'disabled' \| 'neutral'` | Variante de cor semântica |
 | `p-color` | `string` | Token de cor customizado (ex: `'color-08'`) — substitui `p-kind` |
-| `p-icon` | `string` | Ícone PO (ex: `'po-icon-ok'`, `'po-icon-warning'`) |
+| `p-icon` | `string` | Ícone PO (ex: `'an an-check'`, `'an an-warning'`) |
 | `p-removable` | `boolean` | Exibe botão X para remover |
 | `p-inverse` | `boolean` | Inverte cor de fundo/texto |
 
@@ -23,7 +23,7 @@ Visual para status/categorias; usar quando o tag precisa aparecer fora da `po-ta
 <po-tag p-value="Recusado"  p-kind="danger"></po-tag>
 <po-tag p-value="Rascunho"  p-kind="neutral"></po-tag>
 
-<po-tag p-value="Enviado" p-kind="success" p-icon="po-icon-ok"></po-tag>
+<po-tag p-value="Enviado" p-kind="success" p-icon="an an-check"></po-tag>
 
 <!-- Tags removíveis (ex: filtros ativos em busca) -->
 @for (tag of activeTags(); track tag.value) {
@@ -99,7 +99,7 @@ Posicione ao lado de campos, labels ou seções para orientar o usuário sem pol
 | Input | Type | Description |
 |-------|------|-------------|
 | `p-literal` | `string` | Texto exibido no popover de ajuda |
-| `p-icon` | `string` | Ícone personalizado (default `po-icon-help`) |
+| `p-icon` | `string` | Ícone personalizado (Animalia, ex.: `an an-question`) |
 
 ### Exemplos
 
@@ -159,7 +159,7 @@ import { PoHelperModule } from '@po-ui/ng-components';
 
 <!-- Ícone de ajuda inline -->
 <span
-  class="po-icon po-icon-info"
+  class="an an-info"
   p-tooltip="CNPJ deve estar no formato 00.000.000/0000-00"
   p-tooltip-position="right">
 </span>

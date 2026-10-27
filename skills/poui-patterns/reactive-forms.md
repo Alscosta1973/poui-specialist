@@ -334,7 +334,7 @@ get totalPedido(): number {
           <po-button
             p-label="Remover"
             p-kind="tertiary"
-            p-icon="po-icon-delete"
+            p-icon="an an-trash"
             p-type="danger"
             (p-click)="removeItem(i)">
           </po-button>
@@ -346,7 +346,7 @@ get totalPedido(): number {
   <div class="po-row po-mt-2 po-align-items-center">
     <po-button
       p-label="Adicionar Item"
-      p-icon="po-icon-plus"
+      p-icon="an an-plus"
       p-kind="secondary"
       (p-click)="addItem()">
     </po-button>

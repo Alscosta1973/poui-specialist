@@ -160,7 +160,7 @@ export class PedidosListComponent implements OnInit {
 ```html
 <po-page-list
   p-title="Pedidos"
-  [p-actions]="[{ label: 'Novo', action: onNovo.bind(this), icon: 'po-icon-plus' }]"
+  [p-actions]="[{ label: 'Novo', action: onNovo.bind(this), icon: 'an an-plus' }]"
   (p-search)="onSearch($event)"
   (p-search-reset)="onSearch('')">
 

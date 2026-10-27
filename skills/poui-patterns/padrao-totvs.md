@@ -270,7 +270,23 @@ readonly colunas: PoTableColumn[] = [
 ];
 ```
 
-## 4. Checklist para gerar, revisar ou fazer lint
+## 4. Carregando — `po-loading-overlay`
+
+Como os apps TOTVS (FINAPP001 e FINA710): enquanto algo carrega, aparece o **overlay "Carregando"**
+(fundo escurecido e caixa branca com o spinner, texto padrão do componente; não passar `p-text`).
+
+| Situação | Como |
+|---|---|
+| Carga inicial, pesquisa ou filtro de uma lista | `@if (loading()) { <po-loading-overlay [p-screen-lock]="false" /> }` dentro do `po-page-list` (cobre a página, não a tela toda) |
+| "Carregar mais" da tabela | **sem** overlay: `[p-loading-show-more]="carregandoMais()"` na `po-table` (signal separado do `loading`) |
+| Ação na linha (reprocessar, excluir) e gravação | o mesmo overlay do `loading()` |
+| Formulário (abrir/salvar) | `<po-loading-overlay [p-screen-lock]="true" />` |
+| Troca de tela (rota lazy) | no shell: `navegando` = `true` em `NavigationStart` e `false` em `NavigationEnd`/`NavigationCancel`/`NavigationError`; `@if (navegando()) { <po-loading-overlay /> }` |
+
+Não usar o `[p-loading]` da `po-table` como indicador principal: ele só mostra um spinner dentro da
+grade, diferente das telas TOTVS.
+
+## 5. Checklist para gerar, revisar ou fazer lint
 
 - [ ] `styles.scss` sem fonte própria e sem sobrepor tokens de tamanho (lint **S01**).
 - [ ] `po-menu` com `[p-collapsed]="true"`, `[p-automatic-toggle]="true"` e logo TOTVS (lint **H09**); itens com `label` + `shortLabel` + `an an-*`.
@@ -278,3 +294,4 @@ readonly colunas: PoTableColumn[] = [
 - [ ] Legenda por cor com `type: 'subtitle'` (rodapé nativo); situação em texto com `type: 'label'`; só tokens de cor.
 - [ ] `po-table` com `[p-striped]` e `[p-sort]` (e `[p-height]` em componente OnPush — lint H05); colunas curtas com `width`.
 - [ ] `po-combo` ligado a valor com `[p-remove-initial-filter]="true"` (lint **H08**).
+- [ ] Carregamento com `po-loading-overlay` (lista, ação, formulário e troca de tela); "carregar mais" só com `p-loading-show-more`.

@@ -2,7 +2,7 @@
 
 Gera um componente standalone `po-page-list` com `po-table`, paginação server-side, pesquisa rápida, confirmação via `PoDialogService` para exclusão e `finalize()` para estado de carregamento.
 
-> **Regra de ícones:** Sempre use nomes `po-icon-*` (ex: `po-icon-edit`, `po-icon-delete`, `po-icon-plus`).
+> **Regra de ícones:** PO-UI 21 usa Animalia — sempre `an an-*` (ex: `an an-pencil-simple`, `an an-trash`, `an an-plus`); os `po-icon-*` não existem mais (ver `skills/poui-patterns/module-structure.md`, Icon Reference).
 > Nunca use `an an-*` — esses são de uma biblioteca de ícones diferente.
 
 > **Dica:** Para busca avançada com filtros/disclaimers, use `page-dynamic-search` em vez deste.
@@ -82,13 +82,13 @@ export class {{ComponentClass}} implements OnInit, AfterViewInit {
   readonly tableActions: PoTableAction[] = [
     {
       label: 'Editar',
-      icon: 'po-icon-edit',
+      icon: 'an an-pencil-simple',
       action: (row: {{ModelInterface}}) =>
         this.router.navigate([row['id']], { relativeTo: this.route }),
     },
     {
       label: 'Excluir',
-      icon: 'po-icon-delete',
+      icon: 'an an-trash',
       type: 'danger',
       action: (row: {{ModelInterface}}) => this.confirmDelete(row),
     },
@@ -97,7 +97,7 @@ export class {{ComponentClass}} implements OnInit, AfterViewInit {
   readonly pageActions: PoPageAction[] = [
     {
       label: 'Incluir',
-      icon: 'po-icon-plus',
+      icon: 'an an-plus',
       action: () => this.router.navigate(['novo'], { relativeTo: this.route }),
     },
   ];

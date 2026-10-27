@@ -69,6 +69,8 @@ Seguir `skills/poui-patterns/padrao-totvs.md` (o mesmo visual dos apps nativos F
 - **`po-table`.** Com `[p-height]`, `[p-striped]="true"` e `[p-sort]="true"`.
 - **`po-combo` ligado a valor.** Com `[p-remove-initial-filter]="true"` (lint H08).
 - **Itens de menu.** Com `label` + `shortLabel` + `icon: 'an an-*'`.
+- **Carregando.** `po-loading-overlay` enquanto carrega (seção 4 do padrão); "carregar mais" só com
+  `[p-loading-show-more]`, nunca `[p-loading]` da `po-table` como indicador principal.
 
 ### PoTableColumn types (applicable to `dashboard` with data tables and `refactor`)
 - `type` is a plain `string` — never use `PoTableColumnType` enum (it does not exist)

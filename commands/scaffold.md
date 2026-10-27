@@ -472,7 +472,7 @@ export class HomeComponent {}
 ```typescript
 readonly menus: PoMenuItem[] = [
   { label: 'Início', link: '/inicio', shortLabel: 'Início', icon: 'an an-house-line' },
-  { label: 'Sair', shortLabel: 'Sair', icon: 'po-icon-exit', action: this.closeApp.bind(this) },
+  { label: 'Sair', shortLabel: 'Sair', icon: 'an an-sign-out', action: this.closeApp.bind(this) },
 ];
 ```
 

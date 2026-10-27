@@ -33,7 +33,7 @@
       <po-button
         p-label="Carregar"
         p-kind="primary"
-        p-icon="po-icon-search"
+        p-icon="an an-magnifying-glass"
         (p-click)="carregar()">
       </po-button>
     </div>
@@ -41,14 +41,14 @@
       <po-button
         p-label="Confirmar"
         p-kind="primary"
-        p-icon="po-icon-ok"
+        p-icon="an an-check"
         [p-disabled]="!selectedLeft() || !selectedRight()"
         (p-click)="confirmar()">
       </po-button>
       <po-button
         p-label="Cancelar"
         p-kind="tertiary"
-        p-icon="po-icon-close"
+        p-icon="an an-x"
         (p-click)="cancelar()">
       </po-button>
     </div>

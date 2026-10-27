@@ -101,7 +101,7 @@ deleteByKey(codigo: string, loja: string): Observable<void> {
 tableActions: PoTableAction[] = [
   {
     label: 'Editar',
-    icon: 'po-icon-edit',
+    icon: 'an an-pencil-simple',
     action: (row: Parceiro) =>
       this.router.navigate([row.codigo, row.loja], { relativeTo: this.route }),
   },

@@ -202,7 +202,7 @@ openPopover(): void {
 <!-- Trigger e popover precisam estar no mesmo template -->
 <po-button
   p-label="Mais Informações"
-  p-icon="po-icon-info"
+  p-icon="an an-info"
   (p-click)="openPopover()">
 </po-button>
 
@@ -231,7 +231,7 @@ Ideal para dashboards e painéis de acompanhamento.
 | `p-value` | `number` | Valor principal do KPI |
 | `p-description` | `string` | Rótulo/descrição do KPI |
 | `p-unit` | `string` | Unidade de medida (ex: `'%'`, `'un'`, `'R$'`) |
-| `p-icon` | `string` | Ícone PO (ex: `'po-icon-finance'`) |
+| `p-icon` | `string` | Ícone PO (ex: `'an an-currency-dollar'`) |
 | `p-help` | `string` | Tooltip de ajuda sobre o KPI |
 
 ### Exemplos
@@ -249,7 +249,7 @@ import { PoStatisticModule } from '@po-ui/ng-components';
     p-description="Pedidos Hoje"
     [p-value]="kpis().pedidosHoje"
     p-unit="un"
-    p-icon="po-icon-buy">
+    p-icon="an an-shopping-cart">
   </po-statistic>
 
   <po-statistic
@@ -257,7 +257,7 @@ import { PoStatisticModule } from '@po-ui/ng-components';
     p-description="Faturamento"
     [p-value]="kpis().faturamento"
     p-unit="R$"
-    p-icon="po-icon-finance">
+    p-icon="an an-currency-dollar">
   </po-statistic>
 
   <po-statistic
@@ -439,9 +439,9 @@ import {
 // em imports: [PoContextMenuModule]
 
 readonly contextActions: PoContextMenuAction[] = [
-  { label: 'Editar',    icon: 'po-icon-edit',   action: (row) => this.edit(row)   },
-  { label: 'Duplicar',  icon: 'po-icon-copy',   action: (row) => this.copy(row)   },
-  { separator: true, label: 'Excluir', icon: 'po-icon-delete', type: 'danger', action: (row) => this.delete(row) },
+  { label: 'Editar',    icon: 'an an-pencil-simple',   action: (row) => this.edit(row)   },
+  { label: 'Duplicar',  icon: 'an an-copy',   action: (row) => this.copy(row)   },
+  { separator: true, label: 'Excluir', icon: 'an an-trash', type: 'danger', action: (row) => this.delete(row) },
 ];
 ```
 

@@ -176,7 +176,7 @@ export class {{ComponentClass}} implements OnInit, AfterViewInit, OnDestroy {
   <!-- Indicador de "carregando mais" -->
   @if (loadingMore()) {
     <div class="po-text-center po-mt-2 po-mb-2" style="color: var(--color-neutral-mid-60);">
-      <span class="po-icon po-icon-refresh"></span>
+      <span class="an an-arrows-clockwise"></span>
       Carregando mais itens...
     </div>
   }
