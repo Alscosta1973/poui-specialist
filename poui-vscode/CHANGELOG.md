@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.7.0
+
+- `PO-UI: Desbloquear Modo Dev (interno)` agora libera também o plugin `poui-specialist` do Claude Code: grava o hash da máquina em `~/.claude/poui-specialist-dev.json`, e a skill `poui-license-check` (plugin ≥ 1.20.0) confirma esse hash no servidor de licenças e pula a data fixa do beta. Máquina já desbloqueada: rodar o comando de novo uma vez e reabrir o Claude Code.
+
 ## 1.6.1
 
 - Shell do Scaffold: tela "Carregando" (`po-loading-overlay`) também na troca de tela, como no FINA710 e no app de referência (RCA/FFM).
