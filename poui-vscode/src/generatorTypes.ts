@@ -11,8 +11,18 @@ export interface GeneratorType {
   fixedModule?: string;
   /** Verdadeiro só para `refactor` — pede um arquivo `.prw`/`.tlpp` fonte via showOpenDialog. */
   requiresSourceFile?: boolean;
-  /** Verdadeiro só para `tlpp-contract` e `service` — pergunta filtro simples × oData (`--odata`). */
+  /** Verdadeiro só para `tlpp-contract` e `service` — oferece o backend REST + filtro oData (`--odata`). */
   supportsOData?: boolean;
+  /** Oferece o backend "rotina MVC existente" (FWRestModel, `--mvc <FONTE>`). */
+  supportsMvc?: boolean;
+}
+
+/** Backend escolhido no Gerar: REST simples (padrão), REST + oData ou rotina MVC existente. */
+export type GeneratorBackend = { kind: 'simple' } | { kind: 'odata' } | { kind: 'mvc'; source: string };
+
+/** Nome do fonte MVC: letras, dígitos e `_`, até 10 caracteres (nome de fonte no RPO). */
+export function isValidMvcSource(value: string): boolean {
+  return /^[A-Za-z0-9_]{1,10}$/.test(value.trim());
 }
 
 export const GENERATOR_TYPES: GeneratorType[] = [
@@ -121,6 +131,7 @@ export const GENERATOR_TYPES: GeneratorType[] = [
     family: 'Formulários',
     referenceFiles: ['code-generator-forms.md', 'templates-page-edit.md', 'templates-service.md', 'form-fields.md', 'dynamic-form-fields.md'],
     requiresModule: true,
+    supportsMvc: true,
   },
   {
     id: 'page-detail',
@@ -129,6 +140,7 @@ export const GENERATOR_TYPES: GeneratorType[] = [
     family: 'Formulários',
     referenceFiles: ['code-generator-forms.md', 'templates-page-detail.md', 'templates-service.md', 'modal-dialog.md'],
     requiresModule: true,
+    supportsMvc: true,
   },
   {
     id: 'modal-crud',
@@ -137,6 +149,7 @@ export const GENERATOR_TYPES: GeneratorType[] = [
     family: 'Formulários',
     referenceFiles: ['code-generator-forms.md', 'templates-modal-crud.md', 'templates-service.md', 'form-fields.md', 'modal-dialog.md'],
     requiresModule: true,
+    supportsMvc: true,
   },
   {
     id: 'stepper-form',
@@ -155,6 +168,7 @@ export const GENERATOR_TYPES: GeneratorType[] = [
     referenceFiles: ['code-generator-infra.md', 'templates-service.md', 'protheus-rest.md', 'templates-tlpp-contract.md'],
     requiresModule: true,
     supportsOData: true,
+    supportsMvc: true,
   },
   {
     id: 'dashboard',
@@ -172,6 +186,7 @@ export const GENERATOR_TYPES: GeneratorType[] = [
     referenceFiles: ['code-generator-infra.md', 'templates-tlpp-contract.md', 'smartx.md'],
     requiresModule: true,
     supportsOData: true,
+    supportsMvc: true,
   },
   {
     id: 'auth-login',

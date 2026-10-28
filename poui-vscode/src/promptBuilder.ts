@@ -1,9 +1,18 @@
 import type { EntityNaming } from './naming';
-import type { GeneratorType } from './generatorTypes';
+import type { GeneratorBackend, GeneratorType } from './generatorTypes';
 import { assembleSystemPrompt } from './systemPromptAssembly';
 
-export async function buildGeneratorSystemPrompt(type: GeneratorType, assetsDir: string): Promise<string> {
-  return assembleSystemPrompt(type.referenceFiles, assetsDir);
+/** Arquivos de referência do tipo + o template do FWRestModel quando o backend é uma rotina MVC. */
+export function generatorReferenceFiles(type: GeneratorType, backend?: GeneratorBackend): string[] {
+  return backend?.kind === 'mvc' ? [...type.referenceFiles, 'templates-mvc-rest.md'] : type.referenceFiles;
+}
+
+export async function buildGeneratorSystemPrompt(
+  type: GeneratorType,
+  assetsDir: string,
+  backend?: GeneratorBackend,
+): Promise<string> {
+  return assembleSystemPrompt(generatorReferenceFiles(type, backend), assetsDir);
 }
 
 export function buildGeneratorUserPrompt(
@@ -12,7 +21,7 @@ export function buildGeneratorUserPrompt(
   moduleName: string,
   apiPath: string,
   sourceFilePath?: string,
-  odata = false,
+  backend?: GeneratorBackend,
 ): string {
   const lines = [
     `Gere um componente do tipo \`${type.id}\` (${type.label}) para a entidade "${naming.entityPascal}".`,
@@ -29,7 +38,15 @@ export function buildGeneratorUserPrompt(
   if (sourceFilePath) {
     lines.push(`Arquivo fonte a converter: ${sourceFilePath}`);
   }
-  if (odata) {
+  if (backend?.kind === 'mvc') {
+    lines.push(
+      `Backend: rotina MVC existente ${backend.source} via FWRestModel (--mvc ${backend.source}). Siga`,
+      `templates-mvc-rest.md: gere RM_${backend.source}.prw (recurso /rest/fwmodel) e use o ProtheusMvcService`,
+      '(src/app/core/protheus-mvc.ts + protheus-mvc.service.ts + specs) no lugar do service REST próprio.',
+      'Se o ModelDef não estiver nos arquivos, pergunte o id do modelo, do FIELDS principal e das grades.',
+    );
+  }
+  if (backend?.kind === 'odata') {
     lines.push(
       'Filtro da lista no padrão oData (--odata): siga a seção "Filtro oData (opcional)" de',
       'templates-tlpp-contract.md — parâmetro `filter` com expressão oData, backend com FWAdapterBaseV2',

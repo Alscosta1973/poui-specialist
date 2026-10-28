@@ -1,5 +1,5 @@
 import * as assert from 'node:assert';
-import { GENERATOR_TYPES, getGeneratorType } from '../../generatorTypes';
+import { GENERATOR_TYPES, getGeneratorType, isValidMvcSource } from '../../generatorTypes';
 
 describe('GENERATOR_TYPES', () => {
   it('has exactly the 24 plugin types, each well-formed', () => {
@@ -119,5 +119,18 @@ describe('getGeneratorType', () => {
   it('loads the tlpp-contract template for service so the oData helper is available', () => {
     const type = getGeneratorType('service')!;
     assert.ok(type.referenceFiles.includes('templates-tlpp-contract.md'));
+  });
+
+  it('offers the existing-MVC backend (FWRestModel) for tlpp-contract, service and the form types', () => {
+    const ids = GENERATOR_TYPES.filter((t) => t.supportsMvc).map((t) => t.id);
+    assert.deepStrictEqual(ids.sort(), ['modal-crud', 'page-detail', 'page-edit', 'service', 'tlpp-contract']);
+  });
+
+  it('validates the MVC source name (letters, digits, underscore, up to 10 chars)', () => {
+    assert.ok(isValidMvcSource('MATA010'));
+    assert.ok(isValidMvcSource('F0134310'));
+    assert.ok(!isValidMvcSource(''));
+    assert.ok(!isValidMvcSource('MATA 010'));
+    assert.ok(!isValidMvcSource('ABCDEFGHIJK'));
   });
 });

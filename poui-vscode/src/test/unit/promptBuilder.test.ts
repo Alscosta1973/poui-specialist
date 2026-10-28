@@ -2,7 +2,7 @@ import * as assert from 'node:assert';
 import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import { buildGeneratorSystemPrompt, buildGeneratorUserPrompt } from '../../promptBuilder';
+import { buildGeneratorSystemPrompt, buildGeneratorUserPrompt, generatorReferenceFiles } from '../../promptBuilder';
 import { deriveEntityNaming } from '../../naming';
 import { getGeneratorType } from '../../generatorTypes';
 
@@ -122,7 +122,7 @@ describe('buildGeneratorUserPrompt', () => {
   it('asks for the oData list filter (FWAdapterBaseV2) when odata is true', () => {
     const type = getGeneratorType('tlpp-contract')!;
     const naming = deriveEntityNaming('Pedido');
-    const prompt = buildGeneratorUserPrompt(type, naming, 'financeiro', '/rest/api/custom/v1/pedidos', undefined, true);
+    const prompt = buildGeneratorUserPrompt(type, naming, 'financeiro', '/rest/api/custom/v1/pedidos', undefined, { kind: 'odata' });
 
     assert.ok(prompt.includes('oData'));
     assert.ok(prompt.includes('FWAdapterBaseV2'));
@@ -135,5 +135,24 @@ describe('buildGeneratorUserPrompt', () => {
     const prompt = buildGeneratorUserPrompt(type, naming, 'financeiro', '/rest/api/custom/v1/pedidos');
 
     assert.ok(!prompt.includes('oData'));
+  });
+
+  it('asks for the FWRestModel resource and service when the backend is an existing MVC routine', () => {
+    const type = getGeneratorType('page-edit')!;
+    const naming = deriveEntityNaming('Produto');
+    const prompt = buildGeneratorUserPrompt(type, naming, 'estoque', '/rest/fwmodel/produtos', undefined, { kind: 'mvc', source: 'MATA010' });
+
+    assert.ok(prompt.includes('MATA010'));
+    assert.ok(prompt.includes('templates-mvc-rest.md'));
+    assert.ok(prompt.includes('RM_MATA010.prw'));
+    assert.ok(prompt.includes('ProtheusMvcService'));
+    assert.ok(!prompt.includes('oData'));
+  });
+
+  it('adds the MVC template to the system prompt files only for the mvc backend', () => {
+    const type = getGeneratorType('page-edit')!;
+    assert.ok(generatorReferenceFiles(type, { kind: 'mvc', source: 'MATA010' }).includes('templates-mvc-rest.md'));
+    assert.ok(!generatorReferenceFiles(type, { kind: 'simple' }).includes('templates-mvc-rest.md'));
+    assert.deepStrictEqual(generatorReferenceFiles(type), type.referenceFiles);
   });
 });

@@ -5,7 +5,7 @@ import { buildGeneratorSystemPrompt, buildGeneratorUserPrompt } from './promptBu
 import { checkEngineAvailable } from './cliCheck';
 import { runAgentForCommand, createAgentRunner } from './runAgentForCommand';
 import { runBuildFixLoop } from './buildFixLoop';
-import { GENERATOR_TYPES, GeneratorType } from './generatorTypes';
+import { GENERATOR_TYPES, GeneratorBackend, GeneratorType, isValidMvcSource } from './generatorTypes';
 import { EngineId } from './engineTypes';
 import { requireLicense } from './requireLicense';
 import { isAngularWorkspace } from './angularWorkspaceCheck';
@@ -125,23 +125,41 @@ export function registerGenerateComponentCommand(
     }
     const resolvedApiPath = apiPathInput.trim() || naming.defaultApiPath;
 
-    let odata = false;
-    if (type.supportsOData) {
-      const filterChoice = await vscode.window.showQuickPick(
-        [
-          { label: 'Simples (padrão)', description: 'busca rápida `q` + parâmetros próprios', value: false },
-          {
-            label: 'oData',
-            description: "filter=campo eq 'x' — padrão TOTVS/SmartX (12.1.2610+), backend com FWAdapterBaseV2",
-            value: true,
-          },
-        ],
-        { placeHolder: 'Formato do filtro da lista' },
-      );
-      if (!filterChoice) {
+    let backend: GeneratorBackend = { kind: 'simple' };
+    if (type.supportsOData || type.supportsMvc) {
+      const backendItems: { label: string; description: string; value: GeneratorBackend['kind'] }[] = [
+        { label: 'REST próprio (padrão)', description: 'busca rápida `q` + parâmetros próprios', value: 'simple' },
+      ];
+      if (type.supportsOData) {
+        backendItems.push({
+          label: 'REST próprio + filtro oData',
+          description: "filter=campo eq 'x' — padrão TOTVS/SmartX (12.1.2610+), backend com FWAdapterBaseV2",
+          value: 'odata',
+        });
+      }
+      if (type.supportsMvc) {
+        backendItems.push({
+          label: 'Rotina MVC existente (FWRestModel)',
+          description: 'grava pelas regras do próprio ModelDef em /rest/fwmodel',
+          value: 'mvc',
+        });
+      }
+      const backendChoice = await vscode.window.showQuickPick(backendItems, { placeHolder: 'Backend Protheus desta tela' });
+      if (!backendChoice) {
         return;
       }
-      odata = filterChoice.value;
+      if (backendChoice.value === 'mvc') {
+        const source = await vscode.window.showInputBox({
+          prompt: 'Fonte da rotina MVC (com ModelDef e MenuDef), ex.: MATA010',
+          validateInput: (value) => (isValidMvcSource(value) ? undefined : 'Letras, números e _ — até 10 caracteres.'),
+        });
+        if (!source) {
+          return;
+        }
+        backend = { kind: 'mvc', source: source.trim().toUpperCase() };
+      } else {
+        backend = { kind: backendChoice.value };
+      }
     }
 
     let sourceFilePath: string | undefined;
@@ -164,7 +182,7 @@ export function registerGenerateComponentCommand(
     const assetsDir = path.join(context.extensionUri.fsPath, 'assets', 'agent-prompts');
     let systemPrompt: string;
     try {
-      systemPrompt = await buildGeneratorSystemPrompt(type, assetsDir);
+      systemPrompt = await buildGeneratorSystemPrompt(type, assetsDir, backend);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       void vscode.window.showErrorMessage(
@@ -172,7 +190,7 @@ export function registerGenerateComponentCommand(
       );
       return;
     }
-    const userPrompt = buildGeneratorUserPrompt(type, naming, moduleName, resolvedApiPath, sourceFilePath, odata);
+    const userPrompt = buildGeneratorUserPrompt(type, naming, moduleName, resolvedApiPath, sourceFilePath, backend);
 
     const result = await vscode.window.withProgress(
       { location: vscode.ProgressLocation.Notification, title: `PO-UI: gerando ${type.id} para ${naming.entityPascal}...` },

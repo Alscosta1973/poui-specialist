@@ -2,7 +2,8 @@ import { assembleSystemPrompt } from './systemPromptAssembly';
 
 export type EndpointInfo =
   | { kind: 'existing'; path: string }
-  | { kind: 'new'; businessRules: string };
+  | { kind: 'new'; businessRules: string }
+  | { kind: 'mvc'; source: string };
 
 export type InterceptorHandling = 'remove' | 'deactivate';
 
@@ -28,9 +29,11 @@ export interface ConnectParams {
 }
 
 /** O template do contrato TLPP traz o skeleton do endpoint novo e o helper oData do frontend. */
-export function connectReferenceFiles(endpointIsNew: boolean, odata: boolean): string[] {
+export function connectReferenceFiles(endpointIsNew: boolean, odata: boolean, mvc = false): string[] {
   const referenceFiles = ['poui-connect-skill.md', 'protheus-rest.md'];
-  if (endpointIsNew || odata) {
+  if (mvc) {
+    referenceFiles.push('templates-mvc-rest.md');
+  } else if (endpointIsNew || odata) {
     referenceFiles.push('templates-tlpp-contract.md');
   }
   return referenceFiles;
@@ -40,8 +43,9 @@ export async function buildConnectSystemPrompt(
   assetsDir: string,
   endpointIsNew: boolean,
   odata = false,
+  mvc = false,
 ): Promise<string> {
-  return assembleSystemPrompt(connectReferenceFiles(endpointIsNew, odata), assetsDir);
+  return assembleSystemPrompt(connectReferenceFiles(endpointIsNew, odata, mvc), assetsDir);
 }
 
 export function buildConnectUserPrompt(params: ConnectParams): string {
@@ -72,6 +76,14 @@ export function buildConnectUserPrompt(params: ConnectParams): string {
 
   if (params.endpoint.kind === 'existing') {
     lines.push('', `O endpoint GET já existe no Protheus: ${params.endpoint.path}`);
+  } else if (params.endpoint.kind === 'mvc') {
+    const source = params.endpoint.source;
+    lines.push(
+      '',
+      `A rotina ${source} já tem MVC: siga a "Variante MVC" do Passo 5 da skill (--mvc ${source}) —`,
+      `gere RM_${source}.prw (FWRestModel, /rest/fwmodel) e troque o service pelo ProtheusMvcService,`,
+      'conforme templates-mvc-rest.md. Não gere contrato TLPP próprio.',
+    );
   } else {
     lines.push(
       '',

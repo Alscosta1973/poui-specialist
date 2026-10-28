@@ -76,6 +76,16 @@ describe('buildConnectUserPrompt', () => {
   });
 });
 
+describe('buildConnectUserPrompt (MVC)', () => {
+  it('asks for the Variante MVC with the routine source, never the TLPP contract', () => {
+    const prompt = buildConnectUserPrompt({ ...baseParams, endpoint: { kind: 'mvc', source: 'MATA010' } });
+    assert.ok(prompt.includes('MATA010'));
+    assert.ok(prompt.includes('Variante MVC'));
+    assert.ok(prompt.includes('RM_MATA010.prw'));
+    assert.ok(!prompt.includes('Passo 7'));
+  });
+});
+
 describe('connectReferenceFiles', () => {
   it('loads only the connect skill and REST patterns for an existing endpoint with simple filter', () => {
     assert.deepStrictEqual(connectReferenceFiles(false, false), ['poui-connect-skill.md', 'protheus-rest.md']);
@@ -92,5 +102,11 @@ describe('connectReferenceFiles', () => {
   it('never lists the template twice', () => {
     const files = connectReferenceFiles(true, true);
     assert.strictEqual(files.filter((f) => f === 'templates-tlpp-contract.md').length, 1);
+  });
+
+  it('loads the MVC template when the backend is an existing MVC routine', () => {
+    const files = connectReferenceFiles(false, false, true);
+    assert.ok(files.includes('templates-mvc-rest.md'));
+    assert.ok(!files.includes('templates-tlpp-contract.md'));
   });
 });

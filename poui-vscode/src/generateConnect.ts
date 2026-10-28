@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { isValidMvcSource } from './generatorTypes';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { checkEngineAvailable } from './cliCheck';
@@ -100,6 +101,7 @@ export function registerConnectCommand(
       [
         { label: 'O endpoint GET já existe', value: 'existing' as const },
         { label: 'Ainda não existe — gerar contrato TLPP', value: 'new' as const },
+        { label: 'Rotina MVC existente (FWRestModel)', value: 'mvc' as const },
       ],
       { placeHolder: 'O endpoint GET já existe no backend Protheus?' },
     );
@@ -117,6 +119,15 @@ export function registerConnectCommand(
         return;
       }
       endpoint = { kind: 'existing', path: endpointPath };
+    } else if (endpointChoice.value === 'mvc') {
+      const source = await vscode.window.showInputBox({
+        prompt: 'Fonte da rotina MVC (com ModelDef e MenuDef), ex.: MATA010',
+        validateInput: (value) => (isValidMvcSource(value) ? undefined : 'Letras, números e _ — até 10 caracteres.'),
+      });
+      if (!source) {
+        return;
+      }
+      endpoint = { kind: 'mvc', source: source.trim().toUpperCase() };
     } else {
       const businessRules = await vscode.window.showInputBox({
         prompt: 'Descreva os filtros e regras de negócio para gerar o contrato TLPP (seja conciso)',
@@ -127,19 +138,23 @@ export function registerConnectCommand(
       endpoint = { kind: 'new', businessRules };
     }
 
-    const filterChoice = await vscode.window.showQuickPick(
-      [
-        { label: 'Simples (padrão)', description: 'busca rápida `q` + parâmetros próprios', value: 'simple' as const },
-        {
-          label: 'oData',
-          description: "filter=campo eq 'x' — padrão TOTVS/SmartX (12.1.2610+), backend com FWAdapterBaseV2",
-          value: 'odata' as const,
-        },
-      ],
-      { placeHolder: 'Formato do filtro da lista' },
-    );
-    if (!filterChoice) {
-      return;
+    let filterStyle: 'simple' | 'odata' = 'simple';
+    if (endpoint.kind !== 'mvc') {
+      const filterChoice = await vscode.window.showQuickPick(
+        [
+          { label: 'Simples (padrão)', description: 'busca rápida `q` + parâmetros próprios', value: 'simple' as const },
+          {
+            label: 'oData',
+            description: "filter=campo eq 'x' — padrão TOTVS/SmartX (12.1.2610+), backend com FWAdapterBaseV2",
+            value: 'odata' as const,
+          },
+        ],
+        { placeHolder: 'Formato do filtro da lista' },
+      );
+      if (!filterChoice) {
+        return;
+      }
+      filterStyle = filterChoice.value;
     }
 
     const authChoice = await vscode.window.showQuickPick(
@@ -273,7 +288,7 @@ export function registerConnectCommand(
     const assetsDir = path.join(context.extensionUri.fsPath, 'assets', 'agent-prompts');
     let systemPrompt: string;
     try {
-      systemPrompt = await buildConnectSystemPrompt(assetsDir, endpoint.kind === 'new', filterChoice.value === 'odata');
+      systemPrompt = await buildConnectSystemPrompt(assetsDir, endpoint.kind === 'new', filterStyle === 'odata', endpoint.kind === 'mvc');
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       void vscode.window.showErrorMessage(`PO-UI: falha ao carregar os arquivos de referência — ${message}.`);
@@ -288,7 +303,7 @@ export function registerConnectCommand(
       endpoint,
       extraActions,
       interceptorHandling,
-      filterStyle: filterChoice.value,
+      filterStyle,
     };
     const userPrompt = buildConnectUserPrompt(connectParams);
 

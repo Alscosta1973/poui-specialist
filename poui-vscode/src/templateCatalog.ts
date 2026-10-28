@@ -139,6 +139,11 @@ export const CATALOG: CatalogGroup[] = [
         description: 'Contrato REST de backend: endpoints, paginação (TTALK remainingRecords), formato de erro (legado + TTALK), skeleton WsRestFul e TLPP REST por anotações, filtro oData opcional (FWAdapterBaseV2).',
       },
       {
+        id: 'mvc-rest',
+        title: 'mvc-rest',
+        description: 'Rotina MVC existente via FWRestModel (/rest/fwmodel): recurso RM_<FONTE>.prw (INCLUI/ALTERA pelo verbo, permissão do menu, FILTER bloqueado, busca segura, erro em JSON) + ProtheusMvcService com specs.',
+      },
+      {
         id: 'refactor-from-tlpp',
         title: 'refactor-from-tlpp',
         description: 'Analisa um .prw/.tlpp existente → extrai colunas/ações/regras → gera PO-UI direto, sem brainstorming aberto.',
