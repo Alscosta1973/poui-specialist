@@ -265,30 +265,54 @@ seguir o padrão de API TOTVS. Ver `skills/poui-patterns/smartx.md`.
 ### Contrato
 
 ```
-GET /rest/api/custom/v1/<entidade>?filter=codigo eq '000001' and nome ne ''&order=-nome&page=1&pageSize=10&fields=codigo,nome
+GET /rest/api/custom/v1/<entidade>?filter=contains(tolower(nome), 'silva') and codigo ne ''&order=-nome&page=1&pageSize=10&fields=codigo,nome
 ```
 
 | Parâmetro | Descrição |
 |---|---|
-| `filter` | Expressão oData sobre as **propriedades JSON** (não sobre os campos da tabela). Também aceitar `$filter` (oData puro). |
+| `filter` | Expressão oData sobre as **propriedades JSON** (não sobre os campos da tabela). É `filter`, sem `$` — é o que a `FWAdapterBaseV2` lê. |
+| `<propriedade>=<valor>` | Filtro simples de igualdade, também aceito (ex.: `?codigo=000001`) |
 | `order` | Propriedades separadas por vírgula; prefixo `-` = decrescente |
-| `fields` | Propriedades a devolver |
-| `page` / `pageSize` | Paginação (mesmo comportamento do contrato padrão) |
+| `fields` | Propriedades a devolver (as marcadas como fixas em `AddMapFields` sempre voltam) |
+| `page` / `pageSize` | Paginação |
 
 Operadores: `eq`, `ne`, `gt`, `ge`, `lt`, `le`, `and`, `or`, parênteses. Texto entre aspas simples,
-aspa simples dentro do valor duplicada (`'D''Avila'`). Funções como `contains`/`startswith`
-dependem da versão da Lib — confirmar no TDN antes de usar.
+aspa simples dentro do valor duplicada (`'D''Avila'`).
 
-Resposta: igual ao contrato padrão (`items`, `hasNext`, `remainingRecords`).
+Funções (TDN, conforme a data da Lib): `startswith(nome, 'JOAO')`, `endswith(nome, 'SILVA')`,
+`contains(nome, 'SILVA')`, `toupper(nome) eq 'JOAO'` e `tolower(nome) eq 'joao'` (estas duas a partir da
+Lib 20220322). Campos data ficam gravados como caractere `AAAAMMDD` — comparar como texto (`emissao ge '20261001'`).
+
+Resposta (gerada pela classe): `items`, `hasNext`, `remainingRecords` (Lib ≥ 20220502) e `total`
+(Lib ≥ 20250519, Guia de API TOTVS) — mesmo shape do contrato padrão.
 
 ### Backend — `FWAdapterBaseV2` (o framework traduz o oData para SQL)
 
-Não escrever parser de oData à mão. A classe `FWAdapterBaseV2` do framework recebe o filtro,
-traduz para SQL e pagina. **Segurança:** só as propriedades registradas em `AddMapFields` podem
-ser filtradas/ordenadas — o mapa funciona como lista permitida e impede SQL injection.
+Não escrever parser de oData à mão. A classe `FWAdapterBaseV2` recebe filtro, ordem, campos e
+página, traduz para SQL e monta o JSON. **Segurança:** só as propriedades registradas em
+`AddMapFields` podem ser filtradas/ordenadas/devolvidas — o mapa funciona como lista permitida e
+impede SQL injection.
 
-> Referência: TDN "09. FWAdapterBaseV2" (https://tdn.totvs.com/display/public/framework/09.+FWAdapterBaseV2).
-> Conferir a assinatura dos métodos na Lib do cliente antes de compilar.
+> Referência: TDN "09. FWAdapterBaseV2" (https://tdn.totvs.com/display/public/framework/09.+FWAdapterBaseV2), conferida em 28/10/2026.
+
+`AddMapFields(cFieldJson, cFieldQuery, lJsonField, lFixed, aStruct, cRenameField)`:
+
+| Parâmetro | Uso |
+|---|---|
+| `cFieldJson` | Nome da propriedade no JSON (o que o frontend usa no `filter`) |
+| `cFieldQuery` | Nome da coluna no ResultSet |
+| `lJsonField` | `.T.` = exporta para o JSON |
+| `lFixed` | `.T.` = sempre volta, mesmo com `fields` na URL (use nas chaves) |
+| `aStruct` | `{"CAMPO", "TIPO", Tamanho, Decimal}`; se omitido, usa o SX3 |
+| `cRenameField` | Nome real da coluna quando há ambiguidade na query (Lib ≥ 20200727) |
+
+Regras da classe (TDN):
+- A query **sempre** usa `#QueryFields#` no SELECT e `#QueryWhere#` no WHERE; `SetWhere` substitui o `#QueryWhere#` (filial + `D_E_L_E_T_`) e o `filter` é somado a ele.
+- **Não usa `ChangeQuery`**: evitar funções SQL e concatenação; se precisar, usar sub-query (exemplo da SED no TDN).
+- Não suporta campo memo da **SYP**.
+- `SetTlppFilter(jQuery)` (Lib ≥ 20230515) é o caminho para API TLPP; em Lib anterior, `SetUrlFilter({{"FILTER", cFiltro}})` (mesmo formato do `aQueryString` do REST ADVPL).
+- `setIsCaseSensitive(.T.)` (Lib ≥ 20230515) mantém a caixa das propriedades no JSON (`codigoCliente` em vez de minúsculas).
+- Sempre `DeActivate()` ao final.
 
 ```tlpp
 #include "totvs.ch"
@@ -320,16 +344,21 @@ Return Self
     @author Andre Costa
 /*/
 Method GetLista() Class EntAdapter
-    Local aArea := FWGetArea()
+    Local aArea  := FWGetArea()
+    Local cQuery := ""
 
     // So as propriedades mapeadas aqui podem aparecer no filter/order/fields (lista permitida)
     ::AddMapFields("codigo", "A1_COD",  .T., .T., {"A1_COD",  "C", TamSX3("A1_COD")[1],  0})
     ::AddMapFields("loja",   "A1_LOJA", .T., .T., {"A1_LOJA", "C", TamSX3("A1_LOJA")[1], 0})
     ::AddMapFields("nome",   "A1_NOME", .T., .F., {"A1_NOME", "C", TamSX3("A1_NOME")[1], 0})
 
-    ::SetQuery("SELECT #QueryFields# FROM " + RetSqlName("SA1") + " SA1 WHERE #QueryWhere#")
-    ::SetWhere("SA1.A1_FILIAL = '" + FWxFilial("SA1") + "' AND SA1.D_E_L_E_T_ = ' '")
+    cQuery := " SELECT #QueryFields#"
+    cQuery += " FROM " + RetSqlName("SA1") + " SA1"
+    cQuery += " WHERE #QueryWhere#"
+    ::SetQuery(cQuery)
+    ::SetWhere(" SA1.A1_FILIAL = '" + FWxFilial("SA1") + "' AND SA1.D_E_L_E_T_ = ' '")
     ::SetOrder("A1_COD, A1_LOJA")
+    ::setIsCaseSensitive(.T.)
 
     If ::Execute()
         ::FillGetResponse()
@@ -345,26 +374,30 @@ Return
 /*/
 @Get("/api/custom/v1/entidade")
 User Function EntLista() as Logical
-    Local jQuery  := oRest:getQueryRequest()
-    Local oAdapt  := EntAdapter():New("GET")
-    Local jErro   := Nil
-    Local cFiltro := ""
-    Local lRet    := .T.
+    Local jQuery := oRest:getQueryRequest()
+    Local oAdapt := EntAdapter():New("GET")
+    Local jErro  := Nil
+    Local nPag   := 1
+    Local nTam   := 10
+    Local lRet   := .T.
 
-    cFiltro := IIf(jQuery["filter"] <> Nil, jQuery["filter"], IIf(jQuery["$filter"] <> Nil, jQuery["$filter"], ""))
+    If jQuery:HasProperty("page")
+        nPag := Max(Val(cValToChar(jQuery["page"])), 1)
+    EndIf
+    If jQuery:HasProperty("pageSize")
+        nTam := Min(Max(Val(cValToChar(jQuery["pageSize"])), 1), 50)
+    EndIf
 
-    oAdapt:SetPage(Val(IIf(jQuery["page"] == Nil, "1", cValToChar(jQuery["page"]))))
-    oAdapt:SetPageSize(Min(Val(IIf(jQuery["pageSize"] == Nil, "10", cValToChar(jQuery["pageSize"]))), 50))
-    If jQuery["order"] <> Nil
+    oAdapt:SetPage(nPag)
+    oAdapt:SetPageSize(nTam)
+    If jQuery:HasProperty("order")
         oAdapt:SetOrderQuery(jQuery["order"])
     EndIf
-    If jQuery["fields"] <> Nil
+    If jQuery:HasProperty("fields")
         oAdapt:SetFields(jQuery["fields"])
     EndIf
-    If !Empty(cFiltro)
-        // mesmo formato do aQueryString do REST ADVPL: {{"FILTER", <expressao oData>}}
-        oAdapt:SetUrlFilter({{"FILTER", cFiltro}})
-    EndIf
+    // filter (oData) e filtros simples ?propriedade=valor; Lib < 20230515: SetUrlFilter({{"FILTER", jQuery["filter"]}})
+    oAdapt:SetTlppFilter(jQuery)
 
     oAdapt:GetLista()
 
@@ -379,6 +412,7 @@ User Function EntLista() as Logical
         FwFreeObj(jErro)
     EndIf
 
+    oAdapt:DeActivate()
     FwFreeObj(oAdapt)
 Return lRet
 ```
@@ -392,7 +426,9 @@ Return lRet
 Helper gerado em `src/app/core/odata-filter.ts` (uma vez por projeto):
 
 ```typescript
-export type ODataOp = 'eq' | 'ne' | 'gt' | 'ge' | 'lt' | 'le';
+export type ODataOp = 'eq' | 'ne' | 'gt' | 'ge' | 'lt' | 'le' | 'contains' | 'startswith' | 'endswith';
+
+const ODATA_FUNCTIONS: ReadonlySet<ODataOp> = new Set<ODataOp>(['contains', 'startswith', 'endswith']);
 
 export interface ODataCondition {
   field: string;
@@ -400,11 +436,14 @@ export interface ODataCondition {
   value: string | number | boolean | null | undefined;
 }
 
-/** Converte condições em expressão oData (`a eq 'x' and b ge 10`), ignorando valores vazios. */
+/** Converte condições em expressão oData (`a eq 'x' and contains(b, 'y')`), ignorando valores vazios. */
 export function toODataFilter(conditions: ODataCondition[]): string {
   return conditions
     .filter(c => c.value !== null && c.value !== undefined && c.value !== '')
-    .map(c => `${c.field} ${c.op} ${toODataLiteral(c.value as string | number | boolean)}`)
+    .map(c => {
+      const literal = toODataLiteral(c.value as string | number | boolean);
+      return ODATA_FUNCTIONS.has(c.op) ? `${c.op}(${c.field}, ${literal})` : `${c.field} ${c.op} ${literal}`;
+    })
     .join(' and ');
 }
 
@@ -419,6 +458,7 @@ No service, o filtro avançado do `page-dynamic-search` vira `filter`:
 getAll(params: GetAllParams): Observable<ProtheusListResponse<Entidade>> {
   const filter = toODataFilter([
     { field: 'codigo',     op: 'eq', value: params.codigo },
+    { field: 'nome',       op: 'contains', value: params.nome },
     { field: 'emissao',    op: 'ge', value: params.emissaoDe },   // datas AAAAMMDD
     { field: 'emissao',    op: 'le', value: params.emissaoAte },
   ]);
@@ -432,7 +472,7 @@ getAll(params: GetAllParams): Observable<ProtheusListResponse<Entidade>> {
 ```
 
 Testes Karma do helper (gerar junto, `odata-filter.spec.ts`): condição vazia é ignorada,
-`and` entre condições, aspa simples duplicada, número sem aspas.
+`and` entre condições, aspa simples duplicada, número sem aspas, `contains(nome, 'x')` no formato de função.
 
 ---
 
