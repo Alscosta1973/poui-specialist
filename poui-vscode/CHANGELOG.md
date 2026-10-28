@@ -2,7 +2,7 @@
 
 ## 1.8.1
 
-- Backend **Rotina MVC existente (FWRestModel)** no `Gerar Componente` (`tlpp-contract`, `service`, `page-edit`, `page-detail`, `modal-crud`) e no `Conectar`: gera o recurso `RM_<FONTE>.prw` (INCLUI/ALTERA pelo verbo HTTP, permissão do MenuDef → 403, `FILTER` da URL bloqueado, busca segura, JSON normalizado, erro em JSON) e o `ProtheusMvcService` com specs — validado de ponta a ponta no Protheus 12.1.2510.
+- Backend **Rotina MVC existente (FWRestModel)** no `Gerar Componente` (`tlpp-contract`, `service`, `page-edit`, `page-detail`, `modal-crud`) e no `Conectar`: gera o recurso `RM_<FONTE>.prw` (INCLUI/ALTERA pelo verbo HTTP, permissão do MenuDef → 403, `FILTER` da URL bloqueado, busca segura, JSON normalizado, erro em JSON) e o `ProtheusMvcService` com specs, em qualquer nível (cabeçalho, blocos 1:1, grades e grades netas) — validado de ponta a ponta no Protheus 12.1.2510.
 - Contrato TLPP com filtro oData revisado pelo TDN da `FWAdapterBaseV2`: `SetTlppFilter`, parâmetro `filter`, funções `contains`/`startswith`/`endswith` no helper `toODataFilter`.
 
 ## 1.8.0

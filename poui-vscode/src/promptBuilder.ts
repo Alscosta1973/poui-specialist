@@ -43,7 +43,7 @@ export function buildGeneratorUserPrompt(
       `Backend: rotina MVC existente ${backend.source} via FWRestModel (--mvc ${backend.source}). Siga`,
       `templates-mvc-rest.md: gere RM_${backend.source}.prw (recurso /rest/fwmodel) e use o ProtheusMvcService`,
       '(src/app/core/protheus-mvc.ts + protheus-mvc.service.ts + specs) no lugar do service REST próprio.',
-      'Se o ModelDef não estiver nos arquivos, pergunte o id do modelo, do FIELDS principal e das grades.',
+      'Monte a MvcModelSpec pelo ModelDef (AddFields/AddGrid em qualquer nível); se ele não estiver nos arquivos, pergunte.',
     );
   }
   if (backend?.kind === 'odata') {
