@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.8.1
+
+- Contrato TLPP com filtro oData revisado pelo TDN da `FWAdapterBaseV2`: `SetTlppFilter`, parâmetro `filter`, funções `contains`/`startswith`/`endswith` no helper `toODataFilter`.
+
 ## 1.8.0
 
 - `PO-UI: Gerar Componente` (tipos `tlpp-contract` e `service`) e `PO-UI: Conectar ao Protheus` perguntam o formato do filtro da lista: **Simples** (padrão, `q` + parâmetros próprios) ou **oData** (`filter=campo eq 'x'`, padrão TOTVS/SmartX, backend com `FWAdapterBaseV2` e `AddMapFields` como lista permitida; frontend com o helper `toODataFilter` + spec).
