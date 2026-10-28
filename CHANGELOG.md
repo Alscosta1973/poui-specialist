@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.21.1](https://github.com/Alscosta1973/poui-specialist/compare/v1.21.0...v1.21.1) (2026-10-28)
+
+
+### Bug Fixes
+
+* **tlpp-contract:** filtro oData conforme o TDN da FWAdapterBaseV2 ([3efe438](https://github.com/Alscosta1973/poui-specialist/commit/3efe438eaf611a908444093c716a96990508c9af))
+
+
+### Chores
+
+* **release:** bump version to 1.21.1 ([4e0611d](https://github.com/Alscosta1973/poui-specialist/commit/4e0611d6e53e5fbc3cb59a5517bf7b7c0c0b13cd))
+* **vscode-ext:** bump version 1.8.0 -> 1.8.1 ([a3cdfe1](https://github.com/Alscosta1973/poui-specialist/commit/a3cdfe16f047429ca529130968ad540f5f4487b8))
+
 ## [1.21.0](https://github.com/Alscosta1973/poui-specialist/compare/v1.20.0...v1.21.0) (2026-10-28)
 
 
