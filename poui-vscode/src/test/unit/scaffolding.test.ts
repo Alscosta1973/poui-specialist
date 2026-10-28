@@ -68,6 +68,7 @@ describe('buildAppComponentTs', () => {
     assert.ok(content.includes('defer(() => threadInfo.getUserInfoThread())'));
     assert.ok(/if \(this\.proAppConfigService\.insideProtheus\(\)\) \{\s*defer/.test(content), 'user lookup must be guarded by insideProtheus()');
     assert.ok(content.includes('this.poMenu().collapse()'));
+    assert.ok(content.includes('e instanceof NavigationStart') && content.includes('this.navegando.set(true)'), 'Carregando na troca de tela');
   });
 
   it('padrão TOTVS: Animalia icons only (po-icon-* does not exist in PO-UI 21)', () => {
@@ -88,6 +89,8 @@ describe('buildAppComponentHtml', () => {
       '#poMenu',
       '[p-collapsed]="true"',
       '[p-automatic-toggle]="true"',
+      '@if (navegando()) {',
+      '<po-loading-overlay />',
       'p-logo="assets/logos/totvs.svg"',
       'p-short-logo="assets/logos/totvs-short-symbol.svg"',
     ]) {

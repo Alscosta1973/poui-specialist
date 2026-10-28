@@ -244,9 +244,10 @@ export const routes: Routes = [
 ```typescript
 import { AfterViewInit, ChangeDetectionStrategy, Component, DestroyRef, inject, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { NavigationCancel, NavigationEnd, NavigationError, NavigationStart, Router, RouterOutlet } from '@angular/router';
 import { defer, filter } from 'rxjs';
 import {
+  PoLoadingModule,
   PoMenuComponent,
   PoMenuItem,
   PoMenuModule,
@@ -268,7 +269,7 @@ export function montarPerfil(info: { displayName?: string; userName?: string } |
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, PoMenuModule, PoToolbarModule],
+  imports: [RouterOutlet, PoLoadingModule, PoMenuModule, PoToolbarModule],
   templateUrl: './app.html',
   styleUrl: './app.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -281,6 +282,8 @@ export class App implements AfterViewInit {
 
   readonly titulo = `{{projectName | titlecase}} - v${APP_VERSION}`;
   readonly perfil = signal<PoToolbarProfile>(montarPerfil(undefined));
+  /** Troca de tela (rota lazy) em andamento: overlay "Carregando" (padrão TOTVS, como no FINA710). */
+  readonly navegando = signal(false);
   readonly acoesPerfil: PoToolbarAction[] = [
     { icon: 'an an-sign-out', label: 'Sair', type: 'danger', separator: true, action: () => this.closeApp() },
   ];
@@ -304,6 +307,14 @@ export class App implements AfterViewInit {
         });
     }
   }
+
+  private readonly navegacao = this.router.events.pipe(takeUntilDestroyed()).subscribe((e) => {
+    if (e instanceof NavigationStart) {
+      this.navegando.set(true);
+    } else if (e instanceof NavigationEnd || e instanceof NavigationCancel || e instanceof NavigationError) {
+      this.navegando.set(false);
+    }
+  });
 
   ngAfterViewInit(): void {
     // padrão TOTVS: o menu volta a recolher depois de escolher uma opção
@@ -347,6 +358,9 @@ export const APP_VERSION = '1.0.0';
     p-logo="assets/logos/totvs.svg"
     p-short-logo="assets/logos/totvs-short-symbol.svg">
   </po-menu>
+  @if (navegando()) {
+    <po-loading-overlay />
+  }
   <div class="container-fluid">
     <router-outlet></router-outlet>
   </div>
