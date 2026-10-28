@@ -200,9 +200,9 @@ E prossiga diretamente para a substituição de placeholders sem nova chamada de
 |------|--------------|
 | `page-list` | `skills/poui-code-generation/templates-page-list.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/table-components.md`<br>`skills/poui-patterns/po-ui-quirks-table.md`<br>`skills/poui-patterns/po-ui-quirks-onpush.md`<br>`skills/poui-patterns/po-ui-patterns-search.md` |
 | `page-dynamic-search` | `skills/poui-code-generation/templates-page-dynamic-search.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/table-components.md`<br>`skills/poui-components/form-fields.md`<br>`skills/poui-patterns/po-ui-quirks-table.md`<br>`skills/poui-patterns/po-ui-quirks-onpush.md` |
-| `page-edit` | `skills/poui-code-generation/templates-page-edit.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/form-fields.md`<br>`skills/poui-components/dynamic-form-fields.md` |
-| `page-detail` | `skills/poui-code-generation/templates-page-detail.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/modal-dialog.md` |
-| `modal-crud` | `skills/poui-code-generation/templates-modal-crud.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/form-fields.md`<br>`skills/poui-components/modal-dialog.md` |
+| `page-edit` | `skills/poui-code-generation/templates-page-edit.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/form-fields.md`<br>`skills/poui-components/dynamic-form-fields.md` (com `--mvc <FONTE>`: trocar o service por `skills/poui-code-generation/templates-mvc-rest.md` — FWRestModel) |
+| `page-detail` | `skills/poui-code-generation/templates-page-detail.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/modal-dialog.md` (com `--mvc <FONTE>`: trocar o service por `skills/poui-code-generation/templates-mvc-rest.md` — FWRestModel) |
+| `modal-crud` | `skills/poui-code-generation/templates-modal-crud.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/form-fields.md`<br>`skills/poui-components/modal-dialog.md` (com `--mvc <FONTE>`: trocar o service por `skills/poui-code-generation/templates-mvc-rest.md` — FWRestModel) |
 | `stepper-form` | `skills/poui-code-generation/templates-stepper-form.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/form-fields.md`<br>`skills/poui-components/dynamic-form-fields.md` |
 | `page-dynamic` | `skills/poui-code-generation/templates-page-dynamic.md`<br>`skills/poui-components/dynamic-pages.md`<br>`skills/poui-patterns/po-ui-quirks-onpush.md` |
 | `master-detail` | `skills/poui-code-generation/templates-master-detail.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/table-components.md`<br>`skills/poui-patterns/po-ui-quirks-table.md`<br>`skills/poui-patterns/po-ui-quirks-onpush.md` |
@@ -214,7 +214,7 @@ E prossiga diretamente para a substituição de placeholders sem nova chamada de
 | `dashboard` | `skills/poui-code-generation/templates-dashboard.md`<br>`skills/poui-patterns/po-ui-quirks-onpush.md` |
 | `refactor` | `skills/poui-code-generation/templates-refactor-from-tlpp.md`<br>`skills/poui-components/form-fields.md`<br>`skills/poui-components/table-components.md`<br>`skills/poui-patterns/po-ui-quirks-table.md`<br>`skills/poui-patterns/po-ui-quirks-forms.md`<br>`skills/poui-patterns/po-ui-quirks-onpush.md` |
 | `models` | `skills/poui-code-generation/templates-models.md` |
-| `tlpp-contract` | `skills/poui-code-generation/templates-tlpp-contract.md` (com `--odata`: seção "Filtro oData (opcional)" — `FWAdapterBaseV2`) |
+| `tlpp-contract` | `skills/poui-code-generation/templates-tlpp-contract.md` (com `--odata`: seção "Filtro oData (opcional)" — `FWAdapterBaseV2`; com `--mvc <FONTE>`: `templates-mvc-rest.md` — FWRestModel) |
 | `http-interceptor` | `skills/poui-code-generation/templates-http-interceptor.md` |
 | `route-guard` | `skills/poui-code-generation/templates-route-guard.md` |
 | `standalone-migrate` | `skills/poui-code-generation/templates-standalone-migrate.md` |

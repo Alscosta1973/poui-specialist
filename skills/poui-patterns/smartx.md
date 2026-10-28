@@ -61,7 +61,10 @@ fontes TLPP das APIs para que a regra de negócio possa ser reaproveitada no **M
 4. **Regra de negócio em classe de serviço** separada da classe/função REST (a API só lê parâmetros e devolve JSON).
 5. Validação de campo no servidor, devolvendo JSON (`{code, message, detailedMessage}`).
 6. Resposta de lista no formato `items` / `hasNext` (+ `remainingRecords`).
-7. Filtro no padrão **oData** quando o cliente estiver na 2610+ ou quiser seguir o padrão TOTVS — ver
+7. **Rotina que já tem MVC:** gravar pelo próprio modelo (FWRestModel, `--mvc <FONTE>`, ver
+   `skills/poui-code-generation/templates-mvc-rest.md`) em vez de duplicar a regra numa API — mesma ideia
+   do Modelo SmartX. Em `ModelDef` novo, usar `oModel:GetOperation()` e nunca `INCLUI`/`ALTERA`.
+8. Filtro no padrão **oData** quando o cliente estiver na 2610+ ou quiser seguir o padrão TOTVS — ver
    a seção "Filtro oData (opcional)" em `skills/poui-code-generation/templates-tlpp-contract.md` (`--odata`).
 
 ## Aviso no /generate

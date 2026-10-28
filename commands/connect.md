@@ -1,7 +1,7 @@
 ---
 description: Connect a PO-UI Angular component to real Protheus REST data — replaces mocks, updates proxy, generates TLPP contract if needed
 allowed-tools: Read, Write, Edit, Glob, Grep, Skill, Bash, AskUserQuestion
-argument-hint: "<ComponentClass> --module <module> [--odata]"
+argument-hint: "<ComponentClass> --module <module> [--odata | --mvc <FONTE>]"
 ---
 
 **IMPORTANT:** Always respond in the same language the user is writing in. If the user writes in Portuguese, respond in Portuguese.
@@ -27,6 +27,9 @@ por chamadas HTTP reais, configurando o proxy e gerando o contrato TLPP quando n
 
 # Filtro no padrão oData (TOTVS/SmartX) — service monta `filter=campo eq 'x'`; backend com FWAdapterBaseV2
 /poui-specialist:connect TitulosListComponent --module financeiro/titulos-list --odata
+
+# Rotina que já tem MVC — grava pelas regras do modelo (FWRestModel, /rest/fwmodel)
+/poui-specialist:connect ProdutoEditComponent --module estoque/produto-edit --mvc MATA010
 ```
 
 ## Pré-passo — Backup preventivo

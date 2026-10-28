@@ -120,6 +120,9 @@ Para conectar <ComponentClass> ao Protheus, preciso de:
 
 Se a flag `--odata` foi passada no comando, a resposta da pergunta 7 já é **oData** — não perguntar.
 
+Se a flag `--mvc <FONTE>` foi passada (ou o usuário responder na pergunta 3 que a rotina **já tem MVC**),
+o backend é o próprio modelo via FWRestModel: pular as perguntas 3 e 7 e seguir a "Variante MVC" do Passo 5.
+
 > **Nunca peça a senha/token no chat.** Para Basic/Bearer, peça só o usuário e oriente o
 > usuário a gravar a senha (ou o token) no arquivo `protheus-dev.secret` na raiz do projeto
 > Angular — o proxy lê de lá. Não leia nem exiba esse arquivo.
@@ -243,6 +246,14 @@ busca rápida continua em `q` só se o endpoint existente a aceitar.
 
 Se o endpoint **já existe** e não aceita `filter` (só parâmetros próprios), não trocar: avisar o
 usuário que o backend precisa usar `FWAdapterBaseV2` antes e manter o padrão simples.
+
+### Variante MVC (`--mvc <FONTE>`)
+
+Seguir `skills/poui-code-generation/templates-mvc-rest.md`: gerar `RM_<FONTE>.prw` (recurso FWRestModel),
+`src/app/core/protheus-mvc.ts` + `protheus-mvc.service.ts` + specs (se ainda não existirem) e trocar o service
+do componente pelo `ProtheusMvcService` (lista/consulta/inclusão/alteração/exclusão em `/rest/fwmodel/<api>`).
+Antes, ler o `ModelDef` do fonte (se estiver no workspace) para preencher `modelId`, `masterId` e `grids` e
+procurar `INCLUI`/`ALTERA`, `FWFormView`, `MsgYesNo`, `aCols` — avisar o usuário do que ainda quebra no REST.
 
 ---
 

@@ -75,6 +75,7 @@ Generates standalone Angular 17–21+ artifacts using PO-UI components, integrat
 /poui-specialist:generate models Pedido --module compras
 /poui-specialist:generate tlpp-contract Pedido --module compras
 /poui-specialist:generate tlpp-contract Pedido --module compras --odata   # filtro oData (FWAdapterBaseV2)
+/poui-specialist:generate page-edit Produto --module estoque --mvc MATA010    # grava pelas regras do MVC (FWRestModel)
 /poui-specialist:generate http-interceptor auth --module core
 /poui-specialist:generate route-guard auth --module core
 /poui-specialist:generate standalone-migrate ClientesLegado --module cadastro
@@ -91,6 +92,7 @@ Generates standalone Angular 17–21+ artifacts using PO-UI components, integrat
    - `--dry-run`: exibir apenas o plano (lista de arquivos e estrutura resumida) **sem escrever nada em disco**. Encerrar após o Passo 2 com: `🔍 Modo dry-run — nenhum arquivo foi gerado.`
    - `--skip-build`: pular o Passo 4. Útil em gerações em lote para rodar build uma única vez no final.
    - `--odata`: (tipos `tlpp-contract` e `service`) filtro da lista no padrão oData — `filter=campo eq 'x'`, backend com `FWAdapterBaseV2`. Ver seção "Filtro oData (opcional)" de `skills/poui-code-generation/templates-tlpp-contract.md`.
+   - `--mvc <FONTE>`: (tipos `tlpp-contract`, `service`, `page-edit`, `page-detail`, `modal-crud`) a rotina **já tem MVC**: gravar pelo próprio modelo via FWRestModel (`/rest/fwmodel`) — gera o `RM_<FONTE>.prw` e o `ProtheusMvcService` de `skills/poui-code-generation/templates-mvc-rest.md`. Perguntar ao usuário o id do modelo (`MPFormModel():New`), o id do FIELDS principal e das grades se não vierem no pedido. Não combinar com `--odata`.
    - **Aviso SmartX:** se o usuário indicar que o cliente está na **12.1.2610+** e o tipo for um cadastro/lista simples sobre uma tabela do dicionário, exibir o aviso de `skills/poui-patterns/smartx.md` (seção "Aviso no /generate") antes de delegar. Não bloqueia.
 2. **Determine agent based on `<type>` and delegate:**
 

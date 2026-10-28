@@ -153,9 +153,9 @@ E prossiga diretamente para a substituição de placeholders sem nova chamada de
 
 | Type | Files to read |
 |------|--------------|
-| `page-edit` | `skills/poui-code-generation/templates-page-edit.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/form-fields.md`<br>`skills/poui-components/dynamic-form-fields.md` |
-| `page-detail` | `skills/poui-code-generation/templates-page-detail.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/modal-dialog.md` |
-| `modal-crud` | `skills/poui-code-generation/templates-modal-crud.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/form-fields.md`<br>`skills/poui-components/modal-dialog.md` |
+| `page-edit` | `skills/poui-code-generation/templates-page-edit.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/form-fields.md`<br>`skills/poui-components/dynamic-form-fields.md` (com `--mvc <FONTE>`: trocar o service por `skills/poui-code-generation/templates-mvc-rest.md` — FWRestModel) |
+| `page-detail` | `skills/poui-code-generation/templates-page-detail.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/modal-dialog.md` (com `--mvc <FONTE>`: trocar o service por `skills/poui-code-generation/templates-mvc-rest.md` — FWRestModel) |
+| `modal-crud` | `skills/poui-code-generation/templates-modal-crud.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/form-fields.md`<br>`skills/poui-components/modal-dialog.md` (com `--mvc <FONTE>`: trocar o service por `skills/poui-code-generation/templates-mvc-rest.md` — FWRestModel) |
 | `stepper-form` | `skills/poui-code-generation/templates-stepper-form.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/form-fields.md`<br>`skills/poui-components/dynamic-form-fields.md` |
 
 5. Present the plan to the user before writing any file:
