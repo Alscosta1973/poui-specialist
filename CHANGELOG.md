@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.19.1](https://github.com/Alscosta1973/poui-specialist/compare/v1.19.0...v1.19.1) (2026-10-28)
+
+
+### Bug Fixes
+
+* **scaffold:** shell padrao TOTVS com o Carregando na troca de tela (igual ao app RCA) ([da2f77b](https://github.com/Alscosta1973/poui-specialist/commit/da2f77bdf16f5612334b0998375d03d81e1797c8))
+
+
+### Chores
+
+* **release:** bump version to 1.19.1 ([ec8b20d](https://github.com/Alscosta1973/poui-specialist/commit/ec8b20dea1a231f4e2481e676599d34ade5aef6e))
+* **vscode-ext:** bump version 1.6.0 -> 1.6.1 ([16c29d5](https://github.com/Alscosta1973/poui-specialist/commit/16c29d57f3c4bd57f0db5f833aea180e769fc879))
+
 ## [1.19.0](https://github.com/Alscosta1973/poui-specialist/compare/v1.18.0...v1.19.0) (2026-10-27)
 
 
