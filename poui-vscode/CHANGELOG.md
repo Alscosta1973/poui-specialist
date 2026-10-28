@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.8.0
+
+- `PO-UI: Gerar Componente` (tipos `tlpp-contract` e `service`) e `PO-UI: Conectar ao Protheus` perguntam o formato do filtro da lista: **Simples** (padrão, `q` + parâmetros próprios) ou **oData** (`filter=campo eq 'x'`, padrão TOTVS/SmartX, backend com `FWAdapterBaseV2` e `AddMapFields` como lista permitida; frontend com o helper `toODataFilter` + spec).
+- Novo guia "PO-UI próprio × SmartX (12.1.2610+)" enviado ao agente junto com o `tlpp-contract`.
+
 ## 1.7.0
 
 - `PO-UI: Desbloquear Modo Dev (interno)` agora libera também o plugin `poui-specialist` do Claude Code: grava o hash da máquina em `~/.claude/poui-specialist-dev.json`, e a skill `poui-license-check` (plugin ≥ 1.20.0) confirma esse hash no servidor de licenças e pula a data fixa do beta. Máquina já desbloqueada: rodar o comando de novo uma vez e reabrir o Claude Code.
