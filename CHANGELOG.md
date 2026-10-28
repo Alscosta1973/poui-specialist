@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.20.0](https://github.com/Alscosta1973/poui-specialist/compare/v1.19.1...v1.20.0) (2026-10-28)
+
+
+### Features
+
+* **license:** Desbloquear Modo Dev da extensao libera tambem o plugin no Claude Code ([f46470d](https://github.com/Alscosta1973/poui-specialist/commit/f46470da729d43031b8f85839f8c680556a69251))
+
+
+### Chores
+
+* **release:** bump version to 1.20.0 ([e216048](https://github.com/Alscosta1973/poui-specialist/commit/e216048a53f8a874d4b872365f4bf5fc7ff1cc9a))
+* **vscode-ext:** bump version 1.6.1 -> 1.7.0 ([7ff5d0b](https://github.com/Alscosta1973/poui-specialist/commit/7ff5d0b184febe3923a551c007bbc45820a9360b))
+
 ## [1.19.1](https://github.com/Alscosta1973/poui-specialist/compare/v1.19.0...v1.19.1) (2026-10-28)
 
 
