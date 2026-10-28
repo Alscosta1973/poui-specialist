@@ -4,39 +4,48 @@ Use quando a rotina **já tem MVC** (`ModelDef`) — padrão TOTVS (MATA010, CRM
 tela PO-UI deve **gravar pelas regras do próprio modelo** (validações, gatilhos, commit, pontos de entrada),
 sem duplicar regra numa API própria. Leitura de listas grandes/complexas continua melhor com
 `FWAdapterBaseV2` + oData (`templates-tlpp-contract.md`); este template cobre lista simples, consulta,
-inclusão, alteração e exclusão.
+inclusão, alteração e exclusão — em **qualquer nível**: cabeçalho, blocos 1:1 (FIELDS filhos), grades e
+grades netas.
 
-> Validado de ponta a ponta no Protheus 12.1.2510 (28/10/2026) contra uma rotina MVC real com grade:
-> lista, busca, POST com 2 linhas, GET com conversão de data/número, PUT removendo e incluindo linha,
-> erro de validação, 304, DELETE, 404, FILTER bloqueado e busca com aspa maliciosa. Karma 11/11 no Angular 21.
-> Padrões tirados de fontes da TOTVS: `JurModRest.prw` (INCLUI/ALTERA, 403), `mntMvc080/084.prw`
-> (filtro fixo no `SetFilter`), `ESTA0001.prw` (`SaveData` próprio), `MRPData.prw` (acesso pelo MenuDef).
-> Referência: TDN "FWRestModel" (https://tdn.totvs.com/pages/releaseview.action?pageId=271671548).
+> Validado de ponta a ponta no Protheus 12.1.2510 (28/10/2026), com o código exatamente como está abaixo:
+> - rotina MVC real com grade e regras de negócio (lista, busca, POST, PUT, 304, erro de validação, DELETE,
+>   404, FILTER malicioso ignorado, busca com aspa maliciosa);
+> - modelo de 3 níveis (cabeçalho → grade → grade neta): POST com netos; PUT alterando, excluindo e incluindo
+>   neto, incluindo linha nova já com neto e excluindo linha com os netos; neto duplicado barrado; erro sem
+>   gravar nada (transação);
+> - modelo com bloco 1:1 (FIELDS filho): POST e PUT.
+>
+> Karma 13/13 no Angular 21. Padrões tirados de fontes da TOTVS: `JurModRest.prw` (INCLUI/ALTERA, 403),
+> `mntMvc080/084.prw` (filtro fixo no `SetFilter`), `ESTA0001.prw` (`SaveData` próprio), `MRPData.prw`
+> (acesso pelo MenuDef). Referência: TDN "FWRestModel" (https://tdn.totvs.com/pages/releaseview.action?pageId=271671548).
 
 ## Armadilhas do `/rest/fwmodel` (todas tratadas por este template)
 
 | Armadilha | Sintoma | Tratamento |
 |---|---|---|
 | Campo de FIELDS sem `"order"` | o 1º campo é ignorado → "campo não foi preenchido" | servidor (`_RMNormJs`) e frontend (`buildMvcBody`) numeram |
-| `value` numérico/lógico | HTTP 500 (`XPATHADDNODE ... expected C->N`) | tudo vira texto nos dois lados |
+| `value` numérico/lógico | HTTP 500 (`XPATHADDNODE ... expected C->N`) | tudo vira texto nos dois lados, em todos os níveis |
 | ModelDef usa `INCLUI`/`ALTERA` | HTTP 500 já no GET (variável de tela não existe no REST) | `Activate` cria `INCLUI`/`ALTERA` pelo verbo HTTP |
 | `FILTER` da URL é SQL puro colado no WHERE | injeção de SQL | `SetFilter` ignora o FILTER da URL; só filtro fixo + `SEARCH` escapado |
 | Erro em texto corrido (`Id campo erro: [...]`) | difícil mostrar/marcar campo | `SaveData`/`DelData` devolvem JSON `{code,message,solution,field,submodel,value}`; o frontend também entende o texto padrão |
 | PUT sem mudança | HTTP 304 (o `HttpClient` trata como erro) | service devolve `null` = "nada alterado" |
 | Registro inexistente | DELETE → 404; PUT → 400 com `code: NOTFOUND` (o framework força 400) | tratar pelo `code` |
+| Nome do `PUBLISH ... NAME` | o compilador gera uma função com o nome **truncado em 8 caracteres** → "Duplicated function" se dois nomes começam igual | `<api>` com **até 8 caracteres** e único no RPO |
+| Neto relacionado a campo de relação do pai (ex.: `Z09_X := Z08_CODIGO`, que vem do cabeçalho) | na inclusão o neto grava com o campo **vazio** (órfão), sem erro | relacionar o neto ao campo do **cabeçalho** (`Z09_X := Z07_CODIGO`) + ao campo próprio da linha pai (`Z09_Y := Z08_ITEM`) |
 | Datas / números | vêm como texto `AAAAMMDD` / `"1.00"` | `mvcDate()` / `mvcNumber()` |
-| Chave (`pk`) | base64 de xFilial + chave primária com espaços | sempre usar o `_pk`/`pk` devolvido pelo GET — nunca montar no frontend |
+| Chave (`pk`) | base64 de xFilial + chave primária com espaços | sempre usar o `pk`/`_pk` devolvido pelo GET — nunca montar no frontend |
 
 **Ainda quebram no REST (revisar o ModelDef antes):** `FWFormView`/`oView` no modelo, `MsgYesNo`/`Aviso`/
 `Pergunte` (interação de tela), `aHeader`/`aCols`, `Private` de tela usada em validação, `IsBlind()` invertido.
 
 ## Backend — `RM_<FONTE>.prw`
 
-- `<FONTE>`: fonte com o `ModelDef` e o `MenuDef` (ex.: `MATA010`, `F0134310`).
-- `<api>`: nome do endpoint (`/rest/fwmodel/<api>`), minúsculo, sem espaço.
-- `<CLASSE>`: `RM` + até 8 caracteres do fonte (≤ 10 no total, único no RPO).
+- `<FONTE>`: fonte com o `ModelDef` (ex.: `MATA010`, `F0134310`). `<MENU>`: fonte com o `MenuDef` usado na
+  permissão (normalmente o próprio `<FONTE>`).
+- `<api>`: nome do endpoint (`/rest/fwmodel/<api>`), minúsculo, **até 8 caracteres**, único no RPO.
+- `<CLASSE>`: `RM` + até 8 caracteres do fonte (≤ 10 no total, única no RPO).
 - `RM_BUSCA`: campos do alias principal usados no `?SEARCH=`; `RM_FIXO`: filtro SQL fixo do servidor (opcional).
-- Permissão: usuário do REST precisa ter acesso ao item do `MenuDef` da operação (`MPUserHasAccess`), senão 403.
+- Permissão: o usuário do REST precisa ter acesso ao item do `MenuDef` da operação (`MPUserHasAccess`), senão 403.
 
 ```advpl
 #include "totvs.ch"
@@ -45,6 +54,8 @@ inclusão, alteração e exclusão.
 // Publica o modelo MVC da rotina <FONTE> em /rest/fwmodel/<api> (FWRestModel)
 PUBLISH USER MODEL REST NAME <api> SOURCE <FONTE> RESOURCE OBJECT <CLASSE>
 
+// Fonte com o MenuDef usado na permissao (normalmente o proprio <FONTE>)
+#define RM_MENU  "<MENU>"
 // Campos da busca rapida (?SEARCH=texto) - so campos do alias principal
 #define RM_BUSCA {"<CAMPO_CODIGO>", "<CAMPO_DESCRICAO>"}
 // Filtro fixo da rotina (SQL do servidor, nunca do cliente). Vazio = sem filtro
@@ -53,7 +64,8 @@ PUBLISH USER MODEL REST NAME <api> SOURCE <FONTE> RESOURCE OBJECT <CLASSE>
 /*/{Protheus.doc} <CLASSE>
     Recurso REST do modelo da rotina <FONTE> (FWRestModel) com:
     INCLUI/ALTERA pelo verbo HTTP (MVC legado), permissao do menu da rotina (403),
-    FILTER da URL bloqueado (SQL), busca rapida segura, JSON normalizado e erro em JSON.
+    FILTER da URL bloqueado (SQL), busca rapida segura, JSON normalizado em todos os
+    niveis (FIELDS, GRID e grades netas) e erro do modelo em JSON.
     @type Class
     @author Andre Costa
 /*/
@@ -88,8 +100,8 @@ Method Activate() Class <CLASSE>
     Public INCLUI := (nOper == MODEL_OPERATION_INSERT)
     Public ALTERA := (nOper == MODEL_OPERATION_UPDATE)
 
-    If lRet .And. !_RMAcesso("<FONTE>", nOper)
-        SetRestFault(403, "Sem permissao para esta operacao na rotina <FONTE>.")
+    If lRet .And. !_RMAcesso(RM_MENU, nOper)
+        SetRestFault(403, _RMErroTx("FORBIDDEN", "Sem permissao para esta operacao na rotina " + RM_MENU + "."))
         self:ClearModel()
         lRet := .F.
     EndIf
@@ -110,11 +122,11 @@ Return lRet
     @author Andre Costa
 /*/
 Method SetFilter(cFilter) Class <CLASSE>
-    Local cUrl   := ""
-    Local cBusca := ""
+    Local cUrl    := ""
+    Local cBusca  := ""
     Local aPartes := {}
-    Local cRet   := ""
-    Local nI     := 0
+    Local cRet    := ""
+    Local nI      := 0
 
     Default cFilter := ""
 
@@ -143,7 +155,8 @@ Method SetFilter(cFilter) Class <CLASSE>
 Return .T.
 
 /*/{Protheus.doc} SaveData
-    POST (sem cPK) inclui e PUT (com cPK) altera; normaliza o JSON e devolve o erro do modelo em JSON.
+    POST (sem cPK) inclui e PUT (com cPK) altera pelo LoadJsonData do modelo, com o JSON
+    normalizado (order + valores texto, em todos os niveis); erro do modelo em JSON.
     @param cPK Character, chave do registro (base64 decodificada pelo framework)
     @param cData Character, corpo da requisicao
     @param cError Character, (referencia) erro devolvido ao cliente
@@ -212,6 +225,87 @@ Method DelData(cPK, cError) Class <CLASSE>
     EndIf
 Return lRet
 
+/*/{Protheus.doc} _RMNormJs
+    Normaliza o corpo: todo valor como texto e todo campo de FIELDS com "order"
+    (sem isso o LoadJsonData ignora o 1o campo ou quebra com valor numerico).
+    @param cData Character, JSON recebido
+    @return cRet Character, JSON normalizado
+    @type Static Function
+    @author Andre Costa
+/*/
+Static Function _RMNormJs(cData)
+    Local jBody := JsonObject():New()
+    Local cRet  := cData
+
+    If ValType(jBody:FromJson(cData)) == "U"
+        If jBody:HasProperty("models")
+            _RMNormMd(jBody["models"])
+        EndIf
+        cRet := jBody:ToJson()
+    EndIf
+
+    FwFreeObj(jBody)
+Return cRet
+
+/*/{Protheus.doc} _RMNormMd
+    Percorre os submodelos (FIELDS e GRID) e os submodelos de cada linha (grades netas).
+    @param aModels Array, submodelos do JSON
+    @type Static Function
+    @author Andre Costa
+/*/
+Static Function _RMNormMd(aModels)
+    Local nM := 0
+    Local nL := 0
+    Local jItem := Nil
+
+    For nM := 1 To Len(aModels)
+        If aModels[nM]:HasProperty("fields")
+            _RMNormFd(aModels[nM]["fields"], .T.)
+        EndIf
+        If aModels[nM]:HasProperty("items")
+            For nL := 1 To Len(aModels[nM]["items"])
+                jItem := aModels[nM]["items"][nL]
+                If jItem:HasProperty("fields")
+                    _RMNormFd(jItem["fields"], .F.)
+                EndIf
+                If jItem:HasProperty("models")
+                    _RMNormMd(jItem["models"])
+                EndIf
+            Next nL
+        EndIf
+        If aModels[nM]:HasProperty("models")
+            _RMNormMd(aModels[nM]["models"])
+        EndIf
+    Next nM
+Return
+
+/*/{Protheus.doc} _RMNormFd
+    Converte cada value para texto e, nos FIELDS, numera o "order" que faltar.
+    @param aFields Array, campos {id, value[, order]}
+    @param lOrder Logical, .T. para preencher o order
+    @type Static Function
+    @author Andre Costa
+/*/
+Static Function _RMNormFd(aFields, lOrder)
+    Local nF := 0
+    Local xV := Nil
+
+    For nF := 1 To Len(aFields)
+        xV := aFields[nF]["value"]
+        Do Case
+        Case ValType(xV) == "N"
+            aFields[nF]["value"] := cValToChar(xV)
+        Case ValType(xV) == "L"
+            aFields[nF]["value"] := IIf(xV, ".T.", ".F.")
+        Case ValType(xV) == "U"
+            aFields[nF]["value"] := ""
+        EndCase
+        If lOrder .And. !aFields[nF]:HasProperty("order")
+            aFields[nF]["order"] := nF
+        EndIf
+    Next nF
+Return
+
 /*/{Protheus.doc} _RMAcesso
     Acesso do usuario REST a operacao, pela posicao do item no MenuDef da rotina.
     @param cRotina Character, fonte com o MenuDef
@@ -258,82 +352,6 @@ Static Function _RMBusca(cTexto)
 
     FwFreeArray(aCampos)
 Return cRet
-
-/*/{Protheus.doc} _RMNormJs
-    Normaliza o corpo: todo valor como texto e todo campo de FIELDS com "order"
-    (sem isso o LoadJsonData ignora o 1o campo ou quebra com valor numerico).
-    @param cData Character, JSON recebido
-    @return cRet Character, JSON normalizado
-    @type Static Function
-    @author Andre Costa
-/*/
-Static Function _RMNormJs(cData)
-    Local jBody := JsonObject():New()
-    Local cRet  := cData
-
-    If ValType(jBody:FromJson(cData)) == "U"
-        If jBody:HasProperty("models")
-            _RMNormMd(jBody["models"])
-        EndIf
-        cRet := jBody:ToJson()
-    EndIf
-
-    FwFreeObj(jBody)
-Return cRet
-
-/*/{Protheus.doc} _RMNormMd
-    Percorre os submodelos (FIELDS e GRID) normalizando os campos.
-    @param aModels Array, submodelos do JSON
-    @type Static Function
-    @author Andre Costa
-/*/
-Static Function _RMNormMd(aModels)
-    Local nM := 0
-    Local nL := 0
-
-    For nM := 1 To Len(aModels)
-        If aModels[nM]:HasProperty("fields")
-            _RMNormFd(aModels[nM]["fields"], .T.)
-        EndIf
-        If aModels[nM]:HasProperty("items")
-            For nL := 1 To Len(aModels[nM]["items"])
-                If aModels[nM]["items"][nL]:HasProperty("fields")
-                    _RMNormFd(aModels[nM]["items"][nL]["fields"], .F.)
-                EndIf
-            Next nL
-        EndIf
-        If aModels[nM]:HasProperty("models")
-            _RMNormMd(aModels[nM]["models"])
-        EndIf
-    Next nM
-Return
-
-/*/{Protheus.doc} _RMNormFd
-    Converte cada value para texto e, nos FIELDS, numera o "order" que faltar.
-    @param aFields Array, campos {id, value[, order]}
-    @param lOrder Logical, .T. para preencher o order
-    @type Static Function
-    @author Andre Costa
-/*/
-Static Function _RMNormFd(aFields, lOrder)
-    Local nF := 0
-    Local xV := Nil
-
-    For nF := 1 To Len(aFields)
-        xV := aFields[nF]["value"]
-        Do Case
-        Case ValType(xV) == "N"
-            aFields[nF]["value"] := cValToChar(xV)
-        Case ValType(xV) == "L"
-            aFields[nF]["value"] := IIf(xV, ".T.", ".F.")
-        Case ValType(xV) == "U"
-            aFields[nF]["value"] := ""
-        EndCase
-        If lOrder .And. !aFields[nF]:HasProperty("order")
-            aFields[nF]["order"] := nF
-        EndIf
-    Next nF
-Return
 
 /*/{Protheus.doc} _RMErro
     Erro do modelo (GetErrorMessage) em JSON: code, message, solution, field, submodel, value.
@@ -383,31 +401,43 @@ Return IIf(ValType(aErro) == "A" .And. Len(aErro) >= nPos .And. aErro[nPos] <> N
 ## Frontend — `src/app/core/protheus-mvc.ts` (conversões puras)
 
 ```typescript
-// Conversão entre o formulário PO-UI (objetos planos) e o JSON do FWRestModel (/rest/fwmodel).
-// Regras validadas no Protheus 12.1.2510: todo value vai como texto, todo campo de FIELDS leva
-// "order", a chave (pk) é opaca (base64 devolvido pelo GET) e linhas de grade removidas vão com deleted: 1.
+// Conversão entre o formulário PO-UI e o JSON do FWRestModel (/rest/fwmodel), em qualquer nível:
+// cabeçalho (FIELDS), blocos 1:1 (FIELDS filhos), grades e grades netas.
+// Validado no Protheus 12.1.2510: todo value vai como texto, todo campo de FIELDS leva "order",
+// a chave (pk) é opaca (base64 devolvido pelo GET) e linhas removidas vão com deleted: 1.
 
 export type MvcValue = string | number | boolean | Date | null | undefined;
 export type MvcRecord = Record<string, MvcValue>;
 
-/** Linha de grade: campos do Protheus + `_line` (id da linha no modelo) e `_deleted`. */
-export interface MvcGridRow {
-  _line?: number;
-  _deleted?: boolean;
-  [field: string]: MvcValue;
+/** Submodelo filho na especificação: id do MVC, tipo e os filhos dele. */
+export interface MvcSubmodel {
+  id: string;
+  type: 'FIELDS' | 'GRID';
+  children?: MvcSubmodel[];
 }
 
-/** Estrutura do modelo: id do MPFormModel, id do FIELDS principal e ids das grades filhas dele. */
+/** Estrutura do modelo: id do MPFormModel, id do FIELDS principal e a árvore de submodelos. */
 export interface MvcModelSpec {
   modelId: string;
   masterId: string;
-  grids?: string[];
+  children?: MvcSubmodel[];
 }
 
-export interface MvcData {
-  pk?: string;
-  master: MvcRecord;
+/** Nó de dados: campos do Protheus (`values`) + blocos 1:1 (`fields`) + grades (`grids`) filhos. */
+export interface MvcNode {
+  values: MvcRecord;
+  fields: Record<string, MvcNode>;
   grids: Record<string, MvcGridRow[]>;
+}
+
+/** Linha de grade: `line` = id da linha no modelo (vem do GET; vazio = linha nova). */
+export interface MvcGridRow extends MvcNode {
+  line?: number;
+  deleted?: boolean;
+}
+
+export interface MvcData extends MvcNode {
+  pk?: string;
 }
 
 export interface MvcListItem extends MvcRecord {
@@ -442,7 +472,8 @@ interface RawField {
 interface RawItem {
   id: number;
   deleted?: number;
-  fields: RawField[];
+  fields?: RawField[];
+  models?: RawModel[];
 }
 
 interface RawModel {
@@ -453,20 +484,23 @@ interface RawModel {
   models?: RawModel[];
 }
 
-interface RawResource {
+export interface RawResource {
   id: string;
   pk?: string;
   models: RawModel[];
 }
 
-interface RawList {
+export interface RawList {
   total?: number;
   count?: number;
   startindex?: number;
   resources?: RawResource[];
 }
 
-const RESERVED = new Set(['_line', '_deleted', '_pk']);
+/** Nó vazio (para montar linhas novas e blocos 1:1 no formulário). */
+export function mvcNode(values: MvcRecord = {}): MvcNode {
+  return { values, fields: {}, grids: {} };
+}
 
 /** Valor do formulário → texto do Protheus (Date → AAAAMMDD, número → texto, lógico → .T./.F.). */
 export function toMvcValue(value: MvcValue): string {
@@ -499,36 +533,53 @@ export function mvcNumber(value: MvcValue): number {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
-function fieldEntries(record: MvcRecord): [string, MvcValue][] {
-  return Object.entries(record).filter(([key]) => !RESERVED.has(key));
+function toFields(values: MvcRecord, withOrder: boolean): RawField[] {
+  return Object.entries(values).map(([id, value], index) =>
+    withOrder ? { id, order: index + 1, value: toMvcValue(value) } : { id, value: toMvcValue(value) },
+  );
 }
 
-/** Monta o corpo do POST (MVC_INSERT) ou PUT (MVC_UPDATE). */
-export function buildMvcBody(spec: MvcModelSpec, data: MvcData, operation: number): object {
-  const grids = (spec.grids ?? []).map((gridId) => {
-    const rows = data.grids[gridId] ?? [];
-    let nextLine = rows.reduce((max, row) => Math.max(max, row._line ?? 0), 0);
-    return {
-      id: gridId,
+function buildChildren(node: MvcNode, children: MvcSubmodel[] | undefined): RawModel[] {
+  const models: RawModel[] = [];
+  for (const sub of children ?? []) {
+    if (sub.type === 'FIELDS') {
+      const child = node.fields?.[sub.id];
+      if (child) {
+        const nested = buildChildren(child, sub.children);
+        models.push({ id: sub.id, modeltype: 'FIELDS', fields: toFields(child.values, true), ...(nested.length ? { models: nested } : {}) });
+      }
+      continue;
+    }
+    const rows = node.grids?.[sub.id];
+    if (!rows) {
+      continue;
+    }
+    let nextLine = rows.reduce((max, row) => Math.max(max, row.line ?? 0), 0);
+    models.push({
+      id: sub.id,
       modeltype: 'GRID',
-      items: rows.map((row) => ({
-        id: row._line ?? ++nextLine,
-        deleted: row._deleted ? 1 : 0,
-        fields: fieldEntries(row).map(([id, value]) => ({ id, value: toMvcValue(value) })),
-      })),
-    };
-  });
+      items: rows.map((row) => {
+        const nested = buildChildren(row, sub.children);
+        return {
+          id: row.line ?? ++nextLine,
+          deleted: row.deleted ? 1 : 0,
+          fields: toFields(row.values, false),
+          ...(nested.length ? { models: nested } : {}),
+        };
+      }),
+    });
+  }
+  return models;
+}
 
+/** Monta o corpo do POST (MVC_INSERT) ou PUT (MVC_UPDATE), em todos os níveis da especificação. */
+export function buildMvcBody(spec: MvcModelSpec, data: MvcNode, operation: number): object {
+  const nested = buildChildren(data, spec.children);
   return {
     id: spec.modelId,
     operation,
     models: [
-      {
-        id: spec.masterId,
-        modeltype: 'FIELDS',
-        fields: fieldEntries(data.master).map(([id, value], index) => ({ id, order: index + 1, value: toMvcValue(value) })),
-        ...(grids.length ? { models: grids } : {}),
-      },
+      { id: spec.masterId, modeltype: 'FIELDS', fields: toFields(data.values, true), ...(nested.length ? { models: nested } : {}) },
     ],
   };
 }
@@ -541,23 +592,35 @@ function toRecord(fields: RawField[] | undefined): MvcRecord {
   return record;
 }
 
-/** Registro do GET /fwmodel/<api>/<pk> → { pk, master, grids }. */
-export function parseMvcResource(resource: RawResource, spec: MvcModelSpec): MvcData {
-  const master = resource.models.find((model) => model.id === spec.masterId) ?? resource.models[0];
-  const grids: Record<string, MvcGridRow[]> = {};
-  for (const gridId of spec.grids ?? []) {
-    const grid = master?.models?.find((model) => model.id === gridId);
-    grids[gridId] = (grid?.items ?? []).map((item) => ({ ...toRecord(item.fields), _line: item.id, _deleted: item.deleted === 1 }));
+function parseNode(fields: RawField[] | undefined, models: RawModel[] | undefined, children: MvcSubmodel[] | undefined): MvcNode {
+  const node = mvcNode(toRecord(fields));
+  for (const sub of children ?? []) {
+    const raw = models?.find((model) => model.id === sub.id);
+    if (sub.type === 'FIELDS') {
+      node.fields[sub.id] = parseNode(raw?.fields, raw?.models, sub.children);
+    } else {
+      node.grids[sub.id] = (raw?.items ?? []).map((item) => ({
+        ...parseNode(item.fields, item.models, sub.children),
+        line: item.id,
+        deleted: item.deleted === 1,
+      }));
+    }
   }
-  return { pk: resource.pk, master: toRecord(master?.fields), grids };
+  return node;
 }
 
-/** Lista do GET /fwmodel/<api> → { items (campos do FIELDS + _pk), hasNext, total }. */
+/** Registro do GET /fwmodel/<api>/<pk> → { pk, values, fields, grids } em todos os níveis. */
+export function parseMvcResource(resource: RawResource, spec: MvcModelSpec): MvcData {
+  const master = resource.models.find((model) => model.id === spec.masterId) ?? resource.models[0];
+  return { pk: resource.pk, ...parseNode(master?.fields, master?.models, spec.children) };
+}
+
+/** Lista do GET /fwmodel/<api> → { items (campos do cabeçalho + _pk), hasNext, total }. */
 export function parseMvcList(raw: RawList, spec: MvcModelSpec): MvcPage {
   const resources = raw.resources ?? [];
   const items = resources.map((resource) => {
-    const data = parseMvcResource(resource, spec);
-    return { ...data.master, _pk: data.pk ?? '' } as MvcListItem;
+    const data = parseMvcResource(resource, { modelId: spec.modelId, masterId: spec.masterId });
+    return { ...data.values, _pk: data.pk ?? '' } as MvcListItem;
   });
   const total = raw.total ?? items.length;
   const start = raw.startindex ?? 1;
@@ -570,7 +633,6 @@ export function mvcListParams(page: number, pageSize: number, search?: string): 
   const params: Record<string, string> = {
     COUNT: String(pageSize),
     STARTINDEX: String((Math.max(page, 1) - 1) * pageSize + 1),
-    FIELDEMPTY: 'true',
   };
   if (search?.trim()) {
     params['SEARCH'] = search.trim();
@@ -645,7 +707,10 @@ import {
   MVC_UPDATE,
   MvcData,
   MvcModelSpec,
+  MvcNode,
   MvcPage,
+  RawList,
+  RawResource,
   buildMvcBody,
   mvcListParams,
   parseMvcError,
@@ -660,7 +725,7 @@ export class ProtheusMvcService {
 
   list(api: string, spec: MvcModelSpec, page: number, pageSize: number, search?: string): Observable<MvcPage> {
     const params = new HttpParams({ fromObject: mvcListParams(page, pageSize, search) });
-    return this.http.get<Parameters<typeof parseMvcList>[0]>(api, { params }).pipe(
+    return this.http.get<RawList>(api, { params }).pipe(
       map((raw) => parseMvcList(raw, spec)),
       catchError((error: HttpErrorResponse) => this.fail(error)),
     );
@@ -668,22 +733,22 @@ export class ProtheusMvcService {
 
   get(api: string, spec: MvcModelSpec, pk: string): Observable<MvcData> {
     const params = new HttpParams().set('FIELDEMPTY', 'true');
-    return this.http.get<Parameters<typeof parseMvcResource>[0]>(`${api}/${pk}`, { params }).pipe(
+    return this.http.get<RawResource>(`${api}/${pk}`, { params }).pipe(
       map((raw) => parseMvcResource(raw, spec)),
       catchError((error: HttpErrorResponse) => this.fail(error)),
     );
   }
 
-  create(api: string, spec: MvcModelSpec, data: MvcData): Observable<MvcData> {
-    return this.http.post<Parameters<typeof parseMvcResource>[0]>(api, buildMvcBody(spec, data, MVC_INSERT)).pipe(
+  create(api: string, spec: MvcModelSpec, data: MvcNode): Observable<MvcData> {
+    return this.http.post<RawResource>(api, buildMvcBody(spec, data, MVC_INSERT)).pipe(
       map((raw) => parseMvcResource(raw, spec)),
       catchError((error: HttpErrorResponse) => this.fail(error)),
     );
   }
 
   /** `null` = nada foi alterado (HTTP 304 do FWRestModel). */
-  update(api: string, spec: MvcModelSpec, pk: string, data: MvcData): Observable<MvcData | null> {
-    return this.http.put<Parameters<typeof parseMvcResource>[0]>(`${api}/${pk}`, buildMvcBody(spec, data, MVC_UPDATE)).pipe(
+  update(api: string, spec: MvcModelSpec, pk: string, data: MvcNode): Observable<MvcData | null> {
+    return this.http.put<RawResource>(`${api}/${pk}`, buildMvcBody(spec, data, MVC_UPDATE)).pipe(
       map((raw) => parseMvcResource(raw, spec)),
       catchError((error: HttpErrorResponse) => (error.status === 304 ? of(null) : this.fail(error))),
     );
@@ -708,17 +773,38 @@ export class ProtheusMvcService {
 
 ```typescript
 import {
+  MVC_INSERT,
   MVC_UPDATE,
+  MvcModelSpec,
   buildMvcBody,
   mvcDate,
   mvcListParams,
+  mvcNode,
   mvcNumber,
   parseMvcError,
   parseMvcList,
+  parseMvcResource,
   toMvcValue,
 } from './protheus-mvc';
 
+interface BodyModel {
+  id: string;
+  modeltype: string;
+  fields?: { id: string; order?: number; value: string }[];
+  items?: { id: number; deleted: number; fields: { id: string; value: string }[]; models?: BodyModel[] }[];
+  models?: BodyModel[];
+}
+
 describe('protheus-mvc (conversões)', () => {
+  const spec: MvcModelSpec = {
+    modelId: 'M',
+    masterId: 'CAB',
+    children: [
+      { id: 'COMPL', type: 'FIELDS' },
+      { id: 'ITENS', type: 'GRID', children: [{ id: 'SUBITENS', type: 'GRID' }] },
+    ],
+  };
+
   it('toMvcValue: Date, número, lógico e vazio viram texto', () => {
     expect(toMvcValue(new Date(2030, 0, 5))).toBe('20300105');
     expect(toMvcValue(5)).toBe('5');
@@ -732,27 +818,90 @@ describe('protheus-mvc (conversões)', () => {
     expect(mvcNumber('1.00')).toBe(1);
   });
 
-  it('buildMvcBody: linha removida vai com deleted 1 e linha nova ganha o próximo id', () => {
-    const body = buildMvcBody(
-      { modelId: 'M', masterId: 'F', grids: ['G'] },
-      { master: { A: 'x' }, grids: { G: [{ _line: 1, _deleted: true, B: 1 }, { B: 2 }] } },
-      MVC_UPDATE,
-    ) as { models: { models: { items: { id: number; deleted: number }[] }[] }[] };
-    expect(body.models[0].models[0].items.map((i) => [i.id, i.deleted])).toEqual([[1, 1], [2, 0]]);
+  it('buildMvcBody: order nos FIELDS (cabeçalho e 1:1), grade e grade neta com id/deleted', () => {
+    const data = {
+      ...mvcNode({ A: 'x', B: 2 }),
+      fields: { COMPL: mvcNode({ C: 'y' }) },
+      grids: {
+        ITENS: [
+          { ...mvcNode({ I: '001' }), line: 1, grids: { SUBITENS: [{ ...mvcNode({ S: 1 }), line: 1, deleted: true }, mvcNode({ S: 2 })] } },
+          mvcNode({ I: '002' }),
+        ],
+      },
+    };
+    const body = buildMvcBody(spec, data, MVC_UPDATE) as { operation: number; models: BodyModel[] };
+    const cab = body.models[0];
+    expect(body.operation).toBe(4);
+    expect(cab.fields).toEqual([
+      { id: 'A', order: 1, value: 'x' },
+      { id: 'B', order: 2, value: '2' },
+    ]);
+    const compl = cab.models!.find((m) => m.id === 'COMPL')!;
+    expect(compl.modeltype).toBe('FIELDS');
+    expect(compl.fields).toEqual([{ id: 'C', order: 1, value: 'y' }]);
+    const itens = cab.models!.find((m) => m.id === 'ITENS')!.items!;
+    expect(itens.map((i) => i.id)).toEqual([1, 2]);
+    const netos = itens[0].models![0].items!;
+    expect(netos.map((n) => [n.id, n.deleted])).toEqual([[1, 1], [2, 0]]);
+    expect(itens[1].models).toBeUndefined();
+  });
+
+  it('buildMvcBody sem filhos não manda models', () => {
+    const body = buildMvcBody({ modelId: 'M', masterId: 'CAB' }, mvcNode({ A: 1 }), MVC_INSERT) as { models: BodyModel[] };
+    expect(body.models[0].models).toBeUndefined();
+  });
+
+  it('parseMvcResource: cabeçalho, bloco 1:1, grade e grade neta', () => {
+    const data = parseMvcResource(
+      {
+        id: 'M',
+        pk: 'PK1',
+        models: [
+          {
+            id: 'CAB',
+            fields: [{ id: 'A', value: 'x' }],
+            models: [
+              { id: 'COMPL', modeltype: 'FIELDS', fields: [{ id: 'C', value: 'y' }] },
+              {
+                id: 'ITENS',
+                modeltype: 'GRID',
+                items: [
+                  {
+                    id: 1,
+                    deleted: 0,
+                    fields: [{ id: 'I', value: '001' }],
+                    models: [{ id: 'SUBITENS', modeltype: 'GRID', items: [{ id: 1, deleted: 0, fields: [{ id: 'S', value: '1.00' }] }] }],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      spec,
+    );
+    expect(data.pk).toBe('PK1');
+    expect(data.values['A']).toBe('x');
+    expect(data.fields['COMPL'].values['C']).toBe('y');
+    expect(data.grids['ITENS'][0].line).toBe(1);
+    expect(mvcNumber(data.grids['ITENS'][0].grids['SUBITENS'][0].values['S'])).toBe(1);
   });
 
   it('parseMvcList: hasNext falso na última página', () => {
-    expect(parseMvcList({ total: 3, count: 1, startindex: 3, resources: [] }, { modelId: 'M', masterId: 'F' }).hasNext).toBeFalse();
+    expect(parseMvcList({ total: 3, count: 1, startindex: 3, resources: [] }, spec).hasNext).toBeFalse();
   });
 
   it('mvcListParams: página 3 de 10', () => {
     expect(mvcListParams(3, 10)['STARTINDEX']).toBe('21');
   });
 
-  it('parseMvcError: texto padrão do framework', () => {
-    const e = parseMvcError(400, { errorMessage: 'Id campo erro: [Z08_NATORI]\r\nMensagem de erro: [Não existe.]\r\n' });
-    expect(e.field).toBe('Z08_NATORI');
-    expect(e.message).toBe('Não existe.');
+  it('parseMvcError: texto padrão do framework e JSON do recurso', () => {
+    const texto = parseMvcError(400, { errorMessage: 'Id campo erro: [Z08_NATORI]\r\nMensagem de erro: [Não existe.]\r\n' });
+    expect(texto.field).toBe('Z08_NATORI');
+    expect(texto.message).toBe('Não existe.');
+    const json = parseMvcError(400, { errorMessage: '{"code":"UNIQUELINE","message":"Linha duplicada","submodel":"SUBITENS"}' });
+    expect(json.code).toBe('UNIQUELINE');
+    expect(json.submodel).toBe('SUBITENS');
   });
 });
 ```
@@ -764,12 +913,12 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
-import { MvcError, MvcModelSpec } from './protheus-mvc';
+import { MvcError, MvcModelSpec, mvcNode } from './protheus-mvc';
 import { ProtheusMvcService } from './protheus-mvc.service';
 
 describe('ProtheusMvcService', () => {
   const api = '/rest/fwmodel/rcaregras';
-  const spec: MvcModelSpec = { modelId: 'MF134310', masterId: 'Z07MASTER', grids: ['Z08DETAIL'] };
+  const spec: MvcModelSpec = { modelId: 'MF134310', masterId: 'Z07MASTER', children: [{ id: 'Z08DETAIL', type: 'GRID' }] };
   const resource = {
     id: 'MF134310',
     pk: 'PK1',
@@ -803,7 +952,7 @@ describe('ProtheusMvcService', () => {
   });
 
   it('create: POST com operation 3, order nos campos e valores em texto', () => {
-    service.create(api, spec, { master: { Z07_CODIGO: 'R1', Z07_RCA: 5 }, grids: { Z08DETAIL: [] } }).subscribe();
+    service.create(api, spec, mvcNode({ Z07_CODIGO: 'R1', Z07_RCA: 5 })).subscribe();
     const req = httpMock.expectOne(api);
     expect(req.request.method).toBe('POST');
     const body = req.request.body as { operation: number; models: { fields: { id: string; order: number; value: string }[] }[] };
@@ -817,7 +966,7 @@ describe('ProtheusMvcService', () => {
 
   it('update: 304 vira null (nada alterado)', () => {
     let result: unknown = 'pendente';
-    service.update(api, spec, 'PK1', { master: { Z07_CODIGO: 'R1' }, grids: {} }).subscribe((r) => (result = r));
+    service.update(api, spec, 'PK1', mvcNode({ Z07_CODIGO: 'R1' })).subscribe((r) => (result = r));
     httpMock.expectOne(`${api}/PK1`).flush(null, { status: 304, statusText: 'Not Modified' });
     expect(result).toBeNull();
   });
@@ -845,12 +994,27 @@ describe('ProtheusMvcService', () => {
 });
 ```
 
+## Especificação do modelo (`MvcModelSpec`)
+
+Espelha o `ModelDef`: um nó por `AddFields`/`AddGrid`, com o id e o tipo, aninhado conforme o "owner".
+
+```typescript
+// oModel:AddFields("SC5MASTER") / AddFields("SC5COMPL", "SC5MASTER") / AddGrid("SC6DETAIL", "SC5MASTER")
+// / AddGrid("SC9DETAIL", "SC6DETAIL")
+const SPEC: MvcModelSpec = {
+  modelId: '<MODEL_ID>',                 // MPFormModel():New("<MODEL_ID>")
+  masterId: 'SC5MASTER',
+  children: [
+    { id: 'SC5COMPL', type: 'FIELDS' },
+    { id: 'SC6DETAIL', type: 'GRID', children: [{ id: 'SC9DETAIL', type: 'GRID' }] },
+  ],
+};
+```
+
 ## Uso no componente (page-edit / modal-crud)
 
 ```typescript
-// especificação do modelo: ids do MPFormModel, do FIELDS principal e das grades filhas dele
 const API = '/rest/fwmodel/<api>';
-const SPEC: MvcModelSpec = { modelId: '<MODEL_ID>', masterId: '<ALIAS>MASTER', grids: ['<ALIAS2>DETAIL'] };
 
 private readonly mvc = inject(ProtheusMvcService);
 private readonly notification = inject(PoNotificationService);
@@ -858,35 +1022,43 @@ private readonly notification = inject(PoNotificationService);
 carregar(pk: string): void {
   this.mvc.get(API, SPEC, pk).subscribe({
     next: (data) => {
-      this.dados = data;                              // data.master = campos do Protheus (texto)
-      this.form.patchValue({ ...data.master, emissao: mvcDate(data.master['<ALIAS>_EMISSAO']) });
-      this.itens = data.grids['<ALIAS2>DETAIL'].filter((l) => !l._deleted);
+      this.dados = data;                                   // data.values = campos do cabeçalho (texto)
+      this.form.patchValue({ ...data.values, emissao: mvcDate(data.values['SC5_EMISSAO']) });
+      this.itens = data.grids['SC6DETAIL'].filter((l) => !l.deleted);
+      // netos da linha: this.itens[i].grids['SC9DETAIL'] · bloco 1:1: data.fields['SC5COMPL'].values
     },
     error: (e: MvcError) => this.notification.error(mvcErrorText(e)),
   });
 }
 
+novoItem(): void {
+  this.dados!.grids['SC6DETAIL'].push(mvcNode({ SC6_ITEM: this.proximoItem() }));   // sem line = linha nova
+}
+
 salvar(): void {
-  const data: MvcData = { master: this.form.getRawValue(), grids: { '<ALIAS2>DETAIL': this.linhas } };
-  const pk = this.dados?.pk;
-  const gravar$ = pk ? this.mvc.update(API, SPEC, pk, data) : this.mvc.create(API, SPEC, data);
+  const data = this.dados!;
+  data.values = { ...data.values, ...this.form.getRawValue() };
+  const gravar$ = data.pk ? this.mvc.update(API, SPEC, data.pk, data) : this.mvc.create(API, SPEC, data);
   gravar$.subscribe({
     next: (salvo) => this.notification.success(salvo ? 'Registro gravado.' : 'Nenhuma alteração para gravar.'),
     error: (e: MvcError) => {
       this.notification.error(mvcErrorText(e));
-      // e.field = campo do Protheus (ex.: '<ALIAS>_CODIGO') → marcar o controle correspondente
+      // e.field = campo do Protheus, e.submodel = submodelo (ex.: 'SC9DETAIL') → marcar o controle/linha
     },
   });
 }
 ```
 
-- Linha removida da grade: manter a linha com `_deleted = true` (não tirar do array) até salvar.
-- Linha nova: sem `_line` — o `buildMvcBody` numera.
+- Inclusão: começar de `mvcNode()` (cabeçalho vazio) e ir preenchendo `values`, `fields` e `grids`.
+- Linha removida (em qualquer nível): `row.deleted = true` e **mantê-la no array** até salvar; excluir uma
+  linha exclui também os netos dela.
+- Linha nova: sem `line` — o `buildMvcBody` numera depois da maior linha existente.
 - Lista: `this.mvc.list(API, SPEC, page, pageSize, busca)` → `{ items, hasNext, total }`; cada item tem `_pk`.
 - O proxy `/rest` do `proxy.conf.js` já cobre `/rest/fwmodel`.
 
 ## Limitações
 
-- Grades só do 1º nível abaixo do FIELDS principal (o caso comum cabeçalho/itens).
-- O GET devolve só campos preenchidos sem `FIELDEMPTY=true` (o service já manda).
+- O GET devolve só campos preenchidos sem `FIELDEMPTY=true` (o `get` do service já manda; a lista não).
+- Grade sem tabela (carga manual/array, ex.: SM0) precisa de `Seek`/`Skip`/`Total` próprios na classe —
+  caso a caso (exemplo no TDN da FWRestModel).
 - Permissão testada com administrador; validar com um usuário restrito no ambiente do cliente.

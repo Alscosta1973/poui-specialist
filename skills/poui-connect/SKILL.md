@@ -252,7 +252,7 @@ usuário que o backend precisa usar `FWAdapterBaseV2` antes e manter o padrão s
 Seguir `skills/poui-code-generation/templates-mvc-rest.md`: gerar `RM_<FONTE>.prw` (recurso FWRestModel),
 `src/app/core/protheus-mvc.ts` + `protheus-mvc.service.ts` + specs (se ainda não existirem) e trocar o service
 do componente pelo `ProtheusMvcService` (lista/consulta/inclusão/alteração/exclusão em `/rest/fwmodel/<api>`).
-Antes, ler o `ModelDef` do fonte (se estiver no workspace) para preencher `modelId`, `masterId` e `grids` e
+Antes, ler o `ModelDef` do fonte (se estiver no workspace) para montar a `MvcModelSpec` (`modelId`, `masterId` e a árvore `children` de AddFields/AddGrid em qualquer nível) e
 procurar `INCLUI`/`ALTERA`, `FWFormView`, `MsgYesNo`, `aCols` — avisar o usuário do que ainda quebra no REST.
 
 ---
