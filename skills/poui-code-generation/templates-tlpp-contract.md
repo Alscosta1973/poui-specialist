@@ -228,7 +228,7 @@ TTALK oficial da TOTVS, mais simples e com Swagger automático:
 #include "tlpp-core.th"
 
 @Get("/api/custom/v1/entidade")
-User Function getEntidadeList() as Logical
+User Function EntGetLs() as Logical
   Local jQuery := oRest:getQueryRequest() as Json
   Local nPage     := IIf(jQuery["page"] == Nil, 1, jQuery["page"])
   Local nPageSize := IIf(jQuery["pageSize"] == Nil, 10, jQuery["pageSize"])
@@ -236,7 +236,7 @@ User Function getEntidadeList() as Logical
 Return oRest:setStatusResponse(200, cResponse)
 
 @Get("/api/custom/v1/entidade/:id")
-User Function getEntidadeById() as Logical
+User Function EntGetId() as Logical
   Local jPath := oRest:getPathParamsRequest() as Json
   Local cId   := jPath["id"] as Character
   // ... buscar registro; se não encontrado:
@@ -244,7 +244,7 @@ User Function getEntidadeById() as Logical
 Return oRest:setStatusResponse(200, cResponse)
 
 @Post("/api/custom/v1/entidade")
-User Function postEntidade() as Logical
+User Function EntPost() as Logical
   Local cBody := oRest:getBodyRequest()
   // ... validar, RecLock/MsUnlock, montar cResponse do registro criado
 Return oRest:setStatusResponse(201, cResponse)
@@ -253,6 +253,186 @@ Return oRest:setStatusResponse(201, cResponse)
 > Requer `appserver.ini` com `[HTTPREST]` / `[HTTPURI]` configurado (`URL=/api`, `PrepareIn=ALL`).
 > Ao usar este skeleton, o formato de erro é sempre o **plano** (`{code, message, detailedMessage}`),
 > nunca o `errorMessage` serializado do WsRestFul.
+
+---
+
+## Filtro oData (opcional — flag `--odata`)
+
+**Padrão: desligado.** Sem `--odata`, o contrato usa `q` (busca rápida) e parâmetros próprios,
+como acima. Use `--odata` quando o cliente estiver na **12.1.2610+** (SmartX usa oData) ou quiser
+seguir o padrão de API TOTVS. Ver `skills/poui-patterns/smartx.md`.
+
+### Contrato
+
+```
+GET /rest/api/custom/v1/<entidade>?filter=codigo eq '000001' and nome ne ''&order=-nome&page=1&pageSize=10&fields=codigo,nome
+```
+
+| Parâmetro | Descrição |
+|---|---|
+| `filter` | Expressão oData sobre as **propriedades JSON** (não sobre os campos da tabela). Também aceitar `$filter` (oData puro). |
+| `order` | Propriedades separadas por vírgula; prefixo `-` = decrescente |
+| `fields` | Propriedades a devolver |
+| `page` / `pageSize` | Paginação (mesmo comportamento do contrato padrão) |
+
+Operadores: `eq`, `ne`, `gt`, `ge`, `lt`, `le`, `and`, `or`, parênteses. Texto entre aspas simples,
+aspa simples dentro do valor duplicada (`'D''Avila'`). Funções como `contains`/`startswith`
+dependem da versão da Lib — confirmar no TDN antes de usar.
+
+Resposta: igual ao contrato padrão (`items`, `hasNext`, `remainingRecords`).
+
+### Backend — `FWAdapterBaseV2` (o framework traduz o oData para SQL)
+
+Não escrever parser de oData à mão. A classe `FWAdapterBaseV2` do framework recebe o filtro,
+traduz para SQL e pagina. **Segurança:** só as propriedades registradas em `AddMapFields` podem
+ser filtradas/ordenadas — o mapa funciona como lista permitida e impede SQL injection.
+
+> Referência: TDN "09. FWAdapterBaseV2" (https://tdn.totvs.com/display/public/framework/09.+FWAdapterBaseV2).
+> Conferir a assinatura dos métodos na Lib do cliente antes de compilar.
+
+```tlpp
+#include "totvs.ch"
+#include "tlpp-core.th"
+
+/*/{Protheus.doc} EntAdapter
+    Adapter da lista de <Entidade>: paginacao e filtro oData via FWAdapterBaseV2.
+    @type Class
+    @author Andre Costa
+/*/
+Class EntAdapter From FWAdapterBaseV2
+    Public Method New(cVerb As Character)
+    Public Method GetLista()
+EndClass
+
+/*/{Protheus.doc} New
+    Construtor do adapter.
+    @param cVerb Character, verbo HTTP (GET)
+    @type Method
+    @author Andre Costa
+/*/
+Method New(cVerb) Class EntAdapter
+    _Super:New(cVerb, .T.)
+Return Self
+
+/*/{Protheus.doc} GetLista
+    Mapeia propriedade JSON -> campo, monta a query e executa com o filtro/ordem/pagina recebidos.
+    @type Method
+    @author Andre Costa
+/*/
+Method GetLista() Class EntAdapter
+    Local aArea := FWGetArea()
+
+    // So as propriedades mapeadas aqui podem aparecer no filter/order/fields (lista permitida)
+    ::AddMapFields("codigo", "A1_COD",  .T., .T., {"A1_COD",  "C", TamSX3("A1_COD")[1],  0})
+    ::AddMapFields("loja",   "A1_LOJA", .T., .T., {"A1_LOJA", "C", TamSX3("A1_LOJA")[1], 0})
+    ::AddMapFields("nome",   "A1_NOME", .T., .F., {"A1_NOME", "C", TamSX3("A1_NOME")[1], 0})
+
+    ::SetQuery("SELECT #QueryFields# FROM " + RetSqlName("SA1") + " SA1 WHERE #QueryWhere#")
+    ::SetWhere("SA1.A1_FILIAL = '" + FWxFilial("SA1") + "' AND SA1.D_E_L_E_T_ = ' '")
+    ::SetOrder("A1_COD, A1_LOJA")
+
+    If ::Execute()
+        ::FillGetResponse()
+    EndIf
+
+    FWRestArea(aArea)
+Return
+
+/*/{Protheus.doc} EntLista
+    GET da lista de <Entidade> com filtro oData.
+    @type User Function
+    @author Andre Costa
+/*/
+@Get("/api/custom/v1/entidade")
+User Function EntLista() as Logical
+    Local jQuery  := oRest:getQueryRequest()
+    Local oAdapt  := EntAdapter():New("GET")
+    Local jErro   := Nil
+    Local cFiltro := ""
+    Local lRet    := .T.
+
+    cFiltro := IIf(jQuery["filter"] <> Nil, jQuery["filter"], IIf(jQuery["$filter"] <> Nil, jQuery["$filter"], ""))
+
+    oAdapt:SetPage(Val(IIf(jQuery["page"] == Nil, "1", cValToChar(jQuery["page"]))))
+    oAdapt:SetPageSize(Min(Val(IIf(jQuery["pageSize"] == Nil, "10", cValToChar(jQuery["pageSize"]))), 50))
+    If jQuery["order"] <> Nil
+        oAdapt:SetOrderQuery(jQuery["order"])
+    EndIf
+    If jQuery["fields"] <> Nil
+        oAdapt:SetFields(jQuery["fields"])
+    EndIf
+    If !Empty(cFiltro)
+        // mesmo formato do aQueryString do REST ADVPL: {{"FILTER", <expressao oData>}}
+        oAdapt:SetUrlFilter({{"FILTER", cFiltro}})
+    EndIf
+
+    oAdapt:GetLista()
+
+    If oAdapt:lOk
+        lRet := oRest:setStatusResponse(200, oAdapt:GetJSONResponse())
+    Else
+        jErro := JsonObject():New()
+        jErro["code"]            := cValToChar(oAdapt:GetCode())
+        jErro["message"]         := oAdapt:GetMessage()
+        jErro["detailedMessage"] := ""
+        lRet := oRest:setStatusResponse(400, jErro:ToJson())
+        FwFreeObj(jErro)
+    EndIf
+
+    FwFreeObj(oAdapt)
+Return lRet
+```
+
+> Nomes de `User Function` com no máximo 8 caracteres (o RPO prefixa `U_`).
+> A classe de adapter fica no mesmo `.tlpp` ou em um fonte de serviço próprio; a regra de negócio
+> que não for de consulta continua na classe de serviço (ver `smartx.md`).
+
+### Frontend — montar o filtro
+
+Helper gerado em `src/app/core/odata-filter.ts` (uma vez por projeto):
+
+```typescript
+export type ODataOp = 'eq' | 'ne' | 'gt' | 'ge' | 'lt' | 'le';
+
+export interface ODataCondition {
+  field: string;
+  op: ODataOp;
+  value: string | number | boolean | null | undefined;
+}
+
+/** Converte condições em expressão oData (`a eq 'x' and b ge 10`), ignorando valores vazios. */
+export function toODataFilter(conditions: ODataCondition[]): string {
+  return conditions
+    .filter(c => c.value !== null && c.value !== undefined && c.value !== '')
+    .map(c => `${c.field} ${c.op} ${toODataLiteral(c.value as string | number | boolean)}`)
+    .join(' and ');
+}
+
+function toODataLiteral(value: string | number | boolean): string {
+  return typeof value === 'string' ? `'${value.replace(/'/g, "''")}'` : String(value);
+}
+```
+
+No service, o filtro avançado do `page-dynamic-search` vira `filter`:
+
+```typescript
+getAll(params: GetAllParams): Observable<ProtheusListResponse<Entidade>> {
+  const filter = toODataFilter([
+    { field: 'codigo',     op: 'eq', value: params.codigo },
+    { field: 'emissao',    op: 'ge', value: params.emissaoDe },   // datas AAAAMMDD
+    { field: 'emissao',    op: 'le', value: params.emissaoAte },
+  ]);
+  let p = new HttpParams()
+    .set('page', String(params.page ?? 1))
+    .set('pageSize', String(params.pageSize ?? 10));
+  if (filter)       { p = p.set('filter', filter); }
+  if (params.order) { p = p.set('order', params.order); }
+  return this.http.get<ProtheusListResponse<Entidade>>(this.apiUrl, { params: p });
+}
+```
+
+Testes Karma do helper (gerar junto, `odata-filter.spec.ts`): condição vazia é ignorada,
+`and` entre condições, aspa simples duplicada, número sem aspas.
 
 ---
 

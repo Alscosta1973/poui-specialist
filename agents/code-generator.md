@@ -214,7 +214,7 @@ E prossiga diretamente para a substituição de placeholders sem nova chamada de
 | `dashboard` | `skills/poui-code-generation/templates-dashboard.md`<br>`skills/poui-patterns/po-ui-quirks-onpush.md` |
 | `refactor` | `skills/poui-code-generation/templates-refactor-from-tlpp.md`<br>`skills/poui-components/form-fields.md`<br>`skills/poui-components/table-components.md`<br>`skills/poui-patterns/po-ui-quirks-table.md`<br>`skills/poui-patterns/po-ui-quirks-forms.md`<br>`skills/poui-patterns/po-ui-quirks-onpush.md` |
 | `models` | `skills/poui-code-generation/templates-models.md` |
-| `tlpp-contract` | `skills/poui-code-generation/templates-tlpp-contract.md` |
+| `tlpp-contract` | `skills/poui-code-generation/templates-tlpp-contract.md` (com `--odata`: seção "Filtro oData (opcional)" — `FWAdapterBaseV2`) |
 | `http-interceptor` | `skills/poui-code-generation/templates-http-interceptor.md` |
 | `route-guard` | `skills/poui-code-generation/templates-route-guard.md` |
 | `standalone-migrate` | `skills/poui-code-generation/templates-standalone-migrate.md` |

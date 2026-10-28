@@ -114,7 +114,11 @@ Para conectar <ComponentClass> ao Protheus, preciso de:
 4. Autenticação: sem auth / Basic (usuário+senha) / Bearer token
 5. Há ações além do GET? (POST confirmar, DELETE, etc.)
 6. tenantId (empresa,filial — ex.: 99,01)? Em branco = padrão do REST
+7. Filtro da lista: simples (padrão — `q` + parâmetros próprios) ou oData
+   (`filter=campo eq 'x'`, padrão TOTVS/SmartX — recomendado se o cliente está na 12.1.2610+)?
 ```
+
+Se a flag `--odata` foi passada no comando, a resposta da pergunta 7 já é **oData** — não perguntar.
 
 > **Nunca peça a senha/token no chat.** Para Basic/Bearer, peça só o usuário e oriente o
 > usuário a gravar a senha (ou o token) no arquivo `protheus-dev.secret` na raiz do projeto
@@ -228,6 +232,18 @@ Remover:
 
 Manter `readonly apiUrl` já existente no service ou adicionar se faltar.
 
+### Variante oData (pergunta 7 = oData ou flag `--odata`)
+
+Em vez de mandar cada filtro como parâmetro próprio, montar **um** parâmetro `filter` com o helper
+`toODataFilter` (criar `src/app/core/odata-filter.ts` + `odata-filter.spec.ts` se ainda não
+existirem — código e testes na seção "Filtro oData (opcional)" de
+`skills/poui-code-generation/templates-tlpp-contract.md`). Os nomes de campo do `filter` são as
+**propriedades JSON** da API, nunca os campos da tabela. Intervalos de data viram `ge`/`le`;
+busca rápida continua em `q` só se o endpoint existente a aceitar.
+
+Se o endpoint **já existe** e não aceita `filter` (só parâmetros próprios), não trocar: avisar o
+usuário que o backend precisa usar `FWAdapterBaseV2` antes e manter o padrão simples.
+
 ---
 
 ## Passo 6 — Desativar interceptors de mock
@@ -255,6 +271,8 @@ Se o usuário informou que o endpoint ainda não existe no Protheus:
 
 Invocar `skills/poui-code-generation/templates-tlpp-contract.md` com os parâmetros coletados
 (tabelas, campos, filtros, regras de negócio) para gerar o skeleton `.tlpp`.
+Se o filtro escolhido for oData, gerar o GET da lista com a seção "Filtro oData (opcional)" do
+template (`FWAdapterBaseV2` + `AddMapFields` com as propriedades usadas no service).
 
 Exibir o arquivo gerado e orientar:
 ```

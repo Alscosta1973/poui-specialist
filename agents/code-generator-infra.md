@@ -144,11 +144,11 @@ Se um arquivo de template já foi carregado nesta sessão via `Read`, **não rel
 
 | Type | Files to read |
 |------|--------------|
-| `service` | `skills/poui-code-generation/templates-service.md`<br>`skills/poui-patterns/protheus-rest.md` |
+| `service` | `skills/poui-code-generation/templates-service.md`<br>`skills/poui-patterns/protheus-rest.md`<br>(com `--odata`: também a seção "Filtro oData (opcional)" de `templates-tlpp-contract.md` — helper `odata-filter.ts` + spec) |
 | `module` | `skills/poui-code-generation/templates-module.md`<br>`skills/poui-patterns/module-structure.md`<br>`skills/poui-patterns/po-ui-patterns-i18n.md` |
 | `dashboard` | `skills/poui-code-generation/templates-dashboard.md`<br>`skills/poui-patterns/po-ui-quirks-onpush.md` |
 | `models` | `skills/poui-code-generation/templates-models.md` |
-| `tlpp-contract` | `skills/poui-code-generation/templates-tlpp-contract.md` |
+| `tlpp-contract` | `skills/poui-code-generation/templates-tlpp-contract.md` (com `--odata`: gerar o GET da lista pela seção "Filtro oData (opcional)" — `FWAdapterBaseV2`) |
 | `refactor` | `skills/poui-code-generation/templates-refactor-from-tlpp.md`<br>`skills/poui-components/form-fields.md`<br>`skills/poui-components/table-components.md`<br>`skills/poui-patterns/po-ui-quirks-table.md`<br>`skills/poui-patterns/po-ui-quirks-forms.md`<br>`skills/poui-patterns/po-ui-quirks-onpush.md` |
 | `http-interceptor` | `skills/poui-code-generation/templates-http-interceptor.md`<br>`skills/poui-patterns/protheus-rest.md` |
 | `route-guard` | `skills/poui-code-generation/templates-route-guard.md` |

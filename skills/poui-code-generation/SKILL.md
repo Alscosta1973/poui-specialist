@@ -100,7 +100,7 @@ All templates use these substitution placeholders:
 | **module** | `templates-module.md` | App scaffold: config, routes, shell, package.json, proxy, tsconfig |
 | **dashboard** | `templates-dashboard.md` | Analytics page: po-widget KPIs + po-chart |
 | **models** | `templates-models.md` | TypeScript model interfaces: simple, composite key, flat relational |
-| **tlpp-contract** | `templates-tlpp-contract.md` | Backend REST contract: endpoints, pagination (TTALK `remainingRecords`), error format (legado + TTALK), skeleton WsRestFul e TLPP REST por anotações |
+| **tlpp-contract** | `templates-tlpp-contract.md` | Backend REST contract: endpoints, pagination (TTALK `remainingRecords`), error format (legado + TTALK), skeleton WsRestFul e TLPP REST por anotações; filtro oData opcional (`--odata`, `FWAdapterBaseV2`) |
 | **refactor-from-tlpp** | `templates-refactor-from-tlpp.md` | Analyze existing .prw/.tlpp → extract columns/actions/rules → assertive one-shot PO-UI generation |
 | **http-interceptor** | `templates-http-interceptor.md` | Angular 17–21+ functional interceptors: auth token, Protheus error translation, loading overlay |
 | **route-guard** | `templates-route-guard.md` | Angular 17–21+ functional guards: CanActivate (Protheus auth/permission), CanDeactivate (unsaved changes) |
