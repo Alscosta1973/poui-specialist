@@ -136,7 +136,7 @@ export const CATALOG: CatalogGroup[] = [
       {
         id: 'tlpp-contract',
         title: 'tlpp-contract',
-        description: 'Contrato REST de backend: endpoints, paginação (TTALK remainingRecords), formato de erro (legado + TTALK), skeleton WsRestFul e TLPP REST por anotações.',
+        description: 'Contrato REST de backend: endpoints, paginação (TTALK remainingRecords), formato de erro (legado + TTALK), skeleton WsRestFul e TLPP REST por anotações, filtro oData opcional (FWAdapterBaseV2).',
       },
       {
         id: 'refactor-from-tlpp',

@@ -118,4 +118,22 @@ describe('buildGeneratorUserPrompt', () => {
 
     assert.ok(!prompt.toLowerCase().includes('arquivo fonte'));
   });
+
+  it('asks for the oData list filter (FWAdapterBaseV2) when odata is true', () => {
+    const type = getGeneratorType('tlpp-contract')!;
+    const naming = deriveEntityNaming('Pedido');
+    const prompt = buildGeneratorUserPrompt(type, naming, 'financeiro', '/rest/api/custom/v1/pedidos', undefined, true);
+
+    assert.ok(prompt.includes('oData'));
+    assert.ok(prompt.includes('FWAdapterBaseV2'));
+    assert.ok(prompt.includes('Filtro oData (opcional)'));
+  });
+
+  it('does not mention oData by default (simple filter stays the default)', () => {
+    const type = getGeneratorType('tlpp-contract')!;
+    const naming = deriveEntityNaming('Pedido');
+    const prompt = buildGeneratorUserPrompt(type, naming, 'financeiro', '/rest/api/custom/v1/pedidos');
+
+    assert.ok(!prompt.includes('oData'));
+  });
 });

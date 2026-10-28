@@ -1,5 +1,5 @@
 import * as assert from 'node:assert';
-import { buildConnectUserPrompt, ConnectParams } from '../../connectPromptBuilder';
+import { buildConnectUserPrompt, connectReferenceFiles, ConnectParams } from '../../connectPromptBuilder';
 
 const baseParams: ConnectParams = {
   componentPath: 'src/app/financeiro/titulos-list/titulos-list.component.ts',
@@ -61,5 +61,36 @@ describe('buildConnectUserPrompt', () => {
     for (const secretLike of ['senha', 'password', 'token', 'Authorization', 'Basic ', 'Bearer ']) {
       assert.ok(!prompt.includes(secretLike), `prompt should never mention "${secretLike}"`);
     }
+  });
+
+  it('asks for the oData filter (helper + filter param) when filterStyle is odata', () => {
+    const prompt = buildConnectUserPrompt({ ...baseParams, filterStyle: 'odata' });
+    assert.ok(prompt.includes('oData'));
+    assert.ok(prompt.includes('toODataFilter'));
+    assert.ok(prompt.includes('Variante oData'));
+  });
+
+  it('keeps the simple filter (no oData instruction) when filterStyle is simple or absent', () => {
+    assert.ok(!buildConnectUserPrompt({ ...baseParams, filterStyle: 'simple' }).includes('oData'));
+    assert.ok(!buildConnectUserPrompt(baseParams).includes('oData'));
+  });
+});
+
+describe('connectReferenceFiles', () => {
+  it('loads only the connect skill and REST patterns for an existing endpoint with simple filter', () => {
+    assert.deepStrictEqual(connectReferenceFiles(false, false), ['poui-connect-skill.md', 'protheus-rest.md']);
+  });
+
+  it('adds the tlpp-contract template for a new endpoint', () => {
+    assert.ok(connectReferenceFiles(true, false).includes('templates-tlpp-contract.md'));
+  });
+
+  it('adds the tlpp-contract template (oData helper) for oData even when the endpoint exists', () => {
+    assert.ok(connectReferenceFiles(false, true).includes('templates-tlpp-contract.md'));
+  });
+
+  it('never lists the template twice', () => {
+    const files = connectReferenceFiles(true, true);
+    assert.strictEqual(files.filter((f) => f === 'templates-tlpp-contract.md').length, 1);
   });
 });

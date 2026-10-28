@@ -11,6 +11,8 @@ export interface GeneratorType {
   fixedModule?: string;
   /** Verdadeiro só para `refactor` — pede um arquivo `.prw`/`.tlpp` fonte via showOpenDialog. */
   requiresSourceFile?: boolean;
+  /** Verdadeiro só para `tlpp-contract` e `service` — pergunta filtro simples × oData (`--odata`). */
+  supportsOData?: boolean;
 }
 
 export const GENERATOR_TYPES: GeneratorType[] = [
@@ -150,8 +152,9 @@ export const GENERATOR_TYPES: GeneratorType[] = [
     label: 'Service',
     description: 'Angular service consumindo REST Protheus (sem componente)',
     family: 'Infraestrutura',
-    referenceFiles: ['code-generator-infra.md', 'templates-service.md', 'protheus-rest.md'],
+    referenceFiles: ['code-generator-infra.md', 'templates-service.md', 'protheus-rest.md', 'templates-tlpp-contract.md'],
     requiresModule: true,
+    supportsOData: true,
   },
   {
     id: 'dashboard',
@@ -164,10 +167,11 @@ export const GENERATOR_TYPES: GeneratorType[] = [
   {
     id: 'tlpp-contract',
     label: 'TLPP Contract',
-    description: 'Skeleton WsRestFul para backend Protheus (sem componente Angular)',
+    description: 'Skeleton REST TLPP para backend Protheus (sem componente Angular); filtro oData opcional',
     family: 'Infraestrutura',
-    referenceFiles: ['code-generator-infra.md', 'templates-tlpp-contract.md'],
+    referenceFiles: ['code-generator-infra.md', 'templates-tlpp-contract.md', 'smartx.md'],
     requiresModule: true,
+    supportsOData: true,
   },
   {
     id: 'auth-login',

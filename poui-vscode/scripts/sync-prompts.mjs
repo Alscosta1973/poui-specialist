@@ -51,6 +51,7 @@ const sources = [
   ['skills/poui-code-generation/templates-dashboard.md', 'templates-dashboard.md'],
   // tlpp-contract
   ['skills/poui-code-generation/templates-tlpp-contract.md', 'templates-tlpp-contract.md'],
+  ['skills/poui-patterns/smartx.md', 'smartx.md'],
   // auth-login
   ['skills/poui-code-generation/templates-auth-login.md', 'templates-auth-login.md'],
 

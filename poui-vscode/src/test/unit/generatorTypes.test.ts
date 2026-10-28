@@ -104,4 +104,20 @@ describe('getGeneratorType', () => {
   it('returns undefined for an unknown id', () => {
     assert.strictEqual(getGeneratorType('not-a-real-type'), undefined);
   });
+
+  it('offers the oData filter option only for tlpp-contract and service', () => {
+    const ids = GENERATOR_TYPES.filter((t) => t.supportsOData).map((t) => t.id);
+    assert.deepStrictEqual(ids.sort(), ['service', 'tlpp-contract']);
+  });
+
+  it('loads the SmartX guide together with the tlpp-contract template', () => {
+    const type = getGeneratorType('tlpp-contract')!;
+    assert.ok(type.referenceFiles.includes('templates-tlpp-contract.md'));
+    assert.ok(type.referenceFiles.includes('smartx.md'));
+  });
+
+  it('loads the tlpp-contract template for service so the oData helper is available', () => {
+    const type = getGeneratorType('service')!;
+    assert.ok(type.referenceFiles.includes('templates-tlpp-contract.md'));
+  });
 });

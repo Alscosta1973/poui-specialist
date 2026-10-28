@@ -125,6 +125,25 @@ export function registerGenerateComponentCommand(
     }
     const resolvedApiPath = apiPathInput.trim() || naming.defaultApiPath;
 
+    let odata = false;
+    if (type.supportsOData) {
+      const filterChoice = await vscode.window.showQuickPick(
+        [
+          { label: 'Simples (padrão)', description: 'busca rápida `q` + parâmetros próprios', value: false },
+          {
+            label: 'oData',
+            description: "filter=campo eq 'x' — padrão TOTVS/SmartX (12.1.2610+), backend com FWAdapterBaseV2",
+            value: true,
+          },
+        ],
+        { placeHolder: 'Formato do filtro da lista' },
+      );
+      if (!filterChoice) {
+        return;
+      }
+      odata = filterChoice.value;
+    }
+
     let sourceFilePath: string | undefined;
     if (type.requiresSourceFile) {
       const sourceFileUris = await vscode.window.showOpenDialog({
@@ -153,7 +172,7 @@ export function registerGenerateComponentCommand(
       );
       return;
     }
-    const userPrompt = buildGeneratorUserPrompt(type, naming, moduleName, resolvedApiPath, sourceFilePath);
+    const userPrompt = buildGeneratorUserPrompt(type, naming, moduleName, resolvedApiPath, sourceFilePath, odata);
 
     const result = await vscode.window.withProgress(
       { location: vscode.ProgressLocation.Notification, title: `PO-UI: gerando ${type.id} para ${naming.entityPascal}...` },

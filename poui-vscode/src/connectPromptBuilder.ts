@@ -6,6 +6,9 @@ export type EndpointInfo =
 
 export type InterceptorHandling = 'remove' | 'deactivate';
 
+/** `simple` (padrão) = `q` + parâmetros próprios; `odata` = parâmetro `filter` com expressão oData. */
+export type FilterStyle = 'simple' | 'odata';
+
 /** Nenhum campo de credencial aqui — de propósito. `proxy.conf.js` e o
  * `protheus-dev.secret` (senha/token, se houver) são escritos diretamente pela extensão antes
  * de qualquer chamada ao CLI; ver protheusProxy.ts. O agente nunca vê a
@@ -20,14 +23,25 @@ export interface ConnectParams {
    * nenhum interceptor de mock pra este componente — nesse caso a instrução
    * de tratamento de interceptor é omitida do prompt, sem pergunta ao usuário. */
   interceptorHandling?: InterceptorHandling;
+  /** Ausente = `simple`. */
+  filterStyle?: FilterStyle;
 }
 
-export async function buildConnectSystemPrompt(assetsDir: string, endpointIsNew: boolean): Promise<string> {
+/** O template do contrato TLPP traz o skeleton do endpoint novo e o helper oData do frontend. */
+export function connectReferenceFiles(endpointIsNew: boolean, odata: boolean): string[] {
   const referenceFiles = ['poui-connect-skill.md', 'protheus-rest.md'];
-  if (endpointIsNew) {
+  if (endpointIsNew || odata) {
     referenceFiles.push('templates-tlpp-contract.md');
   }
-  return assembleSystemPrompt(referenceFiles, assetsDir);
+  return referenceFiles;
+}
+
+export async function buildConnectSystemPrompt(
+  assetsDir: string,
+  endpointIsNew: boolean,
+  odata = false,
+): Promise<string> {
+  return assembleSystemPrompt(connectReferenceFiles(endpointIsNew, odata), assetsDir);
 }
 
 export function buildConnectUserPrompt(params: ConnectParams): string {
@@ -69,6 +83,16 @@ export function buildConnectUserPrompt(params: ConnectParams): string {
 
   if (params.extraActions) {
     lines.push('', `Ações além do GET informadas pelo usuário: ${params.extraActions}`);
+  }
+
+  if (params.filterStyle === 'odata') {
+    lines.push(
+      '',
+      'Filtro da lista escolhido pelo usuário: oData. Siga a "Variante oData" do Passo 5 da skill —',
+      'parâmetro `filter` montado com o helper toODataFilter (src/app/core/odata-filter.ts + spec, código',
+      'na seção "Filtro oData (opcional)" do templates-tlpp-contract.md); se o endpoint for novo, gere o',
+      'GET da lista com FWAdapterBaseV2.',
+    );
   }
 
   lines.push(

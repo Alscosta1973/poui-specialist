@@ -12,6 +12,7 @@ export function buildGeneratorUserPrompt(
   moduleName: string,
   apiPath: string,
   sourceFilePath?: string,
+  odata = false,
 ): string {
   const lines = [
     `Gere um componente do tipo \`${type.id}\` (${type.label}) para a entidade "${naming.entityPascal}".`,
@@ -27,6 +28,13 @@ export function buildGeneratorUserPrompt(
   ];
   if (sourceFilePath) {
     lines.push(`Arquivo fonte a converter: ${sourceFilePath}`);
+  }
+  if (odata) {
+    lines.push(
+      'Filtro da lista no padrão oData (--odata): siga a seção "Filtro oData (opcional)" de',
+      'templates-tlpp-contract.md — parâmetro `filter` com expressão oData, backend com FWAdapterBaseV2',
+      '(AddMapFields como lista permitida) e helper toODataFilter + spec no frontend.',
+    );
   }
   return lines.join('\n');
 }

@@ -127,6 +127,21 @@ export function registerConnectCommand(
       endpoint = { kind: 'new', businessRules };
     }
 
+    const filterChoice = await vscode.window.showQuickPick(
+      [
+        { label: 'Simples (padrão)', description: 'busca rápida `q` + parâmetros próprios', value: 'simple' as const },
+        {
+          label: 'oData',
+          description: "filter=campo eq 'x' — padrão TOTVS/SmartX (12.1.2610+), backend com FWAdapterBaseV2",
+          value: 'odata' as const,
+        },
+      ],
+      { placeHolder: 'Formato do filtro da lista' },
+    );
+    if (!filterChoice) {
+      return;
+    }
+
     const authChoice = await vscode.window.showQuickPick(
       [
         { label: 'Sem autenticação', value: 'none' as const },
@@ -258,7 +273,7 @@ export function registerConnectCommand(
     const assetsDir = path.join(context.extensionUri.fsPath, 'assets', 'agent-prompts');
     let systemPrompt: string;
     try {
-      systemPrompt = await buildConnectSystemPrompt(assetsDir, endpoint.kind === 'new');
+      systemPrompt = await buildConnectSystemPrompt(assetsDir, endpoint.kind === 'new', filterChoice.value === 'odata');
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       void vscode.window.showErrorMessage(`PO-UI: falha ao carregar os arquivos de referência — ${message}.`);
@@ -273,6 +288,7 @@ export function registerConnectCommand(
       endpoint,
       extraActions,
       interceptorHandling,
+      filterStyle: filterChoice.value,
     };
     const userPrompt = buildConnectUserPrompt(connectParams);
 
