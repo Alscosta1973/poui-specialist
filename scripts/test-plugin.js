@@ -163,6 +163,32 @@ for (const f of allMds) {
 }
 ok(`Headers @generated verificados (${allMds.length} arquivos)`);
 
+// ─── Teste 8: modo dev da licença (ponte com a extensão poui-vscode) ─────────
+console.log('\n[8] Modo dev da licença');
+{
+  const skill    = fs.readFileSync(path.join(ROOT, 'skills/poui-license-check/SKILL.md'), 'utf-8');
+  const flagSrc  = path.join(ROOT, 'poui-vscode/src/pluginDevFlag.ts');
+  const checkSrc = path.join(ROOT, 'poui-vscode/src/licenseCheck.ts');
+  const flagName = fs.existsSync(flagSrc)
+    ? fs.readFileSync(flagSrc, 'utf-8').match(/PLUGIN_DEV_FLAG_FILENAME = '([^']+)'/)?.[1]
+    : undefined;
+  const workerUrl = fs.existsSync(checkSrc)
+    ? fs.readFileSync(checkSrc, 'utf-8').match(/WORKER_BASE_URL = '([^']+)'/)?.[1]
+    : undefined;
+
+  if (/## Passo 0/.test(skill)) ok('Passo 0 (modo dev) presente');
+  else fail('poui-license-check sem o Passo 0 (modo dev)');
+
+  if (flagName && skill.includes(`~/.claude/${flagName}`)) ok(`skill lê o mesmo arquivo que a extensão grava (${flagName})`);
+  else fail(`skill não referencia ~/.claude/${flagName} (gravado por poui-vscode/src/pluginDevFlag.ts)`);
+
+  if (workerUrl && skill.includes(`${workerUrl}/license/status`)) ok('skill consulta o mesmo Worker da extensão');
+  else fail(`skill não consulta ${workerUrl}/license/status`);
+
+  if (/Data de expira[çc][ãa]o: `\d{4}-\d{2}-\d{2}`/.test(skill)) ok('linha de expiração no formato do renew-license.js');
+  else fail('linha "Data de expiração: `AAAA-MM-DD`" sumiu — renew-license.js quebra');
+}
+
 // ─── Resultado ────────────────────────────────────────────────────────────────
 console.log('\n' + '─'.repeat(60));
 console.log(`Resultado: ${passed} passaram, ${failed} falharam\n`);

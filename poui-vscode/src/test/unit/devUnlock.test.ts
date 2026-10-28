@@ -5,9 +5,14 @@
 // persiste no cache local. Espelha o mesmo padrão de tratamento de erro e
 // persistência de activateLicense.test.ts.
 import * as assert from 'node:assert';
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
 import type * as vscodeType from 'vscode';
 import { resetVscodeStub, env, commandRegistry, shownErrorMessages, shownInfoMessages, setNextInputBox } from './vscodeStub';
 import { reloadModule } from './reloadModule';
+import { computeMachineHash } from '../../licenseCheck';
+import { pluginDevFlagPath } from '../../pluginDevFlag';
 
 interface FakeContext extends vscodeType.ExtensionContext {
   __globalStateUpdates: Array<{ key: string; value: unknown }>;
@@ -61,16 +66,29 @@ async function runUnlockFlow(): Promise<{
 
 describe('devUnlock', () => {
   let originalFetch: typeof fetch;
+  let originalHome: string | undefined;
+  let originalUserProfile: string | undefined;
+  let fakeHome: string;
 
   beforeEach(() => {
     resetVscodeStub();
     originalFetch = globalThis.fetch;
+    // os.homedir() lê HOME/USERPROFILE a cada chamada — o arquivo do modo
+    // dev do plugin cai numa pasta temporária, nunca no ~/.claude real.
+    originalHome = process.env.HOME;
+    originalUserProfile = process.env.USERPROFILE;
+    fakeHome = fs.mkdtempSync(path.join(os.tmpdir(), 'poui-devunlock-'));
+    process.env.HOME = fakeHome;
+    process.env.USERPROFILE = fakeHome;
     env.machineId = 'dev-unlock-test-machine';
     setNextInputBox('senha-super-secreta');
   });
 
   afterEach(() => {
     globalThis.fetch = originalFetch;
+    process.env.HOME = originalHome;
+    process.env.USERPROFILE = originalUserProfile;
+    fs.rmSync(fakeHome, { recursive: true, force: true });
   });
 
   it('does nothing when the password prompt is cancelled', async () => {
@@ -98,6 +116,7 @@ describe('devUnlock', () => {
     assert.match(shownErrorMessages[0], /network down/);
     assert.strictEqual(shownInfoMessages.length, 0);
     assert.strictEqual(context.__globalStateUpdates.length, 0);
+    assert.strictEqual(fs.existsSync(pluginDevFlagPath(fakeHome)), false);
   });
 
   it('surfaces the rejection reason when the server refuses the password (no throw)', async () => {
@@ -113,6 +132,7 @@ describe('devUnlock', () => {
     assert.match(shownErrorMessages[0], /invalid_password/);
     assert.strictEqual(shownInfoMessages.length, 0);
     assert.strictEqual(context.__globalStateUpdates.length, 0);
+    assert.strictEqual(fs.existsSync(pluginDevFlagPath(fakeHome)), false, 'senha recusada não pode liberar o plugin');
   });
 
   it('persists the paid status to globalState on success', async () => {
@@ -154,5 +174,44 @@ describe('devUnlock', () => {
     assert.strictEqual(shownErrorMessages.length, 0);
     assert.strictEqual(shownInfoMessages.length, 1);
     assert.strictEqual(context.__globalStateUpdates.length, 0, 'sem status real não há nada novo pra persistir');
+  });
+
+  it('writes the plugin dev flag with this machine hash on success', async () => {
+    globalThis.fetch = (async (input: unknown) => {
+      const url = String(input);
+      if (url.includes('/dev/unlock')) {
+        return { ok: true, status: 200, json: async () => ({ ok: true }) };
+      }
+      return { ok: true, status: 200, json: async () => ({ tier: 'paid' }) };
+    }) as unknown as typeof fetch;
+
+    const { outputChannel } = await runUnlockFlow();
+
+    const flagPath = pluginDevFlagPath(fakeHome);
+    assert.ok(fs.existsSync(flagPath), `esperava o arquivo ${flagPath}`);
+    const flag = JSON.parse(fs.readFileSync(flagPath, 'utf8')) as Record<string, string>;
+    assert.strictEqual(flag.plugin, 'poui-specialist');
+    assert.strictEqual(flag.machineHash, computeMachineHash('dev-unlock-test-machine'));
+    assert.ok(!Number.isNaN(Date.parse(flag.unlockedAt)));
+    assert.match(shownInfoMessages[0], /plugin poui-specialist/);
+    assert.ok(outputChannel.lines.some((l) => l.includes(flagPath)));
+  });
+
+  it('still reports success when the plugin dev flag cannot be written', async () => {
+    // ~/.claude existe como ARQUIVO — mkdir/write do flag falham.
+    fs.writeFileSync(path.join(fakeHome, '.claude'), 'not a directory');
+    globalThis.fetch = (async (input: unknown) => {
+      const url = String(input);
+      if (url.includes('/dev/unlock')) {
+        return { ok: true, status: 200, json: async () => ({ ok: true }) };
+      }
+      return { ok: true, status: 200, json: async () => ({ tier: 'paid' }) };
+    }) as unknown as typeof fetch;
+
+    const { outputChannel } = await runUnlockFlow();
+
+    assert.strictEqual(shownErrorMessages.length, 0);
+    assert.strictEqual(shownInfoMessages.length, 1);
+    assert.ok(outputChannel.lines.some((l) => l.includes('não foi possível gravar o modo dev do plugin')));
   });
 });

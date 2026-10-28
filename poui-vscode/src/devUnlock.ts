@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { computeMachineHash, fetchDevUnlock, fetchLicenseStatus, WORKER_BASE_URL } from './licenseCheck';
 import { persistConfirmedStatus } from './requireLicense';
+import { writePluginDevFlag } from './pluginDevFlag';
 
 export function registerDevUnlockCommand(
   context: vscode.ExtensionContext,
@@ -44,7 +45,18 @@ export function registerDevUnlockCommand(
     } catch {
       // best-effort — ver comentário acima.
     }
+    // Mesmo raciocínio: o desbloqueio já valeu pra extensão; sem o arquivo
+    // só o plugin do Claude Code fica sem enxergar o modo dev.
+    try {
+      const flagPath = writePluginDevFlag(machineHash);
+      outputChannel.appendLine(`PO-UI: modo dev do plugin poui-specialist gravado em ${flagPath} (reabra o Claude Code).`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      outputChannel.appendLine(`PO-UI: não foi possível gravar o modo dev do plugin poui-specialist (${message}).`);
+    }
     outputChannel.appendLine('PO-UI: máquina desbloqueada como dev com sucesso.');
-    void vscode.window.showInformationMessage('PO-UI: máquina desbloqueada com sucesso.');
+    void vscode.window.showInformationMessage(
+      'PO-UI: máquina desbloqueada com sucesso (extensão e plugin poui-specialist — reabra o Claude Code).',
+    );
   });
 }

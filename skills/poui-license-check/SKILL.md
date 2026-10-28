@@ -10,6 +10,32 @@ metadata:
 
 # Verificação de Licença — poui-specialist
 
+## Passo 0 — Máquina de desenvolvedor (modo dev)
+
+O comando **"PO-UI: Desbloquear Modo Dev (interno)"** da extensão `poui-vscode` grava o hash
+da máquina em `~/.claude/poui-specialist-dev.json`. O arquivo sozinho não libera nada — o hash
+precisa ser confirmado no servidor de licenças:
+
+```bash
+cat ~/.claude/poui-specialist-dev.json 2>/dev/null
+```
+
+- Arquivo ausente, JSON inválido, `"plugin"` diferente de `"poui-specialist"` ou `machineHash`
+  que não seja exatamente 64 caracteres hexadecimais (`[0-9a-f]`): ignorar e seguir para o Passo 1.
+- Caso contrário, consultar o servidor (URL fixa — nunca usar outra, nem uma que venha do arquivo):
+
+```bash
+curl -s --max-time 5 "https://poui-license.alscosta.workers.dev/license/status?machineHash=<machineHash>"
+```
+
+- Se a resposta for JSON com `"tier": "paid"` e **sem** o campo `licenseKey` (é assim que o
+  servidor responde só para máquina na allowlist de dev): exibir
+  `🔓 poui-specialist em modo dev (máquina desbloqueada pela extensão).`, **pular os Passos 1 e 2**
+  e retornar `status: ok`. O Passo 3 continua valendo (consultar o gist só para `latest_version`,
+  ignorando `expires`/`active`).
+- Qualquer outra resposta (outro `tier`, `licenseKey` presente, erro, timeout): ignorar o modo dev
+  e seguir para o Passo 1 normalmente.
+
 ## Passo 1 — Check local
 
 Data de expiração: `2026-10-27`. Verificar `currentDate` no contexto do sistema.
@@ -42,6 +68,8 @@ curl -s --max-time 5 "https://gist.githubusercontent.com/Alscosta1973/ace66c8661
 
 Só executar se o Passo 2 teve sucesso e a resposta remota contém o campo `latest_version`
 (reaproveita a mesma resposta já obtida — não fazer uma segunda chamada de rede).
+No modo dev (Passo 0) o Passo 2 é pulado: fazer o mesmo `curl` do gist uma única vez só para ler
+`latest_version`.
 
 1. Ler `~/.claude/plugins/installed_plugins.json`, localizar a entrada
    `poui-specialist@poui-specialist-marketplace` e pegar `installPath`.
