@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.1
+
+- Shell do Scaffold: tela "Carregando" (`po-loading-overlay`) também na troca de tela, como no FINA710 e no app de referência (RCA/FFM).
+
 ## 1.6.0
 
 - **Novo `PO-UI: Logo do Cliente (customização)`** (gratuito):
