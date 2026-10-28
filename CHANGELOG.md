@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.21.0](https://github.com/Alscosta1973/poui-specialist/compare/v1.20.0...v1.21.0) (2026-10-28)
+
+
+### Features
+
+* **patterns:** guia PO-UI proprio x SmartX (12.1.2610+) e aviso no /generate ([8c0aa44](https://github.com/Alscosta1973/poui-specialist/commit/8c0aa44aea75863f02bb70cedb6471cf213c111f))
+* **tlpp-contract:** filtro oData opcional (--odata) no tlpp-contract, service e connect ([c6f20d3](https://github.com/Alscosta1973/poui-specialist/commit/c6f20d32ad773dcd88b92f97112ad86e30155715))
+* **vscode-ext:** filtro simples x oData no Gerar (tlpp-contract/service) e no Conectar ([5c911f7](https://github.com/Alscosta1973/poui-specialist/commit/5c911f75f1c7878cb559a0a8a89f5ae0e4b41701))
+
+
+### Chores
+
+* **release:** bump version to 1.21.0 ([8222721](https://github.com/Alscosta1973/poui-specialist/commit/822272168fea0ee41910198b1daa44016ee3edef))
+* **vscode-ext:** bump version 1.7.0 -> 1.8.0 ([0d311bb](https://github.com/Alscosta1973/poui-specialist/commit/0d311bb541621ff12220f005f9aaf8adfd7a9f7c))
+
 ## [1.20.0](https://github.com/Alscosta1973/poui-specialist/compare/v1.19.1...v1.20.0) (2026-10-28)
 
 
