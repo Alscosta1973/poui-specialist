@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.22.0](https://github.com/Alscosta1973/poui-specialist/compare/v1.21.1...v1.22.0) (2026-10-29)
+
+
+### Features
+
+* **mvc-rest:** FWRestModel em qualquer nivel (blocos 1:1, grades e grades netas) ([bc6578a](https://github.com/Alscosta1973/poui-specialist/commit/bc6578aad6f8125f9ef48da13be4319a89778052))
+* **mvc-rest:** rotina MVC existente via FWRestModel (--mvc <FONTE>) ([2d2478c](https://github.com/Alscosta1973/poui-specialist/commit/2d2478c36d9d8bf1ebf1e2cd6927f0104a920a5c))
+* **vscode-ext:** backend MVC orienta a MvcModelSpec em qualquer nivel ([348aaee](https://github.com/Alscosta1973/poui-specialist/commit/348aaee944c7f800d28f4b1e61747ab85670b8f9))
+* **vscode-ext:** backend Rotina MVC existente (FWRestModel) no Gerar e no Conectar ([02444c8](https://github.com/Alscosta1973/poui-specialist/commit/02444c83edce134de625773d5afadf88954e4459))
+
+
+### Chores
+
+* **release:** bump version to 1.22.0 ([2360778](https://github.com/Alscosta1973/poui-specialist/commit/23607784ab3d7af6f70873038c29b0e1ff66c81c))
+* **vscode-ext:** bump version 1.8.1 -> 1.9.0 ([aa83218](https://github.com/Alscosta1973/poui-specialist/commit/aa8321800945ff6a7fd07ec07e358ddd6d3077de))
+
 ## [1.21.1](https://github.com/Alscosta1973/poui-specialist/compare/v1.21.0...v1.21.1) (2026-10-28)
 
 
