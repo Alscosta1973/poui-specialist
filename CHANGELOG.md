@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.23.0](https://github.com/Alscosta1973/poui-specialist/compare/v1.22.0...v1.23.0) (2026-10-30)
+
+
+### Features
+
+* **mvc-rest:** modo somente leitura (--readonly), URL sem /rest e grade vazia sem items ([6c26803](https://github.com/Alscosta1973/poui-specialist/commit/6c268037600c2c93660944c4afff4b46c69bfd37))
+* **two-panel-browse:** variante --detail (lista + detalhe na mesma tela) ([316ed94](https://github.com/Alscosta1973/poui-specialist/commit/316ed946bb6787ba61067cd7b04b35560bd7e1b0))
+* **vscode-ext:** tipo Two Panel Detail (lista + detalhe) e backend MVC so leitura ([9dccc3b](https://github.com/Alscosta1973/poui-specialist/commit/9dccc3b5d14196c74b75b30a3b01b3cef1c4d564))
+
+
+### Bug Fixes
+
+* **poui-test:** espiao do PoDialogService pelo injetor do componente ([712c08e](https://github.com/Alscosta1973/poui-specialist/commit/712c08e1f8b8e7db585442fbe63837d66fe35f5d))
+
+
+### Documentation
+
+* two-panel-browse --detail no README do plugin e da extensao ([302b92a](https://github.com/Alscosta1973/poui-specialist/commit/302b92ad9c083ac45b00563a17fed1b83e4505d2))
+
+
+### Chores
+
+* **release:** bump version to 1.23.0 ([1a867e9](https://github.com/Alscosta1973/poui-specialist/commit/1a867e9031d8f0833ccef69f0f85a44d04c3141c))
+* **vscode-ext:** bump version 1.9.0 -> 1.10.0 ([322501f](https://github.com/Alscosta1973/poui-specialist/commit/322501f582addd567211fe2ab443bc6e6b5405fa))
+
 ## [1.22.0](https://github.com/Alscosta1973/poui-specialist/compare/v1.21.1...v1.22.0) (2026-10-29)
 
 
