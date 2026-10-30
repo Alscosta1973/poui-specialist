@@ -60,7 +60,8 @@ ser executado na raiz de um projeto Angular e encerrar.
 
 ```powershell
 $ngConfig = Get-Content angular.json -Raw | ConvertFrom-Json
-$projectName = ($ngConfig.projects.PSObject.Properties.Name)[0]
+# @(...): com um único projeto o PowerShell 5.1 devolve string e [0] pegaria só o 1º caractere
+$projectName = @($ngConfig.projects.PSObject.Properties.Name)[0]
 $buildOptions = $ngConfig.projects.$projectName.architect.build.options
 ```
 
