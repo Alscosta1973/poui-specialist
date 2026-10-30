@@ -7,6 +7,7 @@ uma ação de emparelhamento (conciliação de cartão, correspondência de docu
 Casos de uso: conciliação de cartão, correspondência de contas a pagar/receber, emparelhamento de documentos.
 
 > **Antes de usar este template**, leia a regra de largura de colunas em `templates-two-panel-browse-html.md` (seção de prevenção de scroll horizontal). Não calcular as larguras causará scroll horizontal em ambos os painéis.
+> **Lista + detalhe (monitor)?** Use `--detail` → `templates-two-panel-detail.md` (lista compacta com legenda de status à esquerda e o registro à direita, sem seleção nos dois lados).
 > Use `stacked-browse` para tabelas master-detail empilhadas verticalmente com navegação pelo teclado.
 > Use `master-detail` para linhas expansíveis inline dentro de uma única tabela.
 

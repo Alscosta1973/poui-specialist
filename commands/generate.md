@@ -29,7 +29,7 @@ Generates standalone Angular 17–21+ artifacts using PO-UI components, integrat
 | `po-tree` | `*.component.ts/html/scss` | Sim | Navegação hierárquica com `po-tree-view`: variante A (flat-to-tree pré-carregado) ou B (lazy loading por nó), opcionalmente com painel de detalhe lateral |
 | `master-detail` | `*.component.ts/html/scss` + model | Sim | Lista com linhas filho expansíveis (pedido/itens, NF/itens) |
 | `stacked-browse` | `*.component.ts/html/scss` | Sim | Dois po-table empilhados (master/detail) com navegação por teclado ArrowUp/Down e Tab para alternar |
-| `two-panel-browse` | `*.component.ts/html/scss` | Sim | Dois po-table lado a lado para conciliação/matching (seleciona um de cada e confirma) |
+| `two-panel-browse` | `*.component.ts/html/scss` | Sim | Dois po-table lado a lado para conciliação/matching (seleciona um de cada e confirma). Com `--detail`: **lista + detalhe** na mesma tela (monitor/acompanhamento: lista compacta com legenda de status à esquerda, registro com abas à direita, ações com tela travada) |
 | `action-list` | `*.component.ts/html/scss` + model | Sim | Lista com N ações procedurais Protheus — cada ação tem modal de confirmação com interpolação de campos, loading isolado por botão, resposta estruturada por linha com modal de resultados para sucesso parcial |
 
 ### Edição e detalhe
@@ -72,10 +72,12 @@ Generates standalone Angular 17–21+ artifacts using PO-UI components, integrat
 /poui-specialist:generate refactor --module financeiro   # will ask for .prw/.tlpp file
 /poui-specialist:generate stacked-browse AprovacaoPedido --module compras
 /poui-specialist:generate two-panel-browse ConciliacaoCartao --module financeiro
+/poui-specialist:generate two-panel-browse MonitorLotes --module integracao --detail --mvc F0000001   # lista + detalhe, leitura pelo MVC
 /poui-specialist:generate models Pedido --module compras
 /poui-specialist:generate tlpp-contract Pedido --module compras
 /poui-specialist:generate tlpp-contract Pedido --module compras --odata   # filtro oData (FWAdapterBaseV2)
 /poui-specialist:generate page-edit Produto --module estoque --mvc MATA010    # grava pelas regras do MVC (FWRestModel)
+/poui-specialist:generate page-detail Produto --module estoque --mvc MATA010 --readonly   # só lista/consulta do MVC
 /poui-specialist:generate http-interceptor auth --module core
 /poui-specialist:generate route-guard auth --module core
 /poui-specialist:generate standalone-migrate ClientesLegado --module cadastro
@@ -92,7 +94,9 @@ Generates standalone Angular 17–21+ artifacts using PO-UI components, integrat
    - `--dry-run`: exibir apenas o plano (lista de arquivos e estrutura resumida) **sem escrever nada em disco**. Encerrar após o Passo 2 com: `🔍 Modo dry-run — nenhum arquivo foi gerado.`
    - `--skip-build`: pular o Passo 4. Útil em gerações em lote para rodar build uma única vez no final.
    - `--odata`: (tipos `tlpp-contract` e `service`) filtro da lista no padrão oData — `filter=campo eq 'x'`, backend com `FWAdapterBaseV2`. Ver seção "Filtro oData (opcional)" de `skills/poui-code-generation/templates-tlpp-contract.md`.
-   - `--mvc <FONTE>`: (tipos `tlpp-contract`, `service`, `page-edit`, `page-detail`, `modal-crud`) a rotina **já tem MVC**: gravar pelo próprio modelo via FWRestModel (`/rest/fwmodel`) — gera o `RM_<FONTE>.prw` e o `ProtheusMvcService` de `skills/poui-code-generation/templates-mvc-rest.md`. Montar a `MvcModelSpec` (id do `MPFormModel():New`, FIELDS principal e a árvore de `AddFields`/`AddGrid` — blocos 1:1, grades e grades netas) lendo o `ModelDef` do fonte, ou perguntar ao usuário se o fonte não estiver disponível. Não combinar com `--odata`.
+   - `--detail`: (tipo `two-panel-browse`) variante **lista + detalhe** — `skills/poui-code-generation/templates-two-panel-detail.md` em vez dos sub-arquivos de conciliação. Combina com `--mvc <FONTE>` (leitura pelo FWRestModel, implica `--readonly`).
+   - `--readonly`: (com `--mvc`) só leitura — gera apenas lista/consulta do `ProtheusMvcService`, sem `buildMvcBody`/create/update/remove (seção "Modo somente leitura" de `templates-mvc-rest.md`); não gera o `RM_<FONTE>.prw` se ele já existir no projeto.
+   - `--mvc <FONTE>`: (tipos `tlpp-contract`, `service`, `page-edit`, `page-detail`, `modal-crud`, `two-panel-browse --detail`) a rotina **já tem MVC**: gravar pelo próprio modelo via FWRestModel (`/rest/fwmodel`) — gera o `RM_<FONTE>.prw` e o `ProtheusMvcService` de `skills/poui-code-generation/templates-mvc-rest.md`. Montar a `MvcModelSpec` (id do `MPFormModel():New`, FIELDS principal e a árvore de `AddFields`/`AddGrid` — blocos 1:1, grades e grades netas) lendo o `ModelDef` do fonte, ou perguntar ao usuário se o fonte não estiver disponível. Não combinar com `--odata`.
    - **Aviso SmartX:** se o usuário indicar que o cliente está na **12.1.2610+** e o tipo for um cadastro/lista simples sobre uma tabela do dicionário, exibir o aviso de `skills/poui-patterns/smartx.md` (seção "Aviso no /generate") antes de delegar. Não bloqueia.
 2. **Determine agent based on `<type>` and delegate:**
 

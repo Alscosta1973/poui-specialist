@@ -162,6 +162,7 @@ E prossiga diretamente para a substituição de placeholders sem nova chamada de
 | `page-dynamic` | `skills/poui-code-generation/templates-page-dynamic.md`<br>`skills/poui-components/dynamic-pages.md`<br>`skills/poui-patterns/po-ui-quirks-onpush.md` |
 | `master-detail` | `skills/poui-code-generation/templates-master-detail.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/table-components.md`<br>`skills/poui-patterns/po-ui-quirks-table.md`<br>`skills/poui-patterns/po-ui-quirks-onpush.md` |
 | `stacked-browse` | `skills/poui-code-generation/templates-stacked-browse.md`<br>`skills/poui-code-generation/templates-stacked-browse-ts.md`<br>`skills/poui-code-generation/templates-stacked-browse-html.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-patterns/po-ui-quirks-table.md`<br>`skills/poui-patterns/po-ui-quirks-onpush.md` |
+| `two-panel-browse --detail` | `skills/poui-code-generation/templates-two-panel-detail.md`<br>`skills/poui-code-generation/templates-mvc-rest.md` (seção "Modo somente leitura", se `--mvc`)<br>`skills/poui-test/SKILL.md` (regra do PoDialogService)<br>`skills/poui-patterns/po-ui-quirks-onpush.md` |
 | `two-panel-browse` | `skills/poui-code-generation/templates-two-panel-browse.md`<br>`skills/poui-code-generation/templates-two-panel-browse-ts.md`<br>`skills/poui-code-generation/templates-two-panel-browse-html.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-patterns/po-ui-quirks-table.md`<br>`skills/poui-patterns/po-ui-quirks-onpush.md` |
 | `action-list` | `skills/poui-code-generation/templates-action-list.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-components/table-components.md`<br>`skills/poui-patterns/po-ui-quirks-table.md`<br>`skills/poui-patterns/po-ui-quirks-onpush.md` |
 | `infinite-scroll` | `skills/poui-code-generation/templates-infinite-scroll.md`<br>`skills/poui-code-generation/templates-service.md`<br>`skills/poui-patterns/po-ui-quirks-onpush.md` |
@@ -184,6 +185,7 @@ Tipo escolhido:
   • page-dynamic        → PoPageDynamicTableComponent zero-boilerplate
   • stacked-browse      → dois po-table empilhados com teclado ArrowUp/Down
   • two-panel-browse    → dois po-table lado a lado para conciliação
+  • two-panel-browse --detail → lista + detalhe na mesma tela (monitor, legenda de status, ações)
   • action-list         → lista com N ações procedurais Protheus + modais de confirmação
   • master-detail       → lista com linhas filho expansíveis
 

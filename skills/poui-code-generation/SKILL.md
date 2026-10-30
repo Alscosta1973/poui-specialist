@@ -26,6 +26,7 @@ Use this numbered algorithm to choose the right template before loading any file
 4. If the request is for a list screen:
    - If the screen is a **list where users select records and trigger a Protheus procedural operation** (baixar título, processar NF, confirmar pedido) that requires explicit confirmation, returns a per-row result, and may have partial success, choose `action-list`.
    - If the screen shows **two browse panels side by side** where the user selects one row from each panel and confirms a pairing/matching action (reconciliation, matching, conciliation), choose `two-panel-browse`.
+   - If the screen is a **monitor/follow-up**: a compact list on the left (status dot + legend) and the selected record on the right (header card + tabs with grids), with actions such as Reprocess / Process now, choose `two-panel-browse --detail` (`templates-two-panel-detail.md`).
    - If the screen has **two vertically stacked browses** where the top browse (master) drives what appears in the bottom browse (detail), with independent ArrowKey navigation, Tab to switch, a compact filter bar with "Remover Filtro", and a confirmation footer (e.g. SC5 orders → SC6 items, generate NF, process records), choose `stacked-browse`.
    - If it requires inline child rows or master-detail item lines, choose `master-detail`.
    - If it includes at least 3 filter fields and a standard disclaimer block required by the Protheus pattern, choose `page-dynamic-search`.
@@ -65,6 +66,7 @@ All templates use these substitution placeholders:
 
 | Template | File | When to use |
 |----------|------|-------------|
+| **two-panel-browse --detail** | `templates-two-panel-detail.md` | List + detail on one screen (monitor): status dot + legend, status combo with colored dots, BR_* → theme token table, no overlay when switching records (previous detail stays, actions blocked), screen-locked overlay with text during actions, server search + client filters. Built from a validated screen. |
 | **two-panel-browse** | `templates-two-panel-browse.md` (index) + `-ts.md` + `-html.md` | Two po-table panels side by side; user selects one row from each and confirms a pairing action (card reconciliation, document matching, A/R conciliation). Includes dynamic height, horizontal-scroll prevention, single-select enforcement, and cross-browse validation. |
 
 ### ERP master-detail / dual-browse pages
@@ -101,7 +103,7 @@ All templates use these substitution placeholders:
 | **dashboard** | `templates-dashboard.md` | Analytics page: po-widget KPIs + po-chart |
 | **models** | `templates-models.md` | TypeScript model interfaces: simple, composite key, flat relational |
 | **tlpp-contract** | `templates-tlpp-contract.md` | Backend REST contract: endpoints, pagination (TTALK `remainingRecords`), error format (legado + TTALK), skeleton WsRestFul e TLPP REST por anotações; filtro oData opcional (`--odata`, `FWAdapterBaseV2`) |
-| **mvc-rest** (`--mvc <FONTE>`) | `templates-mvc-rest.md` | Rotina MVC existente via FWRestModel (`/rest/fwmodel`): recurso `RM_<FONTE>.prw` (INCLUI/ALTERA pelo verbo, 403 pelo MenuDef, FILTER bloqueado, busca segura, JSON normalizado, erro em JSON) + `ProtheusMvcService` + specs, em qualquer nível (cabeçalho, blocos 1:1, grades e grades netas); usado por `tlpp-contract`, `service`, `page-edit`, `page-detail`, `modal-crud` e `connect` |
+| **mvc-rest** (`--mvc <FONTE>`) | `templates-mvc-rest.md` | Rotina MVC existente via FWRestModel (`/rest/fwmodel`): recurso `RM_<FONTE>.prw` (INCLUI/ALTERA pelo verbo, 403 pelo MenuDef, FILTER bloqueado, busca segura, JSON normalizado, erro em JSON) + `ProtheusMvcService` + specs, em qualquer nível (cabeçalho, blocos 1:1, grades e grades netas); usado por `tlpp-contract`, `service`, `page-edit`, `page-detail`, `modal-crud`, `two-panel-browse --detail` e `connect`. `--readonly`: só lista/consulta (sem gravação no frontend) |
 | **refactor-from-tlpp** | `templates-refactor-from-tlpp.md` | Analyze existing .prw/.tlpp → extract columns/actions/rules → assertive one-shot PO-UI generation |
 | **http-interceptor** | `templates-http-interceptor.md` | Angular 17–21+ functional interceptors: auth token, Protheus error translation, loading overlay |
 | **route-guard** | `templates-route-guard.md` | Angular 17–21+ functional guards: CanActivate (Protheus auth/permission), CanDeactivate (unsaved changes) |
