@@ -26,6 +26,8 @@ const sources = [
   ['skills/poui-code-generation/templates-two-panel-browse.md', 'templates-two-panel-browse.md'],
   ['skills/poui-code-generation/templates-two-panel-browse-ts.md', 'templates-two-panel-browse-ts.md'],
   ['skills/poui-code-generation/templates-two-panel-browse-html.md', 'templates-two-panel-browse-html.md'],
+  // two-panel-browse --detail (lista + detalhe)
+  ['skills/poui-code-generation/templates-two-panel-detail.md', 'templates-two-panel-detail.md'],
   // action-list
   ['skills/poui-code-generation/templates-action-list.md', 'templates-action-list.md'],
   // master-detail

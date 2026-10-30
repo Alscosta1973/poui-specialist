@@ -137,10 +137,17 @@ export function registerGenerateComponentCommand(
           value: 'odata',
         });
       }
-      if (type.supportsMvc) {
+      if (type.supportsMvc && !type.supportsMvcReadonly) {
         backendItems.push({
           label: 'Rotina MVC existente (FWRestModel)',
           description: 'grava pelas regras do próprio ModelDef em /rest/fwmodel',
+          value: 'mvc',
+        });
+      }
+      if (type.supportsMvcReadonly) {
+        backendItems.push({
+          label: 'Rotina MVC existente — só leitura (FWRestModel)',
+          description: 'lista e consulta pelo ModelDef em /rest/fwmodel, sem gravação no frontend (--readonly)',
           value: 'mvc',
         });
       }
@@ -156,7 +163,7 @@ export function registerGenerateComponentCommand(
         if (!source) {
           return;
         }
-        backend = { kind: 'mvc', source: source.trim().toUpperCase() };
+        backend = { kind: 'mvc', source: source.trim().toUpperCase(), readonly: type.supportsMvcReadonly === true };
       } else {
         backend = { kind: backendChoice.value };
       }

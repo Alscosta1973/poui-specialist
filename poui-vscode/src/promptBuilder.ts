@@ -38,7 +38,18 @@ export function buildGeneratorUserPrompt(
   if (sourceFilePath) {
     lines.push(`Arquivo fonte a converter: ${sourceFilePath}`);
   }
-  if (backend?.kind === 'mvc') {
+  if (type.flags) {
+    lines.push(`Flags do tipo: ${type.flags} (ex.: \`two-panel-browse ${type.flags}\`) — siga o template do tipo carregado acima.`);
+  }
+  if (backend?.kind === 'mvc' && backend.readonly) {
+    lines.push(
+      `Backend: rotina MVC existente ${backend.source} via FWRestModel, SÓ LEITURA (--mvc ${backend.source} --readonly).`,
+      'Siga a seção "Modo somente leitura" de templates-mvc-rest.md: ProtheusMvcService só com list/get,',
+      `sem buildMvcBody/create/update/remove; gere RM_${backend.source}.prw só se ele ainda não existir no projeto.`,
+      'URLs do frontend sem /rest (/fwmodel/<api>): o ProtheusLibCore prefixa a base REST.',
+      'Monte a MvcModelSpec pelo ModelDef (AddFields/AddGrid em qualquer nível); se ele não estiver nos arquivos, pergunte.',
+    );
+  } else if (backend?.kind === 'mvc') {
     lines.push(
       `Backend: rotina MVC existente ${backend.source} via FWRestModel (--mvc ${backend.source}). Siga`,
       `templates-mvc-rest.md: gere RM_${backend.source}.prw (recurso /rest/fwmodel) e use o ProtheusMvcService`,

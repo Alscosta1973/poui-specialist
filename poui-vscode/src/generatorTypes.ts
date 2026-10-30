@@ -15,10 +15,14 @@ export interface GeneratorType {
   supportsOData?: boolean;
   /** Oferece o backend "rotina MVC existente" (FWRestModel, `--mvc <FONTE>`). */
   supportsMvc?: boolean;
+  /** Tela só de consulta: oferece o MVC "só leitura" (`--mvc <FONTE> --readonly`). */
+  supportsMvcReadonly?: boolean;
+  /** Flags fixas do tipo repassadas ao agente (ex.: `--detail` do two-panel-browse lista + detalhe). */
+  flags?: string;
 }
 
 /** Backend escolhido no Gerar: REST simples (padrão), REST + oData ou rotina MVC existente. */
-export type GeneratorBackend = { kind: 'simple' } | { kind: 'odata' } | { kind: 'mvc'; source: string };
+export type GeneratorBackend = { kind: 'simple' } | { kind: 'odata' } | { kind: 'mvc'; source: string; readonly?: boolean };
 
 /** Nome do fonte MVC: letras, dígitos e `_`, até 10 caracteres (nome de fonte no RPO). */
 export function isValidMvcSource(value: string): boolean {
@@ -84,6 +88,22 @@ export const GENERATOR_TYPES: GeneratorType[] = [
     requiresModule: true,
   },
   {
+    id: 'two-panel-detail',
+    label: 'Two Panel Detail (lista + detalhe)',
+    description: 'Monitor: lista com legenda de status à esquerda e o registro com abas à direita (two-panel-browse --detail)',
+    family: 'Lista/Browse',
+    referenceFiles: [
+      'code-generator-list.md',
+      'templates-two-panel-detail.md',
+      'poui-test-skill.md',
+      'po-ui-quirks-onpush.md',
+    ],
+    requiresModule: true,
+    supportsMvc: true,
+    supportsMvcReadonly: true,
+    flags: '--detail',
+  },
+  {
     id: 'action-list',
     label: 'Action List',
     description: 'Lista com N ações procedurais Protheus + modais de confirmação',
@@ -141,6 +161,7 @@ export const GENERATOR_TYPES: GeneratorType[] = [
     referenceFiles: ['code-generator-forms.md', 'templates-page-detail.md', 'templates-service.md', 'modal-dialog.md'],
     requiresModule: true,
     supportsMvc: true,
+    supportsMvcReadonly: true,
   },
   {
     id: 'modal-crud',

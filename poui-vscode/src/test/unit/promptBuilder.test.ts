@@ -149,6 +149,28 @@ describe('buildGeneratorUserPrompt', () => {
     assert.ok(!prompt.includes('oData'));
   });
 
+  it('read-only MVC backend asks only for list/get and keeps an existing RM_ resource', () => {
+    const type = getGeneratorType('two-panel-detail')!;
+    const naming = deriveEntityNaming('MonitorLotes');
+    const prompt = buildGeneratorUserPrompt(type, naming, 'integracao', '/fwmodel/lotes', undefined, {
+      kind: 'mvc',
+      source: 'F0000001',
+      readonly: true,
+    });
+
+    assert.ok(prompt.includes('--mvc F0000001 --readonly'));
+    assert.ok(prompt.includes('Modo somente leitura'));
+    assert.ok(prompt.includes('só se ele ainda não existir'));
+    assert.ok(prompt.includes('Flags do tipo: --detail'));
+    assert.ok(generatorReferenceFiles(type, { kind: 'mvc', source: 'F0000001', readonly: true }).includes('templates-mvc-rest.md'));
+  });
+
+  it('types without flags do not mention them', () => {
+    const type = getGeneratorType('page-edit')!;
+    const prompt = buildGeneratorUserPrompt(type, deriveEntityNaming('Produto'), 'estoque', '/rest/produtos');
+    assert.ok(!prompt.includes('Flags do tipo'));
+  });
+
   it('adds the MVC template to the system prompt files only for the mvc backend', () => {
     const type = getGeneratorType('page-edit')!;
     assert.ok(generatorReferenceFiles(type, { kind: 'mvc', source: 'MATA010' }).includes('templates-mvc-rest.md'));

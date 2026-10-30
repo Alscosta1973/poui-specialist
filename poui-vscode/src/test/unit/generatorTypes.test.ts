@@ -2,13 +2,14 @@ import * as assert from 'node:assert';
 import { GENERATOR_TYPES, getGeneratorType, isValidMvcSource } from '../../generatorTypes';
 
 describe('GENERATOR_TYPES', () => {
-  it('has exactly the 24 plugin types, each well-formed', () => {
+  it('has exactly the 25 plugin types, each well-formed', () => {
     const ids = GENERATOR_TYPES.map((t) => t.id);
     assert.deepStrictEqual(ids, [
       'page-list',
       'page-dynamic-search',
       'stacked-browse',
       'two-panel-browse',
+      'two-panel-detail',
       'action-list',
       'master-detail',
       'page-dynamic',
@@ -48,7 +49,7 @@ describe('GENERATOR_TYPES', () => {
 
   it('points every Lista/Browse type at the list agent file', () => {
     const listTypes = GENERATOR_TYPES.filter((t) => t.family === 'Lista/Browse');
-    assert.strictEqual(listTypes.length, 9);
+    assert.strictEqual(listTypes.length, 10);
     for (const type of listTypes) {
       assert.ok(type.referenceFiles.includes('code-generator-list.md'));
       assert.strictEqual(type.requiresModule, true);
@@ -123,7 +124,20 @@ describe('getGeneratorType', () => {
 
   it('offers the existing-MVC backend (FWRestModel) for tlpp-contract, service and the form types', () => {
     const ids = GENERATOR_TYPES.filter((t) => t.supportsMvc).map((t) => t.id);
-    assert.deepStrictEqual(ids.sort(), ['modal-crud', 'page-detail', 'page-edit', 'service', 'tlpp-contract']);
+    assert.deepStrictEqual(ids.sort(), ['modal-crud', 'page-detail', 'page-edit', 'service', 'tlpp-contract', 'two-panel-detail']);
+  });
+
+  it('offers the read-only MVC backend only for consultation screens (page-detail, two-panel-detail)', () => {
+    const ids = GENERATOR_TYPES.filter((t) => t.supportsMvcReadonly).map((t) => t.id);
+    assert.deepStrictEqual(ids.sort(), ['page-detail', 'two-panel-detail']);
+  });
+
+  it('two-panel-detail loads the list+detail template and passes --detail', () => {
+    const type = getGeneratorType('two-panel-detail')!;
+    assert.strictEqual(type.family, 'Lista/Browse');
+    assert.strictEqual(type.flags, '--detail');
+    assert.ok(type.referenceFiles.includes('templates-two-panel-detail.md'));
+    assert.ok(!type.referenceFiles.includes('templates-two-panel-browse-ts.md'));
   });
 
   it('validates the MVC source name (letters, digits, underscore, up to 10 chars)', () => {
