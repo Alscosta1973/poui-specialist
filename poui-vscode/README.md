@@ -53,7 +53,7 @@ está faltando na sua máquina.
 seletor:
 
 - **Lista/Browse**: `page-list`, `page-dynamic-search`,
-  `stacked-browse`, `two-panel-browse`, `action-list`, `master-detail`,
+  `stacked-browse`, `two-panel-browse`, `two-panel-detail` (lista + detalhe), `action-list`, `master-detail`,
   `page-dynamic`, `infinite-scroll`, `po-tree`
 - **Formulários**: `page-edit`, `page-detail`, `modal-crud`,
   `stepper-form`

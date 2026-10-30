@@ -57,6 +57,7 @@ Gera artefatos Angular 17–21+ standalone com PO-UI, integrados à API REST do 
 | `master-detail` | Lista com linhas filho expansíveis (pedido/itens, NF/itens) |
 | `stacked-browse` | Dois `po-table` empilhados com navegação por teclado |
 | `two-panel-browse` | Dois `po-table` lado a lado para conciliação/matching |
+| `two-panel-browse --detail` | Lista + detalhe na mesma tela (monitor): legenda de status, abas, ações com tela travada; com `--mvc <FONTE>` lê pelo FWRestModel (`--readonly`) |
 | `page-edit` | Formulário com rota |
 | `page-detail` | Visualização read-only com rota `:id/detalhe` |
 | `modal-crud` | Lista + modal de adição/edição em um componente |
