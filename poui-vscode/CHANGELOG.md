@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.10.0
+
+- Novo tipo **Two Panel Detail (lista + detalhe)** no `Gerar Componente` (`two-panel-browse --detail`): monitor com lista compacta e legenda de status à esquerda e o registro com abas à direita; troca de registro sem overlay e ações com tela travada e mensagem.
+- Backend **Rotina MVC existente — só leitura** (`--mvc <FONTE> --readonly`) para `page-detail` e `two-panel-detail`: `ProtheusMvcService` só com lista/consulta, URLs `/fwmodel/<api>` sem `/rest` (o ProtheusLibCore prefixa).
+- Testes gerados espiam o `PoDialogService` pelo injetor do componente (evita teste de confirmação que passa sem testar).
+
 ## 1.9.0
 
 - Backend **Rotina MVC existente (FWRestModel)** no `Gerar Componente` (`tlpp-contract`, `service`, `page-edit`, `page-detail`, `modal-crud`) e no `Conectar`: gera o recurso `RM_<FONTE>.prw` (INCLUI/ALTERA pelo verbo HTTP, permissão do MenuDef → 403, `FILTER` da URL bloqueado, busca segura, JSON normalizado, erro em JSON) e o `ProtheusMvcService` com specs, em qualquer nível (cabeçalho, blocos 1:1, grades e grades netas) — validado de ponta a ponta no Protheus 12.1.2510.
