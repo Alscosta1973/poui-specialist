@@ -152,6 +152,23 @@ Preencher dados mock para `{{ModelInterface}}` baseado nos campos vistos nas `co
 
 Substituir comentários `// Agente:` pelos métodos reais encontrados no `.component.ts`.
 
+**Regra obrigatória — serviços que vêm do `PoModule` (PoDialogService, PoNotificationService):** em componente
+standalone que importa módulos do PO-UI (`PoPageModule`, `PoFieldModule`...), o `PoDialogService` é fornecido
+pelo injetor do **componente** (providers do módulo importado), não pelo injetor raiz. `spyOn(TestBed.inject(PoDialogService), 'confirm')`
+espia **outra instância**: o componente chama a real, o espião nunca é chamado e o teste de confirmação passa
+sem testar nada (falso positivo). Espiar sempre a instância do componente, logo depois de criar o fixture:
+
+```typescript
+fixture = TestBed.createComponent(MeuComponent);
+// confirmacao executa direto o "confirm" do po-dialog (ou .and.stub() para simular "Cancelar")
+confirmar = spyOn(fixture.debugElement.injector.get(PoDialogService), 'confirm')
+  .and.callFake((o: PoDialogConfirmOptions) => o.confirm());
+```
+
+O `PoNotificationService` pode ser trocado por um objeto de espiões em `providers` (`{ provide: PoNotificationService, useValue: notif }`),
+porque o `inject()` do componente sobe até o TestBed quando o módulo não o fornece. Conferir com um teste que
+falha se a chamada não acontecer (`expect(confirmar).toHaveBeenCalledTimes(1)`), nunca só com `not.toHaveBeenCalled()`.
+
 Escrever resultado em `<specPath>`.
 
 Confirmar:
