@@ -34,6 +34,8 @@ grades netas.
 | Neto relacionado a campo de relação do pai (ex.: `Z09_X := Z08_CODIGO`, que vem do cabeçalho) | na inclusão o neto grava com o campo **vazio** (órfão), sem erro | relacionar o neto ao campo do **cabeçalho** (`Z09_X := Z07_CODIGO`) + ao campo próprio da linha pai (`Z09_Y := Z08_ITEM`) |
 | Datas / números | vêm como texto `AAAAMMDD` / `"1.00"` | `mvcDate()` / `mvcNumber()` |
 | Chave (`pk`) | base64 de xFilial + chave primária com espaços | sempre usar o `pk`/`_pk` devolvido pelo GET — nunca montar no frontend |
+| Grade **sem linhas** no GET com `FIELDEMPTY=true` | o submodelo vem só com `struct`, **sem a chave `items`** (`items` undefined) | o parse trata `items` ausente como lista vazia — nunca acessar `items.length` direto |
+| URL com `/rest` no frontend | o ProtheusLibCore já prefixa a base REST (FwCallApp: URL do Protheus; `ng serve`: `serverBackend` + `restEntryPoint` do `appConfig.json`) → `/rest/rest/fwmodel/...` (404) | no frontend a constante é **`/fwmodel/<api>`**, sem `/rest` |
 
 **Ainda quebram no REST (revisar o ModelDef antes):** `FWFormView`/`oView` no modelo, `MsgYesNo`/`Aviso`/
 `Pergunte` (interação de tela), `aHeader`/`aCols`, `Private` de tela usada em validação, `IsBlind()` invertido.
@@ -718,7 +720,7 @@ import {
   parseMvcResource,
 } from './protheus-mvc';
 
-/** CRUD de uma rotina MVC publicada com FWRestModel (`/rest/fwmodel/<nome>`). Erros saem como MvcError. */
+/** CRUD de uma rotina MVC publicada com FWRestModel (`/fwmodel/<nome>`; o ProtheusLibCore prefixa o /rest). Erros saem como MvcError. */
 @Injectable({ providedIn: 'root' })
 export class ProtheusMvcService {
   private readonly http = inject(HttpClient);
@@ -917,7 +919,7 @@ import { MvcError, MvcModelSpec, mvcNode } from './protheus-mvc';
 import { ProtheusMvcService } from './protheus-mvc.service';
 
 describe('ProtheusMvcService', () => {
-  const api = '/rest/fwmodel/rcaregras';
+  const api = '/fwmodel/rcaregras';
   const spec: MvcModelSpec = { modelId: 'MF134310', masterId: 'Z07MASTER', children: [{ id: 'Z08DETAIL', type: 'GRID' }] };
   const resource = {
     id: 'MF134310',
@@ -1014,7 +1016,8 @@ const SPEC: MvcModelSpec = {
 ## Uso no componente (page-edit / modal-crud)
 
 ```typescript
-const API = '/rest/fwmodel/<api>';
+// sem /rest: o ProtheusLibCore prefixa a base REST (no ng serve, serverBackend + restEntryPoint do appConfig.json)
+const API = '/fwmodel/<api>';
 
 private readonly mvc = inject(ProtheusMvcService);
 private readonly notification = inject(PoNotificationService);
@@ -1054,7 +1057,65 @@ salvar(): void {
   linha exclui também os netos dela.
 - Linha nova: sem `line` — o `buildMvcBody` numera depois da maior linha existente.
 - Lista: `this.mvc.list(API, SPEC, page, pageSize, busca)` → `{ items, hasNext, total }`; cada item tem `_pk`.
-- O proxy `/rest` do `proxy.conf.js` já cobre `/rest/fwmodel`.
+- O proxy `/rest` do `proxy.conf.js` já cobre `/rest/fwmodel` (a URL final, depois do prefixo do ProtheusLibCore).
+
+## Modo somente leitura — `--mvc <FONTE> --readonly`
+
+Para telas que **só consultam** o modelo (monitor, painel de acompanhamento, `two-panel-browse --detail`,
+`page-detail`): a gravação continua só na rotina MVC (ou em ações próprias da API), e o frontend não leva
+`buildMvcBody`, `create`, `update`, `remove` nem os testes deles.
+
+- **Backend:** o `RM_<FONTE>.prw` é o mesmo (ele já bloqueia por MenuDef o que o usuário não pode). Se o
+  recurso já existe no projeto, **não gerar de novo** — só confirmar o `<api>` e o `<MODEL_ID>`.
+- **`protheus-mvc.ts`:** gerar só as partes de leitura — tipos (`MvcModelSpec`, `MvcData`, `MvcPage`,
+  `MvcRecord`, `RawList`, `RawResource`, `MvcError`), `mvcText`/`mvcNumber`/`mvcDate`, `mvcListParams`,
+  `parseMvcList`, `parseMvcResource` e `parseMvcError`. Omitir `mvcNode`, `buildMvcBody` e os helpers de
+  numeração de linha.
+- **`protheus-mvc.service.ts`** (leitura):
+
+```typescript
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import { Observable, catchError, map, throwError } from 'rxjs';
+
+import { MvcData, MvcModelSpec, MvcPage, RawList, RawResource, mvcListParams, parseMvcError, parseMvcList, parseMvcResource } from './protheus-mvc';
+
+/** Leitura de uma rotina MVC publicada com FWRestModel (`/fwmodel/<nome>`). Erros saem como MvcError. */
+@Injectable({ providedIn: 'root' })
+export class ProtheusMvcService {
+  private readonly http = inject(HttpClient);
+
+  list(api: string, spec: MvcModelSpec, page: number, pageSize: number, search?: string): Observable<MvcPage> {
+    const params = new HttpParams({ fromObject: mvcListParams(page, pageSize, search) });
+    return this.http.get<RawList>(api, { params }).pipe(
+      map((raw) => parseMvcList(raw, spec)),
+      catchError((error: HttpErrorResponse) => this.fail(error)),
+    );
+  }
+
+  /** Registro completo (FIELDEMPTY=true: todos os campos, inclusive os vazios). */
+  get(api: string, spec: MvcModelSpec, pk: string): Observable<MvcData> {
+    const params = new HttpParams().set('FIELDEMPTY', 'true');
+    return this.http.get<RawResource>(`${api}/${pk}`, { params }).pipe(
+      map((raw) => parseMvcResource(raw, spec)),
+      catchError((error: HttpErrorResponse) => this.fail(error)),
+    );
+  }
+
+  private fail(error: HttpErrorResponse): Observable<never> {
+    return throwError(() => parseMvcError(error.status, error.error));
+  }
+}
+```
+
+- **Service da entidade** (ex.: `LoteService`): mapeia `MvcData` → interface da tela (`values` do cabeçalho
+  + `grids['<ID>DETAIL']` filtrando `deleted`) e expõe só `list`/`get`.
+- **Testes:** só os de leitura (lista com `COUNT`/`STARTINDEX`/`SEARCH`, `get` com `FIELDEMPTY`, grade sem
+  `items`, erro em JSON e em texto, 401/404).
+- **Filtros que não são busca:** o `FILTER` da URL é ignorado pelo recurso (proteção contra injeção de
+  SQL). Filtro fixo vai no `RM_FIXO` do backend; filtro escolhido na tela (status, tipo) filtra no cliente
+  os registros já carregados — avisar na tela ("filtra os N carregados") — ou vira um parâmetro tratado no
+  `SetFilter` do recurso com lista de valores permitidos.
 
 ## Limitações
 
