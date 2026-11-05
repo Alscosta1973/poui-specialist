@@ -68,6 +68,8 @@ Gera artefatos Angular 17–21+ standalone com PO-UI, integrados à API REST do 
 | `refactor` | Converte `.prw`/`.tlpp` existente para PO-UI |
 | `models` | Interfaces TypeScript (simples, chave composta, flat relational) |
 | `tlpp-contract` | Skeleton REST backend WsRestFul para implementar com advpl-specialist |
+| `smartx` | Rotina **Smart X** (Protheus 12.1.2610+): Modelo + Interface TLPP + Launcher no padrão do TDN — a tela é renderizada pelo framework TOTVS, sem Angular |
+| `smartx-browse` | Liga a nova visão Smart X num `mBrowse`/`FWMBrowse` existente (`hasSmartX`/`setSmartX`, cor PO-UI nas legendas, filtro SQL `@`, MenuDef) |
 
 **Exemplos:**
 
@@ -78,6 +80,8 @@ Gera artefatos Angular 17–21+ standalone com PO-UI, integrados à API REST do 
 /poui-specialist:generate dashboard Estoque --module estoque
 /poui-specialist:generate module Faturamento
 /poui-specialist:generate refactor --module financeiro
+/poui-specialist:generate smartx ZA0CAD --module cadastro
+/poui-specialist:generate smartx-browse protheus/ZA0BRW.prw
 ```
 
 ---
@@ -114,7 +118,16 @@ Revisa código Angular/PO-UI contra regras de boas práticas, performance e aces
 | `boas-praticas` | OnPush, tipagem, signals, unsubscribe |
 | `performance` | trackBy, AsyncPipe, lazy loading |
 | `acessibilidade` | p-label, aria-label |
+| `smartx` | Fontes Protheus Smart X (`.prw`/`.tlpp`): regras SX01–SX11 + SXR1–SXR8 |
 | `all` | Todas as categorias (padrão) |
+
+### Smart X (Protheus 12.1.2610+)
+
+Referência oficial do TDN revisada (05/11/2026) em `skills/smartx/`: estrutura Objeto → Modelo → Interface → Launcher,
+eventos (`addTriggers` × `addValidators`, um contexto por `addOnChange`), ações, expressões, lookups, legendas
+`caption-tag-NN`, pontos de entrada `custom.entrypoint.*`, migração de `mBrowse`/`FWMBrowse` e as regras **SX01–SX11**,
+aplicadas pelo `/poui-specialist:lint` (fontes `.prw`/`.tlpp`), pelo `/poui-specialist:review --focus smartx` e pelo
+lint da extensão VS Code.
 
 ---
 
