@@ -39,6 +39,13 @@ export const GROUPS: MenuGroup[] = [
     ],
   },
   {
+    label: 'Smart X (Protheus)',
+    entries: [
+      { label: 'Smart X — Gerar, Migrar Browse ou Revisar', commandId: 'poui.smartx', paid: true },
+      { label: 'Lint Smart X (fontes .prw/.tlpp)', commandId: 'poui.smartx.lint', paid: false },
+    ],
+  },
+  {
     label: 'Utilitários',
     entries: [
       { label: 'Preview no Browser', commandId: 'poui.preview', paid: false },

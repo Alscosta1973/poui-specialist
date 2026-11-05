@@ -15,6 +15,7 @@ import { registerClientLogoCommand } from './generateClientLogo';
 import { registerConnectCommand } from './generateConnect';
 import { registerScaffoldCommand } from './generateScaffold';
 import { registerDocsCommand } from './generateDocs';
+import { registerSmartxCommand, registerSmartxLintCommand } from './generateSmartx';
 import { registerConfigureEngineCommand } from './configureEngine';
 import { registerActivateLicenseCommand } from './activateLicense';
 import { registerDevUnlockCommand } from './devUnlock';
@@ -55,6 +56,8 @@ export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(registerConnectCommand(context, outputChannel));
   context.subscriptions.push(registerScaffoldCommand(context, outputChannel));
   context.subscriptions.push(registerDocsCommand(context, outputChannel));
+  context.subscriptions.push(registerSmartxCommand(context, outputChannel));
+  context.subscriptions.push(registerSmartxLintCommand(context, outputChannel));
   context.subscriptions.push(registerConfigureEngineCommand(context, outputChannel));
   context.subscriptions.push(registerActivateLicenseCommand(context, outputChannel));
   context.subscriptions.push(registerDevUnlockCommand(context, outputChannel));

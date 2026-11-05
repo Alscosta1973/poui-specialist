@@ -88,6 +88,14 @@
         "title": "PO-UI: Criar Novo Projeto (Scaffold)"
       },
       {
+        "command": "poui.smartx",
+        "title": "PO-UI: Smart X (Protheus) — Gerar, Migrar Browse ou Revisar"
+      },
+      {
+        "command": "poui.smartx.lint",
+        "title": "PO-UI: Lint Smart X (fontes .prw/.tlpp)"
+      },
+      {
         "command": "poui.docs",
         "title": "PO-UI: Consultar Documentação de Componente"
       },

@@ -54,6 +54,12 @@ const sources = [
   // tlpp-contract
   ['skills/poui-code-generation/templates-tlpp-contract.md', 'templates-tlpp-contract.md'],
   ['skills/poui-patterns/smartx.md', 'smartx.md'],
+  // Smart X (comando poui.smartx — gerar rotina, migrar browse, revisar)
+  ['skills/poui-code-generation/templates-smartx.md', 'templates-smartx.md'],
+  ['skills/poui-code-generation/templates-smartx-browse.md', 'templates-smartx-browse.md'],
+  ['skills/smartx/smartx-reference.md', 'smartx-reference.md'],
+  ['skills/smartx/smartx-browse-migration.md', 'smartx-browse-migration.md'],
+  ['skills/smartx/smartx-rules.md', 'smartx-rules.md'],
   ['skills/poui-code-generation/templates-mvc-rest.md', 'templates-mvc-rest.md'],
   // auth-login
   ['skills/poui-code-generation/templates-auth-login.md', 'templates-auth-login.md'],

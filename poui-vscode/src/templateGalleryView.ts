@@ -15,6 +15,7 @@ const CATEGORY_ICONS: Record<string, string> = {
   'Geração': 'wand',
   'Integração e Deploy': 'plug',
   'Qualidade e Revisão': 'checklist',
+  'Smart X (Protheus)': 'symbol-namespace',
   'Utilitários': 'tools',
   'Configuração': 'gear',
 };
