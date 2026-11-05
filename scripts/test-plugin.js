@@ -189,6 +189,42 @@ console.log('\n[8] Modo dev da licença');
   else fail('linha "Data de expiração: `AAAA-MM-DD`" sumiu — renew-license.js quebra');
 }
 
+// ─── Teste 9: regras Smart X consistentes (skill × /lint × /review × extensão) ─
+console.log('\n[9] Regras Smart X (SX01..SXnn) consistentes');
+{
+  const rules = readFile('skills/smartx/smartx-rules.md') ?? '';
+  const ids = [...rules.matchAll(/^\| (SX\d{2}) \|/gm)].map(m => m[1]);
+  if (ids.length === 0) fail('skills/smartx/smartx-rules.md sem regras SXnn');
+  let seq = ids.length > 0;
+  ids.forEach((id, i) => {
+    const esperado = `SX${String(i + 1).padStart(2, '0')}`;
+    if (seq && id !== esperado) { seq = false; fail(`Regra Smart X fora de sequência: ${id}, esperava ${esperado}`); }
+  });
+  if (seq) ok(`${ids.length} regras SX01..${ids[ids.length - 1]} em sequência`);
+
+  const alvos = {
+    'commands/lint.md': readFile('commands/lint.md') ?? '',
+    'agents/code-reviewer.md': readFile('agents/code-reviewer.md') ?? '',
+    'poui-vscode/src/smartxLintRules.ts': readFile('poui-vscode/src/smartxLintRules.ts') ?? '',
+  };
+  for (const [arquivo, conteudo] of Object.entries(alvos)) {
+    if (arquivo === 'agents/code-reviewer.md') {
+      const ultima = ids[ids.length - 1];
+      if (ultima && conteudo.includes(`SX01 … ${ultima}`)) ok(`${arquivo} cobre SX01 … ${ultima}`);
+      else fail(`${arquivo} não cita o intervalo SX01 … ${ultima}`);
+      continue;
+    }
+    const faltando = ids.filter(id => !conteudo.includes(`'${id}'`) && !conteudo.includes(`| ${id} |`));
+    if (faltando.length === 0) ok(`${arquivo} implementa ${ids.length} regras`);
+    else fail(`${arquivo} sem as regras: ${faltando.join(', ')}`);
+  }
+
+  for (const f of ['skills/smartx/SKILL.md', 'skills/smartx/smartx-reference.md', 'skills/smartx/smartx-browse-migration.md']) {
+    if (fs.existsSync(path.join(ROOT, f))) ok(f);
+    else fail(`Arquivo ausente: ${f}`);
+  }
+}
+
 // ─── Resultado ────────────────────────────────────────────────────────────────
 console.log('\n' + '─'.repeat(60));
 console.log(`Resultado: ${passed} passaram, ${failed} falharam\n`);

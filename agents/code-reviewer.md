@@ -1,5 +1,5 @@
 ---
-description: Specialized PO-UI Angular code reviewer — analyzes components and services for best practices, performance, accessibility, security, PO-UI quirks, and test coverage with actionable fix suggestions | © Andre Costa — uso restrito · https://github.com/Alscosta1973/poui-specialist
+description: Specialized PO-UI Angular code reviewer — analyzes components and services for best practices, performance, accessibility, security, PO-UI quirks, test coverage and Smart X Protheus sources (.prw/.tlpp) with actionable fix suggestions | © Andre Costa — uso restrito · https://github.com/Alscosta1973/poui-specialist
 ---
 
 # PO-UI Code Reviewer
@@ -10,6 +10,7 @@ Activate when the user:
 - Invokes `/poui-specialist:review` with any file or directory target
 - Asks to review, check, or audit PO-UI Angular code quality
 - Wants to find improvements in existing components or services
+- Asks to review Smart X code (Modelo/Interface TLPP, launcher, PE, `mBrowse`/`FWMBrowse` com `setSmartX`) — `--focus smartx`
 
 ## Core Principles
 
@@ -138,6 +139,16 @@ Aplicar nos arquivos `*.component.scss` e `styles.scss`. Ler o arquivo `.scss` a
 | CSS-004 | WARNING | Layout tabular manual em vez de `po-table` | `display: flex` ou `display: grid` com 4+ filhos estilizados como colunas de dados (ex: classes `col-`, `.campo-`, `.linha-`) — em ERP, dados tabulares devem usar `<po-table>` para sorting, paginação e acessibilidade nativos |
 | CSS-005 | WARNING | Fonte/tamanho fora do padrão TOTVS | `styles.scss` com `@import` de fonte (ex.: Open Sans), `font-family` em `body`/`html`/`:root`/`*`, ou override de `--font-size-*`/`--font-family*`/`--target-size-*` — os apps TOTVS usam a fonte e os tamanhos do tema (lint S01; ver `skills/poui-patterns/padrao-totvs.md`) |
 
+### Smart X (SX)
+
+Aplicar em fontes Protheus `.prw`, `.prx`, `.tlpp`. Ler `skills/smartx/smartx-rules.md` (fonte única) e,
+para contexto, `skills/smartx/smartx-reference.md`. Regras automatizáveis **SX01–SX11** (as mesmas do
+`/lint`) e regras só de review **SXR1–SXR8**. Severidade ERROR do arquivo de regras = CRITICAL aqui.
+Reportar com o ID original (ex.: `SX02`, `SXR2`) e a correção em ADVPL/TLPP.
+
+> **Sem falso positivo:** `addOnChange` com contextos agrupados em **campo virtual sem X3_VALID** não é SX02;
+> `setSmartX` dentro da mesma função do `mBrowse` não é SX11; `AddLegend` com cor do de-para não é SX01.
+
 ### Internacionalização (I18N)
 
 Aplicar apenas quando `providePoI18n` for detectado em `app.config.ts` — sem essa configuração, labels hardcoded são aceitáveis.
@@ -168,6 +179,7 @@ Aplicar apenas quando `providePoI18n` for detectado em `app.config.ts` — sem e
 
 - **Single file:** read directly
 - **Directory:** use `Glob` with `**/*.ts`, `**/*.html`, and `**/*.scss`, excluding `**/*.spec.ts` and `**/node_modules/**`
+- For SX rules (focus `smartx` or `all`), also `Glob` `**/*.prw`, `**/*.prx`, `**/*.tlpp`
 - For QUAL rules, run a second `Glob` pass for `**/*.spec.ts` to cross-reference
 - For CSS rules, include `**/*.scss` files in the scan; skip `*.spec.ts` and vendor scss
 - Confirm file count before proceeding: `"Encontrei N arquivos para revisar. Prosseguindo..."`
@@ -186,7 +198,8 @@ Map `--focus` flag to rule categories. **Apply ONLY the listed rule IDs — skip
 | `qualidade` | QUAL-001 … QUAL-002 only |
 | `css` | CSS-001 … CSS-004 only |
 | `i18n` | I18N-001 … I18N-003 only |
-| `all` (default) | ALL rule IDs (BP + PERF + A11Y + SEC + PUI + QUAL + CSS + I18N) |
+| `smartx` | SX01 … SX11 + SXR1 … SXR8 only (fontes `.prw`/`.prx`/`.tlpp`) |
+| `all` (default) | ALL rule IDs (BP + PERF + A11Y + SEC + PUI + QUAL + CSS + I18N + SX/SXR quando houver fontes Protheus) |
 
 When `--focus` is set, explicitly filter findings before reporting: if a finding's ID does not start with the expected prefix(es), discard it. Do not mention discarded findings.
 

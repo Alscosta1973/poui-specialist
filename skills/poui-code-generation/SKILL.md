@@ -38,6 +38,7 @@ Use this numbered algorithm to choose the right template before loading any file
 
 **Other?**
 - Existing `.prw`/`.tlpp` to convert → `refactor-from-tlpp`
+- Tela gerada pelo framework Smart X (TLPP, sem Angular) → `smartx`; browse legado na nova visão → `smartx-browse`
 - Analytics + KPIs + charts → `dashboard`
 - Angular service only → `service`
 - Full app scaffold → `module`
@@ -110,6 +111,13 @@ All templates use these substitution placeholders:
 | **standalone-migrate** | `templates-standalone-migrate.md` | Migration guide: convert NgModule component to Angular 17–21+ standalone + OnPush + signals |
 | **exemplo-e2e** | `templates-exemplo-e2e.md` | Referência completa ponta-a-ponta: Angular component + service + TLPP backend + proxy + CORS para entidade Pedidos |
 | **auth-login** | `templates-auth-login.md` | Autenticação: po-page-login + AuthService + authGuard + tokenInterceptor + endpoint TLPP de login |
+
+### Smart X (Protheus 12.1.2610+ — framework TOTVS, sem Angular)
+
+| Template | File | Description |
+|----------|------|-------------|
+| **smartx** | `templates-smartx.md` | Rotina Smart X nova no padrão do TDN: Modelo (`ObjectFromMetadata`, `addArray`, propriedades, trigger customizado) + Interface (`BuildContract`, dataView/New/Edit/Detail, legenda `setFieldAsLabel`) + Launcher + PE `custom.entrypoint` opcional. Referência: `skills/smartx/` |
+| **smartx-browse** | `templates-smartx-browse.md` | Liga a nova visão num `mBrowse`/`FWMBrowse` existente: `fwmbrowse.ch`, `hasSmartX`/`setSmartX`, cor PO-UI nas legendas, filtro SQL `@`, `isSmartX()`, MenuDef (`OP_IMPRIMIR`, `PAGEACTION`) |
 
 ---
 

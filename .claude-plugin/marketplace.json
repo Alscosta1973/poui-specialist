@@ -4,13 +4,13 @@
     "name": "Andre Costa"
   },
   "metadata": {
-    "description": "Marketplace para o plugin poui-specialist v1.16.0 — 31 templates de geração, 12 comandos, 21 regras de review, 18 quirks documentados, Angular 17–21+"
+    "description": "Marketplace para o plugin poui-specialist v1.16.0 — 33 templates de geração (incl. Smart X), 12 comandos, 21 regras de review, 18 quirks documentados, Angular 17–21+"
   },
   "plugins": [
     {
       "name": "poui-specialist",
       "source": "./",
-      "description": "Especialista em PO-UI (Portinari) para Angular 17–21+ integrado ao TOTVS Protheus. Gera 31 templates standalone prontos (page-list, modal-crud, dashboard, stacked-browse, two-panel-browse (conciliação e lista + detalhe), action-list, auth-login, http-interceptor, route-guard, rotina MVC via FWRestModel e mais) via 12 comandos e 3 agentes especializados. Revisa código com 21 regras em 6 categorias. Documenta 18 quirks de produção. Inclui /migrate, /lint, /scaffold (--with-dark-mode, --with-i18n), /package, /test, /e2e, /discover e /generate --dry-run.",
+      "description": "Especialista em PO-UI (Portinari) para Angular 17–21+ integrado ao TOTVS Protheus. Gera 33 templates prontos (page-list, modal-crud, dashboard, stacked-browse, two-panel-browse (conciliação e lista + detalhe), action-list, auth-login, http-interceptor, route-guard, rotina MVC via FWRestModel, rotina Smart X TLPP e migração de mBrowse/FWMBrowse para a nova visão Smart X, e mais) via 12 comandos e 3 agentes especializados. Revisa código com 21 regras em 6 categorias + 11 regras Smart X (SX01–SX11) para fontes Protheus. Documenta 18 quirks de produção. Inclui /migrate, /lint, /scaffold (--with-dark-mode, --with-i18n), /package, /test, /e2e, /discover e /generate --dry-run.",
       "version": "1.23.0",
       "author": {
         "name": "Andre Costa",
@@ -39,6 +39,8 @@
         "signals",
         "code-generator",
         "code-reviewer",
+        "smartx",
+        "tlpp",
         "claude-code-plugin"
       ]
     }

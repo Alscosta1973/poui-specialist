@@ -9,9 +9,10 @@ banco, Expedição Contínua atualizada).
 O plugin **não concorre** com o SmartX: o SmartX moderniza rotinas padrão e cadastros simples;
 o poui-specialist cobre telas sob medida e tudo o que o SmartX ainda não faz.
 
-> Fontes (out/2026): TDN "Smart X no módulo Estoque/Custos" (https://tdn.totvs.com/x/g441Pg),
-> palestras do Universo TOTVS 2026 e artigos técnicos. A documentação oficial completa do
-> SmartX ainda não estava no TDN — revisar esta página quando for publicada.
+> Fonte oficial (revisada em 05/11/2026): TDN https://tdn.totvs.com/display/public/framework/Smart+X
+> (Introdução, Conhecendo a visão, Ativação, Filtros, "5. Desenvolvimento com Smart X" e FAQ).
+> **Para gerar, migrar ou revisar código Smart X** use a skill `skills/smartx/` (referência técnica,
+> migração de browse e regras SX01–SX11) e os tipos `/generate smartx` e `/generate smartx-browse`.
 
 ---
 
@@ -20,8 +21,9 @@ o poui-specialist cobre telas sob medida e tudo o que o SmartX ainda não faz.
 | Situação | Use |
 |---|---|
 | Cliente em release **anterior à 12.1.2610** | PO-UI próprio (plugin) |
-| Rotina padrão TOTVS que já tem versão SmartX | SmartX (customizar via Custom Merge / SmartLink) |
-| Cadastro simples sobre tabela do dicionário (SX2/SX3), release ≥ 2610 | SmartX |
+| Rotina padrão TOTVS que já tem versão SmartX | SmartX (customizar por ponto de entrada `custom.entrypoint.*` — `skills/smartx/smartx-reference.md` §11) |
+| Cadastro simples sobre tabela do dicionário (SX2/SX3), release ≥ 2610 | SmartX (`/generate smartx`) |
+| Rotina legada com `mBrowse`/`FWMBrowse` que só precisa do browse novo | SmartX (`/generate smartx-browse`) |
 | Tela sob medida: conciliação, painel, ações em lote, fluxo com várias etapas | PO-UI próprio |
 | Precisa de algo da tabela abaixo ("não existe no SmartX 2610") | PO-UI próprio |
 
@@ -45,10 +47,13 @@ o poui-specialist cobre telas sob medida e tudo o que o SmartX ainda não faz.
 - `X3_WHEN` dinâmico — validação vai para o servidor (campo novo `X3_VLDSMX`).
 - `DbSetFilter` e filtro com expressão ADVPL — só SQL com prefixo `@` em `SetFilterDefault` ou **oData**.
 - Papel de Trabalho do SIGACFG (é ignorado).
-- Legendas BMP — viram tags de cor (`color-01` a `color-12`), como o plugin já gera.
+- Legendas BMP — viram tags de cor `caption-tag-01` a `caption-tag-35` (tokens `red1`…`gray5`;
+  `color-01`…`color-12` só por compatibilidade). Cor fora do de-para sem o parâmetro `cColorPoUi`
+  gera exceção "Cor inválida para a legenda" (regra SX01).
 - Busca rápida só pesquisa a página já carregada; busca no banco é pelo filtro avançado.
 - Pontos de entrada MVC mudam: FORMPRE → `formPre`, FORMPOS → `beforeCommit`/`beforeCommitInTransaction`,
   MODELCOMMIT → `afterCommitInTransaction`, MODELPRE ignorado, BUTTONBAR não existe.
+- Rotina reescrita em SmartX **não** pode ser usada junto com a versão legada MVC/ADVPL (lock e sobrescrita).
 
 ## Backend do plugin pronto para o SmartX
 
@@ -74,8 +79,9 @@ tipo pedido for um cadastro/lista simples sobre **uma** tabela do dicionário, e
 
 ```
 ℹ Cliente na 12.1.2610+: se esta tela for um cadastro simples sobre uma tabela do dicionário,
-  o SmartX pode gerá-la sem código. Use o plugin se precisar de tela sob medida, mestre/detalhe
-  na mesma tela, árvore, seleção em itens filhos ou mais de um browse (ver skills/poui-patterns/smartx.md).
+  o SmartX pode gerá-la sem código Angular (/poui-specialist:generate smartx). Use PO-UI próprio se
+  precisar de tela sob medida, mestre/detalhe na mesma tela, árvore, seleção em itens filhos ou mais
+  de um browse (ver skills/poui-patterns/smartx.md).
 ```
 
 Não bloquear: é só um aviso; seguir com a geração normalmente.

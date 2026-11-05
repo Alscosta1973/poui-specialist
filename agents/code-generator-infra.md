@@ -1,5 +1,5 @@
 ---
-description: PO-UI code generator (família Infraestrutura) — service, module, dashboard, models, tlpp-contract, refactor, auth-login para integração com Protheus REST | © Andre Costa — uso restrito
+description: PO-UI code generator (família Infraestrutura) — service, module, dashboard, models, tlpp-contract, refactor, auth-login, smartx, smartx-browse para integração com Protheus REST e Smart X | © Andre Costa — uso restrito
 ---
 
 # PO-UI Code Generator — Infraestrutura
@@ -7,7 +7,7 @@ description: PO-UI code generator (família Infraestrutura) — service, module,
 ## Activation Triggers
 
 Activate when `generate.md` dispatches a type from this family:
-`service` · `module` · `dashboard` · `models` · `tlpp-contract` · `refactor` · `http-interceptor` · `route-guard` · `standalone-migrate` · `upload` · `auth-login`
+`service` · `module` · `dashboard` · `models` · `tlpp-contract` · `refactor` · `http-interceptor` · `route-guard` · `standalone-migrate` · `upload` · `auth-login` · `smartx` · `smartx-browse`
 
 ## No Project Scanning (CRITICAL)
 
@@ -22,7 +22,7 @@ Activate when `generate.md` dispatches a type from this family:
 **Allowed:**
 - `Read`/`Write` files **inside this plugin** (`skills/*`, `agents/*`, `commands/*`)
 - `Write` the final generated `.ts`/`.html`/`.scss` files to the correct path
-- `Read` a **single specific file** the user explicitly named in their request (e.g., *"converta este FATA001.prw"*)
+- `Read` a **single specific file** the user explicitly named in their request (e.g., *"converta este FATA001.prw"*; for `smartx-browse`, the `.prw`/`.tlpp` to migrate)
 - `Read angular.json` only when the user asks about build configuration
 
 ## Project Context (optional)
@@ -137,7 +137,7 @@ Se um arquivo de template já foi carregado nesta sessão via `Read`, **não rel
 
 1. Parse type from the list below
 2. Parse name and derive naming conventions
-3. For `refactor`: ask the user to provide the `.prw`/`.tlpp` source file if not already in the prompt
+3. For `refactor` and `smartx-browse`: ask the user to provide the `.prw`/`.tlpp` source file if not already in the prompt. For `smartx`: collect the inputs table of `templates-smartx.md` (alias, chave, grids, legenda, PE, launcher) — ask what is missing, never invent fields
 4. **Load ONLY the files listed for the identified type** — do not load anything else
 
 #### Conditional load map
@@ -155,6 +155,8 @@ Se um arquivo de template já foi carregado nesta sessão via `Read`, **não rel
 | `standalone-migrate` | `skills/poui-code-generation/templates-standalone-migrate.md`<br>`skills/poui-patterns/po-ui-quirks-onpush.md`<br>`skills/poui-patterns/module-structure.md` |
 | `upload` | `skills/poui-code-generation/templates-upload.md` |
 | `auth-login` | `skills/poui-code-generation/templates-auth-login.md` |
+| `smartx` | `skills/poui-code-generation/templates-smartx.md`<br>`skills/smartx/smartx-reference.md`<br>`skills/smartx/smartx-rules.md` |
+| `smartx-browse` | `skills/poui-code-generation/templates-smartx-browse.md`<br>`skills/smartx/smartx-browse-migration.md`<br>`skills/smartx/smartx-rules.md` |
 
 5. Present the plan to the user before writing any file:
 
@@ -173,6 +175,8 @@ Tipo escolhido:
   • standalone-migrate  → migra componente NgModule legado para standalone + OnPush + signals
   • upload              → upload de arquivos com po-upload (auto, múltiplo ou embutido em form)
   • auth-login          → po-page-login + AuthService + authGuard + tokenInterceptor
+  • smartx              → rotina Smart X: Modelo + Interface TLPP + Launcher (+ PE)
+  • smartx-browse       → nova visão Smart X num mBrowse/FWMBrowse existente (edição in-place)
 
 Prosseguir? (s/n)
 ```
@@ -181,7 +185,7 @@ Prosseguir? (s/n)
 
 ### Phase 2: Validation
 
-1. If `--module` is missing (except `module` and `auth-login` types) — ask the user before proceeding. For `auth-login`, files always go under `src/app/auth/` regardless of `--module`.
+1. If `--module` is missing (except `module`, `auth-login` and `smartx-browse` types) — ask the user before proceeding. For `auth-login`, files always go under `src/app/auth/` regardless of `--module`.
 2. If the target directory does not exist — inform the user and confirm creation
 3. If any target file already exists — list conflicting files, ask for confirmation before overwriting
 4. **PascalCase validation:** se `<Name>` começa com letra minúscula, corrigir automaticamente e avisar.
@@ -279,4 +283,13 @@ Check that `projects.<name>.architect.build.options.styles` contains these 3 PO-
 
 If any are missing, add them **before** `src/styles.scss` and report the fix to the user.
 
-For `service`, `models`, and `tlpp-contract` types: skip this phase (no component generated).
+For `service`, `models`, `tlpp-contract`, `smartx` and `smartx-browse` types: skip this phase (no component generated).
+
+### Smart X types — differences from the Angular flow
+
+- No Angular: skip the Node/Angular version gate, the `.ts`/`.html` attribution header, `angular.json`,
+  routes and directory checks under `src/app/`. Use the TLPP header `// @generated  poui-specialist vX.Y.Z — smartx`.
+- `smartx`: write the files in the folder the user indicates (default: current directory) with the names
+  from `templates-smartx.md`; launcher `Function` as in TDN, but warn that a customer RPO needs `User Function` (≤ 8 chars).
+- `smartx-browse`: edit the given file in place (Edit, never rewrite the whole file) and print the final report of the template.
+- Before finishing, check the written code against `skills/smartx/smartx-rules.md` (SX01–SX11) and fix any hit.

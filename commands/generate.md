@@ -55,6 +55,12 @@ Generates standalone Angular 17–21+ artifacts using PO-UI components, integrat
 | `upload` | `*.component.ts/html/scss` | Sim | Upload de arquivos com `po-upload`: A (único auto-upload), B (múltiplo + tabela de resultados), C (embutido em form + envio manual via FormData) |
 | `auth-login` | `login.component.ts/html`, `auth.service.ts`, `auth.guard.ts` | Não | Tela de login com `po-page-login` + AuthService + authGuard + tokenInterceptor — apenas para apps fora do iframe Protheus |
 
+### Smart X (Protheus 12.1.2610+ — sem código Angular)
+| Tipo | Arquivos gerados | `--module` obrigatório? | Quando usar |
+|------|----------------|----------------------|-------------|
+| `smartx` | `<ns>.model.<rotina>.tlpp`, `<ns>.interface.<rotina>.tlpp`, `<rotina>sx.prw` (+ PE opcional) | Sim (vira o módulo do namespace) | Rotina Smart X nova: o framework TOTVS renderiza a tela a partir de Modelo + Interface TLPP (`templates-smartx.md`) |
+| `smartx-browse` | Fonte `.prw`/`.tlpp` existente atualizado in-place | Não | Liga a nova visão Smart X num `mBrowse`/`FWMBrowse` existente: `hasSmartX`/`setSmartX`, legenda PO-UI, filtro SQL `@`, MenuDef (`templates-smartx-browse.md`) |
+
 ## Exemplos
 
 ```bash
@@ -82,6 +88,8 @@ Generates standalone Angular 17–21+ artifacts using PO-UI components, integrat
 /poui-specialist:generate route-guard auth --module core
 /poui-specialist:generate standalone-migrate ClientesLegado --module cadastro
 /poui-specialist:generate auth-login Login
+/poui-specialist:generate smartx ZA0CAD --module cadastro          # rotina Smart X (Modelo + Interface + Launcher)
+/poui-specialist:generate smartx-browse src/protheus/ZA0BRW.prw     # nova visão num mBrowse/FWMBrowse existente
 ```
 
 ## Processo
@@ -105,9 +113,13 @@ Generates standalone Angular 17–21+ artifacts using PO-UI components, integrat
    | Lista / Browse | `page-list`, `page-dynamic-search`, `page-dynamic`, `stacked-browse`, `two-panel-browse`, `action-list`, `master-detail` | `poui-specialist:code-generator-list` |
    | Formulários | `page-edit`, `page-detail`, `modal-crud`, `stepper-form` | `poui-specialist:code-generator-forms` |
    | Infraestrutura | `service`, `module`, `dashboard`, `models`, `tlpp-contract`, `refactor`, `http-interceptor`, `route-guard`, `standalone-migrate`, `upload`, `auth-login` | `poui-specialist:code-generator-infra` |
+   | Smart X | `smartx`, `smartx-browse` | `poui-specialist:code-generator-infra` (carrega `skills/smartx/`) |
 
    Invoke the matching specialized agent — it handles planning, validation, and generation.
 3. **Confirm output** — list created files with their absolute paths and suggested route addition
+   > **Tipos Smart X (`smartx`, `smartx-browse`):** não geram Angular — pular os Passos 4 e 5 e, no
+   > lugar, rodar as verificações da seção "Fontes Protheus (.prw/.tlpp) — Smart X" de
+   > `commands/lint.md` sobre os arquivos gerados/alterados e mostrar o resultado.
 4. **Build verification** — Se `--skip-build` foi fornecido: exibir `⚠ Build verification ignorada (--skip-build). Execute ng build --configuration development manualmente.` e pular para o Passo 5. Caso contrário: invocar automaticamente a skill `poui-specialist:build-fix`. Não perguntar ao usuário — executar direto e exibir o relatório de build.
 5. **Preview no browser** — após a verificação de build, perguntar:
 

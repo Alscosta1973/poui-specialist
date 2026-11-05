@@ -1,5 +1,5 @@
 ---
-description: Review PO-UI Angular code for best practices, performance, and accessibility
+description: Review PO-UI Angular code for best practices, performance, and accessibility — and Smart X Protheus sources (.prw/.tlpp) with --focus smartx
 allowed-tools: Read, Glob, Grep, Skill, Agent, Bash
 argument-hint: "<file|directory> [--focus <category>]"
 ---
@@ -27,6 +27,7 @@ Reviews PO-UI Angular code against established rules for best practices, perform
 | `seguranca` | bypassSecurityTrust*, URL hardcoded, concatenação em HTTP |
 | `poui` | po-table selection, loading state, column types, po-modal dismiss |
 | `qualidade` | cobertura de testes (spec files ausentes) |
+| `smartx` | fontes Protheus Smart X: regras SX01–SX11 e SXR1–SXR8 de `skills/smartx/smartx-rules.md` (eventos no Modelo, contextos separados, legenda PO-UI, `setSmartX`/`hasSmartX`, filtro SQL `@`, arquitetura stateless) |
 | `all` | Todas as categorias (padrão) |
 
 ## Examples
@@ -37,6 +38,7 @@ Reviews PO-UI Angular code against established rules for best practices, perform
 /poui-specialist:review src/ --focus seguranca
 /poui-specialist:review src/app/ --focus poui
 /poui-specialist:review src/app/ --focus qualidade
+/poui-specialist:review protheus/ --focus smartx
 ```
 
 ## Process
