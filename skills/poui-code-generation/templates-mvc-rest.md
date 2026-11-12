@@ -15,6 +15,10 @@ grades netas.
 >   gravar nada (transação);
 > - modelo com bloco 1:1 (FIELDS filho): POST e PUT.
 >
+> Revisão de 11/2026 (monitor somente leitura + cadastro simples): `SetFilter` sempre descarta o filtro
+> recebido, `Seek` confere a filial do `pk`, regra do Configurador com `U_` (`RM_ROTINA`), entidades XML
+> decodificadas no `mvcText` e lista ordenada/filtrada por parâmetro.
+>
 > Karma 13/13 no Angular 21. Padrões tirados de fontes da TOTVS: `JurModRest.prw` (INCLUI/ALTERA, 403),
 > `mntMvc080/084.prw` (filtro fixo no `SetFilter`), `ESTA0001.prw` (`SaveData` próprio), `MRPData.prw`
 > (acesso pelo MenuDef). Referência: TDN "FWRestModel" (https://tdn.totvs.com/pages/releaseview.action?pageId=271671548).
@@ -26,7 +30,10 @@ grades netas.
 | Campo de FIELDS sem `"order"` | o 1º campo é ignorado → "campo não foi preenchido" | servidor (`_RMNormJs`) e frontend (`buildMvcBody`) numeram |
 | `value` numérico/lógico | HTTP 500 (`XPATHADDNODE ... expected C->N`) | tudo vira texto nos dois lados, em todos os níveis |
 | ModelDef usa `INCLUI`/`ALTERA` | HTTP 500 já no GET (variável de tela não existe no REST) | `Activate` cria `INCLUI`/`ALTERA` pelo verbo HTTP |
-| `FILTER` da URL é SQL puro colado no WHERE | injeção de SQL | `SetFilter` ignora o FILTER da URL; só filtro fixo + `SEARCH` escapado |
+| `FILTER` da URL é SQL puro colado no WHERE | injeção de SQL | `SetFilter` **descarta sempre** o filtro recebido (comparar com o FILTER da URL é frágil: maiúscula/minúscula, decodificação); só filtro fixo + `SEARCH` escapado |
+| Valores texto com entidades XML | JSON de um campo memo chega como `{&quot;lote&quot;:...}` (`&quot;` `&amp;` `&lt;` `&gt;` `&apos;`) | `mvcText()` decodifica; usar `mvcText` em todo campo texto |
+| GET/PUT/DELETE por `pk` de outra filial | o `pk` é base64 de xFilial + chave: trocando a filial no base64 lê/grava registro de outra filial | `Seek` confere se o `pk` começa pelo `xFilial` do alias (`RM_ALIAS`) antes do `_Super:Seek` |
+| `MPUserHasAccess` sem o `U_` em rotina customizada | o Configurador grava a regra como `U_<rotina>`: sem o `U_` a regra não é achada e **tudo é liberado** | `RM_ROTINA` = `"U_<MENU>"` para User Function; rotina padrão TOTVS sem `U_` |
 | Erro em texto corrido (`Id campo erro: [...]`) | difícil mostrar/marcar campo | `SaveData`/`DelData` devolvem JSON `{code,message,solution,field,submodel,value}`; o frontend também entende o texto padrão |
 | PUT sem mudança | HTTP 304 (o `HttpClient` trata como erro) | service devolve `null` = "nada alterado" |
 | Registro inexistente | DELETE → 404; PUT → 400 com `code: NOTFOUND` (o framework força 400) | tratar pelo `code` |
@@ -47,6 +54,8 @@ grades netas.
 - `<api>`: nome do endpoint (`/rest/fwmodel/<api>`), minúsculo, **até 8 caracteres**, único no RPO.
 - `<CLASSE>`: `RM` + até 8 caracteres do fonte (≤ 10 no total, única no RPO).
 - `RM_BUSCA`: campos do alias principal usados no `?SEARCH=`; `RM_FIXO`: filtro SQL fixo do servidor (opcional).
+- `RM_ROTINA`: nome da rotina como o Configurador grava a regra — `"U_<MENU>"` para User Function
+  customizada, `"<MENU>"` para rotina padrão TOTVS. `RM_ALIAS`: alias do cabeçalho (filial do `pk`).
 - Permissão: o usuário do REST precisa ter acesso ao item do `MenuDef` da operação (`MPUserHasAccess`), senão 403.
 
 ```advpl
@@ -58,6 +67,10 @@ PUBLISH USER MODEL REST NAME <api> SOURCE <FONTE> RESOURCE OBJECT <CLASSE>
 
 // Fonte com o MenuDef usado na permissao (normalmente o proprio <FONTE>)
 #define RM_MENU  "<MENU>"
+// Rotina na regra do Configurador: "U_<MENU>" para User Function customizada; rotina padrao TOTVS sem U_
+#define RM_ROTINA "<ROTINA>"
+// Alias do cabecalho do modelo: o pk (base64) comeca pela filial dele
+#define RM_ALIAS "<ALIAS>"
 // Campos da busca rapida (?SEARCH=texto) - so campos do alias principal
 #define RM_BUSCA {"<CAMPO_CODIGO>", "<CAMPO_DESCRICAO>"}
 // Filtro fixo da rotina (SQL do servidor, nunca do cliente). Vazio = sem filtro
@@ -74,6 +87,7 @@ PUBLISH USER MODEL REST NAME <api> SOURCE <FONTE> RESOURCE OBJECT <CLASSE>
 Class <CLASSE> From FwRestModel
     Method Activate()
     Method SetFilter()
+    Method Seek()
     Method SaveData()
     Method DelData()
 EndClass
@@ -116,31 +130,24 @@ Method Activate() Class <CLASSE>
 Return lRet
 
 /*/{Protheus.doc} SetFilter
-    Monta o filtro: nunca aceita o FILTER da URL (SQL puro); soma o filtro interno
-    (ex.: chave do Seek), o filtro fixo da rotina e a busca rapida segura.
-    @param cFilter Character, filtro recebido
+    Monta o filtro: o filtro recebido e SEMPRE descartado (pode ser o FILTER da URL, SQL puro; a
+    comparacao com o FILTER da URL nao e confiavel). Ficam so o filtro fixo da rotina e a busca rapida
+    segura. A busca por pk nao depende deste filtro (Seek).
+    @param cFilter Character, filtro recebido (ignorado)
     @return lRet Logical, sempre .T.
     @type Method
     @author Andre Costa
 /*/
 Method SetFilter(cFilter) Class <CLASSE>
-    Local cUrl    := ""
     Local cBusca  := ""
     Local aPartes := {}
     Local cRet    := ""
     Local nI      := 0
 
-    Default cFilter := ""
-
     If ValType(self:aQueryString) == "A"
-        cUrl   := AllTrim(self:GetQSValue("FILTER"))
         cBusca := _RMBusca(self:GetQSValue("SEARCH"))
     EndIf
 
-    cFilter := AllTrim(cFilter)
-    If !Empty(cFilter) .And. !(cFilter == cUrl)
-        AAdd(aPartes, "(" + cFilter + ")")
-    EndIf
     If !Empty(RM_FIXO)
         AAdd(aPartes, "(" + RM_FIXO + ")")
     EndIf
@@ -155,6 +162,27 @@ Method SetFilter(cFilter) Class <CLASSE>
     self:cFilter := cRet
     FwFreeArray(aPartes)
 Return .T.
+
+/*/{Protheus.doc} Seek
+    Com pk (GET/PUT/DELETE /<api>/{pk}) so posiciona registro da filial do usuario: o pk (base64
+    decodificado pelo framework) comeca pela filial do alias do cabecalho. Sem pk (lista) segue o padrao.
+    @param cPK Character, chave do registro ou vazio
+    @return lRet Logical, .T. se posicionou
+    @type Method
+    @author Andre Costa
+/*/
+Method Seek(cPK) Class <CLASSE>
+    Local cFil := xFilial(RM_ALIAS)
+    Local lRet := .F.
+
+    Default cPK := ""
+
+    If Empty(cPK)
+        lRet := _Super:Seek(cPK)
+    ElseIf Left(cPK, Len(cFil)) == cFil
+        lRet := _Super:Seek(cPK)
+    EndIf
+Return lRet
 
 /*/{Protheus.doc} SaveData
     POST (sem cPK) inclui e PUT (com cPK) altera pelo LoadJsonData do modelo, com o JSON
@@ -309,7 +337,8 @@ Static Function _RMNormFd(aFields, lOrder)
 Return
 
 /*/{Protheus.doc} _RMAcesso
-    Acesso do usuario REST a operacao, pela posicao do item no MenuDef da rotina.
+    Acesso do usuario REST a operacao, pela posicao do item no MenuDef da rotina e pela regra do
+    Configurador gravada para RM_ROTINA (com U_ quando for User Function).
     @param cRotina Character, fonte com o MenuDef
     @param nOper Numeric, operacao MVC
     @return lRet Logical, .T. se tem acesso
@@ -320,13 +349,15 @@ Static Function _RMAcesso(cRotina, nOper)
     Local aMenu := FWLoadMenuDef(cRotina)
     Local aOper := IIf(nOper == MODEL_OPERATION_VIEW, {MODEL_OPERATION_VIEW, 2}, {nOper})
     Local nPos  := AScan(aMenu, {|x| ValType(x[4]) == "N" .And. AScan(aOper, x[4]) > 0})
+    Local cUsr  := RetCodUsr()
     Local lRet  := .F.
 
-    If nPos > 0
-        lRet := MPUserHasAccess(cRotina, nPos, RetCodUsr())
+    If nPos > 0 .And. !Empty(cUsr)
+        lRet := MPUserHasAccess(RM_ROTINA, nPos, cUsr, .F.)
     EndIf
 
     FwFreeArray(aOper)
+    FwFreeArray(aMenu)
 Return lRet
 
 /*/{Protheus.doc} _RMBusca
@@ -518,6 +549,19 @@ export function toMvcValue(value: MvcValue): string {
     return value ? '.T.' : '.F.';
   }
   return String(value);
+}
+
+/** Entidades XML que o FWRestModel aplica nos valores texto (ex.: JSON de um campo memo chega com &quot;). */
+const MVC_ENTIDADES: Record<string, string> = { '&quot;': '"', '&apos;': "'", '&lt;': '<', '&gt;': '>', '&amp;': '&' };
+
+/** Texto do Protheus sem os espaços do tamanho do campo e sem as entidades XML; vazio quando não vier. */
+export function mvcText(value: MvcValue): string {
+  if (value === null || value === undefined) {
+    return '';
+  }
+  return String(value)
+    .trim()
+    .replace(/&(quot|apos|lt|gt|amp);/g, (ent) => MVC_ENTIDADES[ent]);
 }
 
 /** Data do Protheus (AAAAMMDD) → Date local; vazio ou inválido → null. */
@@ -725,8 +769,9 @@ import {
 export class ProtheusMvcService {
   private readonly http = inject(HttpClient);
 
-  list(api: string, spec: MvcModelSpec, page: number, pageSize: number, search?: string): Observable<MvcPage> {
-    const params = new HttpParams({ fromObject: mvcListParams(page, pageSize, search) });
+  /** `extra`: parâmetros tratados pelo recurso (ex.: { SITUAC: 'F' }) — ver "Lista ordenada e filtros por parâmetro". */
+  list(api: string, spec: MvcModelSpec, page: number, pageSize: number, search?: string, extra: Record<string, string> = {}): Observable<MvcPage> {
+    const params = new HttpParams({ fromObject: { ...mvcListParams(page, pageSize, search), ...extra } });
     return this.http.get<RawList>(api, { params }).pipe(
       map((raw) => parseMvcList(raw, spec)),
       catchError((error: HttpErrorResponse) => this.fail(error)),
@@ -783,6 +828,7 @@ import {
   mvcListParams,
   mvcNode,
   mvcNumber,
+  mvcText,
   parseMvcError,
   parseMvcList,
   parseMvcResource,
@@ -818,6 +864,13 @@ describe('protheus-mvc (conversões)', () => {
     expect(mvcDate('20300105')?.getDate()).toBe(5);
     expect(mvcDate('')).toBeNull();
     expect(mvcNumber('1.00')).toBe(1);
+  });
+
+  it('mvcText: sem espaços do campo e com as entidades XML do FWRestModel decodificadas', () => {
+    expect(mvcText('  ABC   ')).toBe('ABC');
+    expect(mvcText(undefined)).toBe('');
+    expect(mvcText('{&quot;lote&quot;:&quot;A&amp;B &lt;1&gt;&quot;}')).toBe('{"lote":"A&B <1>"}');
+    expect(mvcText('&amp;quot;')).toBe('&quot;');
   });
 
   it('buildMvcBody: order nos FIELDS (cabeçalho e 1:1), grade e grade neta com id/deleted', () => {
@@ -953,6 +1006,14 @@ describe('ProtheusMvcService', () => {
     expect(codigo).toBe('R1');
   });
 
+  it('list: parâmetros extras do recurso vão na URL', () => {
+    service.list(api, spec, 1, 10, '', { SITUAC: 'F' }).subscribe();
+    const req = httpMock.expectOne((r) => r.url === api);
+    expect(req.request.params.get('SITUAC')).toBe('F');
+    expect(req.request.params.has('SEARCH')).toBeFalse();
+    req.flush({ total: 0, count: 0, startindex: 1, resources: [] });
+  });
+
   it('create: POST com operation 3, order nos campos e valores em texto', () => {
     service.create(api, spec, mvcNode({ Z07_CODIGO: 'R1', Z07_RCA: 5 })).subscribe();
     const req = httpMock.expectOne(api);
@@ -1059,6 +1120,111 @@ salvar(): void {
 - Lista: `this.mvc.list(API, SPEC, page, pageSize, busca)` → `{ items, hasNext, total }`; cada item tem `_pk`.
 - O proxy `/rest` do `proxy.conf.js` já cobre `/rest/fwmodel` (a URL final, depois do prefixo do ProtheusLibCore).
 
+## Lista ordenada e filtros por parâmetro (opcional)
+
+A lista padrão do FWRestModel vem na ordem do índice 1 e só aceita o `SEARCH` deste recurso. Para monitor
+ou fila (mais recente primeiro, filtro de status escolhido na tela) o recurso abre a própria consulta no
+`Seek` sem `pk` e conta no `Total`, com **todos os valores como parâmetro** do `FWPreparedStatement`
+(nunca concatenados). Validado num monitor somente leitura (12.1.2510, 11/2026): ordem, `SEARCH`, filtro
+com valor inválido ignorado, total da paginação e GET por `pk` da outra filial recusado.
+
+```advpl
+// Ordem da lista e filtro por parametro (?<PARAM>=), so com os valores permitidos
+#define RM_ORDEM " ORDER BY <CAMPO_DATA> DESC, <CAMPO_HORA> DESC, R_E_C_N_O_ DESC"
+#define RM_VALOK "<VALORES_PERMITIDOS>"   // ex.: "FEPSC" - um caractere por valor
+
+Class <CLASSE> From FwRestModel
+    Data cBusca
+    Data cParam
+    Method Activate()
+    Method SetFilter()
+    Method Seek()
+    Method Total()
+EndClass
+
+Method SetFilter(cFilter) Class <CLASSE>
+    Local cValor := ""
+
+    self:cBusca  := ""
+    self:cParam  := ""
+    self:cFilter := ""                                   // nenhum texto livre entra no SQL
+    If ValType(self:aQueryString) == "A"
+        self:cBusca := Left(StrTran(StrTran(Upper(AllTrim(cValToChar(self:GetQSValue("SEARCH")))), "%", ""), "_", ""), 60)
+        cValor      := Upper(AllTrim(cValToChar(self:GetQSValue("<PARAM>"))))
+        If Len(cValor) == 1 .And. cValor $ RM_VALOK
+            self:cParam := cValor
+        EndIf
+    EndIf
+Return .T.
+
+Method Seek(cPK) Class <CLASSE>
+    Local cFil   := xFilial(RM_ALIAS)
+    Local cQuery := ""
+    Local lRet   := .F.
+
+    Default cPK := ""
+
+    If !Empty(cPK)
+        If Left(cPK, Len(cFil)) == cFil
+            lRet := _Super:Seek(cPK)
+        EndIf
+    ElseIf self:HasAlias()
+        cQuery := _RMQry("R_E_C_N_O_", RM_ORDEM, self:cBusca, self:cParam)
+        MPSysOpenQuery(cQuery, @self:cQryAlias)
+        If !(self:cQryAlias)->(Eof())
+            (self:cAlias)->(DbGoTo((self:cQryAlias)->R_E_C_N_O_))
+            lRet := !(self:cAlias)->(Eof())
+        EndIf
+    EndIf
+Return lRet
+
+Method Total() Class <CLASSE>
+    Local cAlias := GetNextAlias()
+    Local nTotal := 0
+
+    MPSysOpenQuery(_RMQry("COUNT(*) TOTAL", "", self:cBusca, self:cParam), cAlias)
+    If !(cAlias)->(Eof())
+        nTotal := (cAlias)->TOTAL
+    EndIf
+    (cAlias)->(DbCloseArea())
+Return nTotal
+
+Static Function _RMQry(cCampos, cOrdem, cBusca, cParam)
+    Local oStmt := Nil
+    Local cQry  := "SELECT " + cCampos + " FROM " + RetSqlName(RM_ALIAS) + ;
+                   " WHERE <PREFIXO>_FILIAL = ? AND D_E_L_E_T_ = ' '"
+    Local cRet  := ""
+    Local nPar  := 1
+
+    If !Empty(cParam)
+        cQry += " AND <CAMPO_PARAM> = ?"
+    EndIf
+    If !Empty(cBusca)
+        cQry += " AND <CAMPO_BUSCA> LIKE ?"
+    EndIf
+    cQry += cOrdem
+    oStmt := FWPreparedStatement():New(cQry)
+    oStmt:SetString(nPar, xFilial(RM_ALIAS))
+    If !Empty(cParam)
+        nPar++
+        oStmt:SetString(nPar, cParam)
+    EndIf
+    If !Empty(cBusca)
+        nPar++
+        oStmt:SetString(nPar, "%" + cBusca + "%")
+    EndIf
+    cRet := oStmt:GetFixQuery()
+    oStmt:Destroy()
+    FwFreeObj(oStmt)
+Return cRet
+```
+
+- Monitor **somente leitura**: no `Activate`, recusar (405) qualquer verbo diferente de `GET`
+  (`!(cVerbo == "GET")`) antes de seguir — lista do que permitir, não do que proibir.
+- Frontend: `this.mvc.list(API, SPEC, page, pageSize, busca, { <PARAM>: valor })`; sem filtro, não mandar
+  o parâmetro.
+- `UPPER(<CAMPO_BUSCA>)` impede índice: se o campo é gravado em maiúsculas, compare direto.
+
 ## Modo somente leitura — `--mvc <FONTE> --readonly`
 
 Para telas que **só consultam** o modelo (monitor, painel de acompanhamento, `two-panel-browse --detail`,
@@ -1085,8 +1251,9 @@ import { MvcData, MvcModelSpec, MvcPage, RawList, RawResource, mvcListParams, pa
 export class ProtheusMvcService {
   private readonly http = inject(HttpClient);
 
-  list(api: string, spec: MvcModelSpec, page: number, pageSize: number, search?: string): Observable<MvcPage> {
-    const params = new HttpParams({ fromObject: mvcListParams(page, pageSize, search) });
+  /** `extra`: parâmetros tratados pelo recurso (ex.: { SITUAC: 'F' }) — ver "Lista ordenada e filtros por parâmetro". */
+  list(api: string, spec: MvcModelSpec, page: number, pageSize: number, search?: string, extra: Record<string, string> = {}): Observable<MvcPage> {
+    const params = new HttpParams({ fromObject: { ...mvcListParams(page, pageSize, search), ...extra } });
     return this.http.get<RawList>(api, { params }).pipe(
       map((raw) => parseMvcList(raw, spec)),
       catchError((error: HttpErrorResponse) => this.fail(error)),
@@ -1113,9 +1280,9 @@ export class ProtheusMvcService {
 - **Testes:** só os de leitura (lista com `COUNT`/`STARTINDEX`/`SEARCH`, `get` com `FIELDEMPTY`, grade sem
   `items`, erro em JSON e em texto, 401/404).
 - **Filtros que não são busca:** o `FILTER` da URL é ignorado pelo recurso (proteção contra injeção de
-  SQL). Filtro fixo vai no `RM_FIXO` do backend; filtro escolhido na tela (status, tipo) filtra no cliente
-  os registros já carregados — avisar na tela ("filtra os N carregados") — ou vira um parâmetro tratado no
-  `SetFilter` do recurso com lista de valores permitidos.
+  SQL). Filtro fixo vai no `RM_FIXO` do backend; filtro escolhido na tela (status, tipo) vira um **parâmetro
+  do recurso** com lista de valores permitidos — seção "Lista ordenada e filtros por parâmetro" — e vai no
+  `extra` do `list`. Filtrar no cliente só os registros já carregados engana o usuário ("Carregar mais").
 
 ## Limitações
 

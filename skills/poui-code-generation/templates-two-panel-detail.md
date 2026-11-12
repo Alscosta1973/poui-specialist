@@ -47,6 +47,8 @@ Título                                               [Ação primária] [Ação
 | **Ação = tela travada com texto** | depois do `confirm`, `<po-loading-overlay [p-screen-lock]="true" [p-text]="textoAcao()">` com "Processando o Lote X..." até o Protheus responder | ação demorada sem retorno visual parece travamento |
 | Retorno da ação | `po-notification` (success / warning se o status voltou com erro / error) e recarga do registro e da linha da lista | o usuário vê o resultado e o status novo |
 | Busca no servidor, filtros no cliente | `SEARCH` com `debounceTime(400)`; Status/Tipo filtram os já carregados e o rodapé avisa ("filtram os N carregados") | o FWRestModel ignora o `FILTER` da URL (SQL) |
+| **Filtro principal no servidor (preferível em fila/monitor)** | o recurso aceita o status como parâmetro com valores permitidos e ordena a lista (`templates-mvc-rest.md`, seção "Lista ordenada e filtros por parâmetro"); a tela manda `{ <PARAM>: valor }` no `extra` do `list` e recarrega da página 1 ao trocar | com filtro só no cliente a lista mostra "nenhum registro" enquanto há registros nas páginas não carregadas |
+| Campos texto pelo `mvcText` | todo campo texto do FWRestModel passa por `mvcText` (tira espaços e decodifica `&quot;`/`&amp;`...) antes de virar JSON formatado (`JSON.parse`) | memo com JSON chega com entidades XML e o `JSON.parse` falharia |
 | Paginação | "Carregar mais" (`STARTINDEX`/`COUNT`), falha mantém a lista e a página | listas longas |
 | Lista acessível | itens são `<button role="listitem">` com `aria-current` no selecionado e `:focus-visible` | teclado e leitor de tela |
 | Empilhar em tela estreita | `@media (max-width: 799px)` → `flex-direction: column` | uso em notebook pequeno |
