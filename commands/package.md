@@ -1,7 +1,7 @@
 ---
 description: Compile an existing PO-UI Angular project and package it into a Resource/<project>.app ready to publish in Protheus
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, PowerShell, AskUserQuestion, Skill
-argument-hint: "[project-path] [--skip-build]"
+argument-hint: "[project-path] [--skip-build] [--fontes]"
 ---
 
 **IMPORTANT:** Always respond in the same language the user is writing in. If the user writes in Portuguese, respond in Portuguese.
@@ -34,7 +34,14 @@ em qualquer projeto Angular + PO-UI existente, na pasta atual ou em `[project-pa
 
 # Combinando os dois
 /poui-specialist:package C:\caminho\do\projeto --skip-build
+
+# .app + zip dos fontes do projeto Angular para entregar ao cliente
+/poui-specialist:package --fontes
 ```
+
+`--fontes` gera também `Resource/<projeto>-fontes.zip` (Passo 4b): o projeto Angular que o cliente
+precisa para ajustar, compilar e reempacotar o app, sem `node_modules`, `dist`, proxy local nem
+configuração de editor, com `proxy.conf.example.json` e `LEIA-ME.md`.
 
 ---
 
@@ -230,6 +237,82 @@ foreach ($pattern in @("dist/", "*.zip", "Resource/")) {
 
 ---
 
+## Passo 4b — Zip dos fontes para o cliente (somente com `--fontes`)
+
+O cliente precisa dos fontes do projeto Angular para qualquer ajuste futuro — o `.app` é só o
+resultado compilado. Gerar `Resource/<projeto>-fontes.zip` com a pasta `<projeto>/` na raiz.
+
+**Entra:** os arquivos do projeto versionados ou não ignorados pelo git (`git ls-files --cached
+--others --exclude-standard`; fora do git, percorrer a pasta) — `src/`, `public/`, `package.json`,
+**`package-lock.json`** (fixa as versões: o cliente instala com `npm ci`), `angular.json`,
+`tsconfig*.json`, specs, `README.md`, `.gitignore`, `.editorconfig`, `.npmrc`, `.prettierrc`.
+
+**Não entra:** pastas `node_modules`, `dist`, `.angular`, `Resource`, `coverage`, `.vscode`, `.idea`,
+`.git`, `test-results`, `playwright-report`, `out-tsc`, `tmp`; arquivos `proxy.conf.json/.js`
+(proxy local — aponta para o servidor de quem desenvolveu e pode levar credencial), `*.secret`
+(ex.: `protheus-dev.secret` do `/connect`), `.env*`, `*.zip`, `*.app`, `*.log`.
+
+**Gerados no zip:**
+- `proxy.conf.example.json` — mesmos contextos do `proxy.conf.json` local (ou `/rest`), com
+  `target: "http://<servidor-rest>:<porta>"`, `secure: false`, `changeOrigin: true` e **sem**
+  `headers`/`auth`.
+- `LEIA-ME.md` — versões (Node `node -v`, `@angular/core` e `@po-ui/ng-components` do `package.json`)
+  e os passos: `npm ci` → copiar o proxy de exemplo → `npm start` → `npm test` →
+  `ng build --configuration production` → empacotar com 7-Zip (pasta `<projeto>/` na raiz, como no
+  Passo 4) → compilar `Resource/<projeto>.app` no RPO pelo TDS junto da rotina com
+  `FwCallApp("<projeto>")`. **Nunca citar o plugin** no LEIA-ME nem em nenhum arquivo do zip.
+
+```powershell
+$stage = Join-Path $env:TEMP ("poui-fontes-" + [guid]::NewGuid().ToString('N'))
+$base  = Join-Path $stage $projectName
+New-Item -ItemType Directory -Path $base -Force | Out-Null
+
+$exclDirs  = @('node_modules','dist','.angular','Resource','coverage','.vscode','.idea','.git',
+               'test-results','playwright-report','out-tsc','tmp')
+$exclFiles = '^(proxy\.conf\.(json|js|cjs|mjs)|\.env(\..*)?)$|\.(zip|app|log|secret)$'
+
+$files = @(git ls-files --cached --others --exclude-standard 2>$null)
+if ($LASTEXITCODE -ne 0 -or $files.Count -eq 0) {
+    $root  = (Get-Location).Path
+    $files = Get-ChildItem -Recurse -File -Force |
+             ForEach-Object { $_.FullName.Substring($root.Length + 1) -replace '\\','/' }
+}
+$files = $files | Where-Object {
+    $parts = $_ -split '[\\/]'
+    -not ($parts[0..($parts.Count - 2)] | Where-Object { $exclDirs -contains $_ }) -and
+    ($parts[-1] -notmatch $exclFiles) -and (Test-Path $_ -PathType Leaf)
+}
+foreach ($f in $files) {
+    $dest = Join-Path $base $f
+    New-Item -ItemType Directory -Path (Split-Path $dest) -Force | Out-Null
+    Copy-Item $f $dest
+}
+# + gravar proxy.conf.example.json e LEIA-ME.md em $base (conteúdo descrito acima, UTF-8)
+
+$zipFontes = Join-Path (Resolve-Path 'Resource').Path "$projectName-fontes.zip"
+if (Test-Path $zipFontes) { Remove-Item $zipFontes -Force }
+Push-Location $stage
+& $sevenZipPath a -tzip $zipFontes $projectName | Out-Null   # sem 7-Zip: Compress-Archive serve para fontes
+Pop-Location
+Remove-Item $stage -Recurse -Force
+```
+
+**Conferir antes de declarar pronto** (listar o zip):
+- a raiz é `<projeto>/` e tem `package.json`, `package-lock.json`, `angular.json`, `LEIA-ME.md` e
+  `proxy.conf.example.json`;
+- **não** há `node_modules/`, `dist/`, `proxy.conf.json`, `*.secret` nem `.app`.
+
+**Avisos (não bloqueiam, mas mostrar ao usuário antes de ele enviar ao cliente)** — procurar nos
+arquivos de texto do zip, exceto os locks de dependências (`package-lock.json`, `yarn.lock`,
+`pnpm-lock.yaml` — nomes como `@inquirer/password` dariam falso positivo):
+- `(poui|advpl)-specialist` ou `@generated` → fonte cita a ferramenta de geração (remover);
+- `Basic <base64>` ou `password|senha|psw` com valor literal → credencial escrita no código.
+
+Opcional, recomendado na primeira entrega de um projeto: extrair o zip numa pasta vazia, rodar
+`npm ci` e `ng build --configuration production` para provar que os fontes compilam sozinhos.
+
+---
+
 ## Passo 5 — Relatório e próximos passos
 
 Exibir:
@@ -239,6 +322,7 @@ Exibir:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 📦 Resource/{{projectName}}.app — pronto para publicar
+🗂 Resource/{{projectName}}-fontes.zip — fontes para o cliente (só com --fontes; N arquivos, avisos: X)
 
 🔧 Próximos passos (dentro do Protheus):
    1. Copiar Resource/{{projectName}}.app para
