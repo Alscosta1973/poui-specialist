@@ -3,6 +3,7 @@ import * as fs from 'node:fs/promises';
 import { accessSync } from 'node:fs';
 import * as path from 'node:path';
 import { findSevenZip, packageProject } from './packaging';
+import { packageSources, sourcesZipName } from './sourcePackaging';
 import { requireLicense } from './requireLicense';
 
 export function registerPackageCommand(
@@ -26,6 +27,21 @@ export function registerPackageCommand(
       .catch(() => false);
     if (!hasAngularJson) {
       void vscode.window.showErrorMessage('PO-UI: nenhum projeto Angular encontrado — empacotamento cancelado.');
+      return;
+    }
+
+    const conteudo = await vscode.window.showQuickPick(
+      [
+        { label: 'Somente o .app', description: 'Resource/<projeto>.app', fontes: false },
+        {
+          label: '.app + zip dos fontes para o cliente',
+          description: 'Resource/<projeto>-fontes.zip: projeto Angular sem node_modules/dist/proxy local, com LEIA-ME',
+          fontes: true,
+        },
+      ],
+      { title: 'PO-UI: Empacotar Projeto', placeHolder: 'O que gerar?' },
+    );
+    if (!conteudo) {
       return;
     }
 
@@ -58,9 +74,26 @@ export function registerPackageCommand(
     }
 
     const relativeAppPath = result.appPath ? path.relative(workspaceRoot, result.appPath).split(path.sep).join('/') : '';
-    const summary = result.usedRiskyFallback
+    let summary = result.usedRiskyFallback
       ? `PO-UI: pacote gerado em ${relativeAppPath} — ⚠ com Compress-Archive (7-Zip ausente), pode falhar ao extrair no Protheus.`
       : `PO-UI: pacote gerado e verificado em ${relativeAppPath}.`;
+
+    if (conteudo.fontes && result.appPath) {
+      const projectName = path.basename(result.appPath, '.app');
+      outputChannel.appendLine('Gerando o zip dos fontes para o cliente...');
+      const fontes = await packageSources(workspaceRoot, projectName, sevenZipPath, outputChannel);
+      if (!fontes.success) {
+        outputChannel.appendLine(`✗ Zip dos fontes: ${fontes.errorMessage ?? 'erro desconhecido'}`);
+        void vscode.window.showErrorMessage(`PO-UI: .app gerado, mas o zip dos fontes falhou — ${fontes.errorMessage ?? 'erro desconhecido'}.`);
+      } else {
+        summary += ` Fontes: Resource/${sourcesZipName(projectName)} (${fontes.fileCount} arquivos).`;
+        if (fontes.warnings.length > 0) {
+          void vscode.window.showWarningMessage(
+            `PO-UI: ${fontes.warnings.length} aviso(s) no zip dos fontes (ferramenta citada ou credencial no código) — ver o painel de saída antes de enviar ao cliente.`,
+          );
+        }
+      }
+    }
     outputChannel.appendLine(`✅ ${summary}`);
 
     if (result.usedRiskyFallback) {
